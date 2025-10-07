@@ -12,9 +12,15 @@ namespace RealmEngine
     {
         m_logger = std::make_shared<Logger>();
 
-        m_window = std::make_shared<Window>(1920, 1080);
+        m_window = std::make_shared<Window>();
         m_window->initialize();
     }
 
-    void GlobalContext::destroy() { m_logger.reset(); }
+    void GlobalContext::destroy()
+    {
+        m_window->destroy();
+        m_window.reset();
+
+        m_logger.reset();
+    }
 } // namespace RealmEngine

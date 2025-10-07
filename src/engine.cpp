@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "global_context.h"
 #include "utils.h"
+#include "window.h"
 
 namespace RealmEngine
 {
@@ -12,7 +13,7 @@ namespace RealmEngine
 
     void Engine::run()
     {
-        while (true)
+        while (!g_context.m_window->shouldClose())
         {
             tick();
         }
@@ -30,8 +31,8 @@ namespace RealmEngine
         renderTick();
     }
 
-    void Engine::logicalTick() {}
+    void Engine::logicalTick() { g_context.m_window->pollEvents(); }
 
-    void Engine::renderTick() {}
+    void Engine::renderTick() { g_context.m_window->swapBuffer(); }
 
 } // namespace RealmEngine
