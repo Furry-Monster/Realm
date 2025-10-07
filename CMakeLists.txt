@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+
+project(RealmEngine
+    VERSION 0.1.0
+    LANGUAGES CXX C
+)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+include(CMakeDependentOption)
+
+set(OPENGL_GL_PREFERENCE GLVND)
+
+set(LEARN_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(CMAKE_INSTALL_PREFIX "${LEARN_ROOT_DIR}/bin")
+set(BINARY_ROOT_DIR "${CMAKE_INSTALL_PREFIX}")
+
+add_subdirectory(libs)
+add_subdirectory(src)
