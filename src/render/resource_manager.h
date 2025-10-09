@@ -8,16 +8,16 @@
 
 namespace RealmEngine
 {
+
+    using BufferHandle  = GLuint;
+    using TextureHandle = GLuint;
+    using ShaderHandle  = GLuint;
+    using ProgramHandle = GLuint;
+    using VAOHandle     = GLuint;
+    using FBOHandle     = GLuint;
+
     class GraphicResourceManager
     {
-
-        using BufferHandle  = GLuint;
-        using TextureHandle = GLuint;
-        using ShaderHandle  = GLuint;
-        using ProgramHandle = GLuint;
-        using VAOHandle     = GLuint;
-        using FBOHandle     = GLuint;
-
     public:
         GraphicResourceManager()           = default;
         ~GraphicResourceManager() noexcept = default;
@@ -31,12 +31,12 @@ namespace RealmEngine
         void disposal();
 
         BufferHandle createBuffer(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
-        void         updateBuffer(BufferHandle handle, GLintptr offset, GLsizeiptr size, const void* data);
-        void         deleteBuffer(BufferHandle handle);
+        void updateBuffer(BufferHandle handle, GLenum target, GLintptr offset, GLsizeiptr size, const void* data);
+        void deleteBuffer(BufferHandle handle);
 
         TextureHandle createTexture2D(int         width,
                                       int         height,
-                                      GLenum      internalFormat,
+                                      GLenum      internal_format,
                                       GLenum      format,
                                       GLenum      type,
                                       const void* data = nullptr);
@@ -45,7 +45,7 @@ namespace RealmEngine
 
         ShaderHandle  createShader(GLenum shaderType, const std::string& source);
         ProgramHandle createProgram(const std::vector<ShaderHandle>& shaders);
-        ProgramHandle loadShaderProgram(const std::string& vertexPath, const std::string& fragmentPath);
+        ProgramHandle loadShaderProgram(const std::string& vertex_path, const std::string& fragment_path);
         ProgramHandle getProgram(const std::string& name);
         void          deleteShader(ShaderHandle handle);
         void          deleteProgram(ProgramHandle handle);
