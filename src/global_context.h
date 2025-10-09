@@ -6,6 +6,7 @@ namespace RealmEngine
 {
     class Logger;
     class Window;
+    class Renderer;
 
     class GlobalContext
     {
@@ -21,8 +22,9 @@ namespace RealmEngine
         void create();
         void destroy();
 
-        std::shared_ptr<Logger> m_logger;
-        std::shared_ptr<Window> m_window;
+        std::shared_ptr<Logger>   m_logger;
+        std::shared_ptr<Window>   m_window;
+        std::shared_ptr<Renderer> m_renderer;
     };
 
     extern GlobalContext g_context;

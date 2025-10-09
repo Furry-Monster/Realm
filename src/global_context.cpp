@@ -1,7 +1,9 @@
 #include "global_context.h"
-#include "logger.h"
 
+#include "logger.h"
+#include "render/renderer.h"
 #include "window.h"
+
 #include <memory>
 
 namespace RealmEngine
@@ -15,10 +17,16 @@ namespace RealmEngine
 
         m_window = std::make_shared<Window>();
         m_window->initialize();
+
+        m_renderer = std::make_shared<Renderer>();
+        m_renderer->initialize();
     }
 
     void GlobalContext::destroy()
     {
+        m_renderer->disposal();
+        m_renderer.reset();
+
         m_window->disposal();
         m_window.reset();
 

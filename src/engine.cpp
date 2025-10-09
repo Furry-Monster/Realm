@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "global_context.h"
+#include "render/renderer.h"
 #include "utils.h"
 #include "window.h"
 
@@ -33,6 +34,10 @@ namespace RealmEngine
 
     void Engine::logicalTick() { g_context.m_window->pollEvents(); }
 
-    void Engine::renderTick() { g_context.m_window->swapBuffer(); }
+    void Engine::renderTick()
+    {
+        g_context.m_renderer->renderFrame();
+        g_context.m_window->swapBuffer();
+    }
 
 } // namespace RealmEngine
