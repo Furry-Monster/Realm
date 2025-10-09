@@ -2,7 +2,7 @@
 
 namespace RealmEngine
 {
-    class Scene
+    class Material
     {
     public:
     };

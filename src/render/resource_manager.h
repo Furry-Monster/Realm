@@ -1,9 +1,23 @@
 #pragma once
 
+#include <glad/gl.h>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 namespace RealmEngine
 {
     class GraphicResourceManager
     {
+
+        using BufferHandle  = GLuint;
+        using TextureHandle = GLuint;
+        using ShaderHandle  = GLuint;
+        using ProgramHandle = GLuint;
+        using VAOHandle     = GLuint;
+        using FBOHandle     = GLuint;
+
     public:
         GraphicResourceManager()           = default;
         ~GraphicResourceManager() noexcept = default;
@@ -15,6 +29,43 @@ namespace RealmEngine
 
         void initialize();
         void disposal();
+
+        BufferHandle createBuffer(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
+        void         updateBuffer(BufferHandle handle, GLintptr offset, GLsizeiptr size, const void* data);
+        void         deleteBuffer(BufferHandle handle);
+
+        TextureHandle createTexture2D(int         width,
+                                      int         height,
+                                      GLenum      internalFormat,
+                                      GLenum      format,
+                                      GLenum      type,
+                                      const void* data = nullptr);
+        TextureHandle loadTexture(const std::string& filepath);
+        void          deleteTexture(TextureHandle handle);
+
+        ShaderHandle  createShader(GLenum shaderType, const std::string& source);
+        ProgramHandle createProgram(const std::vector<ShaderHandle>& shaders);
+        ProgramHandle loadShaderProgram(const std::string& vertexPath, const std::string& fragmentPath);
+        ProgramHandle getProgram(const std::string& name);
+        void          deleteShader(ShaderHandle handle);
+        void          deleteProgram(ProgramHandle handle);
+
+        VAOHandle createVAO();
+        void      deleteVAO(VAOHandle handle);
+
+        FBOHandle createFramebuffer();
+        void      deleteFramebuffer(FBOHandle handle);
+
+    private:
+        std::unordered_set<BufferHandle>  m_buffers;
+        std::unordered_set<TextureHandle> m_textures;
+        std::unordered_set<ShaderHandle>  m_shaders;
+        std::unordered_set<ProgramHandle> m_programs;
+        std::unordered_set<VAOHandle>     m_vaos;
+        std::unordered_set<FBOHandle>     m_fbos;
+
+        std::unordered_map<std::string, TextureHandle> m_texture_cache;
+        std::unordered_map<std::string, ProgramHandle> m_program_cache;
     };
 
 } // namespace RealmEngine
