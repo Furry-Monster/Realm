@@ -4,8 +4,6 @@
 namespace RealmEngine
 {
 
-    void Window::initialize() { initialize(WindowConfig {}); }
-
     void Window::initialize(const WindowConfig cfg)
     {
         m_width        = cfg.width;
@@ -70,7 +68,9 @@ namespace RealmEngine
         info("GLFW window initialized.");
     }
 
-    void Window::initialize(int width, int height, const std::string& title)
+    void Window::initialize() { initialize(WindowConfig {}); }
+
+    void Window::initialize(int width, int height, const std::string& title = "RealmEngine")
     {
         WindowConfig cfg;
         cfg.width  = width;
@@ -79,18 +79,7 @@ namespace RealmEngine
         initialize(cfg);
     }
 
-    void Window::initialize(int width, int height, const std::string& title, bool fullscreen, bool vsync)
-    {
-        WindowConfig cfg;
-        cfg.width      = width;
-        cfg.height     = height;
-        cfg.title      = title;
-        cfg.fullscreen = fullscreen;
-        cfg.vsync      = vsync;
-        initialize(cfg);
-    }
-
-    void Window::destroy()
+    void Window::disposal()
     {
         info("GLFW window destoyed.");
         m_window.reset();
@@ -101,9 +90,15 @@ namespace RealmEngine
     void Window::pollEvents() const { glfwPollEvents(); }
     void Window::swapBuffer() const { glfwSwapBuffers(m_window.get()); }
 
-    int Window::getWidth() const { return m_width; }
-    int Window::getHeight() const { return m_height; }
-    int Window::getFramebufferWidth() const { return m_framebuffer_width; }
-    int Window::getFramebufferHeight() const { return m_framebuffer_height; }
+    std::string Window::getTitle() const { return m_title; }
+    int         Window::getWidth() const { return m_width; }
+    int         Window::getHeight() const { return m_height; }
+    int         Window::getFramebufferWidth() const { return m_framebuffer_width; }
+    int         Window::getFramebufferHeight() const { return m_framebuffer_height; }
+    int         Window::getMSAASamples() const { return m_msaa_samples; }
+
+    bool Window::isHDREnabled() const { return m_framebuffer_width > m_width && m_framebuffer_height > m_height; }
+    bool Window::isMSAAEnabled() const { return m_msaa_samples > 0; }
+    bool Window::isVSyncEnabled() const { return m_vsync; }
 
 } // namespace RealmEngine

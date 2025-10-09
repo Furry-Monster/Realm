@@ -73,20 +73,26 @@ namespace RealmEngine
         Window& operator=(const Window& that) = delete;
         Window& operator=(Window&& that)      = delete;
 
-        void initialize(WindowConfig cfg);
         void initialize();
-        void initialize(int width, int height, const std::string& title = "RealmEngine");
-        void initialize(int width, int height, const std::string& title, bool fullscreen, bool vsync = true);
-        void destroy();
+        void initialize(int width, int height, const std::string& title);
+        void initialize(WindowConfig cfg);
+
+        void disposal();
 
         bool shouldClose() const;
         void pollEvents() const;
         void swapBuffer() const;
 
-        int getWidth() const;
-        int getHeight() const;
-        int getFramebufferWidth() const;
-        int getFramebufferHeight() const;
+        std::string getTitle() const;
+        int         getWidth() const;
+        int         getHeight() const;
+        int         getFramebufferWidth() const;
+        int         getFramebufferHeight() const;
+        int         getMSAASamples() const;
+
+        bool isHDREnabled() const;
+        bool isMSAAEnabled() const;
+        bool isVSyncEnabled() const;
 
         using onResetFunc           = std::function<void()>;
         using onKeyFunc             = std::function<void(int, int, int, int)>;
