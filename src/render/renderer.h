@@ -23,9 +23,12 @@ namespace RealmEngine
 
         void renderFrame();
 
+        void setRenderScene();
+        void setPipeline();
+
     private:
-        RenderScene               m_render_scene;
-        GraphicResourceManager    m_grahic_res_mgr;
+        GraphicResourceManager          m_grahic_res_mgr;
+        std::unique_ptr<RenderScene>    m_render_scene;
         std::unique_ptr<RenderPipeline> m_render_pipeline;
     };
 } // namespace RealmEngine

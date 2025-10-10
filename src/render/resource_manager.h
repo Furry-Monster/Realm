@@ -17,6 +17,10 @@ namespace RealmEngine
     using FBOHandle     = GLuint;
     using RBOHandle     = GLuint;
 
+    /**
+     * @brief Graphic Resource Manager , supporting OpenGL resource management.
+     *
+     */
     class GraphicResourceManager
     {
     public:

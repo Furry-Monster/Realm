@@ -3,13 +3,15 @@
 #include "render/renderer.h"
 #include "utils.h"
 #include "window.h"
+#include <iostream>
+#include <string>
 
 namespace RealmEngine
 {
     void Engine::boot()
     {
         g_context.create();
-        info("Boot Engine.");
+        info("<<< Boot Engine Done. >>>");
     }
 
     void Engine::run()
@@ -22,7 +24,7 @@ namespace RealmEngine
 
     void Engine::terminate()
     {
-        info("Teminate Engine.");
+        info("<<< Now Teminating Engine. >>>");
         g_context.destroy();
     }
 
