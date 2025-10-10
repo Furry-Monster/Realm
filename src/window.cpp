@@ -81,9 +81,10 @@ namespace RealmEngine
 
     void Window::disposal()
     {
-        info("GLFW window destoyed.");
         m_window.reset();
         glfwTerminate();
+
+        info("GLFW window destoyed.");
     }
 
     bool Window::shouldClose() const { return glfwWindowShouldClose(m_window.get()); }

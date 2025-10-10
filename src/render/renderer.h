@@ -1,7 +1,9 @@
 #pragma once
 
+#include "render/render_pipeline.h"
 #include "render/render_scene.h"
 #include "render/resource_manager.h"
+#include <memory>
 
 namespace RealmEngine
 {
@@ -22,7 +24,8 @@ namespace RealmEngine
         void renderFrame();
 
     private:
-        RenderScene            m_render_scene;
-        GraphicResourceManager m_grahic_res_mgr;
+        RenderScene               m_render_scene;
+        GraphicResourceManager    m_grahic_res_mgr;
+        std::unique_ptr<RenderPipeline> m_render_pipeline;
     };
 } // namespace RealmEngine

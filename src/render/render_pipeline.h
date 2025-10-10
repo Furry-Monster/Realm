@@ -2,17 +2,17 @@
 
 namespace RealmEngine
 {
-    class Pipeline
+    class RenderPipeline
     {
     public:
-        virtual ~Pipeline() noexcept = default;
+        virtual ~RenderPipeline() noexcept = default;
 
         virtual void initialize() = 0;
         virtual void render()     = 0;
         virtual void disposal()   = 0;
     };
 
-    class ForwardPipeline : public Pipeline
+    class ForwardPipeline : public RenderPipeline
     {
     public:
         void initialize() override;
