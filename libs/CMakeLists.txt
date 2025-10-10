@@ -64,8 +64,13 @@ if(NOT TARGET spdlog)
     add_subdirectory(spdlog)
 endif()
 
+if(NOT TARGET nlohmann)
+    add_library(nlohmann INTERFACE)
+    target_include_directories(nlohmann INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann)
+endif()
+
 add_library(reflibs INTERFACE)
-target_link_libraries(reflibs INTERFACE glad glfw glm imgui assimp spdlog)
+target_link_libraries(reflibs INTERFACE glad glfw glm imgui assimp spdlog nlohmann)
 
 if(UNIX AND NOT APPLE)
     find_package(OpenGL REQUIRED)
@@ -84,4 +89,5 @@ target_include_directories(reflibs INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/stb
     ${CMAKE_CURRENT_SOURCE_DIR}/assimp/include
     ${CMAKE_CURRENT_SOURCE_DIR}/spdlog/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann
 )
