@@ -1,6 +1,7 @@
 #include "resource_manager.h"
 
 #include "utils.h"
+#include <cstddef>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -24,6 +25,18 @@ namespace RealmEngine
 
         m_buffers.insert(buffer);
         return buffer;
+    }
+    BufferHandle GraphicResourceManager::createVertexBuffer(GLsizeiptr size, const void* data, GLenum usage)
+    {
+        return createBuffer(GL_ARRAY_BUFFER, size, data, usage);
+    }
+    BufferHandle GraphicResourceManager::createIndexBuffer(GLsizeiptr size, const void* data, GLenum usage)
+    {
+        return createBuffer(GL_ELEMENT_ARRAY_BUFFER, size, data, usage);
+    }
+    BufferHandle GraphicResourceManager::createUniformBuffer(GLsizeiptr size, const void* data, GLenum usage)
+    {
+        return createBuffer(GL_UNIFORM_BUFFER, size, data, usage);
     }
     void GraphicResourceManager::updateBuffer(BufferHandle handle,
                                               GLenum       target,
@@ -74,6 +87,31 @@ namespace RealmEngine
         m_textures.insert(texture);
         return texture;
     }
+    TextureHandle GraphicResourceManager::createTextureCubemap(GLsizei width,
+                                                               GLsizei height,
+                                                               GLenum  internal_format,
+                                                               GLenum  format,
+                                                               GLenum  type)
+    {
+        TextureHandle texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+
+        for (size_t i = 0; i < 6; ++i)
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal_format, width, height, 0, format, type, nullptr);
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+        m_textures.insert(texture);
+        return texture;
+    }
     TextureHandle GraphicResourceManager::loadTexture(const std::string& filepath)
     {
         auto it = m_texture_cache.find(filepath);
@@ -117,6 +155,67 @@ namespace RealmEngine
         if (texture != 0)
             m_texture_cache[filepath] = texture;
 
+        return texture;
+    }
+    TextureHandle GraphicResourceManager::loadCubemap(const std::vector<std::string>& face_paths)
+    {
+        if (face_paths.size() != 6)
+        {
+            err("Cubemap requires exactly 6 face textures, got " + std::to_string(face_paths.size()));
+            return 0;
+        }
+
+        TextureHandle texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+
+        for (size_t i = 0; i < 6; ++i)
+        {
+            int            width, height, nr_components;
+            unsigned char* data = stbi_load(face_paths[i].c_str(), &width, &height, &nr_components, 0);
+
+            if (data == nullptr)
+            {
+                err("Cubemap face failed to load at path: " + face_paths[i]);
+                glDeleteTextures(1, &texture);
+                return 0;
+            }
+
+            GLenum format;
+            switch (nr_components)
+            {
+                case 1:
+                    format = GL_RED;
+                    break;
+                case 3:
+                    format = GL_RGB;
+                    break;
+                case 4:
+                    format = GL_RGBA;
+                    break;
+                default:
+                    err("Unsupported cubemap face format with " + std::to_string(nr_components) +
+                        " components: " + face_paths[i]);
+                    stbi_image_free(data);
+                    glDeleteTextures(1, &texture);
+                    return 0;
+            }
+
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+
+            stbi_image_free(data);
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+        m_textures.insert(texture);
         return texture;
     }
     void GraphicResourceManager::deleteTexture(TextureHandle handle)
@@ -371,7 +470,156 @@ namespace RealmEngine
         m_vaos.erase(handle);
     }
 
-    FBOHandle GraphicResourceManager::createFramebuffer() {}
-    void      GraphicResourceManager::deleteFramebuffer(FBOHandle handle) {}
+    FBOHandle GraphicResourceManager::createFramebuffer()
+    {
+        FBOHandle fbo;
+        glGenFramebuffers(1, &fbo);
+        m_fbos.insert(fbo);
+        return fbo;
+    }
+    void GraphicResourceManager::attachTextureToFramebuffer(FBOHandle     fbo,
+                                                            TextureHandle texture,
+                                                            GLenum        attachment,
+                                                            GLenum        target)
+    {
+        if (m_fbos.find(fbo) == m_fbos.end())
+        {
+            err("Invalid framebuffer handle");
+            return;
+        }
+
+        if (m_textures.find(texture) == m_textures.end())
+        {
+            err("Invalid texture handle");
+            return;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, target, texture, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    void
+    GraphicResourceManager::attachRenderbufferToFramebuffer(FBOHandle fbo, RBOHandle renderbuffer, GLenum attachment)
+    {
+        if (m_fbos.find(fbo) == m_fbos.end())
+        {
+            err("Invalid framebuffer handle");
+            return;
+        }
+
+        if (m_rbos.find(renderbuffer) == m_rbos.end())
+        {
+            err("Invalid renderbuffer handle");
+            return;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, renderbuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    bool GraphicResourceManager::checkFramebufferComplete(FBOHandle fbo)
+    {
+        if (m_fbos.find(fbo) == m_fbos.end())
+        {
+            err("Invalid framebuffer handle");
+            return false;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        if (status != GL_FRAMEBUFFER_COMPLETE)
+        {
+            std::string error_msg;
+            switch (status)
+            {
+                case GL_FRAMEBUFFER_UNDEFINED:
+                    error_msg = "Framebuffer undefined";
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                    error_msg = "Framebuffer incomplete attachment";
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                    error_msg = "Framebuffer incomplete: missing attachment";
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                    error_msg = "Framebuffer incomplete: draw buffer";
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                    error_msg = "Framebuffer incomplete: read buffer";
+                    break;
+                case GL_FRAMEBUFFER_UNSUPPORTED:
+                    error_msg = "Framebuffer unsupported";
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                    error_msg = "Framebuffer incomplete: multisample";
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+                    error_msg = "Framebuffer incomplete: layer targets";
+                    break;
+                default:
+                    error_msg = "Unknown framebuffer error";
+                    break;
+            }
+            err("Framebuffer completeness check failed: " + error_msg);
+            return false;
+        }
+
+        return true;
+    }
+    void GraphicResourceManager::deleteFramebuffer(FBOHandle handle)
+    {
+        if (m_fbos.find(handle) == m_fbos.end())
+            return;
+
+        glDeleteFramebuffers(1, &handle);
+        m_fbos.erase(handle);
+    }
+
+    RBOHandle GraphicResourceManager::createRenderbuffer(GLenum internal_format, GLsizei width, GLsizei height)
+    {
+        RBOHandle rbo;
+        glGenRenderbuffers(1, &rbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, internal_format, width, height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+        m_rbos.insert(rbo);
+        return rbo;
+    }
+
+    RBOHandle GraphicResourceManager::createRenderbufferMultisample(GLenum  internal_format,
+                                                                    GLsizei samples,
+                                                                    GLsizei width,
+                                                                    GLsizei height)
+    {
+        GLint max_samples;
+        glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
+        if (samples > max_samples)
+        {
+            warn("Requested samples (" + std::to_string(samples) + ") exceeds max supported (" +
+                 std::to_string(max_samples) + "), clamping to max");
+            samples = max_samples;
+        }
+
+        RBOHandle rbo;
+        glGenRenderbuffers(1, &rbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internal_format, width, height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+        m_rbos.insert(rbo);
+        return rbo;
+    }
+
+    void GraphicResourceManager::deleteRenderbuffer(RBOHandle handle)
+    {
+        if (m_rbos.find(handle) == m_rbos.end())
+            return;
+
+        glDeleteRenderbuffers(1, &handle);
+        m_rbos.erase(handle);
+    }
 
 } // namespace RealmEngine
