@@ -11,9 +11,58 @@
 
 namespace RealmEngine
 {
-    void GraphicResourceManager::initialize() {}
+    void GraphicResourceManager::initialize()
+    {
+        m_buffers.clear();
+        m_textures.clear();
+        m_shaders.clear();
+        m_programs.clear();
+        m_vaos.clear();
+        m_fbos.clear();
+        m_rbos.clear();
 
-    void GraphicResourceManager::disposal() {}
+        m_texture_cache.clear();
+        m_shader_cache.clear();
+        m_program_cache.clear();
+
+        info("GraphicResourceManager initialized.");
+    }
+
+    void GraphicResourceManager::disposal()
+    {
+        for (ProgramHandle program : m_programs)
+            glDeleteProgram(program);
+        m_programs.clear();
+        m_program_cache.clear();
+
+        for (ShaderHandle shader : m_shaders)
+            glDeleteShader(shader);
+        m_shaders.clear();
+        m_shader_cache.clear();
+
+        for (FBOHandle fbo : m_fbos)
+            glDeleteFramebuffers(1, &fbo);
+        m_fbos.clear();
+
+        for (RBOHandle rbo : m_rbos)
+            glDeleteRenderbuffers(1, &rbo);
+        m_rbos.clear();
+
+        for (TextureHandle texture : m_textures)
+            glDeleteTextures(1, &texture);
+        m_textures.clear();
+        m_texture_cache.clear();
+
+        for (VAOHandle vao : m_vaos)
+            glDeleteVertexArrays(1, &vao);
+        m_vaos.clear();
+
+        for (BufferHandle buffer : m_buffers)
+            glDeleteBuffers(1, &buffer);
+        m_buffers.clear();
+
+        info("GraphicResourceManager disposed all resources.");
+    }
 
     BufferHandle GraphicResourceManager::createBuffer(GLenum target, GLsizeiptr size, const void* data, GLenum usage)
     {

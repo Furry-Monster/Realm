@@ -2,6 +2,7 @@
 
 #include "logger.h"
 #include "render/renderer.h"
+#include "utils.h"
 #include "window.h"
 
 #include <memory>
