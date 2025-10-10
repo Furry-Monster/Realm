@@ -3,10 +3,18 @@
 #include "render/render_pipeline.h"
 #include "render/render_scene.h"
 #include "render/resource_manager.h"
+
+#include <cstdint>
 #include <memory>
 
 namespace RealmEngine
 {
+    enum class PipelineType : uint8_t
+    {
+        Forward,
+        Deffered,
+    };
+
     class Renderer
     {
     public:
@@ -24,7 +32,7 @@ namespace RealmEngine
         void renderFrame();
 
         void setRenderScene();
-        void setPipeline();
+        void setPipeline(PipelineType type);
 
     private:
         GraphicResourceManager          m_grahic_res_mgr;

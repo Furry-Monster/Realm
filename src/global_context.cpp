@@ -21,6 +21,7 @@ namespace RealmEngine
 
         m_renderer = std::make_shared<Renderer>();
         m_renderer->initialize();
+        m_renderer->setPipeline(PipelineType::Forward);
     }
 
     void GlobalContext::destroy()

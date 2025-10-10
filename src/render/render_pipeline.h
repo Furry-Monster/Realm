@@ -27,7 +27,6 @@ namespace RealmEngine
         void disposal() override;
 
         void render() override;
-        
 
     protected:
         void renderShadowMaps();
