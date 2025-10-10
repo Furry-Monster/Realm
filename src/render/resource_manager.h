@@ -43,9 +43,16 @@ namespace RealmEngine
         TextureHandle loadTexture(const std::string& filepath);
         void          deleteTexture(TextureHandle handle);
 
-        ShaderHandle  createShader(GLenum shaderType, const std::string& source);
+        ShaderHandle  createShader(GLenum shader_type, const std::string& source_path);
         ProgramHandle createProgram(const std::vector<ShaderHandle>& shaders);
         ProgramHandle loadShaderProgram(const std::string& vertex_path, const std::string& fragment_path);
+        ProgramHandle loadShaderProgram(const std::string& vertex_path,
+                                        const std::string& fragment_path,
+                                        const std::string& geometry_path);
+        ProgramHandle loadShaderProgram(const std::string& name,
+                                        const std::string& vertex_path,
+                                        const std::string& fragment_path,
+                                        const std::string& geometry_path);
         ProgramHandle getProgram(const std::string& name);
         void          deleteShader(ShaderHandle handle);
         void          deleteProgram(ProgramHandle handle);
@@ -65,6 +72,7 @@ namespace RealmEngine
         std::unordered_set<FBOHandle>     m_fbos;
 
         std::unordered_map<std::string, TextureHandle> m_texture_cache;
+        std::unordered_map<std::string, ShaderHandle>  m_shader_cache;
         std::unordered_map<std::string, ProgramHandle> m_program_cache;
     };
 
