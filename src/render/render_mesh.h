@@ -7,6 +7,14 @@ namespace RealmEngine
     class RenderMesh
     {
     public:
+        RenderMesh()  = default;
+        ~RenderMesh() = default;
+
+        RenderMesh(const RenderMesh& that)                = delete;
+        RenderMesh& operator=(const RenderMesh& that)     = delete;
+        RenderMesh(RenderMesh&& that) noexcept            = default;
+        RenderMesh& operator=(RenderMesh&& that) noexcept = default;
+
         VAOHandle    getVAO() const;
         BufferHandle getVBO() const;
         BufferHandle getEBO() const;

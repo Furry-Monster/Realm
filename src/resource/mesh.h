@@ -40,10 +40,10 @@ namespace RealmEngine
         Mesh()           = default;
         ~Mesh() noexcept = default;
 
-        Mesh(const Mesh& that)            = delete;
-        Mesh& operator=(const Mesh& that) = delete;
-        Mesh(Mesh&& that) noexcept;
-        Mesh& operator=(Mesh&& that) noexcept;
+        Mesh(const Mesh& that)                = delete;
+        Mesh& operator=(const Mesh& that)     = delete;
+        Mesh(Mesh&& that) noexcept            = default;
+        Mesh& operator=(Mesh&& that) noexcept = default;
 
         const std::vector<Vertex>&   getVertices() const;
         const std::vector<uint32_t>& getIndices() const;

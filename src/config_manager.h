@@ -11,8 +11,8 @@ namespace RealmEngine
         ~ConfigManager() noexcept = default;
 
         ConfigManager(const ConfigManager&)                = delete;
-        ConfigManager(ConfigManager&&) noexcept            = default;
         ConfigManager& operator=(const ConfigManager&)     = delete;
+        ConfigManager(ConfigManager&&) noexcept            = default;
         ConfigManager& operator=(ConfigManager&&) noexcept = default;
 
         void initialize();
