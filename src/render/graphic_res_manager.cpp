@@ -1,4 +1,4 @@
-#include "resource_manager.h"
+#include "graphic_res_manager.h"
 
 #include "utils.h"
 #include <cstddef>

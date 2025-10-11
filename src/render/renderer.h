@@ -1,8 +1,8 @@
 #pragma once
 
+#include "render/graphic_res_manager.h"
 #include "render/render_pipeline.h"
 #include "render/render_scene.h"
-#include "render/resource_manager.h"
 
 #include <cstdint>
 #include <memory>

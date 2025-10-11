@@ -1,7 +1,5 @@
 #pragma once
 
-#include "render/resource_manager.h"
-
 #include <cstdint>
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_float3.hpp>
@@ -65,23 +63,12 @@ namespace RealmEngine
         void calculateBounds();
         bool isValid() const;
 
-        VAOHandle    getVAO() const;
-        BufferHandle getVBO() const;
-        BufferHandle getEBO() const;
-
-        void setVAO(VAOHandle vao);
-        void setVBO(BufferHandle vbo);
-        void setEBO(BufferHandle ebo);
-
     private:
         std::vector<Vertex>   m_verts;
         std::vector<uint32_t> m_indices;
         std::vector<SubMesh>  m_submeshes;
         AABB                  m_aabb;
 
-        VAOHandle    m_vao {0};
-        BufferHandle m_vbo {0};
-        BufferHandle m_ebo {0};
-        bool         m_gpu_data_dirty {true};
+        bool m_gpu_data_dirty {true};
     };
 } // namespace RealmEngine

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <exception>
 #ifdef __linux__
 #include <limits.h>
 #include <unistd.h>

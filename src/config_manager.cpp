@@ -4,16 +4,13 @@
 #include "utils.h"
 
 #include <filesystem>
-#include <iostream>
 
 namespace RealmEngine
 {
     void ConfigManager::initialize()
     {
         std::filesystem::path exe_path = PlateForm::getExecutablePath();
-        std::filesystem::path exe_dir  = exe_path.parent_path();
-
-        m_root_folder = exe_dir.parent_path();
+        m_root_folder                  = exe_path.parent_path();
 
         m_asset_folder  = m_root_folder / "assets";
         m_shader_folder = m_root_folder / "shaders";

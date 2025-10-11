@@ -1,8 +1,8 @@
 #include "global_context.h"
 
+#include "config_manager.h"
 #include "logger.h"
 #include "render/renderer.h"
-#include "resource/config_manager.h"
 #include "utils.h"
 #include "window.h"
 
