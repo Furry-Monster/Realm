@@ -1,10 +1,7 @@
 #pragma once
 
-#include "resource/material.h"
-#include "resource/mesh.h"
-#include <memory>
+#include <filesystem>
 #include <string>
-#include <unordered_map>
 
 namespace RealmEngine
 {
@@ -19,11 +16,14 @@ namespace RealmEngine
         AssetManager& operator=(const AssetManager& that) = delete;
         AssetManager& operator=(AssetManager&& that)      = delete;
 
-        std::shared_ptr<Mesh>     loadMesh(const std::string& filePath);
-        std::shared_ptr<Material> loadMaterial(const std::string& filePath);
+        template<typename AssetType>
+        bool loadAsset(const std::string& asset_url, AssetType& asset) const
+        {}
 
-    private:
-        std::unordered_map<std::string, std::shared_ptr<Mesh>>     m_mesh_cache;
-        std::unordered_map<std::string, std::shared_ptr<Material>> m_material_cache;
+        template<typename AssetType>
+        bool saveAsset(AssetType& asset, const std::string& asset_url) const
+        {}
+
+        std::filesystem::path getFullPath(const std::string& relative_path) const;
     };
 } // namespace RealmEngine

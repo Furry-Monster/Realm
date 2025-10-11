@@ -61,10 +61,10 @@ namespace RealmEngine
         explicit Material(const std::string& shader_name = "default");
         ~Material() noexcept = default;
 
-        Material(const Material& that)            = delete;
-        Material(Material&& that)                 = delete;
-        Material& operator=(const Material& that) = delete;
-        Material& operator=(Material&& that)      = delete;
+        Material(const Material& that)                = delete;
+        Material(Material&& that) noexcept            = delete;
+        Material& operator=(const Material& that)     = delete;
+        Material& operator=(Material&& that) noexcept = delete;
 
     private:
         std::string                                       m_shader_name;
