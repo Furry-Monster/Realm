@@ -13,4 +13,4 @@ echo "🔥Running ninja build..."
 ninja
 
 echo "🔥Running Realm Engine program..."
-./src/RealmEngine
+../bin/RealmEngine

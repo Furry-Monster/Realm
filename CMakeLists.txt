@@ -11,11 +11,42 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(CMakeDependentOption)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra)
+endif()
+
 set(OPENGL_GL_PREFERENCE GLVND)
 
-set(LEARN_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-set(CMAKE_INSTALL_PREFIX "${LEARN_ROOT_DIR}/bin")
-set(BINARY_ROOT_DIR "${CMAKE_INSTALL_PREFIX}")
+set(REALM_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(CMAKE_INSTALL_PREFIX "${REALM_ROOT_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${REALM_ROOT_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${REALM_ROOT_DIR}/bin/lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${REALM_ROOT_DIR}/bin/lib")
+
+add_custom_target(copy_resources ALL
+    COMMENT "Copying resource folders to bin directory..."
+)
+
+add_custom_command(TARGET copy_resources POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${REALM_ROOT_DIR}/assets"
+    "${REALM_ROOT_DIR}/bin/assets"
+    COMMENT "Copying assets folder to bin/assets..."
+)
+
+add_custom_command(TARGET copy_resources POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${REALM_ROOT_DIR}/shaders"
+    "${REALM_ROOT_DIR}/bin/shaders"
+    COMMENT "Copying shaders folder to bin/shaders..."
+)
 
 add_subdirectory(libs)
+
 add_subdirectory(src)

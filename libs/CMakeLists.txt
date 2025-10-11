@@ -53,6 +53,7 @@ if(NOT TARGET assimp)
     set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "..." FORCE)
     set(ASSIMP_BUILD_PLY_IMPORTER ON CACHE BOOL "..." FORCE)
     set(ASSIMP_BUILD_STL_IMPORTER ON CACHE BOOL "..." FORCE)
+    set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "..." FORCE)
     add_subdirectory(assimp)
 endif()
 
@@ -80,14 +81,3 @@ if(UNIX AND NOT APPLE)
         ${X11_LIBRARIES}
     )
 endif()
-
-target_include_directories(reflibs INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/glm
-    ${CMAKE_CURRENT_SOURCE_DIR}/imgui
-    ${CMAKE_CURRENT_SOURCE_DIR}/stb
-    ${CMAKE_CURRENT_SOURCE_DIR}/assimp/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/spdlog/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann
-)
