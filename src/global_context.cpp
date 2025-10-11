@@ -2,6 +2,7 @@
 
 #include "logger.h"
 #include "render/renderer.h"
+#include "resource/config_manager.h"
 #include "utils.h"
 #include "window.h"
 
@@ -15,6 +16,9 @@ namespace RealmEngine
     {
         m_logger = std::make_shared<Logger>();
         m_logger->initialize();
+
+        m_cfg = std::make_shared<ConfigManager>();
+        m_cfg->initialize();
 
         m_window = std::make_shared<Window>();
         m_window->initialize();
@@ -31,6 +35,9 @@ namespace RealmEngine
 
         m_window->disposal();
         m_window.reset();
+
+        m_cfg->disposal();
+        m_cfg.reset();
 
         m_logger->disposal();
         m_logger.reset();

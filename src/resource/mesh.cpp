@@ -1,6 +1,5 @@
 #include "mesh.h"
 #include "render/resource_manager.h"
-#include <algorithm>
 #include <utility>
 
 namespace RealmEngine

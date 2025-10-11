@@ -1,11 +1,11 @@
 #pragma once
 
-#include "glm/ext/vector_float2.hpp"
-#include "glm/ext/vector_float3.hpp"
-#include "glm/ext/vector_float4.hpp"
 #include "render/resource_manager.h"
 
 #include <cstdint>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
 #include <vector>
 
 namespace RealmEngine

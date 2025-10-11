@@ -3,7 +3,6 @@
 #include "render/renderer.h"
 #include "utils.h"
 #include "window.h"
-#include <iostream>
 #include <string>
 
 namespace RealmEngine

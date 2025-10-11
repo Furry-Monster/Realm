@@ -5,6 +5,7 @@
 namespace RealmEngine
 {
     class Logger;
+    class ConfigManager;
     class Window;
     class Renderer;
 
@@ -23,6 +24,7 @@ namespace RealmEngine
         void destroy();
 
         std::shared_ptr<Logger>   m_logger;
+        std::shared_ptr<ConfigManager> m_cfg;
         std::shared_ptr<Window>   m_window;
         std::shared_ptr<Renderer> m_renderer;
     };

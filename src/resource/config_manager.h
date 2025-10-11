@@ -1,5 +1,6 @@
 #pragma once
 
+#include "json.hpp"
 #include <filesystem>
 
 namespace RealmEngine
@@ -26,5 +27,7 @@ namespace RealmEngine
         std::filesystem::path m_root_folder;
         std::filesystem::path m_asset_folder;
         std::filesystem::path m_shader_folder;
+
+        nlohmann::json m_config;
     };
 } // namespace RealmEngine

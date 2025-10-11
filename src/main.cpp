@@ -1,6 +1,6 @@
 #include "engine.h"
 
-int main()
+int main(int, char**)
 {
     RealmEngine::Engine engine;
 
