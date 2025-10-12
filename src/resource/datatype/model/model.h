@@ -1,23 +1,23 @@
 #pragma once
 
-#include "resource/material.h"
-#include "resource/mesh.h"
-#include "resource/node.h"
+#include "resource/datatype/model/material.h"
+#include "resource/datatype/model/mesh.h"
+#include "resource/datatype/model/node.h"
 #include <cstddef>
 #include <memory>
 #include <vector>
 namespace RealmEngine
 {
-    class Asset
+    class Model
     {
     public:
-        Asset()           = default;
-        ~Asset() noexcept = default;
+        Model()           = default;
+        ~Model() noexcept = default;
 
-        Asset(const Asset&)                = delete;
-        Asset& operator=(const Asset&)     = delete;
-        Asset(Asset&&) noexcept            = default;
-        Asset& operator=(Asset&&) noexcept = default;
+        Model(const Model&)                = delete;
+        Model& operator=(const Model&)     = delete;
+        Model(Model&&) noexcept            = default;
+        Model& operator=(Model&&) noexcept = default;
 
         // node tree
         Node*       getRoot();

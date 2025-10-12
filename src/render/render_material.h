@@ -1,7 +1,7 @@
 #pragma once
 
 #include "render/graphic_res_manager.h"
-#include "resource/material.h"
+#include "resource/datatype/model/material.h"
 #include <optional>
 
 namespace RealmEngine
