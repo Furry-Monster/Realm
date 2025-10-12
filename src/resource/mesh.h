@@ -4,6 +4,7 @@
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
+#include <string>
 #include <vector>
 
 namespace RealmEngine
@@ -12,7 +13,7 @@ namespace RealmEngine
     {
         glm::vec3 position;
         glm::vec3 normal;
-        glm::vec2 tex_coord; // uv coord
+        glm::vec2 tex_coord; // aka uv coord
         glm::vec3 tangent;
         glm::vec3 bitangent;
         glm::vec4 color;
@@ -20,9 +21,23 @@ namespace RealmEngine
 
     struct SubMesh
     {
-        uint32_t vert_idx_start;
-        uint32_t vert_idx_end;
-        uint32_t material_idx;
+        uint32_t    base_index;
+        uint32_t    index_count;
+        uint32_t    material_idx;
+        std::string name; // optional for debug
+
+        SubMesh() : base_index(0), index_count(0), material_idx(0) {}
+        SubMesh(uint32_t base_idx, uint32_t idx_count, uint32_t mat_idx) :
+            base_index(base_idx), index_count(idx_count), material_idx(mat_idx)
+        {}
+        SubMesh(uint32_t base_idx, uint32_t idx_count, uint32_t mat_idx, const std::string& submesh_name = "") :
+            base_index(base_idx), index_count(idx_count), material_idx(mat_idx), name(submesh_name)
+        {}
+
+        constexpr uint32_t getTriangleCount() const { return index_count / 3; }
+        constexpr uint32_t getEndIndex() const { return base_index + index_count; }
+        constexpr bool     isEmpty() const { return index_count == 0; }
+        constexpr bool     isValid() const { return index_count > 0 && index_count % 3 == 0; }
     };
 
     struct AABB
@@ -30,8 +45,8 @@ namespace RealmEngine
         glm::vec3 min;
         glm::vec3 max;
 
-        glm::vec3 center() const { return (min + max) * 0.5f; }
-        glm::vec3 extent() const { return max - min; }
+        constexpr glm::vec3 center() const { return (min + max) * 0.5f; }
+        constexpr glm::vec3 extent() const { return max - min; }
     };
 
     class Mesh
@@ -45,6 +60,7 @@ namespace RealmEngine
         Mesh(Mesh&& that) noexcept            = default;
         Mesh& operator=(Mesh&& that) noexcept = default;
 
+        // Getters & Setters
         const std::vector<Vertex>&   getVertices() const;
         const std::vector<uint32_t>& getIndices() const;
         const std::vector<SubMesh>&  getSubMeshes() const;
@@ -53,15 +69,26 @@ namespace RealmEngine
         std::vector<Vertex>&   getVertices();
         std::vector<uint32_t>& getIndices();
         std::vector<SubMesh>&  getSubMeshes();
+        AABB&                  getAABB();
 
         void setVertices(std::vector<Vertex>&& vertices);
         void setIndices(std::vector<uint32_t>&& indices);
-        void addSubMesh(const SubMesh& submesh);
 
+        // SubMesh
+        void           addSubMesh(const SubMesh& submesh);
+        void           clearSubMeshes();
+        const SubMesh* findSubMesh(const std::string& name) const;
+
+        // Mesh Utilities
         void calculateNormals();
         void calculateTangents();
-        void calculateBounds();
+        void calculateAABB();
         bool isValid() const;
+        void clear();
+
+        // GPU data management
+        bool isGpuDataDirty() const;
+        void markGpuDataSynced();
 
     private:
         std::vector<Vertex>   m_verts;
