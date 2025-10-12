@@ -24,10 +24,14 @@ namespace RealmEngine
 
         m_spd_logger->set_level(spdlog::level::trace);
         spdlog::register_logger(m_spd_logger);
+
+        log(Logger::LogLevel::info, "[" + std::string(__FUNCTION__) + "]" + "Now tracing logs...");
     }
 
     void Logger::disposal()
     {
+        log(Logger::LogLevel::info, "[" + std::string(__FUNCTION__) + "]" + "Stop logging and saving...");
+
         m_spd_logger->flush();
         spdlog::drop_all();
         m_spd_logger.reset();

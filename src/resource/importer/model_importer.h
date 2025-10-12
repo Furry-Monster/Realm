@@ -24,12 +24,13 @@ namespace RealmEngine
             bool optimize_graph {false};
         };
 
-        std::unique_ptr<Model> loadModel(const std::string& filepath, const LoadOptions& options);
+        static std::unique_ptr<Model> loadModel(const std::string& filepath, const LoadOptions& options);
 
     private:
-        std::unique_ptr<Node> processNode(const aiNode* ai_node, const aiScene* ai_scene);
-        Mesh                  processMesh(const aiMesh* ai_mesh);
-        Material              processMaterial(const aiMaterial* ai_material, const std::string& base_dir);
-        glm::mat4             convertMatrix(const aiMatrix4x4& ai_mat);
+        static std::unique_ptr<Node> processNode(const aiNode* ai_node, const aiScene* ai_scene);
+        static Mesh                  processMesh(const aiMesh* ai_mesh);
+        static Material              processMaterial(const aiMaterial* ai_material, const std::string& base_dir);
+
+        constexpr static glm::mat4 convertMatrix(const aiMatrix4x4& ai_mat);
     };
 } // namespace RealmEngine

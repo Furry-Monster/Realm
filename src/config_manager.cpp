@@ -19,9 +19,11 @@ namespace RealmEngine
             fatal("Assets folder not found: " + m_asset_folder.string());
         if (!std::filesystem::exists(m_shader_folder))
             fatal("Shaders folder not found: " + m_shader_folder.string());
+
+        info("Config manager initialized.");
     }
 
-    void ConfigManager::disposal() {}
+    void ConfigManager::disposal() { info("Config manager dispoed all resources."); }
 
     const std::filesystem::path& ConfigManager::getRootFolder() const { return m_root_folder; }
 

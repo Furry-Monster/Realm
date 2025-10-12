@@ -408,7 +408,7 @@ namespace RealmEngine
         return material;
     }
 
-    glm::mat4 ModelImporter::convertMatrix(const aiMatrix4x4& ai_mat)
+    constexpr glm::mat4 ModelImporter::convertMatrix(const aiMatrix4x4& ai_mat)
     {
         // assimp use row-major
         // glm use column-major

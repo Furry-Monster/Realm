@@ -6,6 +6,14 @@
 
 namespace RealmEngine
 {
+    void AssetManager::initialize() { info("Asset manager initialized."); }
+
+    void AssetManager::disposal()
+    {
+        unloadAllModels();
+        info("Asset manager disposed all resource.");
+    }
+
     Model* AssetManager::loadModel(const std::string& path, const ModelImporter::LoadOptions& options)
     {
         auto it = m_models.find(path);

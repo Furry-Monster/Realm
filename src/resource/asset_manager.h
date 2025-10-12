@@ -21,6 +21,9 @@ namespace RealmEngine
         AssetManager& operator=(const AssetManager& that) = delete;
         AssetManager& operator=(AssetManager&& that)      = delete;
 
+        void initialize();
+        void disposal();
+
         Model*              loadModel(const std::string& path, const ModelImporter::LoadOptions& options = {});
         std::future<Model*> loadModelAsync(const std::string& path);
 
