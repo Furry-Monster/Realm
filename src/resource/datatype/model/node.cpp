@@ -6,7 +6,7 @@ namespace RealmEngine
     // Hierarchy management
     const Node*                               Node::getParent() const { return m_parent; }
     const std::vector<std::unique_ptr<Node>>& Node::getChildren() const { return m_children; }
-    size_t                                    Node::getChilrenCount() const { return m_children.size(); }
+    size_t                                    Node::getChildrenCount() const { return m_children.size(); }
     void                                      Node::addChild(std::unique_ptr<Node> child)
     {
         if (child)
@@ -16,11 +16,11 @@ namespace RealmEngine
         }
     }
 
-    // Mesh & material management
-    std::optional<uint32_t> Node::getMeshIndex() const { return m_mesh_idx; }
-    std::optional<uint32_t> Node::getMaterialIndex() const { return m_material_idx; }
-    void                    Node::setMeshIndex(uint32_t mesh_idx) { m_mesh_idx = mesh_idx; }
-    void                    Node::setMaterialIndex(uint32_t material_idx) { m_material_idx = material_idx; }
+    // Mesh management
+    const std::vector<uint32_t>& Node::getMeshIndices() const { return m_mesh_indices; }
+    void                         Node::addMeshIndex(uint32_t mesh_idx) { m_mesh_indices.push_back(mesh_idx); }
+    void Node::setMeshIndices(const std::vector<uint32_t>& indices) { m_mesh_indices = indices; }
+    bool Node::hasMeshes() const { return !m_mesh_indices.empty(); }
 
     // Transform
     const glm::mat4& Node::getLocalTransform() const { return m_local_trans; }

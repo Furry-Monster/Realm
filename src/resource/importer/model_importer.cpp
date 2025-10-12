@@ -92,17 +92,15 @@ namespace RealmEngine
         std::unique_ptr<Node> node = std::make_unique<Node>();
         node->setLocalTransform(convertMatrix(ai_node->mTransformation));
 
-        if (ai_node->mNumMeshes > 0)
-        {
-            node->setMeshIndex(ai_node->mMeshes[0]);
+        // Add all mesh references to this node
+        for (size_t i = 0; i < ai_node->mNumMeshes; ++i)
+            node->addMeshIndex(ai_node->mMeshes[i]);
 
-            for (size_t i = 0; i < ai_node->mNumMeshes; ++i)
-            {
-            }
-        }
-
+        // Recursively process all child nodes
         for (size_t i = 0; i < ai_node->mNumChildren; ++i)
         {
+            if (auto child = processNode(ai_node->mChildren[i], ai_scene))
+                node->addChild(std::move(child));
         }
 
         return node;
@@ -126,18 +124,22 @@ namespace RealmEngine
         {
             Vertex vert;
 
+            // pos
             vert.position = glm::vec3(ai_mesh->mVertices[i].x, ai_mesh->mVertices[i].y, ai_mesh->mVertices[i].z);
 
+            // norm
             if (ai_mesh->HasNormals())
                 vert.normal = glm::vec3(ai_mesh->mNormals[i].x, ai_mesh->mNormals[i].y, ai_mesh->mNormals[i].z);
             else
                 vert.normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
+            // uv
             if (ai_mesh->HasTextureCoords(0))
                 vert.tex_coord = glm::vec2(ai_mesh->mTextureCoords[0][i].x, ai_mesh->mTextureCoords[0][i].y);
             else
                 vert.tex_coord = glm::vec2(0.0f);
 
+            // tang / bitang
             if (ai_mesh->HasTangentsAndBitangents())
             {
                 vert.tangent = glm::vec3(ai_mesh->mTangents[i].x, ai_mesh->mTangents[i].y, ai_mesh->mTangents[i].z);
@@ -150,6 +152,7 @@ namespace RealmEngine
                 vert.bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
             }
 
+            // vert color
             if (ai_mesh->HasVertexColors(0))
                 vert.color = glm::vec4(ai_mesh->mColors[0][i].r,
                                        ai_mesh->mColors[0][i].g,

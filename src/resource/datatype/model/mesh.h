@@ -12,7 +12,7 @@ namespace RealmEngine
     {
         glm::vec3 position;
         glm::vec3 normal;
-        glm::vec2 tex_coord; // aka uv coord
+        glm::vec2 tex_coord;
         glm::vec3 tangent;
         glm::vec3 bitangent;
         glm::vec4 color;
@@ -22,7 +22,7 @@ namespace RealmEngine
     {
         uint32_t base_index;
         uint32_t index_count;
-        uint32_t material_idx; // override the origin material of the mesh
+        uint32_t material_idx;
 
         SubMesh() : base_index(0), index_count(0), material_idx(0) {}
         SubMesh(uint32_t base_idx, uint32_t idx_count, uint32_t mat_idx) :

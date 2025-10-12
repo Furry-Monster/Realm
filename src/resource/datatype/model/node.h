@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <vector>
 
 namespace RealmEngine
@@ -23,14 +22,14 @@ namespace RealmEngine
         // Hierarchy management
         const Node*                               getParent() const;
         const std::vector<std::unique_ptr<Node>>& getChildren() const;
-        size_t                                    getChilrenCount() const;
+        size_t                                    getChildrenCount() const;
         void                                      addChild(std::unique_ptr<Node> child);
 
-        // Mesh & material management
-        std::optional<uint32_t> getMeshIndex() const;
-        std::optional<uint32_t> getMaterialIndex() const;
-        void                    setMeshIndex(uint32_t mesh_idx);
-        void                    setMaterialIndex(uint32_t material_idx);
+        // Mesh management
+        const std::vector<uint32_t>& getMeshIndices() const;
+        void                         addMeshIndex(uint32_t mesh_idx);
+        void                         setMeshIndices(const std::vector<uint32_t>& indices);
+        bool                         hasMeshes() const;
 
         // Transform
         const glm::mat4& getLocalTransform() const;
@@ -38,11 +37,9 @@ namespace RealmEngine
         glm::mat4        getWorldTransform() const;
 
     private:
-        glm::mat4               m_local_trans {1.0f};
-        std::optional<uint32_t> m_mesh_idx;
-        std::optional<uint32_t> m_material_idx;
-
-        Node*                              m_parent;
+        glm::mat4                          m_local_trans {1.0f};
+        std::vector<uint32_t>              m_mesh_indices;
+        Node*                              m_parent {nullptr};
         std::vector<std::unique_ptr<Node>> m_children;
     };
 } // namespace RealmEngine
