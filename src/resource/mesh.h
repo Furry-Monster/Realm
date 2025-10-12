@@ -4,7 +4,6 @@
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
-#include <string>
 #include <vector>
 
 namespace RealmEngine
@@ -21,17 +20,13 @@ namespace RealmEngine
 
     struct SubMesh
     {
-        uint32_t    base_index;
-        uint32_t    index_count;
-        uint32_t    material_idx;
-        std::string name; // optional for debug
+        uint32_t base_index;
+        uint32_t index_count;
+        uint32_t material_idx; // override the origin material of the mesh
 
         SubMesh() : base_index(0), index_count(0), material_idx(0) {}
         SubMesh(uint32_t base_idx, uint32_t idx_count, uint32_t mat_idx) :
             base_index(base_idx), index_count(idx_count), material_idx(mat_idx)
-        {}
-        SubMesh(uint32_t base_idx, uint32_t idx_count, uint32_t mat_idx, const std::string& submesh_name = "") :
-            base_index(base_idx), index_count(idx_count), material_idx(mat_idx), name(submesh_name)
         {}
 
         constexpr uint32_t getTriangleCount() const { return index_count / 3; }
@@ -75,9 +70,8 @@ namespace RealmEngine
         void setIndices(std::vector<uint32_t>&& indices);
 
         // SubMesh
-        void           addSubMesh(const SubMesh& submesh);
-        void           clearSubMeshes();
-        const SubMesh* findSubMesh(const std::string& name) const;
+        void addSubMesh(const SubMesh& submesh);
+        void clearSubMeshes();
 
         // Mesh Utilities
         void calculateNormals();

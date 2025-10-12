@@ -26,17 +26,8 @@ namespace RealmEngine
         m_gpu_data_dirty = true;
     }
 
-    void           Mesh::addSubMesh(const SubMesh& submesh) { m_submeshes.push_back(submesh); }
-    void           Mesh::clearSubMeshes() { m_submeshes.clear(); }
-    const SubMesh* Mesh::findSubMesh(const std::string& name) const
-    {
-        for (const auto& submesh : m_submeshes)
-        {
-            if (submesh.name == name)
-                return &submesh;
-        }
-        return nullptr;
-    }
+    void Mesh::addSubMesh(const SubMesh& submesh) { m_submeshes.push_back(submesh); }
+    void Mesh::clearSubMeshes() { m_submeshes.clear(); }
 
     bool Mesh::isGpuDataDirty() const { return m_gpu_data_dirty; }
     void Mesh::markGpuDataSynced() { m_gpu_data_dirty = false; }
