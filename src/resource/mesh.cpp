@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include "glm/geometric.hpp"
+#include <cmath>
 #include <utility>
 
 namespace RealmEngine
@@ -12,31 +13,42 @@ namespace RealmEngine
     std::vector<Vertex>&   Mesh::getVertices() { return m_verts; }
     std::vector<uint32_t>& Mesh::getIndices() { return m_indices; }
     std::vector<SubMesh>&  Mesh::getSubMeshes() { return m_submeshes; }
+    AABB&                  Mesh::getAABB() { return m_aabb; }
 
     void Mesh::setVertices(std::vector<Vertex>&& vertices)
     {
         m_verts          = std::move(vertices);
         m_gpu_data_dirty = true;
     }
-
     void Mesh::setIndices(std::vector<uint32_t>&& indices)
     {
         m_indices        = std::move(indices);
         m_gpu_data_dirty = true;
     }
 
-    void Mesh::addSubMesh(const SubMesh& submesh) { m_submeshes.push_back(submesh); }
+    void           Mesh::addSubMesh(const SubMesh& submesh) { m_submeshes.push_back(submesh); }
+    void           Mesh::clearSubMeshes() { m_submeshes.clear(); }
+    const SubMesh* Mesh::findSubMesh(const std::string& name) const
+    {
+        for (const auto& submesh : m_submeshes)
+        {
+            if (submesh.name == name)
+                return &submesh;
+        }
+        return nullptr;
+    }
+
+    bool Mesh::isGpuDataDirty() const { return m_gpu_data_dirty; }
+    void Mesh::markGpuDataSynced() { m_gpu_data_dirty = false; }
 
     void Mesh::calculateNormals()
     {
         if (m_indices.empty() || m_verts.empty())
             return;
 
-        // Reset all normals to zero
         for (auto& vert : m_verts)
             vert.normal = glm::vec3(0.0f);
 
-        // Calculate face normals and accumulate to vertices
         for (size_t i = 0; i < m_indices.size(); i += 3)
         {
             uint32_t idx0 = m_indices[i];
@@ -59,14 +71,9 @@ namespace RealmEngine
             m_verts[idx2].normal += face_normal;
         }
 
-        // Normalize all normals
         for (auto& vert : m_verts)
-        {
             if (glm::length(vert.normal) > 0.0f)
-            {
                 vert.normal = glm::normalize(vert.normal);
-            }
-        }
 
         m_gpu_data_dirty = true;
     }
@@ -76,14 +83,12 @@ namespace RealmEngine
         if (m_indices.empty() || m_verts.empty())
             return;
 
-        // Reset all tangents and bitangents to zero
         for (auto& vert : m_verts)
         {
             vert.tangent   = glm::vec3(0.0f);
             vert.bitangent = glm::vec3(0.0f);
         }
 
-        // Calculate tangents and bitangents for each triangle
         for (size_t i = 0; i < m_indices.size(); i += 3)
         {
             uint32_t idx0 = m_indices[i];
@@ -107,7 +112,13 @@ namespace RealmEngine
             glm::vec2 delta_uv1 = uv1 - uv0;
             glm::vec2 delta_uv2 = uv2 - uv0;
 
-            float f = 1.0f / (delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y);
+            float det = delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y;
+
+            constexpr float epsilon = 1e-6f;
+            if (std::abs(det) < epsilon)
+                continue;
+
+            float f = 1.0f / det;
 
             glm::vec3 tangent;
             tangent.x = f * (delta_uv2.y * edge1.x - delta_uv1.y * edge2.x);
@@ -128,25 +139,20 @@ namespace RealmEngine
             m_verts[idx2].bitangent += bitangent;
         }
 
-        // Normalize all tangents and bitangents using Gram-Schmidt orthogonalization
         for (auto& vert : m_verts)
         {
             if (glm::length(vert.tangent) > 0.0f)
-            {
                 // Gram-Schmidt orthogonalization
                 vert.tangent = glm::normalize(vert.tangent - vert.normal * glm::dot(vert.normal, vert.tangent));
-            }
 
             if (glm::length(vert.bitangent) > 0.0f)
-            {
                 vert.bitangent = glm::normalize(vert.bitangent);
-            }
         }
 
         m_gpu_data_dirty = true;
     }
 
-    void Mesh::calculateBounds()
+    void Mesh::calculateAABB()
     {
         if (m_verts.empty())
         {
@@ -170,28 +176,36 @@ namespace RealmEngine
         if (m_verts.empty() || m_indices.empty())
             return false;
 
-        // Check if all indices are valid
         for (uint32_t idx : m_indices)
-        {
             if (idx >= m_verts.size())
                 return false;
-        }
 
-        // Check if index count is a multiple of 3 (triangles)
         if (m_indices.size() % 3 != 0)
             return false;
 
-        // Check submeshes
         for (const auto& submesh : m_submeshes)
         {
-            if (submesh.vert_idx_start >= m_indices.size() || submesh.vert_idx_end > m_indices.size())
+            if (!submesh.isValid())
                 return false;
 
-            if (submesh.vert_idx_start >= submesh.vert_idx_end)
+            if (submesh.base_index >= m_indices.size())
+                return false;
+
+            if (submesh.getEndIndex() > m_indices.size())
                 return false;
         }
 
         return true;
+    }
+
+    void Mesh::clear()
+    {
+        m_verts.clear();
+        m_indices.clear();
+        m_submeshes.clear();
+        m_aabb.min       = glm::vec3(0.0f);
+        m_aabb.max       = glm::vec3(0.0f);
+        m_gpu_data_dirty = true;
     }
 
 } // namespace RealmEngine

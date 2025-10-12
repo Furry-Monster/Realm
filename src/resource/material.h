@@ -106,6 +106,7 @@ namespace RealmEngine
         float     m_normal_scale {1.0f};
         float     m_occlusion_strength {1.0f};
 
+        // General render state
         RenderState m_render_state;
     };
 } // namespace RealmEngine
