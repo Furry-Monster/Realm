@@ -1,4 +1,4 @@
-#include "graphic_res_manager.h"
+#include "rhi.h"
 
 #include "utils.h"
 #include <cstddef>
@@ -11,7 +11,7 @@
 
 namespace RealmEngine
 {
-    void GraphicResourceManager::initialize()
+    void RHI::initialize()
     {
         m_buffers.clear();
         m_textures.clear();
@@ -25,10 +25,10 @@ namespace RealmEngine
         m_shader_cache.clear();
         m_program_cache.clear();
 
-        info("GraphicResourceManager initialized.");
+        info("RHI initialized.");
     }
 
-    void GraphicResourceManager::disposal()
+    void RHI::disposal()
     {
         for (ProgramHandle program : m_programs)
             glDeleteProgram(program);
@@ -61,10 +61,10 @@ namespace RealmEngine
             glDeleteBuffers(1, &buffer);
         m_buffers.clear();
 
-        info("GraphicResourceManager disposed all resources.");
+        info("RHI disposed all resources.");
     }
 
-    BufferHandle GraphicResourceManager::createBuffer(GLenum target, GLsizeiptr size, const void* data, GLenum usage)
+    BufferHandle RHI::createBuffer(GLenum target, GLsizeiptr size, const void* data, GLenum usage)
     {
         BufferHandle buffer;
         glGenBuffers(1, &buffer);
@@ -75,23 +75,19 @@ namespace RealmEngine
         m_buffers.insert(buffer);
         return buffer;
     }
-    BufferHandle GraphicResourceManager::createVertexBuffer(GLsizeiptr size, const void* data, GLenum usage)
+    BufferHandle RHI::createVertexBuffer(GLsizeiptr size, const void* data, GLenum usage)
     {
         return createBuffer(GL_ARRAY_BUFFER, size, data, usage);
     }
-    BufferHandle GraphicResourceManager::createIndexBuffer(GLsizeiptr size, const void* data, GLenum usage)
+    BufferHandle RHI::createIndexBuffer(GLsizeiptr size, const void* data, GLenum usage)
     {
         return createBuffer(GL_ELEMENT_ARRAY_BUFFER, size, data, usage);
     }
-    BufferHandle GraphicResourceManager::createUniformBuffer(GLsizeiptr size, const void* data, GLenum usage)
+    BufferHandle RHI::createUniformBuffer(GLsizeiptr size, const void* data, GLenum usage)
     {
         return createBuffer(GL_UNIFORM_BUFFER, size, data, usage);
     }
-    void GraphicResourceManager::updateBuffer(BufferHandle handle,
-                                              GLenum       target,
-                                              GLintptr     offset,
-                                              GLsizeiptr   size,
-                                              const void*  data)
+    void RHI::updateBuffer(BufferHandle handle, GLenum target, GLintptr offset, GLsizeiptr size, const void* data)
     {
         if (m_buffers.find(handle) == m_buffers.end())
             return;
@@ -100,7 +96,7 @@ namespace RealmEngine
         glBufferSubData(target, offset, size, data);
         glBindBuffer(target, 0);
     }
-    void GraphicResourceManager::deleteBuffer(BufferHandle handle)
+    void RHI::deleteBuffer(BufferHandle handle)
     {
         if (m_buffers.find(handle) == m_buffers.end())
             return;
@@ -109,12 +105,12 @@ namespace RealmEngine
         m_buffers.erase(handle);
     }
 
-    TextureHandle GraphicResourceManager::createTexture2D(GLsizei     width,
-                                                          GLsizei     height,
-                                                          GLenum      internal_format,
-                                                          GLenum      format,
-                                                          GLenum      type,
-                                                          const void* data)
+    TextureHandle RHI::createTexture2D(GLsizei     width,
+                                       GLsizei     height,
+                                       GLenum      internal_format,
+                                       GLenum      format,
+                                       GLenum      type,
+                                       const void* data)
     {
         TextureHandle texture;
         glGenTextures(1, &texture);
@@ -136,11 +132,8 @@ namespace RealmEngine
         m_textures.insert(texture);
         return texture;
     }
-    TextureHandle GraphicResourceManager::createTextureCubemap(GLsizei width,
-                                                               GLsizei height,
-                                                               GLenum  internal_format,
-                                                               GLenum  format,
-                                                               GLenum  type)
+    TextureHandle
+    RHI::createTextureCubemap(GLsizei width, GLsizei height, GLenum internal_format, GLenum format, GLenum type)
     {
         TextureHandle texture;
         glGenTextures(1, &texture);
@@ -161,7 +154,7 @@ namespace RealmEngine
         m_textures.insert(texture);
         return texture;
     }
-    TextureHandle GraphicResourceManager::loadTexture(const std::string& filepath)
+    TextureHandle RHI::loadTexture(const std::string& filepath)
     {
         auto it = m_texture_cache.find(filepath);
         if (it != m_texture_cache.end())
@@ -206,7 +199,7 @@ namespace RealmEngine
 
         return texture;
     }
-    TextureHandle GraphicResourceManager::loadCubemap(const std::vector<std::string>& face_paths)
+    TextureHandle RHI::loadCubemap(const std::vector<std::string>& face_paths)
     {
         if (face_paths.size() != 6)
         {
@@ -267,7 +260,7 @@ namespace RealmEngine
         m_textures.insert(texture);
         return texture;
     }
-    void GraphicResourceManager::deleteTexture(TextureHandle handle)
+    void RHI::deleteTexture(TextureHandle handle)
     {
         if (m_textures.find(handle) == m_textures.end())
             return;
@@ -284,7 +277,7 @@ namespace RealmEngine
         }
     }
 
-    ShaderHandle GraphicResourceManager::createShader(GLenum shader_type, const std::string& source_path)
+    ShaderHandle RHI::createShader(GLenum shader_type, const std::string& source_path)
     {
         std::string cache_key = source_path + "_" + std::to_string(shader_type);
         auto        it        = m_shader_cache.find(cache_key);
@@ -348,7 +341,7 @@ namespace RealmEngine
         m_shader_cache[cache_key] = shader;
         return shader;
     }
-    ProgramHandle GraphicResourceManager::createProgram(const std::vector<ShaderHandle>& shaders)
+    ProgramHandle RHI::createProgram(const std::vector<ShaderHandle>& shaders)
     {
         if (shaders.empty())
         {
@@ -389,8 +382,7 @@ namespace RealmEngine
         m_programs.insert(program);
         return program;
     }
-    ProgramHandle GraphicResourceManager::loadShaderProgram(const std::string& vertex_path,
-                                                            const std::string& fragment_path)
+    ProgramHandle RHI::loadShaderProgram(const std::string& vertex_path, const std::string& fragment_path)
     {
         ShaderHandle vertex_shader   = createShader(GL_VERTEX_SHADER, vertex_path);
         ShaderHandle fragment_shader = createShader(GL_FRAGMENT_SHADER, fragment_path);
@@ -413,9 +405,9 @@ namespace RealmEngine
         return program;
     }
 
-    ProgramHandle GraphicResourceManager::loadShaderProgram(const std::string& vertex_path,
-                                                            const std::string& fragment_path,
-                                                            const std::string& geometry_path)
+    ProgramHandle RHI::loadShaderProgram(const std::string& vertex_path,
+                                         const std::string& fragment_path,
+                                         const std::string& geometry_path)
     {
         ShaderHandle vertex_shader   = createShader(GL_VERTEX_SHADER, vertex_path);
         ShaderHandle fragment_shader = createShader(GL_FRAGMENT_SHADER, fragment_path);
@@ -442,10 +434,10 @@ namespace RealmEngine
         return program;
     }
 
-    ProgramHandle GraphicResourceManager::loadShaderProgram(const std::string& name,
-                                                            const std::string& vertex_path,
-                                                            const std::string& fragment_path,
-                                                            const std::string& geometry_path)
+    ProgramHandle RHI::loadShaderProgram(const std::string& name,
+                                         const std::string& vertex_path,
+                                         const std::string& fragment_path,
+                                         const std::string& geometry_path)
     {
         auto it = m_program_cache.find(name);
         if (it != m_program_cache.end())
@@ -462,7 +454,7 @@ namespace RealmEngine
 
         return program;
     }
-    ProgramHandle GraphicResourceManager::getProgram(const std::string& name)
+    ProgramHandle RHI::getProgram(const std::string& name)
     {
         auto it = m_program_cache.find(name);
         if (it != m_program_cache.end())
@@ -471,7 +463,7 @@ namespace RealmEngine
         warn("Invalid program name :" + name);
         return 0;
     }
-    void GraphicResourceManager::deleteShader(ShaderHandle handle)
+    void RHI::deleteShader(ShaderHandle handle)
     {
         if (m_shaders.find(handle) == m_shaders.end())
             return;
@@ -487,7 +479,7 @@ namespace RealmEngine
                 ++it;
         }
     }
-    void GraphicResourceManager::deleteProgram(ProgramHandle handle)
+    void RHI::deleteProgram(ProgramHandle handle)
     {
         if (m_programs.find(handle) == m_programs.end())
             return;
@@ -504,14 +496,14 @@ namespace RealmEngine
         }
     }
 
-    VAOHandle GraphicResourceManager::createVAO()
+    VAOHandle RHI::createVAO()
     {
         VAOHandle vao;
         glGenVertexArrays(1, &vao);
         m_vaos.insert(vao);
         return vao;
     }
-    void GraphicResourceManager::deleteVAO(VAOHandle handle)
+    void RHI::deleteVAO(VAOHandle handle)
     {
         if (m_vaos.find(handle) == m_vaos.end())
             return;
@@ -519,17 +511,14 @@ namespace RealmEngine
         m_vaos.erase(handle);
     }
 
-    FBOHandle GraphicResourceManager::createFramebuffer()
+    FBOHandle RHI::createFramebuffer()
     {
         FBOHandle fbo;
         glGenFramebuffers(1, &fbo);
         m_fbos.insert(fbo);
         return fbo;
     }
-    void GraphicResourceManager::attachTextureToFramebuffer(FBOHandle     fbo,
-                                                            TextureHandle texture,
-                                                            GLenum        attachment,
-                                                            GLenum        target)
+    void RHI::attachTextureToFramebuffer(FBOHandle fbo, TextureHandle texture, GLenum attachment, GLenum target)
     {
         if (m_fbos.find(fbo) == m_fbos.end())
         {
@@ -547,8 +536,7 @@ namespace RealmEngine
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, target, texture, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-    void
-    GraphicResourceManager::attachRenderbufferToFramebuffer(FBOHandle fbo, RBOHandle renderbuffer, GLenum attachment)
+    void RHI::attachRenderbufferToFramebuffer(FBOHandle fbo, RBOHandle renderbuffer, GLenum attachment)
     {
         if (m_fbos.find(fbo) == m_fbos.end())
         {
@@ -566,7 +554,7 @@ namespace RealmEngine
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, renderbuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-    bool GraphicResourceManager::checkFramebufferComplete(FBOHandle fbo)
+    bool RHI::checkFramebufferComplete(FBOHandle fbo)
     {
         if (m_fbos.find(fbo) == m_fbos.end())
         {
@@ -617,7 +605,7 @@ namespace RealmEngine
 
         return true;
     }
-    void GraphicResourceManager::deleteFramebuffer(FBOHandle handle)
+    void RHI::deleteFramebuffer(FBOHandle handle)
     {
         if (m_fbos.find(handle) == m_fbos.end())
             return;
@@ -626,7 +614,7 @@ namespace RealmEngine
         m_fbos.erase(handle);
     }
 
-    RBOHandle GraphicResourceManager::createRenderbuffer(GLenum internal_format, GLsizei width, GLsizei height)
+    RBOHandle RHI::createRenderbuffer(GLenum internal_format, GLsizei width, GLsizei height)
     {
         RBOHandle rbo;
         glGenRenderbuffers(1, &rbo);
@@ -638,10 +626,7 @@ namespace RealmEngine
         return rbo;
     }
 
-    RBOHandle GraphicResourceManager::createRenderbufferMultisample(GLenum  internal_format,
-                                                                    GLsizei samples,
-                                                                    GLsizei width,
-                                                                    GLsizei height)
+    RBOHandle RHI::createRenderbufferMultisample(GLenum internal_format, GLsizei samples, GLsizei width, GLsizei height)
     {
         GLint max_samples;
         glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
@@ -662,7 +647,7 @@ namespace RealmEngine
         return rbo;
     }
 
-    void GraphicResourceManager::deleteRenderbuffer(RBOHandle handle)
+    void RHI::deleteRenderbuffer(RBOHandle handle)
     {
         if (m_rbos.find(handle) == m_rbos.end())
             return;

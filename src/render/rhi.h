@@ -18,19 +18,19 @@ namespace RealmEngine
     using RBOHandle     = GLuint;
 
     /**
-     * @brief Graphic Resource Manager , supporting OpenGL resource management.
+     * @brief OpenGL Rendering hardware interface.
      *
      */
-    class GraphicResourceManager
+    class RHI
     {
     public:
-        GraphicResourceManager()           = default;
-        ~GraphicResourceManager() noexcept = default;
+        RHI()           = default;
+        ~RHI() noexcept = default;
 
-        GraphicResourceManager(const GraphicResourceManager& that)            = delete;
-        GraphicResourceManager(GraphicResourceManager&& that)                 = delete;
-        GraphicResourceManager& operator=(const GraphicResourceManager& that) = delete;
-        GraphicResourceManager& operator=(GraphicResourceManager&& that)      = delete;
+        RHI(const RHI& that)            = delete;
+        RHI(RHI&& that)                 = delete;
+        RHI& operator=(const RHI& that) = delete;
+        RHI& operator=(RHI&& that)      = delete;
 
         void initialize();
         void disposal();

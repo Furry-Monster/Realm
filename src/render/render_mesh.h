@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphic_res_manager.h"
+#include "render/rhi.h"
 
 namespace RealmEngine
 {
