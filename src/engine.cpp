@@ -11,7 +11,8 @@ namespace RealmEngine
     void Engine::boot()
     {
         g_context.create();
-        Model* model = g_context.m_assets->loadModel((g_context.m_cfg->getAssetFolder() / "Cian.fbx").generic_string());
+        // Model* model = g_context.m_assets->loadModel((g_context.m_cfg->getAssetFolder() /
+        // "Cian.fbx").generic_string());
         info("<<< Boot Engine Done. >>>");
     }
 

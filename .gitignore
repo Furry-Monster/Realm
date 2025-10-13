@@ -1,5 +1,8 @@
 build/
 bin/
+
+assets/
+docs/
+
 .cache/
 .vscode/
-assets/
