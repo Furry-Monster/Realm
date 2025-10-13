@@ -1,8 +1,8 @@
 #pragma once
 
-#include "render/rhi.h"
 #include "render/render_pipeline.h"
 #include "render/render_scene.h"
+#include "render/rhi.h"
 #include <cstdint>
 #include <memory>
 
@@ -34,7 +34,7 @@ namespace RealmEngine
         void setPipeline(PipelineType type);
 
     private:
-        RHI          m_grahic_res_mgr;
+        RHI                             m_rhi;
         std::unique_ptr<RenderScene>    m_render_scene;
         std::unique_ptr<RenderPipeline> m_render_pipeline;
     };

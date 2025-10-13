@@ -3,55 +3,61 @@
 
 namespace RealmEngine
 {
-    void RenderResource::initialize(RHI& res_mgr)
+    void RenderResource::initialize(RHI& rhi)
     {
-        m_camera_ubo   = res_mgr.createUniformBuffer(sizeof(CameraUBO), nullptr, GL_DYNAMIC_DRAW);
-        m_object_ubo   = res_mgr.createUniformBuffer(sizeof(ObjectUBO), nullptr, GL_DYNAMIC_DRAW);
-        m_lighting_ubo = res_mgr.createUniformBuffer(sizeof(LightingUBO), nullptr, GL_DYNAMIC_DRAW);
+        m_camera_buf   = rhi.createUniformBuffer(sizeof(CameraRes), nullptr, GL_DYNAMIC_DRAW);
+        m_object_buf   = rhi.createUniformBuffer(sizeof(ObjectRes), nullptr, GL_DYNAMIC_DRAW);
+        m_lighting_buf = rhi.createUniformBuffer(sizeof(LightingRes), nullptr, GL_DYNAMIC_DRAW);
     }
 
-    void RenderResource::dispose(RHI& res_mgr)
+    void RenderResource::dispose(RHI& rhi)
     {
-        if (m_camera_ubo != 0)
-            res_mgr.deleteBuffer(m_camera_ubo);
-        if (m_object_ubo != 0)
-            res_mgr.deleteBuffer(m_object_ubo);
-        if (m_lighting_ubo != 0)
-            res_mgr.deleteBuffer(m_lighting_ubo);
+        if (m_camera_buf != 0)
+            rhi.deleteBuffer(m_camera_buf);
+        if (m_object_buf != 0)
+            rhi.deleteBuffer(m_object_buf);
+        if (m_lighting_buf != 0)
+            rhi.deleteBuffer(m_lighting_buf);
 
-        m_camera_ubo   = 0;
-        m_object_ubo   = 0;
-        m_lighting_ubo = 0;
+        m_camera_buf   = 0;
+        m_object_buf   = 0;
+        m_lighting_buf = 0;
     }
 
-    void RenderResource::updateCameraUBO(RHI& res_mgr, const CameraUBO& data)
+    void RenderResource::updateCameraBuf(RHI& rhi, const CameraRes& data)
     {
-        res_mgr.updateBuffer(m_camera_ubo, GL_UNIFORM_BUFFER, 0, sizeof(CameraUBO), &data);
+        rhi.updateBuffer(m_camera_buf, GL_UNIFORM_BUFFER, 0, sizeof(CameraRes), &data);
     }
 
-    void RenderResource::updateObjectUBO(RHI& res_mgr, const ObjectUBO& data)
+    void RenderResource::updateObjectBuf(RHI& rhi, const ObjectRes& data)
     {
-        res_mgr.updateBuffer(m_object_ubo, GL_UNIFORM_BUFFER, 0, sizeof(ObjectUBO), &data);
+        rhi.updateBuffer(m_object_buf, GL_UNIFORM_BUFFER, 0, sizeof(ObjectRes), &data);
     }
 
-    void RenderResource::updateLightingUBO(RHI& res_mgr, const LightingUBO& data)
+    void RenderResource::updateLightingBuf(RHI& rhi, const LightingRes& data)
     {
-        res_mgr.updateBuffer(m_lighting_ubo, GL_UNIFORM_BUFFER, 0, sizeof(LightingUBO), &data);
+        rhi.updateBuffer(m_lighting_buf, GL_UNIFORM_BUFFER, 0, sizeof(LightingRes), &data);
     }
 
-    void RenderResource::bindCameraUBO(uint32_t binding_point)
+    void RenderResource::bindCameraBuf(uint32_t binding_point)
     {
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_camera_ubo);
+        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_camera_buf);
     }
 
-    void RenderResource::bindObjectUBO(uint32_t binding_point)
+    void RenderResource::bindObjectBuf(uint32_t binding_point)
     {
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_object_ubo);
+        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_object_buf);
     }
 
-    void RenderResource::bindLightingUBO(uint32_t binding_point)
+    void RenderResource::bindLightingBuf(uint32_t binding_point)
     {
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_lighting_ubo);
+        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_lighting_buf);
     }
+
+    BufferHandle RenderResource::getCameraBuf() const { return m_camera_buf; }
+
+    BufferHandle RenderResource::getObjectBuf() const { return m_object_buf; }
+
+    BufferHandle RenderResource::getLightingBuf() const { return m_lighting_buf; }
 
 } // namespace RealmEngine
