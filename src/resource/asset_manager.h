@@ -1,6 +1,5 @@
 #pragma once
 
-#include "resource/datatype/model/model.h"
 #include "resource/importer/model_importer.h"
 #include "utils.h"
 #include <future>

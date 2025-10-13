@@ -24,6 +24,8 @@ namespace RealmEngine
 {
     std::unique_ptr<Model> ModelImporter::loadModel(const std::string& filepath, const LoadOptions& options)
     {
+        info("Loading model from: " + filepath);
+
         Assimp::Importer importer;
 
         // process flags
@@ -37,6 +39,10 @@ namespace RealmEngine
             ai_flags |= aiProcess_OptimizeGraph;
         if (options.optimize_meshes)
             ai_flags |= aiProcess_OptimizeMeshes;
+        debug("< Import options > - Calculate tangents: " + std::string(options.calculate_tangents ? "ON" : "OFF") +
+              ", Flip UVs: " + std::string(options.flip_uvs ? "ON" : "OFF") +
+              ", Optimize meshes: " + std::string(options.optimize_meshes ? "ON" : "OFF") +
+              ", Optimize graph: " + std::string(options.optimize_graph ? "ON" : "OFF"));
 
         // load from file
         const aiScene* scene = importer.ReadFile(filepath, ai_flags);
@@ -46,6 +52,10 @@ namespace RealmEngine
                 " - Error: " + importer.GetErrorString());
             return nullptr;
         }
+
+        debug("< Assimp scene loaded successfully > - Meshes: " + std::to_string(scene->mNumMeshes) + ", Materials: " +
+              std::to_string(scene->mNumMaterials) + ", Textures: " + std::to_string(scene->mNumTextures) +
+              ", Animations: " + std::to_string(scene->mNumAnimations));
 
         std::unique_ptr<Model> model = std::make_unique<Model>();
 
@@ -58,6 +68,7 @@ namespace RealmEngine
             base_dir = "./";
 
         // load all material
+        debug("< Processing " + std::to_string(scene->mNumMaterials) + " material(s)... >");
         for (size_t i = 0; i < scene->mNumMaterials; ++i)
         {
             Material&& material = processMaterial(scene->mMaterials[i], base_dir);
@@ -65,18 +76,25 @@ namespace RealmEngine
         }
 
         // load all mesh
+        debug("< Processing " + std::to_string(scene->mNumMeshes) + " mesh(es)... >");
+        size_t total_vertices  = 0;
+        size_t total_triangles = 0;
         for (size_t i = 0; i < scene->mNumMeshes; ++i)
         {
-            Mesh&& mesh = processMesh(scene->mMeshes[i]);
+            const aiMesh* ai_mesh = scene->mMeshes[i];
+            total_vertices += ai_mesh->mNumVertices;
+            total_triangles += ai_mesh->mNumFaces;
+
+            Mesh&& mesh = processMesh(ai_mesh);
             model->addMesh(std::move(mesh));
         }
+        debug("Total vertices: " + std::to_string(total_vertices) +
+              ", Total triangles: " + std::to_string(total_triangles));
 
         // recursively process node tree
+        debug("< Processing scene graph hierarchy... >");
         auto root = processNode(scene->mRootNode, scene);
         model->setRoot(std::move(root));
-
-        info("Successfully loaded model from: " + filepath + " [Meshes: " + std::to_string(model->getMeshCount()) +
-             ", Materials: " + std::to_string(model->getMaterialCount()) + "]");
 
         return model;
     }
@@ -115,6 +133,15 @@ namespace RealmEngine
             warn("Invalid or empty aiMesh for processing.");
             return mesh;
         }
+
+        // Log mesh attributes
+        std::string mesh_name = ai_mesh->mName.length > 0 ? std::string(ai_mesh->mName.C_Str()) : "<unnamed>";
+        debug("  Mesh '" + mesh_name + "' - Vertices: " + std::to_string(ai_mesh->mNumVertices) +
+              ", Faces: " + std::to_string(ai_mesh->mNumFaces) +
+              ", UVs: " + std::string(ai_mesh->HasTextureCoords(0) ? "YES" : "NO") +
+              ", Normals: " + std::string(ai_mesh->HasNormals() ? "YES" : "NO") +
+              ", Tangents: " + std::string(ai_mesh->HasTangentsAndBitangents() ? "YES" : "NO") +
+              ", Colors: " + std::string(ai_mesh->HasVertexColors(0) ? "YES" : "NO"));
 
         // vert process
         std::vector<Vertex> vertices;
@@ -198,6 +225,19 @@ namespace RealmEngine
             warn("Invalid ai_material or empty base dir path.");
             return material;
         }
+
+        // Get material name
+        aiString    mat_name;
+        std::string material_name = "<unnamed>";
+        if (ai_material->Get(AI_MATKEY_NAME, mat_name) == AI_SUCCESS && mat_name.length > 0)
+            material_name = std::string(mat_name.C_Str());
+
+        debug("  Material '" + material_name + "' - Textures: " +
+              std::to_string(ai_material->GetTextureCount(aiTextureType_BASE_COLOR) +
+                             ai_material->GetTextureCount(aiTextureType_DIFFUSE) +
+                             ai_material->GetTextureCount(aiTextureType_NORMALS) +
+                             ai_material->GetTextureCount(aiTextureType_GLTF_METALLIC_ROUGHNESS) +
+                             ai_material->GetTextureCount(aiTextureType_EMISSIVE)));
 
         aiString texture_path;
 
