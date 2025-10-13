@@ -1,14 +1,12 @@
 #pragma once
 
 #include "render/render_camera.h"
+#include "render/render_light.h"
 #include "render/render_object.h"
 #include <memory>
 #include <vector>
 namespace RealmEngine
 {
-    class DirectionalLight;
-    class PointLight;
-    class SpotLight;
     class Skybox;
 
     class RenderScene
