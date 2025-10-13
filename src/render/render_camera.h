@@ -15,9 +15,41 @@ namespace RealmEngine
         // vec3(A,B,C) ---> normal , float D ---> distance to origin(0,0,0).
         glm::vec4 planes[6];
 
-        constexpr bool containsPoint(const glm::vec3& point) const;
-        constexpr bool containsSphere(const glm::vec3& center, float r) const;
-        constexpr bool containsAABB(const AABB& bounds) const;
+        constexpr bool containsPoint(const glm::vec3& point) const
+        {
+            for (const glm::vec4& plane : planes)
+            {
+                if (glm::dot(glm::vec3(plane), point) + plane.w < 0.0f)
+                    return false;
+            }
+            return true;
+        }
+        constexpr bool containsSphere(const glm::vec3& center, float r) const
+        {
+            for (const glm::vec4& plane : planes)
+            {
+                if (glm::dot(glm::vec3(plane), center) + plane.w < -r)
+                    return false;
+            }
+            return true;
+        }
+        constexpr bool containsAABB(const AABB& bounds) const
+        {
+            for (const glm::vec4& plane : planes)
+            {
+                glm::vec3 positive_vert = bounds.min;
+                if (plane.x >= 0)
+                    positive_vert.x = bounds.max.x;
+                if (plane.y >= 0)
+                    positive_vert.y = bounds.max.y;
+                if (plane.z >= 0)
+                    positive_vert.z = bounds.max.z;
+
+                if (glm::dot(glm::vec3(plane), positive_vert) + plane.w < 0.0f)
+                    return false;
+            }
+            return true;
+        }
     };
 
     enum class ProjectionType : uint8_t
