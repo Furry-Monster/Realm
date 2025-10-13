@@ -9,8 +9,8 @@ namespace RealmEngine
     class RenderMaterial
     {
     public:
-        RenderMaterial()  = default;
-        ~RenderMaterial() = default;
+        RenderMaterial()           = default;
+        ~RenderMaterial() noexcept = default;
 
         RenderMaterial(const RenderMaterial& that)                = delete;
         RenderMaterial& operator=(const RenderMaterial& that)     = delete;

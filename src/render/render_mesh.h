@@ -7,8 +7,8 @@ namespace RealmEngine
     class RenderMesh
     {
     public:
-        RenderMesh()  = default;
-        ~RenderMesh() = default;
+        RenderMesh()           = default;
+        ~RenderMesh() noexcept = default;
 
         RenderMesh(const RenderMesh& that)                = delete;
         RenderMesh& operator=(const RenderMesh& that)     = delete;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "math.h"
 #include <cstdint>
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_float3.hpp>
@@ -33,15 +34,6 @@ namespace RealmEngine
         constexpr uint32_t getEndIndex() const { return base_index + index_count; }
         constexpr bool     isEmpty() const { return index_count == 0; }
         constexpr bool     isValid() const { return index_count > 0 && index_count % 3 == 0; }
-    };
-
-    struct AABB
-    {
-        glm::vec3 min;
-        glm::vec3 max;
-
-        constexpr glm::vec3 center() const { return (min + max) * 0.5f; }
-        constexpr glm::vec3 extent() const { return max - min; }
     };
 
     class Mesh

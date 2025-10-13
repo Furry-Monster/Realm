@@ -1,8 +1,10 @@
 #pragma once
 
+#include "math.h"
 #include "resource/datatype/model/material.h"
 #include "resource/datatype/model/mesh.h"
 #include "resource/datatype/model/node.h"
+
 #include <cstddef>
 #include <memory>
 #include <vector>

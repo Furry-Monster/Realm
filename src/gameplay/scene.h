@@ -5,8 +5,8 @@ namespace RealmEngine
     class Scene
     {
     public:
-        Scene()  = default;
-        ~Scene() = default;
+        Scene()           = default;
+        ~Scene() noexcept = default;
 
         Scene(const Scene&)                = delete;
         Scene& operator=(const Scene&)     = delete;

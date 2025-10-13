@@ -7,8 +7,8 @@ namespace RealmEngine
     class Transform : public Component
     {
     public:
-        Transform()  = default;
-        ~Transform() = default;
+        Transform()           = default;
+        ~Transform() noexcept = default;
 
         Transform(Transform&&) noexcept            = default;
         Transform& operator=(Transform&&) noexcept = default;

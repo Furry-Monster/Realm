@@ -7,8 +7,8 @@ namespace RealmEngine
     class MeshRenderer : public Component
     {
     public:
-        MeshRenderer()  = default;
-        ~MeshRenderer() = default;
+        MeshRenderer()           = default;
+        ~MeshRenderer() noexcept = default;
 
         MeshRenderer(MeshRenderer&&)                 = default;
         MeshRenderer(const MeshRenderer&)            = delete;

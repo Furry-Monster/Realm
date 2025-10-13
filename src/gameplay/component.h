@@ -5,8 +5,8 @@ namespace RealmEngine
     class Component
     {
     public:
-        Component()  = default;
-        ~Component() = default;
+        Component()           = default;
+        ~Component() noexcept = default;
 
         Component(Component&&) noexcept            = default;
         Component& operator=(Component&&) noexcept = default;
