@@ -25,7 +25,7 @@ namespace RealmEngine
         m_shader_cache.clear();
         m_program_cache.clear();
 
-        info("RHI initialized.");
+        info("RHI<OpenGL.Core 3.3> initialized.");
     }
 
     void RHI::disposal()
@@ -61,7 +61,7 @@ namespace RealmEngine
             glDeleteBuffers(1, &buffer);
         m_buffers.clear();
 
-        info("RHI disposed all resources.");
+        info("RHI<OpenGL.Core 3.3> disposed all resources.");
     }
 
     BufferHandle RHI::createBuffer(GLenum target, GLsizeiptr size, const void* data, GLenum usage)

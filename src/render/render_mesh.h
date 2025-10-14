@@ -5,6 +5,8 @@
 
 namespace RealmEngine
 {
+    class Mesh;
+
     class RenderMesh
     {
     public:
@@ -27,6 +29,9 @@ namespace RealmEngine
         void setEBO(BufferHandle ebo);
         void setIndexCount(uint32_t count);
         void setVertexCount(uint32_t count);
+
+        void sync(RHI& rhi, const Mesh& mesh);
+        void disposal(RHI& rhi);
 
         void bind() const;
         void unbind() const;

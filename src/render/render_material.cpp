@@ -34,6 +34,10 @@ namespace RealmEngine
     void               RenderMaterial::setRenderState(const RenderState& state) { m_render_state = state; }
     const RenderState& RenderMaterial::getRenderState() const { return m_render_state; }
 
+    void RenderMaterial::sync(RHI& rhi, const Material& material) {}
+
+    void RenderMaterial::disposal(RHI& rhi) {}
+
     void RenderMaterial::bind() const
     {
         glUseProgram(m_shader);

@@ -8,12 +8,17 @@
 
 namespace RealmEngine
 {
-    void Renderer::initialize() { info("Renderer initalized."); }
+    void Renderer::initialize()
+    {
+        m_rhi.initialize();
+        info("Renderer initalized.");
+    }
 
     void Renderer::disposal()
     {
         m_render_scene.reset();
         m_render_pipeline.reset();
+        m_rhi.disposal();
 
         info("Renderer disposed all resources.");
     }

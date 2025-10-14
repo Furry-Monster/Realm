@@ -45,6 +45,9 @@ namespace RealmEngine
         void               setRenderState(const RenderState& state);
         const RenderState& getRenderState() const;
 
+        void sync(RHI& rhi, const Material& material);
+        void disposal(RHI& rhi);
+
         void bind() const;
         void unbind() const;
 
