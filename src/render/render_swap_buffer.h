@@ -42,27 +42,27 @@ namespace RealmEngine
         SpotLight        spot_lights[MAX_SPOT_LIGHTS];
     };
 
-    class RenderResource
+    class RenderSwapBuffer
     {
     public:
-        RenderResource()           = default;
-        ~RenderResource() noexcept = default;
+        RenderSwapBuffer()           = default;
+        ~RenderSwapBuffer() noexcept = default;
 
-        RenderResource(const RenderResource&)            = delete;
-        RenderResource& operator=(const RenderResource&) = delete;
-        RenderResource(RenderResource&&)                 = delete;
-        RenderResource& operator=(RenderResource&&)      = delete;
+        RenderSwapBuffer(const RenderSwapBuffer&)            = delete;
+        RenderSwapBuffer& operator=(const RenderSwapBuffer&) = delete;
+        RenderSwapBuffer(RenderSwapBuffer&&)                 = delete;
+        RenderSwapBuffer& operator=(RenderSwapBuffer&&)      = delete;
 
         void initialize(RHI& rhi);
         void dispose(RHI& rhi);
 
-        void updateCameraBuf(RHI& rhi, const CameraRes& data);
-        void updateObjectBuf(RHI& rhi, const ObjectRes& data);
-        void updateLightingBuf(RHI& rhi, const LightingRes& data);
+        void updateCameraBuf(RHI& rhi, const CameraRes& data) const;
+        void updateObjectBuf(RHI& rhi, const ObjectRes& data) const;
+        void updateLightingBuf(RHI& rhi, const LightingRes& data) const;
 
-        void bindCameraBuf(uint32_t binding_point = 0);
-        void bindObjectBuf(uint32_t binding_point = 1);
-        void bindLightingBuf(uint32_t binding_point = 2);
+        void bindCameraBuf(uint32_t binding_point = 0) const;
+        void bindObjectBuf(uint32_t binding_point = 1) const;
+        void bindLightingBuf(uint32_t binding_point = 2) const;
 
         BufferHandle getCameraBuf() const;
         BufferHandle getObjectBuf() const;

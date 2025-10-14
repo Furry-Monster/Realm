@@ -1,16 +1,16 @@
-#include "render_resource.h"
+#include "render_swap_buffer.h"
 #include <glad/gl.h>
 
 namespace RealmEngine
 {
-    void RenderResource::initialize(RHI& rhi)
+    void RenderSwapBuffer::initialize(RHI& rhi)
     {
         m_camera_buf   = rhi.createUniformBuffer(sizeof(CameraRes), nullptr, GL_DYNAMIC_DRAW);
         m_object_buf   = rhi.createUniformBuffer(sizeof(ObjectRes), nullptr, GL_DYNAMIC_DRAW);
         m_lighting_buf = rhi.createUniformBuffer(sizeof(LightingRes), nullptr, GL_DYNAMIC_DRAW);
     }
 
-    void RenderResource::dispose(RHI& rhi)
+    void RenderSwapBuffer::dispose(RHI& rhi)
     {
         if (m_camera_buf != 0)
             rhi.deleteBuffer(m_camera_buf);
@@ -24,40 +24,40 @@ namespace RealmEngine
         m_lighting_buf = 0;
     }
 
-    void RenderResource::updateCameraBuf(RHI& rhi, const CameraRes& data)
+    void RenderSwapBuffer::updateCameraBuf(RHI& rhi, const CameraRes& data) const
     {
         rhi.updateBuffer(m_camera_buf, GL_UNIFORM_BUFFER, 0, sizeof(CameraRes), &data);
     }
 
-    void RenderResource::updateObjectBuf(RHI& rhi, const ObjectRes& data)
+    void RenderSwapBuffer::updateObjectBuf(RHI& rhi, const ObjectRes& data) const
     {
         rhi.updateBuffer(m_object_buf, GL_UNIFORM_BUFFER, 0, sizeof(ObjectRes), &data);
     }
 
-    void RenderResource::updateLightingBuf(RHI& rhi, const LightingRes& data)
+    void RenderSwapBuffer::updateLightingBuf(RHI& rhi, const LightingRes& data) const
     {
         rhi.updateBuffer(m_lighting_buf, GL_UNIFORM_BUFFER, 0, sizeof(LightingRes), &data);
     }
 
-    void RenderResource::bindCameraBuf(uint32_t binding_point)
+    void RenderSwapBuffer::bindCameraBuf(uint32_t binding_point) const
     {
         glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_camera_buf);
     }
 
-    void RenderResource::bindObjectBuf(uint32_t binding_point)
+    void RenderSwapBuffer::bindObjectBuf(uint32_t binding_point) const
     {
         glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_object_buf);
     }
 
-    void RenderResource::bindLightingBuf(uint32_t binding_point)
+    void RenderSwapBuffer::bindLightingBuf(uint32_t binding_point) const
     {
         glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_lighting_buf);
     }
 
-    BufferHandle RenderResource::getCameraBuf() const { return m_camera_buf; }
+    BufferHandle RenderSwapBuffer::getCameraBuf() const { return m_camera_buf; }
 
-    BufferHandle RenderResource::getObjectBuf() const { return m_object_buf; }
+    BufferHandle RenderSwapBuffer::getObjectBuf() const { return m_object_buf; }
 
-    BufferHandle RenderResource::getLightingBuf() const { return m_lighting_buf; }
+    BufferHandle RenderSwapBuffer::getLightingBuf() const { return m_lighting_buf; }
 
 } // namespace RealmEngine

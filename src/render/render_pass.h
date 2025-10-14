@@ -17,7 +17,7 @@ namespace RealmEngine
         RenderPass& operator=(RenderPass&&)      = delete;
 
         virtual void initialize(RHI& rhi)                                            = 0;
-        virtual void render(RHI& rhi, RenderScene& scene, RenderResource& resources) = 0;
+        virtual void render(RHI& rhi, RenderScene& scene, RenderSwapBuffer& resources) = 0;
         virtual void dispose(RHI& rhi)                                               = 0;
     };
 
@@ -27,7 +27,7 @@ namespace RealmEngine
         ~ShadowPass() noexcept override = default;
 
         void initialize(RHI& rhi) override;
-        void render(RHI& rhi, RenderScene& scene, RenderResource& resources) override;
+        void render(RHI& rhi, RenderScene& scene, RenderSwapBuffer& resources) override;
         void dispose(RHI& rhi) override;
 
         TextureHandle getShadowMap() const { return m_shadow_map; }
@@ -47,13 +47,13 @@ namespace RealmEngine
         ~ForwardMainPass() noexcept override = default;
 
         void initialize(RHI& rhi) override;
-        void render(RHI& rhi, RenderScene& scene, RenderResource& resources) override;
+        void render(RHI& rhi, RenderScene& scene, RenderSwapBuffer& resources) override;
         void dispose(RHI& rhi) override;
 
     private:
-        void renderSkybox(RHI& rhi, RenderScene& scene, RenderResource& resources);
-        void renderOpaqueObjects(RHI& rhi, RenderScene& scene, RenderResource& resources);
-        void renderTransparentObjects(RHI& rhi, RenderScene& scene, RenderResource& resources);
+        void renderSkybox(RHI& rhi, RenderScene& scene, RenderSwapBuffer& resources);
+        void renderOpaqueObjects(RHI& rhi, RenderScene& scene, RenderSwapBuffer& resources);
+        void renderTransparentObjects(RHI& rhi, RenderScene& scene, RenderSwapBuffer& resources);
 
         ProgramHandle m_skybox_shader {0};
         VAOHandle     m_skybox_vao {0};
@@ -67,7 +67,7 @@ namespace RealmEngine
         ~PostprocessPass() noexcept override = default;
 
         void initialize(RHI& rhi) override;
-        void render(RHI& rhi, RenderScene& scene, RenderResource& resources) override;
+        void render(RHI& rhi, RenderScene& scene, RenderSwapBuffer& resources) override;
         void dispose(RHI& rhi) override;
 
     private:
