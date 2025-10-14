@@ -3,14 +3,7 @@
 
 namespace RealmEngine
 {
-    void          RenderMaterial::setShaderProgram(ProgramHandle shader) { m_shader = shader; }
     ProgramHandle RenderMaterial::getShaderProgram() const { return m_shader; }
-
-    void RenderMaterial::setBaseColorTexture(TextureHandle handle) { m_base_color_tex = handle; }
-    void RenderMaterial::setMetallicRoughnessTexture(TextureHandle handle) { m_metallic_roughness_tex = handle; }
-    void RenderMaterial::setNormalTexture(TextureHandle handle) { m_normal_tex = handle; }
-    void RenderMaterial::setOcclusionTexture(TextureHandle handle) { m_occlusion_tex = handle; }
-    void RenderMaterial::setEmissiveTexture(TextureHandle handle) { m_emissive_tex = handle; }
 
     std::optional<TextureHandle> RenderMaterial::getBaseColorTexture() const { return m_base_color_tex; }
     std::optional<TextureHandle> RenderMaterial::getMetallicRoughnessTexture() const
@@ -21,22 +14,72 @@ namespace RealmEngine
     std::optional<TextureHandle> RenderMaterial::getOcclusionTexture() const { return m_occlusion_tex; }
     std::optional<TextureHandle> RenderMaterial::getEmissiveTexture() const { return m_emissive_tex; }
 
-    void RenderMaterial::setBaseColorFactor(const glm::vec4& color) { m_base_color_factor = color; }
-    void RenderMaterial::setMetallicFactor(float metallic) { m_metallic_factor = metallic; }
-    void RenderMaterial::setRoughnessFactor(float roughness) { m_roughness_factor = roughness; }
-    void RenderMaterial::setEmissiveFactor(const glm::vec3& emissive) { m_emissive_factor = emissive; }
-
     const glm::vec4& RenderMaterial::getBaseColorFactor() const { return m_base_color_factor; }
     float            RenderMaterial::getMetallicFactor() const { return m_metallic_factor; }
     float            RenderMaterial::getRoughnessFactor() const { return m_roughness_factor; }
     const glm::vec3& RenderMaterial::getEmissiveFactor() const { return m_emissive_factor; }
 
-    void               RenderMaterial::setRenderState(const RenderState& state) { m_render_state = state; }
     const RenderState& RenderMaterial::getRenderState() const { return m_render_state; }
 
-    void RenderMaterial::sync(RHI& rhi, const Material& material) {}
+    void RenderMaterial::sync(RHI& rhi, const Material& material)
+    {
+        m_base_color_factor = material.getBaseColorFactor();
+        m_metallic_factor   = material.getMetallicFactor();
+        m_roughness_factor  = material.getRoughnessFactor();
+        m_emissive_factor   = material.getEmissiveFactor();
 
-    void RenderMaterial::disposal(RHI& rhi) {}
+        if (const auto& base_color_tex = material.getBaseColorTexture())
+        {
+            TextureHandle handle = rhi.loadTexture(base_color_tex->path);
+            m_base_color_tex     = handle;
+        }
+
+        if (const auto& metallic_roughness_tex = material.getMetallicRoughnessTexture())
+        {
+            TextureHandle handle     = rhi.loadTexture(metallic_roughness_tex->path);
+            m_metallic_roughness_tex = handle;
+        }
+
+        if (const auto& normal_tex = material.getNormalTexture())
+        {
+            TextureHandle handle = rhi.loadTexture(normal_tex->path);
+            m_normal_tex         = handle;
+        }
+
+        if (const auto& occlusion_tex = material.getOcclusionTexture())
+        {
+            TextureHandle handle = rhi.loadTexture(occlusion_tex->path);
+            m_occlusion_tex      = handle;
+        }
+
+        if (const auto& emissive_tex = material.getEmissiveTexture())
+        {
+            TextureHandle handle = rhi.loadTexture(emissive_tex->path);
+            m_emissive_tex       = handle;
+        }
+
+        m_render_state = material.getRenderState();
+    }
+
+    void RenderMaterial::disposal(RHI& rhi)
+    {
+        if (m_base_color_tex.has_value())
+            rhi.deleteTexture(m_base_color_tex.value());
+        if (m_metallic_roughness_tex.has_value())
+            rhi.deleteTexture(m_metallic_roughness_tex.value());
+        if (m_normal_tex.has_value())
+            rhi.deleteTexture(m_normal_tex.value());
+        if (m_occlusion_tex.has_value())
+            rhi.deleteTexture(m_occlusion_tex.value());
+        if (m_emissive_tex.has_value())
+            rhi.deleteTexture(m_emissive_tex.value());
+
+        m_base_color_tex         = std::nullopt;
+        m_metallic_roughness_tex = std::nullopt;
+        m_normal_tex             = std::nullopt;
+        m_occlusion_tex          = std::nullopt;
+        m_emissive_tex           = std::nullopt;
+    }
 
     void RenderMaterial::bind() const
     {

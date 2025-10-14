@@ -24,12 +24,6 @@ namespace RealmEngine
         uint32_t     getIndexCount() const;
         uint32_t     getVertexCount() const;
 
-        void setVAO(VAOHandle vao);
-        void setVBO(BufferHandle vbo);
-        void setEBO(BufferHandle ebo);
-        void setIndexCount(uint32_t count);
-        void setVertexCount(uint32_t count);
-
         void sync(RHI& rhi, const Mesh& mesh);
         void disposal(RHI& rhi);
 
