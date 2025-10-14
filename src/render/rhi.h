@@ -18,7 +18,7 @@ namespace RealmEngine
     using RBOHandle     = GLuint;
 
     /**
-     * @brief OpenGL Rendering hardware interface.
+     * @brief OpenGL Rendering Hardware Interface.
      *
      */
     class RHI

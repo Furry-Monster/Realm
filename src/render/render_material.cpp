@@ -3,14 +3,15 @@
 
 namespace RealmEngine
 {
-    void RenderMaterial::setShaderProgram(ProgramHandle shader) { m_shader = shader; }
+    void          RenderMaterial::setShaderProgram(ProgramHandle shader) { m_shader = shader; }
+    ProgramHandle RenderMaterial::getShaderProgram() const { return m_shader; }
+
     void RenderMaterial::setBaseColorTexture(TextureHandle handle) { m_base_color_tex = handle; }
     void RenderMaterial::setMetallicRoughnessTexture(TextureHandle handle) { m_metallic_roughness_tex = handle; }
     void RenderMaterial::setNormalTexture(TextureHandle handle) { m_normal_tex = handle; }
     void RenderMaterial::setOcclusionTexture(TextureHandle handle) { m_occlusion_tex = handle; }
     void RenderMaterial::setEmissiveTexture(TextureHandle handle) { m_emissive_tex = handle; }
 
-    ProgramHandle                RenderMaterial::getShaderProgram() const { return m_shader; }
     std::optional<TextureHandle> RenderMaterial::getBaseColorTexture() const { return m_base_color_tex; }
     std::optional<TextureHandle> RenderMaterial::getMetallicRoughnessTexture() const
     {

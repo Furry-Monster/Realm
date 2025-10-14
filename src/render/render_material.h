@@ -19,13 +19,14 @@ namespace RealmEngine
         RenderMaterial(RenderMaterial&& that) noexcept            = default;
         RenderMaterial& operator=(RenderMaterial&& that) noexcept = default;
 
-        void                         setShaderProgram(ProgramHandle shader);
+        void          setShaderProgram(ProgramHandle shader);
+        ProgramHandle getShaderProgram() const;
+
         void                         setBaseColorTexture(TextureHandle handle);
         void                         setMetallicRoughnessTexture(TextureHandle handle);
         void                         setNormalTexture(TextureHandle handle);
         void                         setOcclusionTexture(TextureHandle handle);
         void                         setEmissiveTexture(TextureHandle handle);
-        ProgramHandle                getShaderProgram() const;
         std::optional<TextureHandle> getBaseColorTexture() const;
         std::optional<TextureHandle> getMetallicRoughnessTexture() const;
         std::optional<TextureHandle> getNormalTexture() const;
@@ -48,7 +49,8 @@ namespace RealmEngine
         void unbind() const;
 
     private:
-        ProgramHandle                m_shader {0};
+        ProgramHandle m_shader {0};
+
         std::optional<TextureHandle> m_base_color_tex;
         std::optional<TextureHandle> m_metallic_roughness_tex;
         std::optional<TextureHandle> m_normal_tex;

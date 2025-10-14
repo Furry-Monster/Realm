@@ -18,19 +18,15 @@ namespace RealmEngine
         constexpr bool containsPoint(const glm::vec3& point) const
         {
             for (const glm::vec4& plane : planes)
-            {
                 if (glm::dot(glm::vec3(plane), point) + plane.w < 0.0f)
                     return false;
-            }
             return true;
         }
         constexpr bool containsSphere(const glm::vec3& center, float r) const
         {
             for (const glm::vec4& plane : planes)
-            {
                 if (glm::dot(glm::vec3(plane), center) + plane.w < -r)
                     return false;
-            }
             return true;
         }
         constexpr bool containsAABB(const AABB& bounds) const
