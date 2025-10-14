@@ -11,6 +11,7 @@ namespace RealmEngine
     void Renderer::initialize()
     {
         m_rhi.initialize();
+        m_render_scene = std::make_unique<RenderScene>();
         info("Renderer initalized.");
     }
 

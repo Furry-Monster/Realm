@@ -30,7 +30,6 @@ namespace RealmEngine
 
         void renderFrame();
 
-        void setRenderScene();
         void setPipeline(PipelineType type);
 
     private:

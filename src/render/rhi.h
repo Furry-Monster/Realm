@@ -8,7 +8,6 @@
 
 namespace RealmEngine
 {
-
     using BufferHandle  = GLuint;
     using TextureHandle = GLuint;
     using ShaderHandle  = GLuint;
