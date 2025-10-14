@@ -2,11 +2,14 @@
 
 #include "render/render_material.h"
 #include "render/render_mesh.h"
+#include <cstdint>
 #include <vector>
+
 namespace RealmEngine
 {
-    struct RenderResHandle
-    {};
+    using RenderResHandle      = uint32_t;
+    using RenderMeshHandle     = RenderResHandle;
+    using RenderMaterialHandle = RenderResHandle;
 
     class RenderResource
     {
@@ -18,6 +21,9 @@ namespace RealmEngine
         RenderResource& operator=(const RenderResource&) = delete;
         RenderResource(RenderResource&&)                 = default;
         RenderResource& operator=(RenderResource&&)      = default;
+
+        void initialize();
+        void disposal();
 
     private:
         std::vector<RenderMesh>     m_render_meshes;

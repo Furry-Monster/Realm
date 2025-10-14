@@ -56,16 +56,11 @@ namespace RealmEngine
         m_spot_lights.clear();
     }
 
-    void RenderScene::setMainCamera(std::shared_ptr<RenderCamera> camera) { m_main_camera = camera; }
-    void RenderScene::setSkybox(std::shared_ptr<Skybox> skybox) { m_skybox = skybox; }
-
     const std::vector<RenderObject>&     RenderScene::getOpaqueObjects() const { return m_opaque_objs; }
     const std::vector<RenderObject>&     RenderScene::getTransparentObjects() const { return m_transparent_objs; }
     const std::vector<DirectionalLight>& RenderScene::getDirectionalLights() const { return m_dir_lights; }
     const std::vector<PointLight>&       RenderScene::getPointLights() const { return m_point_lights; }
     const std::vector<SpotLight>&        RenderScene::getSpotLights() const { return m_spot_lights; }
     const AmbientLight&                  RenderScene::getAmbientLight() const { return m_ambient_light; }
-    std::shared_ptr<RenderCamera>        RenderScene::getMainCamera() const { return m_main_camera.lock(); }
-    std::shared_ptr<Skybox>              RenderScene::getSkybox() const { return m_skybox.lock(); }
 
 } // namespace RealmEngine

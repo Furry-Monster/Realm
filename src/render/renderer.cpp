@@ -1,6 +1,10 @@
 #include "renderer.h"
 
+#include "render/render_camera.h"
 #include "render/render_pipeline.h"
+#include "render/render_resource.h"
+#include "render/render_swap_buffer.h"
+#include "render/rhi.h"
 #include "utils.h"
 
 #include <memory>
@@ -10,22 +14,40 @@ namespace RealmEngine
 {
     void Renderer::initialize()
     {
-        m_rhi.initialize();
-        m_render_scene = std::make_unique<RenderScene>();
+        m_rhi             = std::make_shared<RHI>();
+        m_render_res      = std::make_shared<RenderResource>();
+        m_render_swap_buf = std::make_shared<RenderSwapBuffer>();
+        m_render_scene    = std::make_shared<RenderScene>();
+        m_render_camera   = std::make_shared<RenderCamera>();
+
+        m_rhi->initialize();
+        m_render_res->initialize();
+        m_render_swap_buf->initialize();
+        m_render_camera->initialize();
+
         info("Renderer initalized.");
     }
 
     void Renderer::disposal()
     {
+        m_render_camera->disposal();
+        m_render_res->disposal();
+        m_render_res->disposal();
+        m_rhi->disposal();
+
+        m_render_camera.reset();
         m_render_scene.reset();
         m_render_pipeline.reset();
-        m_rhi.disposal();
+        m_render_swap_buf.reset();
+        m_render_res.reset();
+        m_rhi.reset();
 
         info("Renderer disposed all resources.");
     }
 
     void Renderer::renderFrame()
     {
+        processSwapData();
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -57,5 +79,7 @@ namespace RealmEngine
         if (!type_str.empty())
             info("Pipeline switched to <" + type_str + ">.");
     }
+
+    void Renderer::processSwapData() {}
 
 } // namespace RealmEngine

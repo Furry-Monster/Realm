@@ -53,8 +53,8 @@ namespace RealmEngine
         RenderSwapBuffer(RenderSwapBuffer&&)                 = delete;
         RenderSwapBuffer& operator=(RenderSwapBuffer&&)      = delete;
 
-        void initialize(RHI& rhi);
-        void dispose(RHI& rhi);
+        void initialize();
+        void dispose();
 
         void updateCameraBuf(RHI& rhi, const CameraRes& data) const;
         void updateObjectBuf(RHI& rhi, const ObjectRes& data) const;

@@ -11,10 +11,12 @@
 #include "glm/geometric.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/trigonometric.hpp"
-#include "resource/asset_manager.h"
+#include "utils.h"
 
 namespace RealmEngine
 {
+    void RenderCamera::initialize() { info("Main Render Camera initialized."); }
+    void RenderCamera::disposal() { info("Main Render Camera disposed all resources."); }
 
     void RenderCamera::setPosition(const glm::vec3& pos)
     {

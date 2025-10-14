@@ -65,6 +65,9 @@ namespace RealmEngine
         RenderCamera(RenderCamera&&) noexcept            = default;
         RenderCamera& operator=(RenderCamera&&) noexcept = default;
 
+        void initialize();
+        void disposal();
+
         void setPosition(const glm::vec3& pos);
         void setRotation(const glm::quat& rotat);
         void setRotation(const glm::vec3& eular_angle);

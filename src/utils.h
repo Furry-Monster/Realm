@@ -1,3 +1,5 @@
+#pragma once
+
 #include "global_context.h"
 #include "logger.h"
 #include <string>

@@ -1,27 +1,32 @@
 #include "render_swap_buffer.h"
+#include "utils.h"
 #include <glad/gl.h>
 
 namespace RealmEngine
 {
-    void RenderSwapBuffer::initialize(RHI& rhi)
+    void RenderSwapBuffer::initialize()
     {
-        m_camera_buf   = rhi.createUniformBuffer(sizeof(CameraRes), nullptr, GL_DYNAMIC_DRAW);
-        m_object_buf   = rhi.createUniformBuffer(sizeof(ObjectRes), nullptr, GL_DYNAMIC_DRAW);
-        m_lighting_buf = rhi.createUniformBuffer(sizeof(LightingRes), nullptr, GL_DYNAMIC_DRAW);
+        // m_camera_buf   = rhi.createUniformBuffer(sizeof(CameraRes), nullptr, GL_DYNAMIC_DRAW);
+        // m_object_buf   = rhi.createUniformBuffer(sizeof(ObjectRes), nullptr, GL_DYNAMIC_DRAW);
+        // m_lighting_buf = rhi.createUniformBuffer(sizeof(LightingRes), nullptr, GL_DYNAMIC_DRAW);
+
+        info("Render Swap Buffer initialized.");
     }
 
-    void RenderSwapBuffer::dispose(RHI& rhi)
+    void RenderSwapBuffer::dispose()
     {
-        if (m_camera_buf != 0)
-            rhi.deleteBuffer(m_camera_buf);
-        if (m_object_buf != 0)
-            rhi.deleteBuffer(m_object_buf);
-        if (m_lighting_buf != 0)
-            rhi.deleteBuffer(m_lighting_buf);
+        // if (m_camera_buf != 0)
+        //     rhi.deleteBuffer(m_camera_buf);
+        // if (m_object_buf != 0)
+        //     rhi.deleteBuffer(m_object_buf);
+        // if (m_lighting_buf != 0)
+        //     rhi.deleteBuffer(m_lighting_buf);
 
         m_camera_buf   = 0;
         m_object_buf   = 0;
         m_lighting_buf = 0;
+
+        info("Render Swap Buffer disposed all resources.");
     }
 
     void RenderSwapBuffer::updateCameraBuf(RHI& rhi, const CameraRes& data) const

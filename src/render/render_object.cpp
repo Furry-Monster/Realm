@@ -11,10 +11,10 @@ namespace RealmEngine
     const glm::mat4& RenderObject::getModelMatrix() const { return m_model_matrix; }
     const glm::mat4& RenderObject::getNormalMatrix() const { return m_normal_matrix; }
 
-    void RenderObject::setMesh(std::shared_ptr<RenderMesh> mesh) { m_mesh = std::move(mesh); }
-    void RenderObject::setMaterial(std::shared_ptr<RenderMaterial> material) { m_material = std::move(material); }
-    std::shared_ptr<RenderMesh>     RenderObject::getMesh() const { return m_mesh; }
-    std::shared_ptr<RenderMaterial> RenderObject::getMaterial() const { return m_material; }
+    void                 RenderObject::setMesh(RenderMeshHandle mesh) { m_mesh = mesh; }
+    void                 RenderObject::setMaterial(RenderMaterialHandle material) { m_material = material; }
+    RenderMeshHandle     RenderObject::getMesh() const { return m_mesh; }
+    RenderMaterialHandle RenderObject::getMaterial() const { return m_material; }
 
     void        RenderObject::setWorldBounds(const AABB& bounds) { m_world_bounds = bounds; }
     const AABB& RenderObject::getWorldBounds() const { return m_world_bounds; }

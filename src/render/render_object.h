@@ -2,10 +2,8 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 #include "math.h"
-#include "render/render_material.h"
-#include "render/render_mesh.h"
+#include "render/render_resource.h"
 #include <cstdint>
-#include <memory>
 
 namespace RealmEngine
 {
@@ -24,10 +22,10 @@ namespace RealmEngine
         const glm::mat4& getModelMatrix() const;
         const glm::mat4& getNormalMatrix() const;
 
-        void                            setMesh(std::shared_ptr<RenderMesh> mesh);
-        void                            setMaterial(std::shared_ptr<RenderMaterial> material);
-        std::shared_ptr<RenderMesh>     getMesh() const;
-        std::shared_ptr<RenderMaterial> getMaterial() const;
+        void                 setMesh(RenderMeshHandle mesh);
+        void                 setMaterial(RenderMaterialHandle material);
+        RenderMeshHandle     getMesh() const;
+        RenderMaterialHandle getMaterial() const;
 
         void        setWorldBounds(const AABB& bounds);
         const AABB& getWorldBounds() const;
@@ -46,8 +44,8 @@ namespace RealmEngine
         glm::mat4 m_model_matrix {1.0f};
         glm::mat4 m_normal_matrix {1.0f};
 
-        std::shared_ptr<RenderMesh>     m_mesh;
-        std::shared_ptr<RenderMaterial> m_material;
+        RenderMeshHandle     m_mesh;
+        RenderMaterialHandle m_material;
 
         AABB m_world_bounds;
 

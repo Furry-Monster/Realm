@@ -3,6 +3,7 @@
 #include "global_context.h"
 #include "render/renderer.h"
 #include "resource/asset_manager.h"
+#include "utils.h"
 #include "window.h"
 #include <string>
 
