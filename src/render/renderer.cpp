@@ -68,12 +68,22 @@ namespace RealmEngine
             case PipelineType::Forward:
                 m_render_pipeline.reset();
                 m_render_pipeline = std::make_unique<ForwardPipeline>();
-                type_str          = "Forward Rendering Pipeline";
+
+                // Set render context for ForwardPipeline
+                if (auto* forward_pipeline = dynamic_cast<ForwardPipeline*>(m_render_pipeline.get()))
+                {
+                    forward_pipeline->setRenderContext(m_rhi, m_render_scene, m_render_camera);
+                }
+
+                // Initialize the pipeline
+                m_render_pipeline->initialize();
+                type_str = "Forward Rendering Pipeline";
                 break;
             case PipelineType::Deffered:
                 m_render_pipeline.reset();
                 m_render_pipeline = std::make_unique<DefferedPipeline>();
-                type_str          = "Deffered Rendering Pipeline";
+                m_render_pipeline->initialize();
+                type_str = "Deffered Rendering Pipeline";
                 break;
             default:
                 err("Unknown pipeline type.");
@@ -98,7 +108,6 @@ namespace RealmEngine
 
         if (swap_data.dirty_objects.has_value())
         {
-            
         }
 
         if (swap_data.removed_objects.has_value())

@@ -279,6 +279,17 @@ namespace RealmEngine
 
     ShaderHandle RHI::createShader(GLenum shader_type, const std::string& source_path)
     {
+        std::string shader_type_str;
+        switch (shader_type)
+        {
+            case GL_VERTEX_SHADER: shader_type_str = "VERTEX"; break;
+            case GL_FRAGMENT_SHADER: shader_type_str = "FRAGMENT"; break;
+            case GL_GEOMETRY_SHADER: shader_type_str = "GEOMETRY"; break;
+            default: shader_type_str = "UNKNOWN"; break;
+        }
+        
+        info("Creating " + shader_type_str + " shader from: " + source_path);
+        
         std::string cache_key = source_path + "_" + std::to_string(shader_type);
         auto        it        = m_shader_cache.find(cache_key);
         if (it != m_shader_cache.end())
