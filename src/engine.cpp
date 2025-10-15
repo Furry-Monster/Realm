@@ -18,6 +18,83 @@
 
 namespace RealmEngine
 {
+    // Load FBX model
+    void loadFBXModel()
+    {
+        // Load FBX model using AssetManager
+        auto* model = g_context.m_assets->loadModel((g_context.m_cfg->getAssetFolder() / "Cian.fbx").generic_string());
+        if (!model)
+        {
+            err("Failed to load FBX model: assets/Cian.fbx");
+            return;
+        }
+
+        info("FBX model loaded successfully with " + std::to_string(model->getMeshCount()) + " meshes");
+
+        // Create render objects for each mesh in the model
+        for (size_t i = 0; i < model->getMeshCount(); ++i)
+        {
+            const auto& mesh = model->getMesh(i);
+            
+            // Use material 0 for all meshes if we don't have enough materials
+            size_t material_index = (i < model->getMaterialCount()) ? i : 0;
+            const auto& material = model->getMaterial(material_index);
+
+            // Create render mesh and material
+            try {
+                RenderMesh render_mesh;
+                render_mesh.sync(*g_context.m_renderer->getRHI(), mesh);
+                
+                RenderMaterial render_material;
+                render_material.sync(*g_context.m_renderer->getRHI(), material, g_context.m_renderer->getPBRProgram());
+
+                // Add to render resource
+                uint32_t mesh_index = g_context.m_renderer->getRenderResource()->addRenderMesh(std::move(render_mesh));
+                uint32_t material_index = g_context.m_renderer->getRenderResource()->addRenderMaterial(std::move(render_material));
+                
+                // Create render object
+                RenderObject obj;
+                obj.setMesh(mesh_index);
+                obj.setMaterial(material_index);
+                
+                // Set model matrix (scale down if needed)
+                glm::mat4 model_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)); // Scale down
+                obj.setModelMatrix(model_matrix);
+                obj.setVisible(true);
+                
+                // Add to render scene
+                g_context.m_renderer->getRenderScene()->addRenderObject(std::move(obj));
+                
+                info("Successfully processed mesh " + std::to_string(i) + " with " + std::to_string(mesh.getVertices().size()) + " vertices");
+            } catch (const std::exception& e) {
+                err("Failed to process mesh " + std::to_string(i) + ": " + std::string(e.what()));
+                continue; // Skip this mesh and continue with the next one
+            }
+        }
+
+        // Add directional light
+        DirectionalLight dir_light;
+        dir_light.direction = glm::normalize(glm::vec3(1.0f, -1.0f, 1.0f));
+        dir_light.color     = glm::vec3(1.0f, 1.0f, 1.0f);
+        dir_light.intensity = 2.5f;
+        g_context.m_renderer->getRenderScene()->addDirectionalLight(dir_light);
+
+        // Add ambient light
+        AmbientLight ambient_light;
+        ambient_light.color     = glm::vec3(0.2f, 0.2f, 0.2f);
+        ambient_light.intensity = 0.6f;
+        g_context.m_renderer->getRenderScene()->setAmbientLight(ambient_light);
+
+        // Set camera position to look at the model
+        g_context.m_renderer->getRenderCamera()->setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+        g_context.m_renderer->getRenderCamera()->setRotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+
+        // Set camera perspective projection
+        g_context.m_renderer->getRenderCamera()->setPerspective(45.0f, 16.0f / 9.0f, 0.1f, 100.0f);
+
+        info("FBX model setup completed successfully");
+    }
+
     // Create a simple test cube
     void createTestCube()
     {
@@ -285,8 +362,8 @@ namespace RealmEngine
     {
         g_context.create();
 
-        // Create test scene
-        createTestCube();
+        // Load FBX model
+        loadFBXModel();
 
         info("<<< Boot Engine Done. >>>");
     }
