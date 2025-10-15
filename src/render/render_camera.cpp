@@ -107,8 +107,24 @@ namespace RealmEngine
 
     ProjectionType RenderCamera::getProjectionType() const { return m_projection_type; }
 
-    const glm::mat4& RenderCamera::getViewMatrix() const { return m_view_matrix; }
-    const glm::mat4& RenderCamera::getProjMatrix() const { return m_proj_matrix; }
+    const glm::mat4& RenderCamera::getViewMatrix() const
+    {
+        if (m_view_mat_dirty)
+        {
+            const_cast<RenderCamera*>(this)->updateViewMatrix();
+            const_cast<RenderCamera*>(this)->m_view_mat_dirty = false;
+        }
+        return m_view_matrix;
+    }
+    const glm::mat4& RenderCamera::getProjMatrix() const
+    {
+        if (m_proj_mat_dirty)
+        {
+            const_cast<RenderCamera*>(this)->updateProjectionMatrix();
+            const_cast<RenderCamera*>(this)->m_proj_mat_dirty = false;
+        }
+        return m_proj_matrix;
+    }
     const glm::mat4& RenderCamera::getViewProjMatrix() const { return m_view_proj_matrix; }
 
     const Frustum& RenderCamera::getFrustum() const { return m_frustum; }

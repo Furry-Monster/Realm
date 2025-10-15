@@ -34,6 +34,13 @@ namespace RealmEngine
 
         void setPipeline(PipelineType type);
 
+        // Getters for engine access
+        std::shared_ptr<RHI>            getRHI() const { return m_rhi; }
+        std::shared_ptr<RenderResource> getRenderResource() const { return m_render_res; }
+        std::shared_ptr<RenderScene>    getRenderScene() const { return m_render_scene; }
+        std::shared_ptr<RenderCamera>   getRenderCamera() const { return m_render_camera; }
+        ProgramHandle                   getPBRProgram() const;
+
     private:
         void processSwapData();
 

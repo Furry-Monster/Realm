@@ -56,6 +56,10 @@ namespace RealmEngine
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Enable depth testing
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+
         m_render_pipeline->render();
     }
 
@@ -113,6 +117,15 @@ namespace RealmEngine
         if (swap_data.removed_objects.has_value())
         {
         }
+    }
+
+    ProgramHandle Renderer::getPBRProgram() const
+    {
+        if (auto* forward_pipeline = dynamic_cast<ForwardPipeline*>(m_render_pipeline.get()))
+        {
+            return forward_pipeline->getPBRProgram();
+        }
+        return 0;
     }
 
 } // namespace RealmEngine
