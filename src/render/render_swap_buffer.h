@@ -4,8 +4,10 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/vector_float4.hpp"
 #include "render/render_light.h"
-#include "render/rhi.h"
 #include <cstdint>
+#include <deque>
+#include <optional>
+#include <vector>
 
 namespace RealmEngine
 {
@@ -22,10 +24,31 @@ namespace RealmEngine
         float     layout_pad0;
     };
 
-    struct ObjectRes
+    struct RenderObjectRes
     {
         glm::mat4 model;
         glm::mat4 normal_matrix;
+
+        uint32_t mesh;
+        uint32_t material;
+    };
+
+    struct ObjectRes
+    {
+        bool                         static_mesh {true};
+        std::vector<RenderObjectRes> render_objects;
+    };
+
+    struct ObjectsQueue
+    {
+        std::deque<ObjectRes> objects;
+
+        void add(ObjectRes& res);
+        void pop();
+
+        bool isEmpty() const;
+
+        ObjectRes& getNextObject();
     };
 
     struct LightingRes
@@ -42,6 +65,17 @@ namespace RealmEngine
         SpotLight        spot_lights[MAX_SPOT_LIGHTS];
     };
 
+    struct RenderSwapData
+    {
+        std::optional<CameraRes>    dirty_camera;
+        std::optional<LightingRes>  dirty_lighting;
+        std::optional<ObjectsQueue> dirty_objects;
+        std::optional<ObjectsQueue> removed_objects;
+
+        void addDirtyObject(ObjectRes&& res);
+        void addRemovedObject(ObjectRes&& res);
+    };
+
     class RenderSwapBuffer
     {
     public:
@@ -56,22 +90,22 @@ namespace RealmEngine
         void initialize();
         void dispose();
 
-        void updateCameraBuf(RHI& rhi, const CameraRes& data) const;
-        void updateObjectBuf(RHI& rhi, const ObjectRes& data) const;
-        void updateLightingBuf(RHI& rhi, const LightingRes& data) const;
+        RenderSwapData&       getLogicData();
+        const RenderSwapData& getLogicData() const;
+        RenderSwapData&       getRenderData();
+        const RenderSwapData& getRenderData() const;
 
-        void bindCameraBuf(uint32_t binding_point = 0) const;
-        void bindObjectBuf(uint32_t binding_point = 1) const;
-        void bindLightingBuf(uint32_t binding_point = 2) const;
+        constexpr bool isReadyToSwap() const;
+        void           swapData();
 
-        BufferHandle getCameraBuf() const;
-        BufferHandle getObjectBuf() const;
-        BufferHandle getLightingBuf() const;
+        void resetDirtyCamera();
+        void resetDirtyLighting();
+        void resetDirtyObjects();
+        void resetRemovedObjects();
 
     private:
-        BufferHandle m_camera_buf {0};
-        BufferHandle m_object_buf {0};
-        BufferHandle m_lighting_buf {0};
+        RenderSwapData m_logic_data;
+        RenderSwapData m_render_data;
     };
 
 } // namespace RealmEngine

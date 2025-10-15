@@ -1,16 +1,14 @@
 #pragma once
 
+#include "render/render_camera.h"
 #include "render/render_material.h"
 #include "render/render_mesh.h"
-#include <cstdint>
+#include "render/render_scene.h"
+#include <memory>
 #include <vector>
 
 namespace RealmEngine
 {
-    using RenderResHandle      = uint32_t;
-    using RenderMeshHandle     = RenderResHandle;
-    using RenderMaterialHandle = RenderResHandle;
-
     class RenderResource
     {
     public:
@@ -24,6 +22,8 @@ namespace RealmEngine
 
         void initialize();
         void disposal();
+
+        void update(std::shared_ptr<RenderScene> render_scene, std::shared_ptr<RenderCamera> camera);
 
     private:
         std::vector<RenderMesh>     m_render_meshes;

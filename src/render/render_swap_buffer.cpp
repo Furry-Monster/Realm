@@ -1,68 +1,73 @@
 #include "render_swap_buffer.h"
 #include "utils.h"
 #include <glad/gl.h>
+#include <utility>
 
 namespace RealmEngine
 {
-    void RenderSwapBuffer::initialize()
-    {
-        // m_camera_buf   = rhi.createUniformBuffer(sizeof(CameraRes), nullptr, GL_DYNAMIC_DRAW);
-        // m_object_buf   = rhi.createUniformBuffer(sizeof(ObjectRes), nullptr, GL_DYNAMIC_DRAW);
-        // m_lighting_buf = rhi.createUniformBuffer(sizeof(LightingRes), nullptr, GL_DYNAMIC_DRAW);
+    void       ObjectsQueue::add(ObjectRes& res) { objects.push_back(res); }
+    void       ObjectsQueue::pop() { objects.pop_front(); }
+    bool       ObjectsQueue::isEmpty() const { return objects.empty(); }
+    ObjectRes& ObjectsQueue::getNextObject() { return objects.front(); }
 
-        info("Render Swap Buffer initialized.");
+    void RenderSwapData::addDirtyObject(ObjectRes&& res)
+    {
+        if (dirty_objects.has_value())
+        {
+            dirty_objects->add(res);
+        }
+        else
+        {
+            ObjectsQueue objects;
+            objects.add(res);
+            dirty_objects = std::move(objects);
+        }
+    }
+    void RenderSwapData::addRemovedObject(ObjectRes&& res)
+    {
+        if (removed_objects.has_value())
+        {
+            removed_objects->add(res);
+        }
+        else
+        {
+            ObjectsQueue objects;
+            objects.add(res);
+            removed_objects = std::move(objects);
+        }
     }
 
-    void RenderSwapBuffer::dispose()
+    void RenderSwapBuffer::initialize() { info("Render Swap Buffer initialized."); }
+
+    void RenderSwapBuffer::dispose() { info("Render Swap Buffer disposed all resources."); }
+
+    RenderSwapData&       RenderSwapBuffer::getLogicData() { return m_logic_data; }
+    const RenderSwapData& RenderSwapBuffer::getLogicData() const { return m_logic_data; }
+    RenderSwapData&       RenderSwapBuffer::getRenderData() { return m_render_data; }
+    const RenderSwapData& RenderSwapBuffer::getRenderData() const { return m_render_data; }
+
+    void RenderSwapBuffer::swapData()
     {
-        // if (m_camera_buf != 0)
-        //     rhi.deleteBuffer(m_camera_buf);
-        // if (m_object_buf != 0)
-        //     rhi.deleteBuffer(m_object_buf);
-        // if (m_lighting_buf != 0)
-        //     rhi.deleteBuffer(m_lighting_buf);
+        if (!isReadyToSwap())
+            return;
 
-        m_camera_buf   = 0;
-        m_object_buf   = 0;
-        m_lighting_buf = 0;
+        resetDirtyCamera();
+        resetDirtyLighting();
+        resetDirtyObjects();
+        resetRemovedObjects();
 
-        info("Render Swap Buffer disposed all resources.");
+        std::swap(m_logic_data, m_render_data);
     }
 
-    void RenderSwapBuffer::updateCameraBuf(RHI& rhi, const CameraRes& data) const
+    constexpr bool RenderSwapBuffer::isReadyToSwap() const
     {
-        rhi.updateBuffer(m_camera_buf, GL_UNIFORM_BUFFER, 0, sizeof(CameraRes), &data);
+        return m_render_data.dirty_camera.has_value() || m_render_data.dirty_lighting.has_value() ||
+               m_render_data.dirty_objects.has_value() || m_render_data.removed_objects.has_value();
     }
 
-    void RenderSwapBuffer::updateObjectBuf(RHI& rhi, const ObjectRes& data) const
-    {
-        rhi.updateBuffer(m_object_buf, GL_UNIFORM_BUFFER, 0, sizeof(ObjectRes), &data);
-    }
-
-    void RenderSwapBuffer::updateLightingBuf(RHI& rhi, const LightingRes& data) const
-    {
-        rhi.updateBuffer(m_lighting_buf, GL_UNIFORM_BUFFER, 0, sizeof(LightingRes), &data);
-    }
-
-    void RenderSwapBuffer::bindCameraBuf(uint32_t binding_point) const
-    {
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_camera_buf);
-    }
-
-    void RenderSwapBuffer::bindObjectBuf(uint32_t binding_point) const
-    {
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_object_buf);
-    }
-
-    void RenderSwapBuffer::bindLightingBuf(uint32_t binding_point) const
-    {
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_lighting_buf);
-    }
-
-    BufferHandle RenderSwapBuffer::getCameraBuf() const { return m_camera_buf; }
-
-    BufferHandle RenderSwapBuffer::getObjectBuf() const { return m_object_buf; }
-
-    BufferHandle RenderSwapBuffer::getLightingBuf() const { return m_lighting_buf; }
+    void RenderSwapBuffer::resetDirtyCamera() { m_render_data.dirty_camera.reset(); }
+    void RenderSwapBuffer::resetDirtyLighting() { m_render_data.dirty_lighting.reset(); }
+    void RenderSwapBuffer::resetDirtyObjects() { m_render_data.dirty_objects.reset(); }
+    void RenderSwapBuffer::resetRemovedObjects() { m_render_data.removed_objects.reset(); }
 
 } // namespace RealmEngine

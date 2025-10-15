@@ -47,7 +47,11 @@ namespace RealmEngine
 
     void Renderer::renderFrame()
     {
+        m_render_swap_buf->swapData();
         processSwapData();
+
+        m_render_scene->sortTransparentObjects(m_render_camera->getPosition());
+        m_render_scene->cullObjects(m_render_camera->getFrustum());
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -80,6 +84,26 @@ namespace RealmEngine
             info("Pipeline switched to <" + type_str + ">.");
     }
 
-    void Renderer::processSwapData() {}
+    void Renderer::processSwapData()
+    {
+        RenderSwapData& swap_data = m_render_swap_buf->getRenderData();
+
+        if (swap_data.dirty_camera.has_value())
+        {
+        }
+
+        if (swap_data.dirty_lighting.has_value())
+        {
+        }
+
+        if (swap_data.dirty_objects.has_value())
+        {
+            
+        }
+
+        if (swap_data.removed_objects.has_value())
+        {
+        }
+    }
 
 } // namespace RealmEngine
