@@ -72,7 +72,7 @@ namespace RealmEngine
                 // Set render context for ForwardPipeline
                 if (auto* forward_pipeline = dynamic_cast<ForwardPipeline*>(m_render_pipeline.get()))
                 {
-                    forward_pipeline->setRenderContext(m_rhi, m_render_scene, m_render_camera);
+                    forward_pipeline->setRenderContext(m_rhi, m_render_scene, m_render_camera, m_render_res);
                 }
 
                 // Initialize the pipeline

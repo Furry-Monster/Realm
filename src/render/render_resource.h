@@ -24,6 +24,12 @@ namespace RealmEngine
         void disposal();
 
         void update(std::shared_ptr<RenderScene> render_scene, std::shared_ptr<RenderCamera> camera);
+        
+        // Mesh and Material management
+        uint32_t addRenderMesh(RenderMesh&& mesh);
+        uint32_t addRenderMaterial(RenderMaterial&& material);
+        RenderMesh* getRenderMesh(uint32_t index);
+        RenderMaterial* getRenderMaterial(uint32_t index);
 
     private:
         std::vector<RenderMesh>     m_render_meshes;

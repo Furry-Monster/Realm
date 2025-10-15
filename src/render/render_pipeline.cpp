@@ -53,11 +53,13 @@ namespace RealmEngine
 
     void ForwardPipeline::setRenderContext(std::shared_ptr<RHI>          rhi,
                                            std::shared_ptr<RenderScene>  scene,
-                                           std::shared_ptr<RenderCamera> camera)
+                                           std::shared_ptr<RenderCamera> camera,
+                                           std::shared_ptr<RenderResource> resource)
     {
         m_rhi    = rhi;
         m_scene  = scene;
         m_camera = camera;
+        m_resource = resource;
     }
 
     void ForwardPipeline::loadShaders()
@@ -170,8 +172,30 @@ namespace RealmEngine
 
     void ForwardPipeline::renderObject(const RenderObject& obj)
     {
-        // TODO: Implement object rendering
-        // This will be implemented when we have GPU resource management
+        if (!m_resource || !obj.isVisible())
+            return;
+            
+        // Get mesh and material from resource manager
+        RenderMesh* mesh = m_resource->getRenderMesh(obj.getMesh());
+        RenderMaterial* material = m_resource->getRenderMaterial(obj.getMaterial());
+        
+        if (!mesh || !material)
+            return;
+            
+        // Set model matrix uniform
+        glUniformMatrix4fv(glGetUniformLocation(m_pbr_program, "uModel"), 1, GL_FALSE, &obj.getModelMatrix()[0][0]);
+        glUniformMatrix3fv(glGetUniformLocation(m_pbr_program, "uNormalMatrix"), 1, GL_FALSE, &obj.getNormalMatrix()[0][0]);
+        
+        // Bind material (this will bind textures and set material uniforms)
+        material->bind();
+        
+        // Bind mesh and draw
+        mesh->bind();
+        glDrawElements(GL_TRIANGLES, mesh->getIndexCount(), GL_UNSIGNED_INT, 0);
+        mesh->unbind();
+        
+        // Unbind material
+        material->unbind();
     }
 
     void ForwardPipeline::setupMaterial(const Material& material)
@@ -182,8 +206,43 @@ namespace RealmEngine
 
     void ForwardPipeline::setupLighting()
     {
-        // TODO: Implement lighting setup
-        // This will set up directional lights, point lights, etc.
+        if (!m_scene)
+            return;
+            
+        // Set up directional light (assuming first directional light for now)
+        const auto& dir_lights = m_scene->getDirectionalLights();
+        if (!dir_lights.empty())
+        {
+            const auto& light = dir_lights[0];
+            glUniform3fv(glGetUniformLocation(m_pbr_program, "uLightDirection"), 1, &light.direction[0]);
+            glUniform3fv(glGetUniformLocation(m_pbr_program, "uLightColor"), 1, &light.color[0]);
+            glUniform1f(glGetUniformLocation(m_pbr_program, "uLightIntensity"), light.intensity);
+        }
+        else
+        {
+            // Default directional light
+            glm::vec3 default_dir = glm::normalize(glm::vec3(1.0f, -1.0f, 1.0f));
+            glm::vec3 default_color = glm::vec3(1.0f, 1.0f, 1.0f);
+            float default_intensity = 1.0f;
+            
+            glUniform3fv(glGetUniformLocation(m_pbr_program, "uLightDirection"), 1, &default_dir[0]);
+            glUniform3fv(glGetUniformLocation(m_pbr_program, "uLightColor"), 1, &default_color[0]);
+            glUniform1f(glGetUniformLocation(m_pbr_program, "uLightIntensity"), default_intensity);
+        }
+        
+        // Set up ambient light
+        const auto& ambient = m_scene->getAmbientLight();
+        glUniform3fv(glGetUniformLocation(m_pbr_program, "uAmbientColor"), 1, &ambient.color[0]);
+        glUniform1f(glGetUniformLocation(m_pbr_program, "uAmbientIntensity"), ambient.intensity);
+        
+        // Set up shadow mapping
+        glUniform1i(glGetUniformLocation(m_pbr_program, "uUseShadows"), 1);
+        glActiveTexture(GL_TEXTURE5); // Shadow map texture unit
+        glBindTexture(GL_TEXTURE_2D, m_shadow_map);
+        glUniform1i(glGetUniformLocation(m_pbr_program, "uShadowMap"), 5);
+        
+        // Set up IBL (placeholder for now)
+        glUniform1i(glGetUniformLocation(m_pbr_program, "uUseIBL"), 0);
     }
 
     void ForwardPipeline::setupCameraUniforms()

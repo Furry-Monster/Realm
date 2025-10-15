@@ -21,8 +21,10 @@ namespace RealmEngine
 
     const RenderState& RenderMaterial::getRenderState() const { return m_render_state; }
 
-    void RenderMaterial::sync(RHI& rhi, const Material& material)
+    void RenderMaterial::sync(RHI& rhi, const Material& material, ProgramHandle shader_program)
     {
+        m_shader = shader_program;
+        
         m_base_color_factor = material.getBaseColorFactor();
         m_metallic_factor   = material.getMetallicFactor();
         m_roughness_factor  = material.getRoughnessFactor();
@@ -91,7 +93,7 @@ namespace RealmEngine
         {
             glActiveTexture(GL_TEXTURE0 + tex_unit);
             glBindTexture(GL_TEXTURE_2D, m_base_color_tex.value());
-            glUniform1i(glGetUniformLocation(m_shader, "u_BaseColorTex"), tex_unit);
+            glUniform1i(glGetUniformLocation(m_shader, "uBaseColorTexture"), tex_unit);
             tex_unit++;
         }
 
@@ -99,7 +101,7 @@ namespace RealmEngine
         {
             glActiveTexture(GL_TEXTURE0 + tex_unit);
             glBindTexture(GL_TEXTURE_2D, m_metallic_roughness_tex.value());
-            glUniform1i(glGetUniformLocation(m_shader, "u_MetallicRoughnessTex"), tex_unit);
+            glUniform1i(glGetUniformLocation(m_shader, "uMetallicRoughnessTexture"), tex_unit);
             tex_unit++;
         }
 
@@ -107,7 +109,7 @@ namespace RealmEngine
         {
             glActiveTexture(GL_TEXTURE0 + tex_unit);
             glBindTexture(GL_TEXTURE_2D, m_normal_tex.value());
-            glUniform1i(glGetUniformLocation(m_shader, "u_NormalTex"), tex_unit);
+            glUniform1i(glGetUniformLocation(m_shader, "uNormalTexture"), tex_unit);
             tex_unit++;
         }
 
@@ -115,7 +117,7 @@ namespace RealmEngine
         {
             glActiveTexture(GL_TEXTURE0 + tex_unit);
             glBindTexture(GL_TEXTURE_2D, m_occlusion_tex.value());
-            glUniform1i(glGetUniformLocation(m_shader, "u_OcclusionTex"), tex_unit);
+            glUniform1i(glGetUniformLocation(m_shader, "uOcclusionTexture"), tex_unit);
             tex_unit++;
         }
 
@@ -123,14 +125,14 @@ namespace RealmEngine
         {
             glActiveTexture(GL_TEXTURE0 + tex_unit);
             glBindTexture(GL_TEXTURE_2D, m_emissive_tex.value());
-            glUniform1i(glGetUniformLocation(m_shader, "u_EmissiveTex"), tex_unit);
+            glUniform1i(glGetUniformLocation(m_shader, "uEmissiveTexture"), tex_unit);
             tex_unit++;
         }
 
-        glUniform4fv(glGetUniformLocation(m_shader, "u_BaseColorFactor"), 1, &m_base_color_factor[0]);
-        glUniform1f(glGetUniformLocation(m_shader, "u_MetallicFactor"), m_metallic_factor);
-        glUniform1f(glGetUniformLocation(m_shader, "u_RoughnessFactor"), m_roughness_factor);
-        glUniform3fv(glGetUniformLocation(m_shader, "u_EmissiveFactor"), 1, &m_emissive_factor[0]);
+        glUniform4fv(glGetUniformLocation(m_shader, "uBaseColorFactor"), 1, &m_base_color_factor[0]);
+        glUniform1f(glGetUniformLocation(m_shader, "uMetallicFactor"), m_metallic_factor);
+        glUniform1f(glGetUniformLocation(m_shader, "uRoughnessFactor"), m_roughness_factor);
+        glUniform3fv(glGetUniformLocation(m_shader, "uEmissiveFactor"), 1, &m_emissive_factor[0]);
     }
 
     void RenderMaterial::unbind() const { glUseProgram(0); }

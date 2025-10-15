@@ -2,6 +2,7 @@
 
 #include "render/render_camera.h"
 #include "render/render_scene.h"
+#include "render/render_resource.h"
 #include "render/rhi.h"
 #include "resource/datatype/model/material.h"
 #include <memory>
@@ -37,7 +38,8 @@ namespace RealmEngine
         // Set render context
         void setRenderContext(std::shared_ptr<RHI>          rhi,
                               std::shared_ptr<RenderScene>  scene,
-                              std::shared_ptr<RenderCamera> camera);
+                              std::shared_ptr<RenderCamera> camera,
+                              std::shared_ptr<RenderResource> resource);
 
     protected:
         void renderShadowMaps();
@@ -62,6 +64,7 @@ namespace RealmEngine
         std::shared_ptr<RHI>          m_rhi;
         std::shared_ptr<RenderScene>  m_scene;
         std::shared_ptr<RenderCamera> m_camera;
+        std::shared_ptr<RenderResource> m_resource;
 
         // Shader programs
         ProgramHandle m_pbr_program;

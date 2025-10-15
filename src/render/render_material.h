@@ -34,7 +34,7 @@ namespace RealmEngine
 
         const RenderState& getRenderState() const;
 
-        void sync(RHI& rhi, const Material& material);
+        void sync(RHI& rhi, const Material& material, ProgramHandle shader_program);
         void disposal(RHI& rhi);
 
         void bind() const;
