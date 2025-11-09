@@ -73,13 +73,9 @@ namespace RealmEngine
                 m_render_pipeline.reset();
                 m_render_pipeline = std::make_unique<ForwardPipeline>();
 
-                // Set render context for ForwardPipeline
                 if (auto* forward_pipeline = dynamic_cast<ForwardPipeline*>(m_render_pipeline.get()))
-                {
                     forward_pipeline->setRenderContext(m_rhi, m_render_scene, m_render_camera, m_render_res);
-                }
 
-                // Initialize the pipeline
                 m_render_pipeline->initialize();
                 type_str = "Forward Rendering Pipeline";
                 break;

@@ -101,165 +101,163 @@ namespace RealmEngine
 
     void createTestCube()
     {
-        // Create cube vertices
-        std::vector<Vertex> vertices = {// Front face
+        // prepare cube
+        std::vector<Vertex>   vertices = {// Front face
                                         {{-0.5f, -0.5f, 0.5f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {0.0f, 0.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {0.0f, 0.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, -0.5f, 0.5f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {1.0f, 0.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {1.0f, 0.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, 0.5f, 0.5f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {1.0f, 1.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.f, 1.0f, 1.0f}},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {1.0f, 1.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.f, 1.0f, 1.0f}},
                                         {{-0.5f, 0.5f, 0.5f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {0.0f, 1.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {0.0f, 1.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
 
                                         // Back face
                                         {{-0.5f, -0.5f, -0.5f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {1.0f, 0.0f},
-                                         {-1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {1.0f, 0.0f},
+                                           {-1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, -0.5f, -0.5f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {0.0f, 0.0f},
-                                         {-1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {0.0f, 0.0f},
+                                           {-1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, 0.5f, -0.5f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {0.0f, 1.0f},
-                                         {-1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {0.0f, 1.0f},
+                                           {-1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{-0.5f, 0.5f, -0.5f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {1.0f, 1.0f},
-                                         {-1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {1.0f, 1.0f},
+                                           {-1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
 
                                         // Left face
                                         {{-0.5f, -0.5f, -0.5f},
-                                         {-1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {-1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{-0.5f, -0.5f, 0.5f},
-                                         {-1.0f, 0.0f, 0.0f},
-                                         {1.0f, 0.0f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {-1.0f, 0.0f, 0.0f},
+                                           {1.0f, 0.0f},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{-0.5f, 0.5f, 0.5f},
-                                         {-1.0f, 0.0f, 0.0f},
-                                         {1.0f, 1.0f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {-1.0f, 0.0f, 0.0f},
+                                           {1.0f, 1.0f},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{-0.5f, 0.5f, -0.5f},
-                                         {-1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {-1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
 
                                         // Right face
                                         {{0.5f, -0.5f, -0.5f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {1.0f, 0.0f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {1.0f, 0.0f},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, -0.5f, 0.5f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, 0.5f, 0.5f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 1.0f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 1.0f},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, 0.5f, -0.5f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {1.0f, 1.0f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {1.0f, 1.0f},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
 
                                         // Top face
                                         {{-0.5f, 0.5f, -0.5f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {0.0f, 0.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {0.0f, 0.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, 0.5f, -0.5f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 0.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 0.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, 0.5f, 0.5f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {1.0f, 1.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {1.0f, 1.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{-0.5f, 0.5f, 0.5f},
-                                         {0.0f, 1.0f, 0.0f},
-                                         {0.0f, 1.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f, -1.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, 1.0f, 0.0f},
+                                           {0.0f, 1.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, -1.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
 
                                         // Bottom face
                                         {{-0.5f, -0.5f, -0.5f},
-                                         {0.0f, -1.0f, 0.0f},
-                                         {1.0f, 0.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, -1.0f, 0.0f},
+                                           {1.0f, 0.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, -0.5f, -0.5f},
-                                         {0.0f, -1.0f, 0.0f},
-                                         {0.0f, 0.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, -1.0f, 0.0f},
+                                           {0.0f, 0.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{0.5f, -0.5f, 0.5f},
-                                         {0.0f, -1.0f, 0.0f},
-                                         {0.0f, 1.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}},
+                                           {0.0f, -1.0f, 0.0f},
+                                           {0.0f, 1.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}},
                                         {{-0.5f, -0.5f, 0.5f},
-                                         {0.0f, -1.0f, 0.0f},
-                                         {1.0f, 1.0f},
-                                         {1.0f, 0.0f, 0.0f},
-                                         {0.0f, 0.0f, 1.0f},
-                                         {1.0f, 1.0f, 1.0f, 1.0f}}};
-
-        // Create cube indices
-        std::vector<uint32_t> indices = {// Front face
+                                           {0.0f, -1.0f, 0.0f},
+                                           {1.0f, 1.0f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0.0f, 0.0f, 1.0f},
+                                           {1.0f, 1.0f, 1.0f, 1.0f}}};
+        std::vector<uint32_t> indices  = {// Front face
                                          0,
                                          1,
                                          2,
@@ -302,60 +300,49 @@ namespace RealmEngine
                                          23,
                                          20};
 
-        // Create mesh
         Mesh cube_mesh;
         cube_mesh.setVertices(std::move(vertices));
         cube_mesh.setIndices(std::move(indices));
 
-        // Create material with metallic properties
         Material cube_material;
         cube_material.setBaseColorFactor(glm::vec4(0.7f, 0.1f, 0.1f, 1.0f)); // Darker red
         cube_material.setMetallicFactor(0.8f);                               // More metallic
         cube_material.setRoughnessFactor(0.3f);                              // Less rough (more shiny)
 
-        // Create render mesh and material
         RenderMesh render_mesh;
         render_mesh.sync(*g_context.m_renderer->getRHI(), cube_mesh);
 
         RenderMaterial render_material;
         render_material.sync(*g_context.m_renderer->getRHI(), cube_material, g_context.m_renderer->getPBRProgram());
 
-        // Add to render resource
         uint32_t mesh_index = g_context.m_renderer->getRenderResource()->addRenderMesh(std::move(render_mesh));
         uint32_t material_index =
             g_context.m_renderer->getRenderResource()->addRenderMaterial(std::move(render_material));
 
-        // Create render object
         RenderObject cube_obj;
         cube_obj.setMesh(mesh_index);
         cube_obj.setMaterial(material_index);
 
-        // Move cube back a bit to ensure it's in front of camera
         glm::mat4 model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
         cube_obj.setModelMatrix(model_matrix);
         cube_obj.setVisible(true);
 
-        // Add to render scene
         g_context.m_renderer->getRenderScene()->addRenderObject(std::move(cube_obj));
 
-        // Add directional light with higher intensity
         DirectionalLight dir_light;
         dir_light.direction = glm::normalize(glm::vec3(1.0f, -1.0f, 1.0f));
         dir_light.color     = glm::vec3(1.0f, 1.0f, 1.0f);
-        dir_light.intensity = 2.5f; // Brighter directional light
+        dir_light.intensity = 2.5f;
         g_context.m_renderer->getRenderScene()->addDirectionalLight(dir_light);
 
-        // Add ambient light with higher intensity
         AmbientLight ambient_light;
         ambient_light.color     = glm::vec3(0.2f, 0.2f, 0.2f);
-        ambient_light.intensity = 0.6f; // Brighter ambient light
+        ambient_light.intensity = 0.1f;
         g_context.m_renderer->getRenderScene()->setAmbientLight(ambient_light);
 
-        // Set camera position to look at the cube
-        g_context.m_renderer->getRenderCamera()->setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-        g_context.m_renderer->getRenderCamera()->setRotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)); // Identity quaternion
-
-        // Set camera perspective projection
+        // Set camera
+        g_context.m_renderer->getRenderCamera()->setPosition(glm::vec3(-1.0f, 1.0f, 3.0f));
+        g_context.m_renderer->getRenderCamera()->setRotation(glm::quat(1.0f, 0.1f, 0.2f, 0.0f)); // Identity quaternion
         g_context.m_renderer->getRenderCamera()->setPerspective(45.0f, 16.0f / 9.0f, 0.1f, 100.0f);
 
         info("Test cube created successfully");
@@ -370,8 +357,12 @@ namespace RealmEngine
 
     void Engine::debugRun()
     {
+        // load first
+        createTestCube();
+
         int frame_count = 0;
 
+        // debug rendering, without game logic
         while (!g_context.m_window->shouldClose() && frame_count < 600)
         {
             tick();

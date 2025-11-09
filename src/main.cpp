@@ -8,7 +8,7 @@ int main(int /*argc*/, char** /*argv*/)
 
     engine.boot();
 
-    engine.run();
+    engine.debugRun();
 
     engine.terminate();
 
