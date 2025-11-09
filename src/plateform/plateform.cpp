@@ -3,7 +3,7 @@
 
 namespace RealmEngine
 {
-    std::filesystem::path PlateForm::getExecutablePath() noexcept
+    std::filesystem::path Plateform::getExecutablePath() noexcept
     {
 #ifdef __linux__
         char    buffer[PATH_MAX];

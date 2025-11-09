@@ -13,7 +13,7 @@
 
 namespace RealmEngine
 {
-    class PlateForm
+    class Plateform
     {
     public:
         static std::filesystem::path getExecutablePath() noexcept;

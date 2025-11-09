@@ -1,11 +1,15 @@
 #include "engine.h"
 
-int main(int, char**)
+bool g_debug_arg {false};
+
+int main(int /*argc*/, char** /*argv*/)
 {
     RealmEngine::Engine engine;
 
     engine.boot();
+
     engine.run();
+
     engine.terminate();
 
     return 0;

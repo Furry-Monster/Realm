@@ -18,7 +18,6 @@
 
 namespace RealmEngine
 {
-    // Load FBX model
     void loadFBXModel()
     {
         // Load FBX model using AssetManager
@@ -35,38 +34,43 @@ namespace RealmEngine
         for (size_t i = 0; i < model->getMeshCount(); ++i)
         {
             const auto& mesh = model->getMesh(i);
-            
+
             // Use material 0 for all meshes if we don't have enough materials
-            size_t material_index = (i < model->getMaterialCount()) ? i : 0;
-            const auto& material = model->getMaterial(material_index);
+            size_t      material_index = (i < model->getMaterialCount()) ? i : 0;
+            const auto& material       = model->getMaterial(material_index);
 
             // Create render mesh and material
-            try {
+            try
+            {
                 RenderMesh render_mesh;
                 render_mesh.sync(*g_context.m_renderer->getRHI(), mesh);
-                
+
                 RenderMaterial render_material;
                 render_material.sync(*g_context.m_renderer->getRHI(), material, g_context.m_renderer->getPBRProgram());
 
                 // Add to render resource
                 uint32_t mesh_index = g_context.m_renderer->getRenderResource()->addRenderMesh(std::move(render_mesh));
-                uint32_t material_index = g_context.m_renderer->getRenderResource()->addRenderMaterial(std::move(render_material));
-                
+                uint32_t material_index =
+                    g_context.m_renderer->getRenderResource()->addRenderMaterial(std::move(render_material));
+
                 // Create render object
                 RenderObject obj;
                 obj.setMesh(mesh_index);
                 obj.setMaterial(material_index);
-                
+
                 // Set model matrix (scale down if needed)
                 glm::mat4 model_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)); // Scale down
                 obj.setModelMatrix(model_matrix);
                 obj.setVisible(true);
-                
+
                 // Add to render scene
                 g_context.m_renderer->getRenderScene()->addRenderObject(std::move(obj));
-                
-                info("Successfully processed mesh " + std::to_string(i) + " with " + std::to_string(mesh.getVertices().size()) + " vertices");
-            } catch (const std::exception& e) {
+
+                info("Successfully processed mesh " + std::to_string(i) + " with " +
+                     std::to_string(mesh.getVertices().size()) + " vertices");
+            }
+            catch (const std::exception& e)
+            {
                 err("Failed to process mesh " + std::to_string(i) + ": " + std::string(e.what()));
                 continue; // Skip this mesh and continue with the next one
             }
@@ -95,7 +99,6 @@ namespace RealmEngine
         info("FBX model setup completed successfully");
     }
 
-    // Create a simple test cube
     void createTestCube()
     {
         // Create cube vertices
@@ -362,32 +365,29 @@ namespace RealmEngine
     {
         g_context.create();
 
-        // Load FBX model
-        loadFBXModel();
-
         info("<<< Boot Engine Done. >>>");
     }
 
-    void Engine::run()
+    void Engine::debugRun()
     {
-        info("Starting render loop...");
         int frame_count = 0;
 
-        // Check window properties
-        info("Window should be visible now. Press any key to continue...");
-
-        while (!g_context.m_window->shouldClose() && frame_count < 600) // Run for 600 frames (about 10 seconds)
+        while (!g_context.m_window->shouldClose() && frame_count < 600)
         {
             tick();
             frame_count++;
 
-            if (frame_count % 60 == 0) // Log every second
-            {
-                info("Rendered " + std::to_string(frame_count) + " frames");
-            }
+            if (frame_count % 60 == 0)
+                debug("Rendered " + std::to_string(frame_count) + " frames");
         }
 
-        info("Render loop completed. Total frames: " + std::to_string(frame_count));
+        debug("Render loop completed. Total frames: " + std::to_string(frame_count));
+    }
+
+    void Engine::run()
+    {
+        while (!g_context.m_window->shouldClose())
+            tick();
     }
 
     void Engine::terminate()

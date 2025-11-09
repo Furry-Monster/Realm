@@ -9,7 +9,7 @@ namespace RealmEngine
 {
     void ConfigManager::initialize()
     {
-        std::filesystem::path exe_path = PlateForm::getExecutablePath();
+        std::filesystem::path exe_path = Plateform::getExecutablePath();
         m_root_folder                  = exe_path.parent_path();
 
         m_asset_folder  = m_root_folder / "assets";
