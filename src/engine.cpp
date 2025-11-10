@@ -9,6 +9,7 @@
 #include "window.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <memory>
 #include <string>
 
@@ -52,10 +53,12 @@ namespace RealmEngine
         std::string model_path = g_context.m_cfg->getAssetFolder().generic_string() + "/helmet/DamagedHelmet.gltf";
         try
         {
-            auto model  = std::make_shared<RenderModel>(model_path);
+            auto model  = std::make_shared<RenderModel>(model_path, false); // Don't flip textures for glTF
             auto entity = Entity(model);
             entity.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
             entity.setScale(glm::vec3(1.0f, 1.0f, 1.0f)); // Model is already in correct scale
+            // Rotate helmet to match reference implementation (90 degrees around X axis)
+            entity.setOrientation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
             scene->m_entities.push_back(entity);
             info("Successfully loaded helmet model: " + model_path);
         }

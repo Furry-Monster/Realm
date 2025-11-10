@@ -137,7 +137,7 @@ namespace RealmEngine
         if (m_view_mat_dirty)
         {
             updateViewMatrix();
-            m_view_matrix = false;
+            m_view_mat_dirty = false;
         }
 
         if (m_proj_mat_dirty)

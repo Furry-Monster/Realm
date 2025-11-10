@@ -87,6 +87,10 @@ namespace RealmEngine
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
+        glDepthMask(GL_TRUE); // Enable depth writing
+
+        // Ensure camera matrices are up to date
+        mCamera->update();
 
         glm::vec3 camera_position = mCamera->getPosition();
         glm::mat4 projection      = mCamera->getProjMatrix();
@@ -131,8 +135,9 @@ namespace RealmEngine
         {
             glm::mat4 model = glm::mat4(1.0f);
 
-            auto rotationMatrix = glm::toMat4(entity.getOrientation());
-            model = rotationMatrix * model;
+            // Match reference implementation transformation order
+            auto rotation_matrix = glm::toMat4(entity.getOrientation());
+            model = rotation_matrix * model;
 
             model = glm::translate(model, entity.getPosition());
             model = glm::scale(model, entity.getScale());
@@ -141,6 +146,8 @@ namespace RealmEngine
 
             if (auto model_ptr = entity.getModel())
             {
+                // Ensure depth writing is enabled for models
+                glDepthMask(GL_TRUE);
                 model_ptr->draw(*mPbrShader);
             }
         }
@@ -148,9 +155,9 @@ namespace RealmEngine
         // skybox (draw this last to avoid running fragment shader in places where objects are present
         mSkyboxShader->use();
         glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 skyboxView = glm::mat4(glm::mat3(view)); // remove translation so skybox is always surrounding camera
+        glm::mat4 skybox_view = glm::mat4(glm::mat3(view)); // remove translation so skybox is always surrounding camera
 
-        mSkyboxShader->setModelViewProjectionMatrices(model, skyboxView, projection);
+        mSkyboxShader->setModelViewProjectionMatrices(model, skybox_view, projection);
         mSkyboxShader->setInt("skybox", 0); // set skybox sampler to slot 0
         mSkyboxShader->setFloat("bloomBrightnessCutoff", mBloomBrightnessCutoff);
         mSkybox->draw();
@@ -230,16 +237,16 @@ namespace RealmEngine
     void Renderer::renderBloom()
     {
         // Bloom pass
-        glm::vec2 blurDirectionX = glm::vec2(1.0f, 0.0f);
-        glm::vec2 blurDirectionY = glm::vec2(0.0f, 1.0f);
+        glm::vec2 blur_direction_x = glm::vec2(1.0f, 0.0f);
+        glm::vec2 blur_direction_y = glm::vec2(0.0f, 1.0f);
 
         switch (mBloomDirection)
         {
             case BloomDirection::HORIZONTAL:
-                blurDirectionY = blurDirectionX;
+                blur_direction_y = blur_direction_x;
                 break;
             case BloomDirection::VERTICAL:
-                blurDirectionX = blurDirectionY;
+                blur_direction_x = blur_direction_y;
                 break;
             default:
                 break;
@@ -250,33 +257,33 @@ namespace RealmEngine
 
         mBloomShader->use();
 
-        for (auto mipLevel = 0; mipLevel <= 5; mipLevel++)
+        for (auto mip_level = 0; mip_level <= 5; mip_level++)
         {
-            mBloomFramebuffers[0]->setMipLevel(mipLevel);
-            mBloomFramebuffers[1]->setMipLevel(mipLevel);
+            mBloomFramebuffers[0]->setMipLevel(mip_level);
+            mBloomFramebuffers[1]->setMipLevel(mip_level);
 
             // first iteration we use the bloom buffer from the main render pass
             mBloomFramebuffers[0]->bind();
             glBindTexture(GL_TEXTURE_2D, mFramebuffer->getBloomColorTextureId());
-            mBloomShader->setInt("sampleMipLevel", mipLevel);
-            mBloomShader->setVec2("blurDirection", blurDirectionX);
+            mBloomShader->setInt("sampleMipLevel", mip_level);
+            mBloomShader->setVec2("blurDirection", blur_direction_x);
 
             mFullscreenQuad->draw();
 
-            unsigned int bloomFramebuffer = 1; // which buffer to use
+            unsigned int bloom_framebuffer = 1; // which buffer to use
 
             for (auto i = 1; i < mBloomIterations; i++)
             {
-                unsigned int sourceBuffer = bloomFramebuffer == 1 ? 0 : 1;
-                mBloomFramebuffers[bloomFramebuffer]->bind();
-                auto blurDirection = bloomFramebuffer == 1 ? blurDirectionY : blurDirectionX;
-                mBloomShader->setVec2("blurDirection", blurDirection);
-                glBindTexture(GL_TEXTURE_2D, mBloomFramebuffers[sourceBuffer]->getColorTextureId());
+                unsigned int source_buffer = bloom_framebuffer == 1 ? 0 : 1;
+                mBloomFramebuffers[bloom_framebuffer]->bind();
+                auto blur_direction = bloom_framebuffer == 1 ? blur_direction_y : blur_direction_x;
+                mBloomShader->setVec2("blurDirection", blur_direction);
+                glBindTexture(GL_TEXTURE_2D, mBloomFramebuffers[source_buffer]->getColorTextureId());
                 mFullscreenQuad->draw();
-                bloomFramebuffer = sourceBuffer;
+                bloom_framebuffer = source_buffer;
             }
 
-            mBloomFramebufferResult = bloomFramebuffer;
+            mBloomFramebufferResult = bloom_framebuffer;
         }
     }
 } // namespace RealmEngine

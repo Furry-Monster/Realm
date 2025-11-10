@@ -36,12 +36,12 @@ namespace RealmEngine
         glGenTextures(1, &mTextureId);
         glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureId);
 
-        int width, height, numChannels;
+        int width, height, num_channels;
 
         for (unsigned int i = 0; i < mFaceTextureFileNames.size(); i++)
         {
             std::string path = textureDirectoryPath + '/' + mFaceTextureFileNames[i];
-            unsigned char* data = stbi_load(path.c_str(), &width, &height, &numChannels, 0);
+            unsigned char* data = stbi_load(path.c_str(), &width, &height, &num_channels, 0);
 
             if (!data)
             {

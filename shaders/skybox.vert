@@ -16,6 +16,8 @@ void main() {
 	// got z-fighting for (w / w), hence the subtractio to make the depth a little less than max
 	gl_Position = vec4(position.xy, position.w, position.w); 
 
-	textureCoordinates = aPos; // treat position as a vector for cubemap texture coords
+	// Reverse the x and z coordinates to fix skybox orientation
+	// OpenGL cubemap coordinates need to be flipped for correct orientation
+	textureCoordinates = vec3(-aPos.x, aPos.y, -aPos.z);
 }
 

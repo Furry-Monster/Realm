@@ -12,8 +12,8 @@ namespace RealmEngine
 {
     HDRTexture::HDRTexture(const std::string& path)
     {
-        int width, height, numChannels;
-        float* data = stbi_loadf(path.c_str(), &width, &height, &numChannels, 0);
+        int width, height, num_channels;
+        float* data = stbi_loadf(path.c_str(), &width, &height, &num_channels, 0);
 
         if (!data)
         {
