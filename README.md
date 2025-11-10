@@ -1,59 +1,161 @@
-# Realm 渲染引擎
-目前处在摸索开发阶段
+# RealmEngine
 
-## 依赖项
-图形API: OpenGL Core (3.3) + GLFW
-其余依赖项均在Lib目录下，部分库仅出于未来开发考虑，目前并未使用。
+一个基于 OpenGL 的现代游戏引擎，专注于基于物理的渲染（PBR）和高质量图形效果，支持IBL与Bloom后处理。
 
-## 可用模块：
-1. Resource部分，支持FBX，glTF，Obj等多种模型的加载，基本支持PBR。
-2. 初步渲染，渲染架构目前仍然比较混乱，但是对于常规模型的加载，把前向渲染部分的片段着色器换成普通PBR（pbr_simple.frag）是可以支持的。
+## 特性
 
-## 编译运行
-由于目前处在开发阶段，对于其他平台的支持基本没有。
-我使用的是Kubuntu 24.04,内核版本6.14,KDE Plasma作为桌面进行窗口渲染。
-其他Linux系统的机器，直接运行根目录下的脚本就可以了。
+- **基于物理的渲染（PBR）** - 支持金属度/粗糙度工作流
+- **基于图像的照明（IBL）** - 支持 HDR 环境贴图和预计算光照
+- **Bloom 后处理** - 可配置的光晕效果
+- **资源管理** - 支持 glTF、FBX 等模型格式
+- **窗口管理** - 基于 GLFW 的跨平台窗口系统
+- **日志系统** - 基于 spdlog 的日志记录
+- **场景管理** - 灵活的场景和实体系统
 
-## 推荐配置
-Mem >= 8G
-不需要独立显卡，不要使用HDR显示器，我没调framebuffer.
+## 系统要求
 
-## 代码格式化和 Lint
+- **操作系统**: Linux / macOS / Windows
+- **编译器**: 支持 C++17 的编译器（GCC 7+, Clang 5+, MSVC 2017+）
+- **CMake**: 3.20 或更高版本
+- **OpenGL**: 3.3 或更高版本
+- **Python**: 3.6+（手动构建也行，不推荐）
 
-项目已配置统一的代码格式化和静态分析工具。
+## 依赖库
 
-### 快速开始
+项目已包含以下依赖库（位于 `libs/` 目录）：
 
-```bash
-# 格式化所有代码
-make format
+- **GLFW** - 窗口和输入管理
+- **GLAD** - OpenGL 加载器
+- **GLM** - 数学库
+- **Assimp** - 模型加载
+- **spdlog** - 日志系统
+- **ImGui** - 即时模式 GUI
+- **stb** - 图像加载
 
-# 检查代码格式
-make format-check
+## 快速开始
 
-# 运行 lint 检查
-make lint
+### 使用构建脚本（推荐）
 
-# 自动修复 lint 问题
-make lint-fix
-```
-
-或使用脚本：
+最简单的方式是使用提供的 Python 构建脚本：
 
 ```bash
-./format.sh      # 格式化代码
-./lint.sh        # 运行 lint 检查
-./lint-fix.sh    # 自动修复 lint 问题
+# 默认构建（Debug 模式）
+python build.py
+
+# Release 模式构建
+python build.py --type Release
+
+# 构建并运行
+python build.py --run
+
+# 清理并重新构建
+python build.py --clean --run
 ```
 
-详细说明请参考 [代码风格指南](docs/code_style.md)。
+### 手动构建
 
-### 前置要求
-
-- `clang-format` (>= 10.0)
-- `clang-tidy` (>= 10.0)
-
-安装方法：
 ```bash
-sudo apt-get install clang-format clang-tidy
+# 创建构建目录
+mkdir build && cd build
+
+# 配置 CMake
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+
+# 编译
+cmake --build . -j$(nproc)
+
+# 运行（Linux/macOS）
+../bin/RealmEngine
+
+# 运行（Windows）
+..\bin\RealmEngine.exe
 ```
+
+## 项目结构
+
+```
+RealmEngine/
+├── assets/          # 资源文件（模型、纹理、HDR 等，这里的文件会自动打包成导出资源）
+├── shaders/         # GLSL 着色器文件（通上，也会打包成导出资源）
+├── src/             # 源代码
+│   ├── main.cpp     # 引擎主循环
+│   ├── render/      # 渲染系统
+│   ├── resource/    # 资源管理
+│   ├── gameplay/    # 游戏逻辑
+│   └── ...
+├── libs/            # 第三方库
+├── bin/             # 构建输出目录
+└── build/           # CMake 构建目录
+```
+
+## 构建选项
+
+### 构建类型
+
+- `Debug` - 调试模式（默认）
+- `Release` - 发布模式
+- `RelWithDebInfo` - 带调试信息的发布模式
+- `MinSizeRel` - 最小体积发布模式
+
+### 构建脚本选项
+
+```bash
+python build.py [选项]
+
+选项：
+  -t, --type TYPE        构建类型 (Debug/Release/RelWithDebInfo/MinSizeRel)
+  -d, --dir DIR          构建目录（默认: build）
+  -g, --generator GEN    CMake 生成器（默认: Ninja）
+  -j, --jobs N           并行编译任务数
+  -c, --clean            清理构建目录
+  -r, --run              构建后运行
+  -v, --verbose          详细输出
+  --configure            仅配置 CMake
+  --build                仅构建（跳过配置）
+  --format              格式化代码
+  --lint                 代码检查
+  --lint-fix             代码检查并自动修复
+```
+
+## 代码质量工具
+
+项目支持使用 clang-format 和 clang-tidy 进行代码格式化和检查：
+
+```bash
+# 格式化代码
+python build.py --format
+# 或使用 CMake 目标
+cmake --build build --target format
+
+# 代码检查
+python build.py --lint
+# 或使用 CMake 目标
+cmake --build build --target lint
+
+# 自动修复代码问题
+python build.py --lint-fix
+# 或使用 CMake 目标
+cmake --build build --target lint-fix
+```
+
+## 资源文件
+
+- **模型**: 支持 glTF、FBX 等格式（通过 Assimp）
+- **纹理**: 支持常见图像格式（通过 stb_image）
+- **HDR 环境贴图**: 支持 .hdr 格式用于 IBL
+
+资源文件应放置在 `assets/` 目录中，构建时会自动复制到 `bin/assets/`。
+
+## 着色器
+
+着色器文件位于 `shaders/` 目录：
+
+- `pbr.vert/frag` - PBR 主着色器
+- `skybox.vert/frag` - 天空盒着色器
+- `bloom.vert/frag` - Bloom 后处理着色器
+- `post.vert/frag` - 后处理着色器
+- `ibl/` - IBL 相关着色器
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
