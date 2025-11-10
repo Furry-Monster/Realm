@@ -1,225 +1,247 @@
 #version 330 core
 
-// Input from vertex shader
-in vec3 FragPos;           // World space position
-in vec3 Normal;            // World space normal
-in vec2 TexCoord;          // UV coordinates
-in vec3 Tangent;           // World space tangent
-in vec3 Bitangent;         // World space bitangent
-in vec4 VertexColor;       // Vertex color
-in mat3 TBN;               // Tangent space matrix
-in vec4 FragPosLightSpace; // Position in light space for shadow mapping
+#define PI 3.1415926535897932384626433832795
+#define GREYSCALE_WEIGHT_VECTOR vec3(0.2126, 0.7152, 0.0722)
 
-// Output color
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor; // regular output
+layout (location = 1) out vec4 BloomColor; // output to be used by bloom shader
 
-// Material textures
-uniform sampler2D uBaseColorTexture;         // Base color texture
-uniform sampler2D uMetallicRoughnessTexture; // Metallic-roughness texture
-uniform sampler2D uNormalTexture;            // Normal texture
-uniform sampler2D uOcclusionTexture;         // Ambient occlusion texture
-uniform sampler2D uEmissiveTexture;          // Emissive texture
+// vertex attributes
+in vec3 worldCoordinates;
+in vec2 textureCoordinates;
+in vec3 tangent;
+in vec3 bitangent;
+in vec3 normal;
 
-// Material parameters
-uniform vec4  uBaseColorFactor;   // Base color factor
-uniform float uMetallicFactor;    // Metallic factor
-uniform float uRoughnessFactor;   // Roughness factor
-uniform vec3  uEmissiveFactor;    // Emissive factor
-uniform float uNormalScale;       // Normal strength
-uniform float uOcclusionStrength; // Ambient occlusion strength
+struct Material {
+  bool useTextureAlbedo;
+  bool useTextureMetallicRoughness;
+  bool useTextureNormal;
+  bool useTextureAmbientOcclusion;
+  bool useTextureEmissive;
 
-// Camera
-uniform vec3 uCameraPos;
+  vec3 albedo;
+  float metallic;
+  float roughness;
+  float ambientOcclusion;
+  vec3 emissive;
 
-// Lighting data
-uniform vec3  uLightDirection; // Light direction
-uniform vec3  uLightColor;     // Light color
-uniform float uLightIntensity; // Light intensity
+  sampler2D textureAlbedo;
+  sampler2D textureMetallicRoughness;
+  sampler2D textureNormal;
+  sampler2D textureAmbientOcclusion;
+  sampler2D textureEmissive;
+};
 
-// Ambient lighting
-uniform vec3  uAmbientColor;
-uniform float uAmbientIntensity;
+uniform Material material;
 
-// Shadow mapping
-uniform sampler2D uShadowMap;  // Shadow map texture
-uniform bool      uUseShadows; // Enable/disable shadows
+uniform vec3 cameraPosition;
 
-// IBL (Image Based Lighting) - for future enhancement
-uniform samplerCube uIrradianceMap; // Irradiance map for diffuse IBL
-uniform samplerCube uPrefilterMap;  // Prefiltered environment map for specular IBL
-uniform sampler2D   uBRDFLUT;       // BRDF lookup texture
-uniform bool        uUseIBL;        // Enable/disable IBL
+// lights
+uniform vec3 lightPositions[4];
+uniform vec3 lightColors[4];
 
-// Shadow calculation function
-float calculateShadow(vec4 fragPosLightSpace, sampler2D shadowMap)
-{
-    // Perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+// PBR
+// IBL precomputed maps
+const float PREFILTERED_ENV_MAP_LOD = 4.0; // how many mipmap levels
 
-    // Transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
+uniform samplerCube diffuseIrradianceMap;
+uniform samplerCube prefilteredEnvMap;
+uniform sampler2D brdfConvolutionMap;
 
-    // Check if coordinates are in shadow map bounds
-    if (projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
-        return 0.0;
+// Post parameters
+uniform float bloomBrightnessCutoff;
 
-    // Get closest depth value from light's perspective
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
-
-    // Get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-
-    // Calculate bias to prevent shadow acne
-    float bias = 0.005;
-
-    // Check if current frag pos is in shadow
-    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
-
-    return shadow;
+// Fresnel function (Fresnel-Schlick approximation)
+//
+// F_schlick = f0 + (1 - f0)(1 - (h * v))^5
+//
+vec3 fresnelSchlick(float cosTheta, vec3 f0) { 
+	return f0 + (1.0 - f0) * pow(max(1 - cosTheta, 0.0), 5.0);
 }
 
-// Enhanced PBR lighting calculation function
-vec3 calculatePBR(vec3  albedo,
-                  float metallic,
-                  float roughness,
-                  vec3  normal,
-                  vec3  viewDir,
-                  vec3  lightDir,
-                  vec3  lightColor,
-                  float shadow)
+// Fresnel schlick roughness
+//
+// Same as above except with a roughness term
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 f0, float roughness)
 {
-    // Calculate half vector
-    vec3 halfDir = normalize(viewDir + lightDir);
-
-    // Calculate basic angles
-    float NdotL = max(dot(normal, lightDir), 0.0);
-    float NdotV = max(dot(normal, viewDir), 0.0);
-    float NdotH = max(dot(normal, halfDir), 0.0);
-    float VdotH = max(dot(viewDir, halfDir), 0.0);
-
-    // Calculate F0 (base reflectivity)
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
-
-    // Fresnel term (Schlick's approximation)
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - VdotH, 5.0);
-
-    // Normal Distribution Function (GGX/Trowbridge-Reitz)
-    float alpha  = roughness * roughness;
-    float alpha2 = alpha * alpha;
-    float denom  = NdotH * NdotH * (alpha2 - 1.0) + 1.0;
-    float D      = alpha2 / (3.14159 * denom * denom);
-
-    // Geometry Function (Smith's method)
-    float k   = (roughness + 1.0) * (roughness + 1.0) / 8.0;
-    float G1L = NdotL / (NdotL * (1.0 - k) + k);
-    float G1V = NdotV / (NdotV * (1.0 - k) + k);
-    float G   = G1L * G1V;
-
-    // Cook-Torrance BRDF
-    vec3  numerator   = D * G * F;
-    float denominator = 4.0 * NdotV * NdotL + 0.0001; // Avoid division by zero
-    vec3  specular    = numerator / denominator;
-
-    // Diffuse and specular coefficients
-    vec3 kS = F;                             // Specular coefficient
-    vec3 kD = (1.0 - kS) * (1.0 - metallic); // Diffuse coefficient
-
-    // Final lighting calculation with shadow
-    vec3 diffuse  = kD * albedo / 3.14159;
-    vec3 lighting = (diffuse + specular) * lightColor * NdotL * (1.0 - shadow);
-
-    return lighting;
+	return f0 + (max(vec3(1.0 - roughness), f0) - f0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-// IBL (Image Based Lighting) calculation - for future enhancement
-vec3 calculateIBL(vec3 albedo, float metallic, float roughness, vec3 normal, vec3 viewDir)
-{
-    if (!uUseIBL)
-        return vec3(0.0);
+// Normal distribution function (Trowbridge-Reitz GGX)
+//
+//                alpha ^ 2
+//     ---------------------------------
+//      PI((n * h)^2(alpha^2 - 1) + 1)^2
+//
+float ndfTrowbridgeReitzGGX(vec3 n, vec3 h, float roughness) {
+	
+	float alpha = roughness * roughness; // recommended by disney/epic papers
+	float alphaSquared = alpha * alpha;
 
-    // Diffuse IBL
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
-    vec3 F  = F0 + (1.0 - F0) * pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
-    vec3 kS = F;
-    vec3 kD = (1.0 - kS) * (1.0 - metallic);
+	float nDotH = max(dot(n, h), 0.0);
+	float nDotHSquared = nDotH * nDotH;
+	float innerTerms = nDotHSquared * (alphaSquared - 1.0) + 1.0;
 
-    vec3 irradiance = texture(uIrradianceMap, normal).rgb;
-    vec3 diffuse    = kD * albedo * irradiance;
+	float numerator = alphaSquared;
+	float denomenator = PI * innerTerms * innerTerms;
+	denomenator = max(denomenator, 0.0001); // avoid div by zero
 
-    // Specular IBL
-    vec3  R     = reflect(-viewDir, normal);
-    float NdotV = max(dot(normal, viewDir), 0.0);
-
-    // Sample prefiltered environment map
-    const float MAX_REFLECTION_LOD = 4.0;
-    vec3        prefilteredColor   = textureLod(uPrefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
-
-    // Sample BRDF lookup texture
-    vec2 brdf     = texture(uBRDFLUT, vec2(NdotV, roughness)).rg;
-    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-
-    return diffuse + specular;
+	return numerator / denomenator;
 }
 
-void main()
-{
-    // Sample material textures
-    vec4  baseColorTex         = texture(uBaseColorTexture, TexCoord);
-    vec4  metallicRoughnessTex = texture(uMetallicRoughnessTexture, TexCoord);
-    vec3  normalTex            = texture(uNormalTexture, TexCoord).rgb;
-    float occlusionTex         = texture(uOcclusionTexture, TexCoord).r;
-    vec3  emissiveTex          = texture(uEmissiveTexture, TexCoord).rgb;
+// Geometry function
+//
+//         n * v
+//   -------------------
+//   (n * v)(1 - k) + k
+//
+float geometrySchlickGGX(vec3 n, vec3 v, float k) {
 
-    // Calculate final material parameters
-    vec3  albedo    = baseColorTex.rgb * uBaseColorFactor.rgb * VertexColor.rgb;
-    float metallic  = metallicRoughnessTex.b * uMetallicFactor;
-    float roughness = metallicRoughnessTex.g * uRoughnessFactor;
-    vec3  emissive  = emissiveTex * uEmissiveFactor;
+	float nDotV = max(dot(n, v), 0.0);
 
-    // Normal mapping
-    vec3 normal = Normal;
-    if (normalTex != vec3(0.5, 0.5, 1.0)) // Check if normal map exists
-    {
-        // Convert normal from [0,1] to [-1,1]
-        normalTex = normalTex * 2.0 - 1.0;
-        normalTex.xy *= uNormalScale;
+	float numerator = nDotV;
+	float denomenator = nDotV * (1.0 - k) + k;
 
-        // Transform normal from tangent space to world space
-        normal = normalize(TBN * normalTex);
-    }
+	return numerator / denomenator;
+}
 
-    // Calculate view direction
-    vec3 viewDir = normalize(uCameraPos - FragPos);
+// smiths method for taking into account view direction and light direction
+float geometrySmith(vec3 n, vec3 v, vec3 l, float roughness) {
 
-    // Calculate light direction (directional light)
-    vec3 lightDir = normalize(-uLightDirection);
+    // remapping for direct lighting (doesn't work for IBL)
+	float k = (roughness + 1.0) * (roughness + 1.0) / 8.0;
 
-    // Calculate shadow
-    float shadow = 0.0;
-    if (uUseShadows)
-    {
-        shadow = calculateShadow(FragPosLightSpace, uShadowMap);
-    }
+	return geometrySchlickGGX(n, v, k) * geometrySchlickGGX(n, l, k);
+}
 
-    // PBR lighting calculation
-    vec3 lighting =
-        calculatePBR(albedo, metallic, roughness, normal, viewDir, lightDir, uLightColor * uLightIntensity, shadow);
+// Tangent space to world
+vec3 calculateNormal(vec3 tangentNormal) {
+	vec3 norm = normalize(tangentNormal * 2.0 - 1.0);
+	mat3 TBN  = mat3(tangent, bitangent, normal);
+	return normalize(TBN * norm); // tangent --> world
+}
 
-    // Ambient lighting
-    vec3 ambient = uAmbientColor * uAmbientIntensity * albedo * occlusionTex * uOcclusionStrength;
+void main() {
+	// retrieve all the material properties
 
-    // IBL (Image Based Lighting) - for future enhancement
-    vec3 ibl = calculateIBL(albedo, metallic, roughness, normal, viewDir);
+	// albedo
+	vec3 albedo = material.albedo;
+	if (material.useTextureAlbedo) {
+		albedo = texture(material.textureAlbedo, textureCoordinates).rgb;
+	}
 
-    // Final color calculation
-    vec3 finalColor = ambient + lighting + ibl + emissive;
+	// metallic/roughness
+	float metallic = material.metallic;
+	float roughness = material.roughness;
+	if (material.useTextureMetallicRoughness) {
+		vec3 metallicRoughness = texture(material.textureMetallicRoughness, textureCoordinates).rgb;
+		metallic = metallicRoughness.b;
+		roughness = metallicRoughness.g;
+	}
 
-    // Tone mapping (simple Reinhard)
-    finalColor = finalColor / (finalColor + vec3(1.0));
+	// normal
+	vec3 n = normal; // interpolated vertex normal
+	if (material.useTextureNormal) {
+		n = calculateNormal(texture(material.textureNormal, textureCoordinates).rgb);
+	}
 
-    // Gamma correction
-    finalColor = pow(finalColor, vec3(1.0 / 2.2));
+	// ambient occlusion
+	float ao = material.ambientOcclusion;
+	if (material.useTextureAmbientOcclusion) {
+		ao = texture(material.textureAmbientOcclusion, textureCoordinates).r;
+	}
 
-    // Output final color
-    FragColor = vec4(finalColor, uBaseColorFactor.a * baseColorTex.a);
+	// emissive
+	vec3 emissive = material.emissive;
+	if (material.useTextureEmissive) {
+		emissive = texture(material.textureEmissive, textureCoordinates).rgb;
+	}
+
+	vec3 v = normalize(cameraPosition - worldCoordinates); // view vector pointing at camera
+	vec3 r = reflect(-v, n); // reflection
+
+	// f0 is the "surface reflection at zero incidence"
+	// for PBR-metallic we assume dialectrics all have 0.04
+	// for metals the value comes from the albedo map
+	vec3 f0 = vec3(0.04);
+	f0 = mix(f0, albedo, metallic);
+
+	vec3 Lo = vec3(0.0); // total radiance out
+
+	// Direct lighting
+	// Sum up the radiance contributions of each light source.
+	// This loop is essentially the integral of the rendering equation.
+	for (int i = 0; i < 4; i++) {
+		vec3 l = normalize(lightPositions[i] - worldCoordinates); // light vector
+		vec3 h = normalize(v + l);
+
+		float distance = length(lightPositions[i] - worldCoordinates);
+		float attenuation = 1.0 / (distance * distance); // inverse square law
+		vec3 radiance = lightColors[i] * attenuation; // aka Li
+
+		// calculate Cook-Torrance specular BRDF term
+		//
+		//                DFG
+		//        --------------------
+		//         4(w_0 * n)(w_i * n)
+		//
+		//
+
+		// Normal Distribution term (D)
+		float dTerm = ndfTrowbridgeReitzGGX(n, h, roughness);
+
+		// Fresnel term (F)
+		// Determines the ratio of light reflected vs. absorbed
+		vec3 fTerm = fresnelSchlick(max(dot(h, v), 0.0), f0);
+
+		// Geometry term (G)
+		float gTerm = geometrySmith(n, v, l, roughness);
+
+
+		vec3 numerator = dTerm * fTerm * gTerm;
+		float denominator = 4.0 * max(dot(v, n), 0.0) * max(dot(l, n), 0.0);
+		
+		// recall fTerm is the proportion of reflected light, so the result here is the specular
+		vec3 specular = numerator / max(denominator, 0.001);
+
+		vec3 kSpecular = fTerm;
+		vec3 kDiffuse = vec3(1.0) - kSpecular;
+		kDiffuse *= 1.0 - metallic; // metallic materials should have no diffuse component
+
+		// now calculate full Cook-Torrance with both diffuse + specular
+		//
+		// f_r = kd * f_lambert + ks * f_cook-torrance
+		//
+		// where f_lambert = c / pi
+
+		vec3 diffuse = kDiffuse * albedo / PI;
+		vec3 cookTorranceBrdf = diffuse + specular;
+		float nDotL = max(dot(n, l), 0.0);
+
+		// Finally, the rendering equation!
+		Lo += cookTorranceBrdf * radiance * nDotL;
+	}
+
+	// Indirect lighting (IBL) - temporarily disabled
+	// TODO: Implement IBL when needed
+	vec3 kSpecular = fresnelSchlickRoughness(max(dot(n, v), 0.0), f0, roughness); // aka F
+    vec3 kDiffuse = 1.0 - kSpecular;
+	kDiffuse *= 1.0 - metallic; // metallic materials should have no diffuse component
+
+	// Simple ambient lighting (no IBL for now)
+	vec3 ambient = kDiffuse * albedo * 0.03 * ao; // simple ambient term
+
+	// Combine emissive + indirect + direct
+	vec3 color = emissive + ambient + Lo;
+
+	// Outputs
+
+	// main color output
+	FragColor = vec4(color, 1.0);
+
+	// bloom color output
+	// use greyscale conversion here because not all colors are equally "bright"
+    float greyscaleBrightness = dot(FragColor.rgb, GREYSCALE_WEIGHT_VECTOR);
+	BloomColor = greyscaleBrightness > bloomBrightnessCutoff ? vec4(emissive, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
 }

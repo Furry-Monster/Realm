@@ -1,371 +1,65 @@
 #include "engine.h"
 #include "config_manager.h"
+#include "gameplay/entity.h"
+#include "gameplay/scene.h"
 #include "global_context.h"
-#include "render/render_material.h"
-#include "render/render_mesh.h"
-#include "render/render_object.h"
-#include "render/render_resource.h"
-#include "render/render_scene.h"
+#include "render/render_model.h"
 #include "render/renderer.h"
-#include "resource/asset_manager.h"
-#include "resource/datatype/model/material.h"
-#include "resource/datatype/model/mesh.h"
 #include "utils.h"
 #include "window.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <memory>
 #include <string>
 
 namespace RealmEngine
 {
-    void loadFBXModel()
-    {
-        // Load FBX model using AssetManager
-        auto* model = g_context.m_assets->loadModel((g_context.m_cfg->getAssetFolder() / "Cian.fbx").generic_string());
-        if (!model)
-        {
-            err("Failed to load FBX model: assets/Cian.fbx");
-            return;
-        }
-
-        info("FBX model loaded successfully with " + std::to_string(model->getMeshCount()) + " meshes");
-
-        // Create render objects for each mesh in the model
-        for (size_t i = 0; i < model->getMeshCount(); ++i)
-        {
-            const auto& mesh = model->getMesh(i);
-
-            // Use material 0 for all meshes if we don't have enough materials
-            size_t      material_index = (i < model->getMaterialCount()) ? i : 0;
-            const auto& material       = model->getMaterial(material_index);
-
-            // Create render mesh and material
-            try
-            {
-                RenderMesh render_mesh;
-                render_mesh.sync(*g_context.m_renderer->getRHI(), mesh);
-
-                RenderMaterial render_material;
-                render_material.sync(*g_context.m_renderer->getRHI(), material, g_context.m_renderer->getPBRProgram());
-
-                // Add to render resource
-                uint32_t mesh_index = g_context.m_renderer->getRenderResource()->addRenderMesh(std::move(render_mesh));
-                uint32_t material_index =
-                    g_context.m_renderer->getRenderResource()->addRenderMaterial(std::move(render_material));
-
-                // Create render object
-                RenderObject obj;
-                obj.setMesh(mesh_index);
-                obj.setMaterial(material_index);
-
-                // Set model matrix (scale down if needed)
-                glm::mat4 model_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)); // Scale down
-                obj.setModelMatrix(model_matrix);
-                obj.setVisible(true);
-
-                // Add to render scene
-                g_context.m_renderer->getRenderScene()->addRenderObject(std::move(obj));
-
-                info("Successfully processed mesh " + std::to_string(i) + " with " +
-                     std::to_string(mesh.getVertices().size()) + " vertices");
-            }
-            catch (const std::exception& e)
-            {
-                err("Failed to process mesh " + std::to_string(i) + ": " + std::string(e.what()));
-                continue; // Skip this mesh and continue with the next one
-            }
-        }
-
-        // Add directional light
-        DirectionalLight dir_light;
-        dir_light.direction = glm::normalize(glm::vec3(1.0f, -1.0f, 1.0f));
-        dir_light.color     = glm::vec3(1.0f, 1.0f, 1.0f);
-        dir_light.intensity = 2.5f;
-        g_context.m_renderer->getRenderScene()->addDirectionalLight(dir_light);
-
-        // Add ambient light
-        AmbientLight ambient_light;
-        ambient_light.color     = glm::vec3(0.2f, 0.2f, 0.2f);
-        ambient_light.intensity = 0.6f;
-        g_context.m_renderer->getRenderScene()->setAmbientLight(ambient_light);
-
-        // Set camera position to look at the model
-        g_context.m_renderer->getRenderCamera()->setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-        g_context.m_renderer->getRenderCamera()->setRotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-
-        // Set camera perspective projection
-        g_context.m_renderer->getRenderCamera()->setPerspective(45.0f, 16.0f / 9.0f, 0.1f, 100.0f);
-
-        info("FBX model setup completed successfully");
-    }
-
-    void createTestCube()
-    {
-        // prepare cube
-        std::vector<Vertex>   vertices = {// Front face
-                                        {{-0.5f, -0.5f, 0.5f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {0.0f, 0.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, -0.5f, 0.5f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {1.0f, 0.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, 0.5f, 0.5f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {1.0f, 1.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.f, 1.0f, 1.0f}},
-                                        {{-0.5f, 0.5f, 0.5f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {0.0f, 1.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-
-                                        // Back face
-                                        {{-0.5f, -0.5f, -0.5f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {1.0f, 0.0f},
-                                           {-1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, -0.5f, -0.5f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {0.0f, 0.0f},
-                                           {-1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, 0.5f, -0.5f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {0.0f, 1.0f},
-                                           {-1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{-0.5f, 0.5f, -0.5f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {1.0f, 1.0f},
-                                           {-1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-
-                                        // Left face
-                                        {{-0.5f, -0.5f, -0.5f},
-                                           {-1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{-0.5f, -0.5f, 0.5f},
-                                           {-1.0f, 0.0f, 0.0f},
-                                           {1.0f, 0.0f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{-0.5f, 0.5f, 0.5f},
-                                           {-1.0f, 0.0f, 0.0f},
-                                           {1.0f, 1.0f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{-0.5f, 0.5f, -0.5f},
-                                           {-1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-
-                                        // Right face
-                                        {{0.5f, -0.5f, -0.5f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {1.0f, 0.0f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, -0.5f, 0.5f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, 0.5f, 0.5f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 1.0f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, 0.5f, -0.5f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {1.0f, 1.0f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-
-                                        // Top face
-                                        {{-0.5f, 0.5f, -0.5f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {0.0f, 0.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, 0.5f, -0.5f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 0.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, 0.5f, 0.5f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {1.0f, 1.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{-0.5f, 0.5f, 0.5f},
-                                           {0.0f, 1.0f, 0.0f},
-                                           {0.0f, 1.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f, -1.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-
-                                        // Bottom face
-                                        {{-0.5f, -0.5f, -0.5f},
-                                           {0.0f, -1.0f, 0.0f},
-                                           {1.0f, 0.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, -0.5f, -0.5f},
-                                           {0.0f, -1.0f, 0.0f},
-                                           {0.0f, 0.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{0.5f, -0.5f, 0.5f},
-                                           {0.0f, -1.0f, 0.0f},
-                                           {0.0f, 1.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}},
-                                        {{-0.5f, -0.5f, 0.5f},
-                                           {0.0f, -1.0f, 0.0f},
-                                           {1.0f, 1.0f},
-                                           {1.0f, 0.0f, 0.0f},
-                                           {0.0f, 0.0f, 1.0f},
-                                           {1.0f, 1.0f, 1.0f, 1.0f}}};
-        std::vector<uint32_t> indices  = {// Front face
-                                         0,
-                                         1,
-                                         2,
-                                         2,
-                                         3,
-                                         0,
-                                         // Back face
-                                         4,
-                                         5,
-                                         6,
-                                         6,
-                                         7,
-                                         4,
-                                         // Left face
-                                         8,
-                                         9,
-                                         10,
-                                         10,
-                                         11,
-                                         8,
-                                         // Right face
-                                         12,
-                                         13,
-                                         14,
-                                         14,
-                                         15,
-                                         12,
-                                         // Top face
-                                         16,
-                                         17,
-                                         18,
-                                         18,
-                                         19,
-                                         16,
-                                         // Bottom face
-                                         20,
-                                         21,
-                                         22,
-                                         22,
-                                         23,
-                                         20};
-
-        Mesh cube_mesh;
-        cube_mesh.setVertices(std::move(vertices));
-        cube_mesh.setIndices(std::move(indices));
-
-        Material cube_material;
-        cube_material.setBaseColorFactor(glm::vec4(0.7f, 0.1f, 0.1f, 1.0f)); // Darker red
-        cube_material.setMetallicFactor(0.8f);                               // More metallic
-        cube_material.setRoughnessFactor(0.3f);                              // Less rough (more shiny)
-
-        RenderMesh render_mesh;
-        render_mesh.sync(*g_context.m_renderer->getRHI(), cube_mesh);
-
-        RenderMaterial render_material;
-        render_material.sync(*g_context.m_renderer->getRHI(), cube_material, g_context.m_renderer->getPBRProgram());
-
-        uint32_t mesh_index = g_context.m_renderer->getRenderResource()->addRenderMesh(std::move(render_mesh));
-        uint32_t material_index =
-            g_context.m_renderer->getRenderResource()->addRenderMaterial(std::move(render_material));
-
-        RenderObject cube_obj;
-        cube_obj.setMesh(mesh_index);
-        cube_obj.setMaterial(material_index);
-
-        glm::mat4 model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-        cube_obj.setModelMatrix(model_matrix);
-        cube_obj.setVisible(true);
-
-        g_context.m_renderer->getRenderScene()->addRenderObject(std::move(cube_obj));
-
-        DirectionalLight dir_light;
-        dir_light.direction = glm::normalize(glm::vec3(1.0f, -1.0f, 1.0f));
-        dir_light.color     = glm::vec3(1.0f, 1.0f, 1.0f);
-        dir_light.intensity = 2.5f;
-        g_context.m_renderer->getRenderScene()->addDirectionalLight(dir_light);
-
-        AmbientLight ambient_light;
-        ambient_light.color     = glm::vec3(0.2f, 0.2f, 0.2f);
-        ambient_light.intensity = 0.1f;
-        g_context.m_renderer->getRenderScene()->setAmbientLight(ambient_light);
-
-        // Set camera
-        g_context.m_renderer->getRenderCamera()->setPosition(glm::vec3(-1.0f, 1.0f, 3.0f));
-        g_context.m_renderer->getRenderCamera()->setRotation(glm::quat(1.0f, 0.1f, 0.2f, 0.0f)); // Identity quaternion
-        g_context.m_renderer->getRenderCamera()->setPerspective(45.0f, 16.0f / 9.0f, 0.1f, 100.0f);
-
-        info("Test cube created successfully");
-    }
-
     void Engine::boot()
     {
         g_context.create();
+
+        // Initialize renderer with window
+        g_context.m_renderer->initialize(g_context.m_window);
 
         info("<<< Boot Engine Done. >>>");
     }
 
     void Engine::debugRun()
     {
-        // load first
-        createTestCube();
-
         int frame_count = 0;
+
+        // Create a simple scene
+        auto scene = std::make_shared<Scene>();
+
+        // Add some test lights
+        scene->m_light_positions.push_back(glm::vec3(0.0f, 0.0f, 10.0f));
+        scene->m_light_colors.push_back(glm::vec3(1.0f, 1.0f, 1.0f));
+
+        // Try to load helmet model (glTF format)
+        std::string model_path = g_context.m_cfg->getAssetFolder().generic_string() + "/helmet/DamagedHelmet.gltf";
+        try
+        {
+            auto model  = std::make_shared<RenderModel>(model_path);
+            auto entity = Entity(model);
+            entity.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+            entity.setScale(glm::vec3(1.0f, 1.0f, 1.0f)); // Model is already in correct scale
+            scene->m_entities.push_back(entity);
+            info("Loaded model: " + model_path);
+        }
+        catch (...)
+        {
+            warn("Failed to load model: " + model_path + ", continuing without it");
+        }
+
+        // Set camera position - adjust for helmet model
+        // Helmet model is roughly 2 units in size, so position camera at appropriate distance
+        g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+        g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
         // debug rendering, without game logic
         while (!g_context.m_window->shouldClose() && frame_count < 600)
         {
-            tick();
+            tick(scene);
             frame_count++;
 
             if (frame_count % 60 == 0)
@@ -377,27 +71,34 @@ namespace RealmEngine
 
     void Engine::run()
     {
+        auto scene = std::make_shared<Scene>();
+
+        // Add some test lights
+        scene->m_light_positions.push_back(glm::vec3(0.0f, 0.0f, 10.0f));
+        scene->m_light_colors.push_back(glm::vec3(1.0f, 1.0f, 1.0f));
+
         while (!g_context.m_window->shouldClose())
-            tick();
+            tick(scene);
     }
 
     void Engine::terminate()
     {
-        info("<<< Now Teminating Engine. >>>");
+        info("<<< Now Terminating Engine. >>>");
+        g_context.m_renderer->shutdown();
         g_context.destroy();
     }
 
-    void Engine::tick()
+    void Engine::tick(std::shared_ptr<Scene> scene)
     {
         logicalTick();
-        renderTick();
+        renderTick(scene);
     }
 
     void Engine::logicalTick() { g_context.m_window->pollEvents(); }
 
-    void Engine::renderTick()
+    void Engine::renderTick(std::shared_ptr<Scene> scene)
     {
-        g_context.m_renderer->renderFrame();
+        g_context.m_renderer->render(scene);
         g_context.m_window->swapBuffer();
     }
 

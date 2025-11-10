@@ -1,0 +1,171 @@
+#include "render/shader.h"
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+#include "utils.h"
+#include <glad/gl.h>
+
+namespace RealmEngine
+{
+    Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
+    {
+        // retrieve vertex/fragment source
+        std::string   vertex_code;
+        std::string   fragment_code;
+        std::ifstream vertex_shader_file;
+        std::ifstream fragment_shader_file;
+
+        // make sure ifstream objects can throw exceptions
+        vertex_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        fragment_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+        try
+        {
+            // open the files
+            vertex_shader_file.open(vertexPath);
+            fragment_shader_file.open(fragmentPath);
+
+            std::stringstream vertex_shader_stream, fragment_shader_stream;
+
+            // read file buffers into streams
+            vertex_shader_stream << vertex_shader_file.rdbuf();
+            fragment_shader_stream << fragment_shader_file.rdbuf();
+
+            // close the files
+            vertex_shader_file.close();
+            fragment_shader_file.close();
+
+            // convert streams into string
+            vertex_code   = vertex_shader_stream.str();
+            fragment_code = fragment_shader_stream.str();
+        }
+        catch (std::ifstream::failure& e)
+        {
+            err("Error: failed to read shader file: " + vertexPath + " or " + fragmentPath);
+            mId = 0;
+            return;
+        }
+
+        const char* vertex_shader_code   = vertex_code.c_str();
+        const char* fragment_shader_code = fragment_code.c_str();
+
+        // compile the shaders
+        unsigned int vertex, fragment;
+        int          success;
+        char         info_log[512];
+
+        // vertex shader
+        vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &vertex_shader_code, nullptr);
+        glCompileShader(vertex);
+
+        glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+
+        if (!success)
+        {
+            glGetShaderInfoLog(vertex, 512, nullptr, info_log);
+            err("Error: vertex shader compilation failed for: " + vertexPath);
+            err(std::string(info_log));
+            mId = 0;
+            return;
+        }
+
+        // fragment shader
+        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragment, 1, &fragment_shader_code, nullptr);
+        glCompileShader(fragment);
+
+        glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+
+        if (!success)
+        {
+            glGetShaderInfoLog(fragment, 512, nullptr, info_log);
+            err("Error: fragment shader compilation failed for: " + fragmentPath);
+            err(std::string(info_log));
+            glDeleteShader(vertex);
+            mId = 0;
+            return;
+        }
+
+        // create the shader program
+        mId = glCreateProgram();
+        glAttachShader(mId, vertex);
+        glAttachShader(mId, fragment);
+        glLinkProgram(mId);
+
+        glGetProgramiv(mId, GL_LINK_STATUS, &success);
+
+        if (!success)
+        {
+            glGetProgramInfoLog(mId, 512, nullptr, info_log);
+            err("Error: shader program linking failed");
+            err(vertexPath);
+            err(fragmentPath);
+            err(std::string(info_log));
+            glDeleteShader(vertex);
+            glDeleteShader(fragment);
+            mId = 0;
+            return;
+        }
+
+        // delete the shaders now that they are linked into the program
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+    }
+
+    Shader::~Shader()
+    {
+        if (mId != 0)
+        {
+            glDeleteProgram(mId);
+        }
+    }
+
+    void Shader::use() const { glUseProgram(mId); }
+
+    void Shader::setBool(const std::string& name, bool value) const
+    {
+        glUniform1i(glGetUniformLocation(mId, name.c_str()), static_cast<int>(value));
+    }
+
+    void Shader::setInt(const std::string& name, int value) const
+    {
+        glUniform1i(glGetUniformLocation(mId, name.c_str()), value);
+    }
+
+    void Shader::setFloat(const std::string& name, float value) const
+    {
+        glUniform1f(glGetUniformLocation(mId, name.c_str()), value);
+    }
+
+    void Shader::setVec2(const std::string& name, const glm::vec2& value) const
+    {
+        glUniform2f(glGetUniformLocation(mId, name.c_str()), value[0], value[1]);
+    }
+
+    void Shader::setVec3(const std::string& name, const glm::vec3& value) const
+    {
+        glUniform3f(glGetUniformLocation(mId, name.c_str()), value[0], value[1], value[2]);
+    }
+
+    void Shader::setVec3Array(const std::string& name, const std::vector<glm::vec3>& values) const
+    {
+        glUniform3fv(glGetUniformLocation(mId, name.c_str()), values.size(), &values[0][0]);
+    }
+
+    void Shader::setMat4(const std::string& name, const glm::mat4& value) const
+    {
+        glUniformMatrix4fv(glGetUniformLocation(mId, name.c_str()), 1, GL_FALSE, &value[0][0]);
+    }
+
+    void Shader::setModelViewProjectionMatrices(const glm::mat4& model,
+                                                const glm::mat4& view,
+                                                const glm::mat4& projection) const
+    {
+        setMat4("model", model);
+        setMat4("view", view);
+        setMat4("projection", projection);
+    }
+} // namespace RealmEngine

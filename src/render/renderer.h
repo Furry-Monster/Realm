@@ -1,54 +1,53 @@
 #pragma once
 
-#include "render/render_pipeline.h"
-#include "render/render_resource.h"
-#include "render/render_scene.h"
-#include "render/render_swap_buffer.h"
-#include "render/rhi.h"
-#include <cstdint>
+#include "gameplay/scene.h"
+#include "render/framebuffer.h"
+#include "render/render_camera.h"
+#include "render/shader.h"
 #include <memory>
+#include <string>
 
 namespace RealmEngine
 {
-    enum class PipelineType : uint8_t
-    {
-        Forward,
-        Deffered,
-    };
+    class Window;
 
+    /**
+     * Manages rendering.
+     */
     class Renderer
     {
     public:
-        Renderer()           = default;
-        ~Renderer() noexcept = default;
+        Renderer()  = default;
+        ~Renderer() = default;
 
-        Renderer(const Renderer& that)            = delete;
-        Renderer(Renderer&& that)                 = delete;
-        Renderer& operator=(const Renderer& that) = delete;
-        Renderer& operator=(Renderer&& that)      = delete;
+        Renderer(const Renderer&)            = delete;
+        Renderer& operator=(const Renderer&) = delete;
 
-        void initialize();
-        void disposal();
+        void initialize(std::shared_ptr<Window> window);
+        void shutdown();
+        void render(std::shared_ptr<Scene> scene);
 
-        void renderFrame();
-
-        void setPipeline(PipelineType type);
-
-        // Getters for engine access
-        std::shared_ptr<RHI>            getRHI() const { return m_rhi; }
-        std::shared_ptr<RenderResource> getRenderResource() const { return m_render_res; }
-        std::shared_ptr<RenderScene>    getRenderScene() const { return m_render_scene; }
-        std::shared_ptr<RenderCamera>   getRenderCamera() const { return m_render_camera; }
-        ProgramHandle                   getPBRProgram() const;
+        std::shared_ptr<RenderCamera> getCamera() const { return mCamera; }
 
     private:
-        void processSwapData();
+        void setupShaders();
+        void setupFramebuffers();
 
-        std::shared_ptr<RHI>              m_rhi;
-        std::shared_ptr<RenderResource>   m_render_res;
-        std::shared_ptr<RenderSwapBuffer> m_render_swap_buf;
-        std::shared_ptr<RenderPipeline>   m_render_pipeline;
-        std::shared_ptr<RenderScene>      m_render_scene;
-        std::shared_ptr<RenderCamera>     m_render_camera;
+        std::shared_ptr<Window> mWindow;
+
+        // framebuffers
+        std::unique_ptr<Framebuffer> mFramebuffer;
+
+        // scene
+        std::shared_ptr<Scene> mScene;
+
+        // camera
+        std::shared_ptr<RenderCamera> mCamera;
+
+        // shaders
+        std::unique_ptr<Shader> mPbrShader;
+
+        // shader paths
+        std::string mShaderRootPath;
     };
 } // namespace RealmEngine

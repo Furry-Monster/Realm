@@ -1,114 +1,116 @@
-#include "render_mesh.h"
-#include "resource/datatype/model/mesh.h"
-#include "utils.h"
-#include <cstddef>
-#include <cstdint>
+#include "render/render_mesh.h"
+
 #include <glad/gl.h>
 
 namespace RealmEngine
 {
-    VAOHandle    RenderMesh::getVAO() const { return m_vao; }
-    BufferHandle RenderMesh::getVBO() const { return m_vbo; }
-    BufferHandle RenderMesh::getEBO() const { return m_ebo; }
-    uint32_t     RenderMesh::getIndexCount() const { return m_index_count; }
-    uint32_t     RenderMesh::getVertexCount() const { return m_vertex_count; }
-
-    void RenderMesh::sync(RHI& rhi, const Mesh& mesh)
+    RenderMesh::RenderMesh(std::vector<RenderVertex> vertices,
+                           std::vector<unsigned int> indices,
+                           RenderMaterial material) : m_vertices(vertices), m_indices(indices), m_material(material)
     {
-        if (!mesh.isGpuDataDirty())
-            return;
+        init();
+    }
 
-        const auto& verts   = mesh.getVertices();
-        const auto& indices = mesh.getIndices();
-
-        if (verts.empty() || indices.empty())
+    void RenderMesh::draw(Shader& shader)
+    {
+        // albedo
+        shader.setBool("material.useTextureAlbedo", m_material.use_texture_albedo);
+        shader.setVec3("material.albedo", m_material.albedo);
+        if (m_material.use_texture_albedo)
         {
-            warn("Trying to sync an empty Mesh to RenderMesh.");
-            return;
+            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_ALBEDO);
+            shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
+            glBindTexture(GL_TEXTURE_2D, m_material.texture_albedo->m_id);
         }
 
-        if (m_vao == 0)
-            m_vao = rhi.createVAO();
+        shader.setBool("material.useTextureMetallicRoughness", m_material.use_texture_metallic_roughness);
+        shader.setFloat("material.metallic", m_material.metallic);
+        shader.setFloat("material.roughness", m_material.roughness);
+        if (m_material.use_texture_metallic_roughness)
+        {
+            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_METALLIC_ROUGHNESS);
+            shader.setInt("material.textureMetallicRoughness", TEXTURE_UNIT_METALLIC_ROUGHNESS);
+            glBindTexture(GL_TEXTURE_2D, m_material.texture_metallic_roughness->m_id);
+        }
 
-        bind();
+        shader.setBool("material.useTextureNormal", m_material.use_texture_normal);
+        if (m_material.use_texture_normal)
+        {
+            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_NORMAL);
+            shader.setInt("material.textureNormal", TEXTURE_UNIT_NORMAL);
+            glBindTexture(GL_TEXTURE_2D, m_material.texture_normal->m_id);
+        }
 
-        if (m_vbo == 0)
-            m_vbo = rhi.createBuffer(GL_ARRAY_BUFFER, sizeof(Vertex) * verts.size(), verts.data(), GL_STATIC_DRAW);
-        else
-            rhi.updateBuffer(m_vbo, GL_ARRAY_BUFFER, 0, sizeof(Vertex) * verts.size(), verts.data());
+        shader.setBool("material.useTextureAmbientOcclusion", m_material.use_texture_ambient_occlusion);
+        shader.setFloat("material.ambientOcclusion", m_material.ambient_occlusion);
+        if (m_material.use_texture_ambient_occlusion)
+        {
+            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_AMBIENT_OCCLUSION);
+            shader.setInt("material.textureAmbientOcclusion", TEXTURE_UNIT_AMBIENT_OCCLUSION);
+            glBindTexture(GL_TEXTURE_2D, m_material.texture_ambient_occlusion->m_id);
+        }
 
-        if (m_ebo == 0)
-            m_ebo = rhi.createBuffer(
-                GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * indices.size(), indices.data(), GL_STATIC_DRAW);
-        else
-            rhi.updateBuffer(m_ebo, GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(uint32_t) * indices.size(), indices.data());
+        shader.setBool("material.useTextureEmissive", m_material.use_texture_emissive);
+        shader.setVec3("material.emissive", m_material.emissive);
+        if (m_material.use_texture_emissive)
+        {
+            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_EMISSIVE);
+            shader.setInt("material.textureEmissive", TEXTURE_UNIT_EMISSIVE);
+            glBindTexture(GL_TEXTURE_2D, m_material.texture_emissive->m_id);
+        }
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glActiveTexture(GL_TEXTURE0);
 
-        // position (location=0)
+        // draw mesh
+        glBindVertexArray(mVAO);
+        glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
+    }
+
+    void RenderMesh::init()
+    {
+        // create our data structures
+        glGenVertexArrays(1, &mVAO);
+        glGenBuffers(1, &mVBO);
+        glGenBuffers(1, &mEBO);
+
+        glBindVertexArray(mVAO); // use this VAO for subsequent calls
+
+        glBindBuffer(GL_ARRAY_BUFFER, mVBO); // use this VBO for subsequent calls
+        glBufferData(GL_ARRAY_BUFFER,
+                     m_vertices.size() * sizeof(RenderVertex),
+                     &m_vertices[0],
+                     GL_STATIC_DRAW); // copy over the vertex data
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO); // use this EBO for subsequent calls
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     m_indices.size() * sizeof(unsigned int),
+                     &m_indices[0],
+                     GL_STATIC_DRAW); // copy over the index data
+
+        // setup the locations of vertex data
+        // positions
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(
-            0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)nullptr);
 
-        // normal (location=1)
+        // normals
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(
-            1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, m_normal));
 
-        // uv0 (location=2)
+        // texture coordinates
         glEnableVertexAttribArray(2);
         glVertexAttribPointer(
-            2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, tex_coord)));
+            2, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, m_texture_coordinates));
 
-        // tangent (location=3)
+        // tangents
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(
-            3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, tangent)));
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, m_tangent));
 
-        // bitangent (location=4)
+        // bitangents
         glEnableVertexAttribArray(4);
         glVertexAttribPointer(
-            4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, bitangent)));
+            4, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, m_bitangent));
 
-        // vert color (location=5)
-        glEnableVertexAttribArray(5);
-        glVertexAttribPointer(
-            5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-
-        unbind();
-
-        m_index_count  = static_cast<uint32_t>(indices.size());
-        m_vertex_count = static_cast<uint32_t>(verts.size());
-
-        const_cast<Mesh&>(mesh).markGpuDataSynced(); // NOTE:bad code...
+        glBindVertexArray(0);
     }
-    void RenderMesh::disposal(RHI& rhi)
-    {
-        if (m_vao != 0)
-        {
-            rhi.deleteVAO(m_vao);
-            m_vao = 0;
-        }
-
-        if (m_vbo != 0)
-        {
-            rhi.deleteBuffer(m_vbo);
-            m_vbo = 0;
-        }
-
-        if (m_ebo != 0)
-        {
-            rhi.deleteBuffer(m_ebo);
-            m_ebo = 0;
-        }
-
-        m_vertex_count = 0;
-        m_index_count  = 0;
-    }
-
-    void RenderMesh::bind() const { glBindVertexArray(m_vao); }
-    void RenderMesh::unbind() const { glBindVertexArray(0); }
-
 } // namespace RealmEngine

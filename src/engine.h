@@ -1,7 +1,11 @@
 #pragma once
 
+#include <memory>
+
 namespace RealmEngine
 {
+    class Scene;
+
     class Engine
     {
 
@@ -20,8 +24,8 @@ namespace RealmEngine
         void terminate();
 
     protected:
-        void tick();
+        void tick(std::shared_ptr<Scene> scene);
         void logicalTick();
-        void renderTick();
+        void renderTick(std::shared_ptr<Scene> scene);
     };
 } // namespace RealmEngine

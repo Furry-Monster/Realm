@@ -1,40 +1,36 @@
 #pragma once
 
-#include "render/rhi.h"
-#include <cstdint>
+#include "render/render_material.h"
+#include "render/shader.h"
+#include "render/vertex.h"
+#include <glm/glm.hpp>
+#include <vector>
 
 namespace RealmEngine
 {
-    class Mesh;
+    const int TEXTURE_UNIT_ALBEDO             = 0;
+    const int TEXTURE_UNIT_METALLIC_ROUGHNESS = 1;
+    const int TEXTURE_UNIT_NORMAL             = 2;
+    const int TEXTURE_UNIT_AMBIENT_OCCLUSION  = 3;
+    const int TEXTURE_UNIT_EMISSIVE           = 4;
 
+    /**
+     * A mesh is a collection of geometry paired with a material.
+     */
     class RenderMesh
     {
     public:
-        RenderMesh()           = default;
-        ~RenderMesh() noexcept = default;
+        RenderMesh(std::vector<RenderVertex> vertices, std::vector<unsigned int> indices, RenderMaterial material);
+        void draw(Shader& shader);
 
-        RenderMesh(const RenderMesh& that)                = delete;
-        RenderMesh& operator=(const RenderMesh& that)     = delete;
-        RenderMesh(RenderMesh&& that) noexcept            = default;
-        RenderMesh& operator=(RenderMesh&& that) noexcept = default;
-
-        VAOHandle    getVAO() const;
-        BufferHandle getVBO() const;
-        BufferHandle getEBO() const;
-        uint32_t     getIndexCount() const;
-        uint32_t     getVertexCount() const;
-
-        void sync(RHI& rhi, const Mesh& mesh);
-        void disposal(RHI& rhi);
-
-        void bind() const;
-        void unbind() const;
+        std::vector<RenderVertex> m_vertices;
+        std::vector<unsigned int> m_indices;
+        RenderMaterial             m_material;
 
     private:
-        VAOHandle    m_vao {0};
-        BufferHandle m_vbo {0};
-        BufferHandle m_ebo {0};
-        uint32_t     m_index_count {0};
-        uint32_t     m_vertex_count {0};
+        void init();
+
+        // OpenGL data structures
+        unsigned int mVAO, mVBO, mEBO;
     };
 } // namespace RealmEngine

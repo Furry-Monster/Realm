@@ -1,19 +1,35 @@
 #pragma once
 
+#include "render/render_model.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <memory>
+
 namespace RealmEngine
 {
+    /**
+     * A model paired with a position, scale, and orientation.
+     */
     class Entity
     {
     public:
-        Entity()           = default;
-        ~Entity() noexcept = default;
+        explicit Entity(std::shared_ptr<RenderModel> model);
 
-        Entity(Entity&&) noexcept            = default;
-        Entity& operator=(Entity&&) noexcept = default;
-        Entity(const Entity&)                = delete;
-        Entity& operator=(const Entity&)     = delete;
+        void      setPosition(glm::vec3 position);
+        glm::vec3 getPosition() const;
+
+        void      setScale(glm::vec3 scale);
+        glm::vec3 getScale() const;
+
+        void      setOrientation(glm::quat orientation);
+        glm::quat getOrientation() const;
+
+        std::shared_ptr<RenderModel> getModel() const;
 
     private:
+        glm::vec3                    mPosition;
+        glm::vec3                    mScale = glm::vec3(1.0, 1.0, 1.0);
+        glm::quat                    mOrientation;
+        std::shared_ptr<RenderModel> mModel;
     };
-
 } // namespace RealmEngine

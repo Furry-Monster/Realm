@@ -27,14 +27,16 @@ namespace RealmEngine
         m_window->initialize();
 
         m_renderer = std::make_shared<Renderer>();
-        m_renderer->initialize();
-        m_renderer->setPipeline(PipelineType::Forward);
+        // Renderer will be initialized in Engine::boot() after window is created
     }
 
     void GlobalContext::destroy()
     {
-        m_renderer->disposal();
-        m_renderer.reset();
+        if (m_renderer)
+        {
+            m_renderer->shutdown();
+            m_renderer.reset();
+        }
 
         m_window->disposal();
         m_window.reset();
