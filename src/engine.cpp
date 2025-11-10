@@ -12,6 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace RealmEngine
 {
@@ -26,20 +27,14 @@ namespace RealmEngine
     {
         int frame_count = 0;
 
-        auto scene        = std::make_shared<Scene>();
-        auto render_scene = std::make_shared<RenderScene>();
-
-        render_scene->m_light_positions.push_back(glm::vec3(5.0f, 5.0f, 5.0f));
-        render_scene->m_light_colors.push_back(glm::vec3(300.0f, 300.0f, 300.0f)); // High intensity for PBR
-
-        render_scene->m_light_positions.push_back(glm::vec3(-5.0f, 3.0f, 2.0f));
-        render_scene->m_light_colors.push_back(glm::vec3(100.0f, 100.0f, 100.0f));
-
-        render_scene->m_light_positions.push_back(glm::vec3(0.0f, 0.0f, -5.0f));
-        render_scene->m_light_colors.push_back(glm::vec3(50.0f, 50.0f, 50.0f));
+        auto&& scene        = std::make_shared<Scene>();
+        auto&& render_scene = std::make_shared<RenderScene>();
 
         render_scene->m_light_positions.push_back(glm::vec3(0.0f, 10.0f, 0.0f));
         render_scene->m_light_colors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
+
+        m_scene        = scene;
+        m_render_scene = render_scene;
 
         std::string model_path = g_context.m_cfg->getAssetFolder().generic_string() + "/helmet/DamagedHelmet.gltf";
         try
@@ -64,7 +59,7 @@ namespace RealmEngine
             err("Failed to load helmet model: " + model_path + " (unknown error)");
         }
 
-        g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+        g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
         info("Starting render loop for helmet model...");

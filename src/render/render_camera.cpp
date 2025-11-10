@@ -39,16 +39,19 @@ namespace RealmEngine
     }
     void RenderCamera::lookAt(const glm::vec3& target, const glm::vec3& up)
     {
-        glm::vec3 local_forward = glm::normalize(target - m_position);
-        glm::vec3 local_right   = glm::normalize(glm::cross(local_forward, up));
-        glm::vec3 local_up      = glm::normalize(glm::cross(local_right, local_forward));
-
-        glm::mat3 rotation_matrix;
-        rotation_matrix[0] = local_right;
-        rotation_matrix[1] = local_up;
-        rotation_matrix[2] = -local_forward;
-
-        m_rotation       = glm::quat_cast(rotation_matrix);
+        // Use glm::lookAt to compute the view matrix directly
+        // This ensures correctness and handles edge cases
+        glm::mat4 view_matrix = glm::lookAt(m_position, target, up);
+        
+        // Extract rotation from view matrix
+        // glm::lookAt returns: view = R^T * T, where R^T is transposed rotation
+        // To extract the rotation quaternion, we need to transpose the rotation part
+        glm::mat3 rotation_part = glm::mat3(view_matrix);
+        // Transpose to get the actual rotation (from world to camera)
+        rotation_part = glm::transpose(rotation_part);
+        
+        // Convert to quaternion
+        m_rotation       = glm::normalize(glm::quat_cast(rotation_part));
         m_view_mat_dirty = true;
     }
 
@@ -152,9 +155,14 @@ namespace RealmEngine
 
     void RenderCamera::updateViewMatrix()
     {
-        glm::mat4 rotation_matrix    = glm::mat4_cast(m_rotation);
+        // View matrix transforms from world space to camera space
+        // Standard OpenGL view matrix: view = R^T * T
+        // where R^T is the transposed rotation matrix and T is the translation
+        // Since we store rotation as quaternion (world-to-camera), we need to transpose it
+        glm::mat4 rotation_matrix    = glm::transpose(glm::mat4_cast(m_rotation));
         glm::mat4 translation_matrix = glm::translate(glm::mat4(1.0f), -m_position);
-        m_view_matrix                = rotation_matrix * translation_matrix;
+        // View matrix: first translate, then rotate (inverse order in matrix multiplication)
+        m_view_matrix = rotation_matrix * translation_matrix;
     }
 
     void RenderCamera::updateProjectionMatrix()
