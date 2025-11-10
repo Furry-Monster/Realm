@@ -25,15 +25,7 @@ namespace RealmEngine
         // specify/allocate each face for the cubemap
         for (auto i = 0; i < 6; i++)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                         0,
-                         GL_RGB16F,
-                         width,
-                         height,
-                         0,
-                         GL_RGB,
-                         GL_FLOAT,
-                         nullptr);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
         }
 
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -45,24 +37,20 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void CubemapFramebuffer::bind() { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
+    void CubemapFramebuffer::bind()const { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
 
-    void CubemapFramebuffer::generateMipmap()
+    void CubemapFramebuffer::generateMipmap()const
     {
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap_texture_id);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     }
 
-    void CubemapFramebuffer::setCubeFace(unsigned int index)
+    void CubemapFramebuffer::setCubeFace(unsigned int index) const
     {
-        glFramebufferTexture2D(GL_FRAMEBUFFER,
-                                GL_COLOR_ATTACHMENT0,
-                                GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
-                                m_cubemap_texture_id,
-                                0);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, m_cubemap_texture_id, 0);
     }
 
     unsigned int CubemapFramebuffer::getCubemapTextureId() const { return m_cubemap_texture_id; }
 } // namespace RealmEngine
-

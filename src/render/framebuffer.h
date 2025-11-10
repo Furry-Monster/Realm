@@ -2,11 +2,9 @@
 
 namespace RealmEngine
 {
-    /**
-     * The main framebuffer.
-     */
     class Framebuffer
     {
+        // this is the main frame buffer
     public:
         Framebuffer(int width, int height);
         void         init();
@@ -17,10 +15,10 @@ namespace RealmEngine
         unsigned int getBloomColorTextureId() const;
 
     private:
-        int          mWidth, mHeight;
-        unsigned int mFramebuffer;
-        unsigned int mColorTexture;
-        unsigned int mBloomColorTexture;
-        unsigned int mDepthStencilRenderbuffer;
+        int          m_width, m_height;
+        unsigned int m_framebuffer;
+        unsigned int m_color_texture;
+        unsigned int m_bloom_color_texture;
+        unsigned int m_depth_stencil_renderbuffer;
     };
 } // namespace RealmEngine

@@ -22,7 +22,7 @@ namespace RealmEngine
          * @param engineRoot root path of the engine
          * @param environmentCubemapId GL texture ID of the environment cubemap
          */
-        DiffuseIrradianceMap(const std::string& engineRoot, const unsigned int environmentCubemapId);
+        DiffuseIrradianceMap(const std::string& engineRoot, unsigned int environmentCubemapId);
 
         /**
          * Render the diffuse irradiance map.
@@ -41,8 +41,7 @@ namespace RealmEngine
 
         const unsigned int m_environment_cubemap_id;
 
-        std::unique_ptr<Shader>              m_diffuse_irradiance_shader;
-        std::unique_ptr<CubemapFramebuffer>  m_diffuse_irradiance_framebuffer;
+        std::unique_ptr<Shader>             m_diffuse_irradiance_shader;
+        std::unique_ptr<CubemapFramebuffer> m_diffuse_irradiance_framebuffer;
     };
 } // namespace RealmEngine
-

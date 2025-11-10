@@ -31,7 +31,7 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void BloomFramebuffer::bind()
+    void BloomFramebuffer::bind() const
     {
         int width  = static_cast<int>(m_width / std::pow(2, m_mip_level));
         int height = static_cast<int>(m_height / std::pow(2, m_mip_level));
@@ -44,6 +44,7 @@ namespace RealmEngine
     {
         m_width  = width;
         m_height = height;
+
         // resize color textures
         glBindTexture(GL_TEXTURE_2D, m_color_texture_id);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -61,4 +62,3 @@ namespace RealmEngine
 
     unsigned int BloomFramebuffer::getColorTextureId() const { return m_color_texture_id; }
 } // namespace RealmEngine
-

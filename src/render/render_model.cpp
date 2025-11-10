@@ -1,9 +1,9 @@
 #include "render/render_model.h"
 
-#include <glad/gl.h>
 #include "utils.h"
-#include <stb/stb_image.h>
 #include <assimp/GltfMaterial.h>
+#include <glad/gl.h>
+#include <stb/stb_image.h>
 
 namespace RealmEngine
 {
@@ -51,13 +51,13 @@ namespace RealmEngine
 
         info("Loading model from: " + path);
         info("Model directory: " + m_directory);
-        info("Scene has " + std::to_string(scene->mNumMeshes) + " meshes, " + 
-             std::to_string(scene->mNumMaterials) + " materials");
+        info("Scene has " + std::to_string(scene->mNumMeshes) + " meshes, " + std::to_string(scene->mNumMaterials) +
+             " materials");
 
         processNode(scene->mRootNode, scene);
-        
+
         info("Loaded " + std::to_string(m_meshes.size()) + " meshes from model");
-        
+
         stbi_set_flip_vertically_on_load(true);
     }
 
@@ -83,7 +83,7 @@ namespace RealmEngine
     {
         std::vector<RenderVertex> vertices;
         std::vector<unsigned int> indices;
-        RenderMaterial             material;
+        RenderMaterial            material;
 
         if (m_material_override)
         {
@@ -193,7 +193,8 @@ namespace RealmEngine
                 {
                     // glTF combined metallic-roughness texture
                     material.use_texture_metallic_roughness = true;
-                    material.texture_metallic_roughness     = loadMaterialTexture(ai_material, aiTextureType_GLTF_METALLIC_ROUGHNESS);
+                    material.texture_metallic_roughness =
+                        loadMaterialTexture(ai_material, aiTextureType_GLTF_METALLIC_ROUGHNESS);
                 }
                 else if (ai_material->GetTextureCount(aiTextureType_UNKNOWN))
                 {
@@ -215,7 +216,8 @@ namespace RealmEngine
                 {
                     // glTF AO map
                     material.use_texture_ambient_occlusion = true;
-                    material.texture_ambient_occlusion     = loadMaterialTexture(ai_material, aiTextureType_AMBIENT_OCCLUSION);
+                    material.texture_ambient_occlusion =
+                        loadMaterialTexture(ai_material, aiTextureType_AMBIENT_OCCLUSION);
                 }
                 else if (ai_material->GetTextureCount(aiTextureType_LIGHTMAP))
                 {
@@ -260,11 +262,11 @@ namespace RealmEngine
         return texture;
     }
 
-    unsigned int RenderModel::textureFromFile(const char* fileName, std::string directory, aiTextureType type)
+    unsigned int RenderModel::textureFromFile(const char* file_name, std::string directory, aiTextureType type)
     {
         int width, height, num_channels;
 
-        std::string relative_path = fileName;
+        std::string relative_path = file_name;
         // Handle both absolute and relative paths
         std::string path;
         if (relative_path[0] == '/' || (relative_path.length() > 1 && relative_path[1] == ':'))
@@ -277,7 +279,7 @@ namespace RealmEngine
             // Relative path - combine with directory
             path = directory + '/' + relative_path;
         }
-        
+
         debug("Loading texture: " + path);
 
         unsigned char* data = stbi_load(path.c_str(), &width, &height, &num_channels, 0);
@@ -334,13 +336,11 @@ namespace RealmEngine
         glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        // texture wrapping/filtering options
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // image is resized using bilinear filtering
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // image is enlarged using bilinear filtering
 
-        // free the image data
         stbi_image_free(data);
 
         return texture_id;

@@ -69,47 +69,51 @@ namespace RealmEngine
 
     void RenderMesh::init()
     {
-        // create our data structures
         glGenVertexArrays(1, &m_vao);
         glGenBuffers(1, &m_vbo);
         glGenBuffers(1, &m_ebo);
 
-        glBindVertexArray(m_vao); // use this VAO for subsequent calls
+        glBindVertexArray(m_vao);
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo); // use this VBO for subsequent calls
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glBufferData(GL_ARRAY_BUFFER,
                      m_vertices.size() * sizeof(RenderVertex),
                      &m_vertices[0],
                      GL_STATIC_DRAW); // copy over the vertex data
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo); // use this EBO for subsequent calls
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                      m_indices.size() * sizeof(unsigned int),
                      &m_indices[0],
                      GL_STATIC_DRAW); // copy over the index data
 
         // setup the locations of vertex data
-        // positions
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)nullptr);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(0));
 
-        // normals
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, m_normal));
+        glVertexAttribPointer(
+            1, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(offsetof(RenderVertex, m_normal)));
 
-        // texture coordinates
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(
-            2, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, m_texture_coordinates));
+        glVertexAttribPointer(2,
+                              2,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              sizeof(RenderVertex),
+                              reinterpret_cast<void*>(offsetof(RenderVertex, m_texture_coordinates)));
 
-        // tangents
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, m_tangent));
-
-        // bitangents
-        glEnableVertexAttribArray(4);
         glVertexAttribPointer(
-            4, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, m_bitangent));
+            3, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(offsetof(RenderVertex, m_tangent)));
+
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4,
+                              3,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              sizeof(RenderVertex),
+                              reinterpret_cast<void*>(offsetof(RenderVertex, m_bitangent)));
 
         glBindVertexArray(0);
     }

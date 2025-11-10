@@ -4,8 +4,8 @@
 
 namespace RealmEngine
 {
-    BrdfConvolutionFramebuffer::BrdfConvolutionFramebuffer(unsigned int width, unsigned int height)
-        : m_width(width), m_height(height)
+    BrdfConvolutionFramebuffer::BrdfConvolutionFramebuffer(unsigned int width, unsigned int height) :
+        m_width(width), m_height(height)
     {
         // framebuffer
         glGenFramebuffers(1, &m_framebuffer_id);
@@ -33,7 +33,7 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void BrdfConvolutionFramebuffer::bind() { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
+    void BrdfConvolutionFramebuffer::bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
 
     unsigned int BrdfConvolutionFramebuffer::getWidth() const { return m_width; }
 
@@ -41,4 +41,3 @@ namespace RealmEngine
 
     unsigned int BrdfConvolutionFramebuffer::getColorTextureId() const { return m_color_texture_id; }
 } // namespace RealmEngine
-

@@ -13,7 +13,7 @@ namespace RealmEngine
         /**
          * Activate this framebuffer for drawing.
          */
-        void bind();
+        void bind() const;
 
         /**
          * Get the width.
@@ -41,4 +41,3 @@ namespace RealmEngine
         unsigned int m_color_texture_id;
     };
 } // namespace RealmEngine
-

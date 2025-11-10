@@ -1,7 +1,7 @@
 #pragma once
 
-#include "render/ibl/cubemap_framebuffer.h"
 #include "render/hdri_cube.h"
+#include "render/ibl/cubemap_framebuffer.h"
 #include <memory>
 #include <string>
 
@@ -37,9 +37,8 @@ namespace RealmEngine
         const unsigned int m_cubemap_width  = 512;
         const unsigned int m_cubemap_height = 512;
 
-        std::unique_ptr<Shader>              m_hdri_shader;
+        std::unique_ptr<Shader>             m_hdri_shader;
         std::unique_ptr<HDRICube>           m_hdri_cube;
         std::unique_ptr<CubemapFramebuffer> m_framebuffer;
     };
 } // namespace RealmEngine
-

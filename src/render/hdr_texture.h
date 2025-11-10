@@ -4,9 +4,6 @@
 
 namespace RealmEngine
 {
-    /**
-     * A texture loaded from a .hdr file.
-     */
     class HDRTexture
     {
     public:
@@ -14,7 +11,6 @@ namespace RealmEngine
         unsigned int getId() const;
 
     private:
-        unsigned int mId;
+        unsigned int m_id;
     };
 } // namespace RealmEngine
-

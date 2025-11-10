@@ -9,7 +9,7 @@ namespace RealmEngine
     {
     public:
         MipmapCubemapFramebuffer(unsigned int width, unsigned int height);
-        void bind();
+        void bind() const;
 
         /**
          * Set the mip level to render with.
@@ -33,7 +33,7 @@ namespace RealmEngine
          * Set which cube face texture to render to.
          * @param index
          */
-        void setCubeFace(unsigned int faceIndex);
+        void setCubeFace(unsigned int faceIndex) const;
 
         unsigned int getCubemapTextureId() const;
 
@@ -47,4 +47,3 @@ namespace RealmEngine
         unsigned int m_cubemap_texture_id;
     };
 } // namespace RealmEngine
-

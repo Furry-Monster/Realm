@@ -24,6 +24,11 @@ namespace RealmEngine
         VERTICAL   = 2
     };
 
+    // IBL texture units
+    static const int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10;
+    static const int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
+    static const int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
+
     class Renderer
     {
     public:
@@ -79,10 +84,5 @@ namespace RealmEngine
         std::string m_shader_root_path;
         std::string m_engine_root_path;
         std::string m_hdri_path;
-
-        // IBL texture units
-        static const int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10;
-        static const int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
-        static const int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
     };
 } // namespace RealmEngine

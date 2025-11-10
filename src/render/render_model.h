@@ -40,7 +40,7 @@ namespace RealmEngine
         RenderMesh processMesh(aiMesh* mesh, const aiScene* scene);
 
         std::shared_ptr<Texture> loadMaterialTexture(aiMaterial* material, aiTextureType type);
-        unsigned int             textureFromFile(const char* fileName, std::string directory, aiTextureType type);
+        unsigned int             textureFromFile(const char* file_name, std::string directory, aiTextureType type);
 
         std::vector<RenderMesh>                         m_meshes;
         std::string                                     m_directory;

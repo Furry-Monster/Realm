@@ -15,19 +15,18 @@ namespace RealmEngine
     {
     public:
         FullscreenQuad();
-        void draw();
+        void draw() const;
 
     private:
         void loadVertexData();
 
-        unsigned int mVAO;
-        unsigned int mVBO;
+        unsigned int m_vao;
+        unsigned int m_vbo;
 
-        std::vector<float> mVertices = {
+        std::vector<float> m_vertices = {
             // positions   // textureCoordinates
-            -1.0f, 1.0f,  0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 1.0f, 0.0f,
+            -1.0f, 1.0f, 0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, 0.0f,
 
-            -1.0f, 1.0f,  0.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 0.0f, 1.0f,  1.0f,  1.0f, 1.0f};
+            -1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  1.0f, 1.0f};
     };
 } // namespace RealmEngine
-

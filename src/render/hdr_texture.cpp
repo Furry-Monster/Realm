@@ -2,7 +2,6 @@
 
 #include "utils.h"
 #include <glad/gl.h>
-// Define STB_IMAGE_IMPLEMENTATION only once in this file
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #endif
@@ -12,7 +11,7 @@ namespace RealmEngine
 {
     HDRTexture::HDRTexture(const std::string& path)
     {
-        int width, height, num_channels;
+        int    width, height, num_channels;
         float* data = stbi_loadf(path.c_str(), &width, &height, &num_channels, 0);
 
         if (!data)
@@ -22,8 +21,8 @@ namespace RealmEngine
             return;
         }
 
-        glGenTextures(1, &mId);
-        glBindTexture(GL_TEXTURE_2D, mId);
+        glGenTextures(1, &m_id);
+        glBindTexture(GL_TEXTURE_2D, m_id);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
 
@@ -35,6 +34,5 @@ namespace RealmEngine
         stbi_image_free(data);
     }
 
-    unsigned int HDRTexture::getId() const { return mId; }
+    unsigned int HDRTexture::getId() const { return m_id; }
 } // namespace RealmEngine
-

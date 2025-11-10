@@ -9,18 +9,14 @@ namespace RealmEngine
 {
     class Shader;
 
-    /**
-     * A unit cube model textured with an equirectangular HDR image.
-     */
     class HDRICube
     {
     public:
-        explicit HDRICube(const std::string& hdriPath);
+        explicit HDRICube(const std::string& hdri_path);
         void draw(Shader& shader);
 
     private:
         std::unique_ptr<Cube> m_cube;
-        HDRTexture             m_hdr_texture;
+        HDRTexture            m_hdr_texture;
     };
 } // namespace RealmEngine
-
