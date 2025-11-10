@@ -1,6 +1,5 @@
 #pragma once
 
-#include "gameplay/scene.h"
 #include "render/bloom_framebuffer.h"
 #include "render/framebuffer.h"
 #include "render/fullscreen_quad.h"
@@ -8,8 +7,10 @@
 #include "render/ibl/equirectangular_cubemap.h"
 #include "render/ibl/specular_map.h"
 #include "render/render_camera.h"
+#include "render/render_scene.h"
 #include "render/shader.h"
 #include "render/skybox.h"
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -17,7 +18,7 @@ namespace RealmEngine
 {
     class Window;
 
-    enum class BloomDirection
+    enum class BloomDirection : uint8_t
     {
         BOTH       = 0,
         HORIZONTAL = 1,
@@ -40,7 +41,7 @@ namespace RealmEngine
 
         void initialize(std::shared_ptr<Window> window);
         void disposal();
-        void render(std::shared_ptr<Scene> scene);
+        void render(std::shared_ptr<RenderScene> scene);
 
         std::shared_ptr<RenderCamera> getCamera() const { return m_camera; }
 
@@ -57,19 +58,23 @@ namespace RealmEngine
         std::unique_ptr<BloomFramebuffer> m_bloom_framebuffers[2];
         unsigned int                      m_bloom_framebuffer_result;
 
-        // pre-computed IBL stuff
-        std::unique_ptr<EquirectangularCubemap> m_ibl_equirectangular_cubemap;
-        std::unique_ptr<DiffuseIrradianceMap>   m_ibl_diffuse_irradiance_map;
-        std::unique_ptr<SpecularMap>            m_ibl_specular_map;
-
         std::unique_ptr<Skybox>       m_skybox;
-        std::shared_ptr<Scene>        m_scene;
+        std::shared_ptr<RenderScene>  m_scene;
         std::shared_ptr<RenderCamera> m_camera;
+
+        std::string m_shader_root_path;
+        std::string m_engine_root_path;
+        std::string m_hdri_path;
 
         std::unique_ptr<Shader> m_pbr_shader;
         std::unique_ptr<Shader> m_bloom_shader;
         std::unique_ptr<Shader> m_post_shader;
         std::unique_ptr<Shader> m_skybox_shader;
+
+        // pre-computed IBL stuff
+        std::unique_ptr<EquirectangularCubemap> m_ibl_equirectangular_cubemap;
+        std::unique_ptr<DiffuseIrradianceMap>   m_ibl_diffuse_irradiance_map;
+        std::unique_ptr<SpecularMap>            m_ibl_specular_map;
 
         // post-processing stuff
         std::unique_ptr<FullscreenQuad> m_fullscreen_quad;
@@ -80,9 +85,5 @@ namespace RealmEngine
         bool                            m_tonemapping_enabled     = false;
         float                           m_gamma_correction_factor = 2.2f;
         float                           m_bloom_brightness_cutoff = 1.0f;
-
-        std::string m_shader_root_path;
-        std::string m_engine_root_path;
-        std::string m_hdri_path;
     };
 } // namespace RealmEngine

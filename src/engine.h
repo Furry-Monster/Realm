@@ -1,11 +1,11 @@
 #pragma once
 
+#include "gameplay/scene.h"
+#include "render/render_scene.h"
 #include <memory>
 
 namespace RealmEngine
 {
-    class Scene;
-
     class Engine
     {
     public:
@@ -23,8 +23,12 @@ namespace RealmEngine
         void terminate();
 
     protected:
-        void tick(std::shared_ptr<Scene> scene);
-        void logicalTick();
-        void renderTick(std::shared_ptr<Scene> scene);
+        void tick();
+        void logicalTick(std::shared_ptr<Scene> scene);
+        void renderTick(std::shared_ptr<RenderScene> scene);
+
+    private:
+        std::shared_ptr<Scene>       m_scene;
+        std::shared_ptr<RenderScene> m_render_scene;
     };
 } // namespace RealmEngine
