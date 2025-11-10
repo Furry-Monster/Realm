@@ -223,14 +223,22 @@ void main() {
 		Lo += cookTorranceBrdf * radiance * nDotL;
 	}
 
-	// Indirect lighting (IBL) - temporarily disabled
-	// TODO: Implement IBL when needed
+	// Indirect lighting (IBL)
 	vec3 kSpecular = fresnelSchlickRoughness(max(dot(n, v), 0.0), f0, roughness); // aka F
     vec3 kDiffuse = 1.0 - kSpecular;
 	kDiffuse *= 1.0 - metallic; // metallic materials should have no diffuse component
 
-	// Simple ambient lighting (no IBL for now)
-	vec3 ambient = kDiffuse * albedo * 0.03 * ao; // simple ambient term
+	// diffuse
+    vec3 irradiance = texture(diffuseIrradianceMap, n).rgb;
+    vec3 diffuse = irradiance * albedo;
+
+	// specular
+	vec3 prefilteredEnvMapColor = textureLod(prefilteredEnvMap, r, roughness * PREFILTERED_ENV_MAP_LOD).rgb;
+	float NdotV = max(dot(n, v), 0.0);
+	vec2 brdf = texture(brdfConvolutionMap, vec2(NdotV, roughness)).rg;
+	vec3 specular = prefilteredEnvMapColor * (kSpecular * brdf.x + brdf.y);
+
+	vec3 ambient = (kDiffuse * diffuse + specular) * ao; // indirect lighting
 
 	// Combine emissive + indirect + direct
 	vec3 color = emissive + ambient + Lo;

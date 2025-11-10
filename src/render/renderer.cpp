@@ -3,7 +3,6 @@
 #include "config_manager.h"
 #include "gameplay/scene.h"
 #include "global_context.h"
-#include "render/render_camera.h"
 #include "utils.h"
 #include "window.h"
 
@@ -19,10 +18,6 @@ namespace RealmEngine
     {
         mWindow = window;
 
-        // GLAD manages the function pointers for OpenGL
-        // Note: GLAD should be initialized after window creation
-        // For now, we assume GLAD is already initialized by the window system
-
         // OpenGL options
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); // interpolate between cubemap faces
@@ -35,13 +30,22 @@ namespace RealmEngine
         mCamera->setPosition(glm::vec3(0.0f, 0.0f, 5.0f));
         mCamera->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
-        // Setup shaders
-        // Use ConfigManager to get the correct shader path
+        // Setup paths
+        mEngineRootPath = g_context.m_cfg->getRootFolder().generic_string();
         mShaderRootPath = g_context.m_cfg->getShaderFolder().generic_string();
+        mHdriPath       = g_context.m_cfg->getAssetFolder().generic_string() + "/hdr/newport_loft.hdr";
+
+        // Setup shaders
         setupShaders();
 
         // Setup framebuffers
         setupFramebuffers();
+
+        // Setup IBL
+        setupIBL();
+
+        // Setup fullscreen quad
+        mFullscreenQuad = std::make_unique<FullscreenQuad>();
 
         glViewport(0, 0, window->getWidth(), window->getHeight());
 
@@ -51,7 +55,17 @@ namespace RealmEngine
     void Renderer::shutdown()
     {
         mPbrShader.reset();
+        mBloomShader.reset();
+        mPostShader.reset();
+        mSkyboxShader.reset();
         mFramebuffer.reset();
+        mBloomFramebuffers[0].reset();
+        mBloomFramebuffers[1].reset();
+        mIblEquirectangularCubemap.reset();
+        mIblDiffuseIrradianceMap.reset();
+        mIblSpecularMap.reset();
+        mSkybox.reset();
+        mFullscreenQuad.reset();
         mCamera.reset();
         mWindow.reset();
 
@@ -68,10 +82,9 @@ namespace RealmEngine
         // Main pass
         mFramebuffer->bind();
         glViewport(0, 0, mWindow->getWidth(), mWindow->getHeight());
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // Slightly lighter background to see if rendering works
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        // Ensure depth testing is enabled (should already be enabled in initialize, but ensure it)
+
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
 
@@ -97,42 +110,32 @@ namespace RealmEngine
         mPbrShader->setVec3Array("lightColors", light_colors);
         mPbrShader->setVec3("cameraPosition", camera_position);
 
-        // Set IBL uniforms (temporarily disabled - set to default values)
-        // TODO: Implement IBL when needed
-        mPbrShader->setFloat("bloomBrightnessCutoff", 1.0f);
-        
-        // Bind dummy textures for IBL uniforms (shader declares them but we don't use them yet)
-        // This prevents OpenGL errors from unbound sampler uniforms
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0); // diffuseIrradianceMap
-        mPbrShader->setInt("diffuseIrradianceMap", 5);
-        
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0); // prefilteredEnvMap
-        mPbrShader->setInt("prefilteredEnvMap", 6);
-        
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, 0); // brdfConvolutionMap
-        mPbrShader->setInt("brdfConvolutionMap", 7);
-        
-        glActiveTexture(GL_TEXTURE0); // Reset to texture unit 0
+        // IBL stuff
+        glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP);
+        mPbrShader->setInt("diffuseIrradianceMap", TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, mIblDiffuseIrradianceMap->getCubemapId());
+
+        glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_PREFILTERED_ENV_MAP);
+        mPbrShader->setInt("prefilteredEnvMap", TEXTURE_UNIT_PREFILTERED_ENV_MAP);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, mIblSpecularMap->getPrefilteredEnvMapId());
+
+        glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_BRDF_CONVOLUTION_MAP);
+        mPbrShader->setInt("brdfConvolutionMap", TEXTURE_UNIT_BRDF_CONVOLUTION_MAP);
+        glBindTexture(GL_TEXTURE_2D, mIblSpecularMap->getBrdfConvolutionMapId());
+
+        // post stuff for main shader
+        mPbrShader->setFloat("bloomBrightnessCutoff", mBloomBrightnessCutoff);
 
         // Render entities
-        debug("Rendering " + std::to_string(scene->m_entities.size()) + " entities");
         for (auto& entity : scene->m_entities)
         {
-            // Build model matrix: T * R * S (scale first, then rotate, then translate)
             glm::mat4 model = glm::mat4(1.0f);
-            
-            // Scale first
-            model = glm::scale(model, entity.getScale());
-            
-            // Then rotate
-            auto rotation_matrix = glm::toMat4(entity.getOrientation());
-            model = model * rotation_matrix;
-            
-            // Finally translate
+
+            auto rotationMatrix = glm::toMat4(entity.getOrientation());
+            model = rotationMatrix * model;
+
             model = glm::translate(model, entity.getPosition());
+            model = glm::scale(model, entity.getScale());
 
             mPbrShader->setModelViewProjectionMatrices(model, view, projection);
 
@@ -140,40 +143,140 @@ namespace RealmEngine
             {
                 model_ptr->draw(*mPbrShader);
             }
-            else
-            {
-                warn("Entity has no model!");
-            }
         }
 
-        // Post-processing pass - blit framebuffer to screen
+        // skybox (draw this last to avoid running fragment shader in places where objects are present
+        mSkyboxShader->use();
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 skyboxView = glm::mat4(glm::mat3(view)); // remove translation so skybox is always surrounding camera
+
+        mSkyboxShader->setModelViewProjectionMatrices(model, skyboxView, projection);
+        mSkyboxShader->setInt("skybox", 0); // set skybox sampler to slot 0
+        mSkyboxShader->setFloat("bloomBrightnessCutoff", mBloomBrightnessCutoff);
+        mSkybox->draw();
+
+        renderBloom();
+
+        // Post-processing pass
         glViewport(0, 0, mWindow->getWidth(), mWindow->getHeight());
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, mFramebuffer->getFramebufferId());
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // default framebuffer
-        glBlitFramebuffer(0,
-                          0,
-                          mWindow->getWidth(),
-                          mWindow->getHeight(),
-                          0,
-                          0,
-                          mWindow->getWidth(),
-                          mWindow->getHeight(),
-                          GL_COLOR_BUFFER_BIT,
-                          GL_LINEAR);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch back to default fb
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        mPostShader->use();
+
+        mPostShader->setBool("bloomEnabled", mBloomEnabled);
+        mPostShader->setFloat("bloomIntensity", mBloomIntensity);
+        mPostShader->setBool("tonemappingEnabled", mTonemappingEnabled);
+        mPostShader->setFloat("gammaCorrectionFactor", mGammaCorrectionFactor);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mFramebuffer->getColorTextureId());
+        mPostShader->setInt("colorTexture", 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, mBloomFramebuffers[mBloomFramebufferResult]->getColorTextureId());
+        mPostShader->setInt("bloomTexture", 1);
+
+        mFullscreenQuad->draw();
     }
 
     void Renderer::setupShaders()
     {
         std::string vertex_path   = mShaderRootPath + "/pbr.vert";
         std::string fragment_path = mShaderRootPath + "/pbr.frag";
+        mPbrShader                = std::make_unique<Shader>(vertex_path, fragment_path);
 
-        mPbrShader = std::make_unique<Shader>(vertex_path, fragment_path);
+        vertex_path   = mShaderRootPath + "/bloom.vert";
+        fragment_path = mShaderRootPath + "/bloom.frag";
+        mBloomShader  = std::make_unique<Shader>(vertex_path, fragment_path);
+
+        vertex_path   = mShaderRootPath + "/post.vert";
+        fragment_path = mShaderRootPath + "/post.frag";
+        mPostShader   = std::make_unique<Shader>(vertex_path, fragment_path);
+
+        vertex_path    = mShaderRootPath + "/skybox.vert";
+        fragment_path  = mShaderRootPath + "/skybox.frag";
+        mSkyboxShader  = std::make_unique<Shader>(vertex_path, fragment_path);
     }
 
     void Renderer::setupFramebuffers()
     {
         mFramebuffer = std::make_unique<Framebuffer>(mWindow->getWidth(), mWindow->getHeight());
         mFramebuffer->init();
+
+        mBloomFramebuffers[0] = std::make_unique<BloomFramebuffer>(mWindow->getWidth(), mWindow->getHeight());
+        mBloomFramebuffers[0]->init();
+        mBloomFramebuffers[1] = std::make_unique<BloomFramebuffer>(mWindow->getWidth(), mWindow->getHeight());
+        mBloomFramebuffers[1]->init();
+    }
+
+    void Renderer::setupIBL()
+    {
+        // Pre-compute IBL stuff
+        mIblEquirectangularCubemap = std::make_unique<EquirectangularCubemap>(mEngineRootPath, mHdriPath);
+        mIblEquirectangularCubemap->compute();
+
+        mIblDiffuseIrradianceMap =
+            std::make_unique<DiffuseIrradianceMap>(mEngineRootPath, mIblEquirectangularCubemap->getCubemapId());
+        mIblDiffuseIrradianceMap->compute();
+
+        mIblSpecularMap = std::make_unique<SpecularMap>(mEngineRootPath, mIblEquirectangularCubemap->getCubemapId());
+        mIblSpecularMap->computePrefilteredEnvMap();
+        mIblSpecularMap->computeBrdfConvolutionMap();
+
+        // Create skybox from the equirectangular cubemap
+        mSkybox = std::make_unique<Skybox>(mIblEquirectangularCubemap->getCubemapId());
+    }
+
+    void Renderer::renderBloom()
+    {
+        // Bloom pass
+        glm::vec2 blurDirectionX = glm::vec2(1.0f, 0.0f);
+        glm::vec2 blurDirectionY = glm::vec2(0.0f, 1.0f);
+
+        switch (mBloomDirection)
+        {
+            case BloomDirection::HORIZONTAL:
+                blurDirectionY = blurDirectionX;
+                break;
+            case BloomDirection::VERTICAL:
+                blurDirectionX = blurDirectionY;
+                break;
+            default:
+                break;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, mFramebuffer->getBloomColorTextureId());
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        mBloomShader->use();
+
+        for (auto mipLevel = 0; mipLevel <= 5; mipLevel++)
+        {
+            mBloomFramebuffers[0]->setMipLevel(mipLevel);
+            mBloomFramebuffers[1]->setMipLevel(mipLevel);
+
+            // first iteration we use the bloom buffer from the main render pass
+            mBloomFramebuffers[0]->bind();
+            glBindTexture(GL_TEXTURE_2D, mFramebuffer->getBloomColorTextureId());
+            mBloomShader->setInt("sampleMipLevel", mipLevel);
+            mBloomShader->setVec2("blurDirection", blurDirectionX);
+
+            mFullscreenQuad->draw();
+
+            unsigned int bloomFramebuffer = 1; // which buffer to use
+
+            for (auto i = 1; i < mBloomIterations; i++)
+            {
+                unsigned int sourceBuffer = bloomFramebuffer == 1 ? 0 : 1;
+                mBloomFramebuffers[bloomFramebuffer]->bind();
+                auto blurDirection = bloomFramebuffer == 1 ? blurDirectionY : blurDirectionX;
+                mBloomShader->setVec2("blurDirection", blurDirection);
+                glBindTexture(GL_TEXTURE_2D, mBloomFramebuffers[sourceBuffer]->getColorTextureId());
+                mFullscreenQuad->draw();
+                bloomFramebuffer = sourceBuffer;
+            }
+
+            mBloomFramebufferResult = bloomFramebuffer;
+        }
     }
 } // namespace RealmEngine

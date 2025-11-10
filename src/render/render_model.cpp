@@ -1,7 +1,7 @@
 #include "render/render_model.h"
 
 #include <glad/gl.h>
-#define STB_IMAGE_IMPLEMENTATION
+// STB_IMAGE_IMPLEMENTATION already defined in hdr_texture.cpp
 #include "utils.h"
 #include <stb/stb_image.h>
 #include <assimp/GltfMaterial.h>

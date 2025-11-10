@@ -31,11 +31,24 @@ namespace RealmEngine
         // Create a simple scene
         auto scene = std::make_shared<Scene>();
 
-        // Add some test lights
-        scene->m_light_positions.push_back(glm::vec3(0.0f, 0.0f, 10.0f));
-        scene->m_light_colors.push_back(glm::vec3(1.0f, 1.0f, 1.0f));
+        // Add PBR lights - multiple lights for better illumination
+        // Main light from front-right
+        scene->m_light_positions.push_back(glm::vec3(5.0f, 5.0f, 5.0f));
+        scene->m_light_colors.push_back(glm::vec3(300.0f, 300.0f, 300.0f)); // High intensity for PBR
 
-        // Try to load helmet model (glTF format)
+        // Fill light from left
+        scene->m_light_positions.push_back(glm::vec3(-5.0f, 3.0f, 2.0f));
+        scene->m_light_colors.push_back(glm::vec3(100.0f, 100.0f, 100.0f));
+
+        // Back light
+        scene->m_light_positions.push_back(glm::vec3(0.0f, 0.0f, -5.0f));
+        scene->m_light_colors.push_back(glm::vec3(50.0f, 50.0f, 50.0f));
+
+        // Top light
+        scene->m_light_positions.push_back(glm::vec3(0.0f, 10.0f, 0.0f));
+        scene->m_light_colors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
+
+        // Load helmet model (glTF format)
         std::string model_path = g_context.m_cfg->getAssetFolder().generic_string() + "/helmet/DamagedHelmet.gltf";
         try
         {
@@ -44,17 +57,24 @@ namespace RealmEngine
             entity.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
             entity.setScale(glm::vec3(1.0f, 1.0f, 1.0f)); // Model is already in correct scale
             scene->m_entities.push_back(entity);
-            info("Loaded model: " + model_path);
+            info("Successfully loaded helmet model: " + model_path);
+        }
+        catch (const std::exception& e)
+        {
+            err("Failed to load helmet model: " + model_path);
+            err("Error: " + std::string(e.what()));
         }
         catch (...)
         {
-            warn("Failed to load model: " + model_path + ", continuing without it");
+            err("Failed to load helmet model: " + model_path + " (unknown error)");
         }
 
         // Set camera position - adjust for helmet model
         // Helmet model is roughly 2 units in size, so position camera at appropriate distance
         g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+
+        info("Starting render loop for helmet model...");
 
         // debug rendering, without game logic
         while (!g_context.m_window->shouldClose() && frame_count < 600)
@@ -73,9 +93,18 @@ namespace RealmEngine
     {
         auto scene = std::make_shared<Scene>();
 
-        // Add some test lights
-        scene->m_light_positions.push_back(glm::vec3(0.0f, 0.0f, 10.0f));
-        scene->m_light_colors.push_back(glm::vec3(1.0f, 1.0f, 1.0f));
+        // Add PBR lights
+        scene->m_light_positions.push_back(glm::vec3(5.0f, 5.0f, 5.0f));
+        scene->m_light_colors.push_back(glm::vec3(300.0f, 300.0f, 300.0f));
+
+        scene->m_light_positions.push_back(glm::vec3(-5.0f, 3.0f, 2.0f));
+        scene->m_light_colors.push_back(glm::vec3(100.0f, 100.0f, 100.0f));
+
+        scene->m_light_positions.push_back(glm::vec3(0.0f, 0.0f, -5.0f));
+        scene->m_light_colors.push_back(glm::vec3(50.0f, 50.0f, 50.0f));
+
+        scene->m_light_positions.push_back(glm::vec3(0.0f, 10.0f, 0.0f));
+        scene->m_light_colors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
 
         while (!g_context.m_window->shouldClose())
             tick(scene);
