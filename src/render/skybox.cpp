@@ -1,9 +1,9 @@
 #include "render/skybox.h"
 
-#include "render/cube.h"
-#include "utils.h"
 #include <glad/gl.h>
 #include <stb/stb_image.h>
+#include "render/cube.h"
+#include "utils.h"
 
 namespace RealmEngine
 {

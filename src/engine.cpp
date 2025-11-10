@@ -1,4 +1,9 @@
 #include "engine.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <memory>
+#include <string>
+#include <utility>
 #include "config_manager.h"
 #include "gameplay/scene.h"
 #include "global_context.h"
@@ -8,11 +13,6 @@
 #include "render/renderer.h"
 #include "utils.h"
 #include "window.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <memory>
-#include <string>
-#include <utility>
 
 namespace RealmEngine
 {

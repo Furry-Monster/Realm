@@ -1,8 +1,8 @@
 #pragma once
 
-#include "render/texture.h"
 #include <glm/glm.hpp>
 #include <memory>
+#include "render/texture.h"
 
 namespace RealmEngine
 {

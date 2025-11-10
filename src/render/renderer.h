@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <memory>
+#include <string>
 #include "render/bloom_framebuffer.h"
 #include "render/framebuffer.h"
 #include "render/fullscreen_quad.h"
@@ -10,9 +13,6 @@
 #include "render/render_scene.h"
 #include "render/shader.h"
 #include "render/skybox.h"
-#include <cstdint>
-#include <memory>
-#include <string>
 
 namespace RealmEngine
 {

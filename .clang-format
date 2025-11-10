@@ -60,18 +60,12 @@ ForEachMacros:
   - BOOST_FOREACH
 IncludeBlocks: Preserve
 IncludeCategories:
-  - Priority: -1
-    Regex: ^"(core/pilot_prerequisites)/
-  - Priority: 5
-    Regex: ^"(core)/)
-  - Priority: 4
-    Regex: ^"(runtime)/)
-  - Priority: 3
-    Regex: ^"(client|server)/)
-  - Priority: 2
-    Regex: ^"(sketum)/)
   - Priority: 1
-    Regex: .*
+    Regex: ^<.*\.h>
+  - Priority: 2
+    Regex: ^<.*>
+  - Priority: 3
+    Regex: ^".*"
 IndentCaseLabels: true
 IndentExternBlock: AfterExternBlock
 IndentPPDirectives: None
@@ -120,6 +114,6 @@ SpacesInContainerLiterals: true
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard: c++17
-StatementMacros: ['Meta', 'CLASS', 'REFLECTION_TYPE', 'REFLECTION_BODY']
+StatementMacros: []
 TabWidth: 4
 UseTab: Never

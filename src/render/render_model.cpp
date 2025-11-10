@@ -1,9 +1,9 @@
 #include "render/render_model.h"
 
-#include "utils.h"
 #include <assimp/GltfMaterial.h>
 #include <glad/gl.h>
 #include <stb/stb_image.h>
+#include "utils.h"
 
 namespace RealmEngine
 {

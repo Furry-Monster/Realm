@@ -189,18 +189,18 @@ namespace RealmEngine
     {
         std::string vertex_path   = m_shader_root_path + "/pbr.vert";
         std::string fragment_path = m_shader_root_path + "/pbr.frag";
-        m_pbr_shader                = std::make_unique<Shader>(vertex_path, fragment_path);
+        m_pbr_shader              = std::make_unique<Shader>(vertex_path, fragment_path);
 
-        vertex_path   = m_shader_root_path + "/bloom.vert";
-        fragment_path = m_shader_root_path + "/bloom.frag";
-        m_bloom_shader  = std::make_unique<Shader>(vertex_path, fragment_path);
+        vertex_path    = m_shader_root_path + "/bloom.vert";
+        fragment_path  = m_shader_root_path + "/bloom.frag";
+        m_bloom_shader = std::make_unique<Shader>(vertex_path, fragment_path);
 
         vertex_path   = m_shader_root_path + "/post.vert";
         fragment_path = m_shader_root_path + "/post.frag";
-        m_post_shader   = std::make_unique<Shader>(vertex_path, fragment_path);
+        m_post_shader = std::make_unique<Shader>(vertex_path, fragment_path);
 
-        vertex_path   = m_shader_root_path + "/skybox.vert";
-        fragment_path = m_shader_root_path + "/skybox.frag";
+        vertex_path     = m_shader_root_path + "/skybox.vert";
+        fragment_path   = m_shader_root_path + "/skybox.frag";
         m_skybox_shader = std::make_unique<Shader>(vertex_path, fragment_path);
     }
 
@@ -225,7 +225,8 @@ namespace RealmEngine
             std::make_unique<DiffuseIrradianceMap>(m_engine_root_path, m_ibl_equirectangular_cubemap->getCubemapId());
         m_ibl_diffuse_irradiance_map->compute();
 
-        m_ibl_specular_map = std::make_unique<SpecularMap>(m_engine_root_path, m_ibl_equirectangular_cubemap->getCubemapId());
+        m_ibl_specular_map =
+            std::make_unique<SpecularMap>(m_engine_root_path, m_ibl_equirectangular_cubemap->getCubemapId());
         m_ibl_specular_map->computePrefilteredEnvMap();
         m_ibl_specular_map->computeBrdfConvolutionMap();
 

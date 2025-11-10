@@ -1,7 +1,7 @@
 #include "render/hdr_texture.h"
 
-#include "utils.h"
 #include <glad/gl.h>
+#include "utils.h"
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #endif

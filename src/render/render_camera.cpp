@@ -42,14 +42,14 @@ namespace RealmEngine
         // Use glm::lookAt to compute the view matrix directly
         // This ensures correctness and handles edge cases
         glm::mat4 view_matrix = glm::lookAt(m_position, target, up);
-        
+
         // Extract rotation from view matrix
         // glm::lookAt returns: view = R^T * T, where R^T is transposed rotation
         // To extract the rotation quaternion, we need to transpose the rotation part
         glm::mat3 rotation_part = glm::mat3(view_matrix);
         // Transpose to get the actual rotation (from world to camera)
         rotation_part = glm::transpose(rotation_part);
-        
+
         // Convert to quaternion
         m_rotation       = glm::normalize(glm::quat_cast(rotation_part));
         m_view_mat_dirty = true;

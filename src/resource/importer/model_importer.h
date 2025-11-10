@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+#include <string>
 #include "assimp/material.h"
 #include "assimp/matrix4x4.h"
 #include "assimp/mesh.h"
@@ -8,8 +10,6 @@
 #include "resource/datatype/model/material.h"
 #include "resource/datatype/model/mesh.h"
 #include "resource/datatype/model/model.h"
-#include <memory>
-#include <string>
 
 namespace RealmEngine
 {

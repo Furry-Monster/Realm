@@ -1,7 +1,7 @@
 #include "render/framebuffer.h"
 
-#include "utils.h"
 #include <glad/gl.h>
+#include "utils.h"
 
 namespace RealmEngine
 {

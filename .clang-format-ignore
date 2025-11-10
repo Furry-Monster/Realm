@@ -1,0 +1,13 @@
+# Files to ignore for clang-format
+# This file is not a standard clang-format feature, but can be used with custom scripts
+
+# Third-party libraries
+libs/
+
+# Build directories
+build/
+bin/
+
+# Generated files
+*.generated.*
+

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "render/render_model.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
+#include "render/render_model.h"
 
 namespace RealmEngine
 {

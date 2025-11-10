@@ -1,8 +1,8 @@
 #pragma once
 
+#include <spdlog/logger.h>
 #include <cstdint>
 #include <memory>
-#include <spdlog/logger.h>
 
 namespace RealmEngine
 {

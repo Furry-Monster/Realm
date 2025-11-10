@@ -1,8 +1,8 @@
 #pragma once
 
-#include "gameplay/entity.h"
 #include <glm/glm.hpp>
 #include <vector>
+#include "gameplay/entity.h"
 
 namespace RealmEngine
 {

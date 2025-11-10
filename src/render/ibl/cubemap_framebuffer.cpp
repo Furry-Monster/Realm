@@ -37,9 +37,9 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void CubemapFramebuffer::bind()const { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
+    void CubemapFramebuffer::bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
 
-    void CubemapFramebuffer::generateMipmap()const
+    void CubemapFramebuffer::generateMipmap() const
     {
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap_texture_id);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

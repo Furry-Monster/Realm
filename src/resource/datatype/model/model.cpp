@@ -1,6 +1,6 @@
 #include "model.h"
-#include "glm/common.hpp"
 #include <utility>
+#include "glm/common.hpp"
 
 namespace RealmEngine
 {

@@ -1,7 +1,7 @@
 #include "mesh.h"
-#include "glm/geometric.hpp"
 #include <cmath>
 #include <utility>
+#include "glm/geometric.hpp"
 
 namespace RealmEngine
 {

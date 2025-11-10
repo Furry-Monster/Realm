@@ -1,8 +1,8 @@
 #pragma once
 
+#include <string>
 #include "global_context.h"
 #include "logger.h"
-#include <string>
 
 namespace RealmEngine
 {

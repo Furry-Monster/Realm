@@ -4,8 +4,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "utils.h"
 #include <glad/gl.h>
+#include "utils.h"
 
 namespace RealmEngine
 {

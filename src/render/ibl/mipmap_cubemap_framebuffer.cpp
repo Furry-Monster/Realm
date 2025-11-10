@@ -1,7 +1,7 @@
 #include "render/ibl/mipmap_cubemap_framebuffer.h"
 
-#include <cmath>
 #include <glad/gl.h>
+#include <cmath>
 
 namespace RealmEngine
 {
@@ -41,7 +41,7 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void MipmapCubemapFramebuffer::bind()const { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
+    void MipmapCubemapFramebuffer::bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
 
     void MipmapCubemapFramebuffer::setMipLevel(unsigned int level)
     {
@@ -57,7 +57,7 @@ namespace RealmEngine
 
     unsigned int MipmapCubemapFramebuffer::getHeight() const { return m_mip_height; }
 
-    void MipmapCubemapFramebuffer::setCubeFace(unsigned int faceIndex)const
+    void MipmapCubemapFramebuffer::setCubeFace(unsigned int faceIndex) const
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER,
                                GL_COLOR_ATTACHMENT0,

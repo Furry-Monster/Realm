@@ -1,10 +1,10 @@
 #include "logger.h"
+#include <memory>
 #include "spdlog/async.h"
 #include "spdlog/async_logger.h"
 #include "spdlog/common.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
-#include <memory>
 
 namespace RealmEngine
 {

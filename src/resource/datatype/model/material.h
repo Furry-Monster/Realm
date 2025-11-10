@@ -1,10 +1,10 @@
 #pragma once
 
-#include "glm/ext/vector_float3.hpp"
-#include "glm/ext/vector_float4.hpp"
 #include <cstdint>
 #include <optional>
 #include <string>
+#include "glm/ext/vector_float3.hpp"
+#include "glm/ext/vector_float4.hpp"
 
 namespace RealmEngine
 {

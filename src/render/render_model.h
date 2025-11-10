@@ -1,15 +1,15 @@
 #pragma once
 
-#include <assimp/Importer.hpp>
 #include <assimp/pbrmaterial.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <assimp/Importer.hpp>
 
-#include "render/render_mesh.h"
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+#include "render/render_mesh.h"
 
 namespace RealmEngine
 {

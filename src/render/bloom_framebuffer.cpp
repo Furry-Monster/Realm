@@ -1,7 +1,7 @@
 #include "render/bloom_framebuffer.h"
 
-#include <cmath>
 #include <glad/gl.h>
+#include <cmath>
 
 namespace RealmEngine
 {

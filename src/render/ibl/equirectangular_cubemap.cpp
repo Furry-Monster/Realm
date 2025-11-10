@@ -1,9 +1,9 @@
 #include "render/ibl/equirectangular_cubemap.h"
 
-#include "render/shader.h"
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "render/shader.h"
 
 namespace RealmEngine
 {

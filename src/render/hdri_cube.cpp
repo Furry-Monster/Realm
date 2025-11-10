@@ -1,9 +1,9 @@
 #include "render/hdri_cube.h"
 
+#include <glad/gl.h>
 #include "render/cube.h"
 #include "render/hdr_texture.h"
 #include "render/shader.h"
-#include <glad/gl.h>
 
 namespace RealmEngine
 {

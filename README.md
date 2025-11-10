@@ -17,3 +17,43 @@
 ## 推荐配置
 Mem >= 8G
 不需要独立显卡，不要使用HDR显示器，我没调framebuffer.
+
+## 代码格式化和 Lint
+
+项目已配置统一的代码格式化和静态分析工具。
+
+### 快速开始
+
+```bash
+# 格式化所有代码
+make format
+
+# 检查代码格式
+make format-check
+
+# 运行 lint 检查
+make lint
+
+# 自动修复 lint 问题
+make lint-fix
+```
+
+或使用脚本：
+
+```bash
+./format.sh      # 格式化代码
+./lint.sh        # 运行 lint 检查
+./lint-fix.sh    # 自动修复 lint 问题
+```
+
+详细说明请参考 [代码风格指南](docs/code_style.md)。
+
+### 前置要求
+
+- `clang-format` (>= 10.0)
+- `clang-tidy` (>= 10.0)
+
+安装方法：
+```bash
+sudo apt-get install clang-format clang-tidy
+```

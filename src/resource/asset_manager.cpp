@@ -1,9 +1,9 @@
 #include "asset_manager.h"
-#include "resource/datatype/model/model.h"
-#include "utils.h"
 #include <future>
 #include <memory>
 #include <utility>
+#include "resource/datatype/model/model.h"
+#include "utils.h"
 
 namespace RealmEngine
 {

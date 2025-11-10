@@ -1,10 +1,10 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#include <vector>
 #include "render/render_material.h"
 #include "render/shader.h"
 #include "render/vertex.h"
-#include <glm/glm.hpp>
-#include <vector>
 
 namespace RealmEngine
 {

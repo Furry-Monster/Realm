@@ -1,10 +1,10 @@
 #include "render/ibl/diffuse_irradiance_map.h"
 
-#include "render/cube.h"
-#include "render/shader.h"
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "render/cube.h"
+#include "render/shader.h"
 
 namespace RealmEngine
 {
