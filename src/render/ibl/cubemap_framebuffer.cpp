@@ -7,20 +7,20 @@ namespace RealmEngine
     CubemapFramebuffer::CubemapFramebuffer(int width, int height)
     {
         // framebuffer
-        glGenFramebuffers(1, &mFramebufferId);
-        glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);
+        glGenFramebuffers(1, &m_framebuffer_id);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id);
 
         // depth buffer
-        glGenRenderbuffers(1, &mDepthRenderbufferId);
-        glBindRenderbuffer(GL_RENDERBUFFER, mDepthRenderbufferId);
+        glGenRenderbuffers(1, &m_depth_renderbuffer_id);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_depth_renderbuffer_id);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 
         // attach the depth buffer
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderbufferId);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_renderbuffer_id);
 
         // cubemap
-        glGenTextures(1, &mCubemapTextureId);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTextureId);
+        glGenTextures(1, &m_cubemap_texture_id);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap_texture_id);
 
         // specify/allocate each face for the cubemap
         for (auto i = 0; i < 6; i++)
@@ -45,11 +45,11 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void CubemapFramebuffer::bind() { glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId); }
+    void CubemapFramebuffer::bind() { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
 
     void CubemapFramebuffer::generateMipmap()
     {
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTextureId);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap_texture_id);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     }
@@ -59,10 +59,10 @@ namespace RealmEngine
         glFramebufferTexture2D(GL_FRAMEBUFFER,
                                 GL_COLOR_ATTACHMENT0,
                                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
-                                mCubemapTextureId,
+                                m_cubemap_texture_id,
                                 0);
     }
 
-    unsigned int CubemapFramebuffer::getCubemapTextureId() const { return mCubemapTextureId; }
+    unsigned int CubemapFramebuffer::getCubemapTextureId() const { return m_cubemap_texture_id; }
 } // namespace RealmEngine
 

@@ -7,9 +7,9 @@
 
 namespace RealmEngine
 {
-    HDRICube::HDRICube(const std::string& hdriPath) : mHdrTexture(HDRTexture(hdriPath))
+    HDRICube::HDRICube(const std::string& hdriPath) : m_hdr_texture(HDRTexture(hdriPath))
     {
-        mCube = std::make_unique<Cube>();
+        m_cube = std::make_unique<Cube>();
     }
 
     void HDRICube::draw(Shader& shader)
@@ -18,8 +18,8 @@ namespace RealmEngine
 
         // draw mesh
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mHdrTexture.getId());
-        mCube->draw();
+        glBindTexture(GL_TEXTURE_2D, m_hdr_texture.getId());
+        m_cube->draw();
     }
 } // namespace RealmEngine
 

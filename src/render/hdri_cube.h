@@ -19,8 +19,8 @@ namespace RealmEngine
         void draw(Shader& shader);
 
     private:
-        std::unique_ptr<Cube> mCube;
-        HDRTexture             mHdrTexture;
+        std::unique_ptr<Cube> m_cube;
+        HDRTexture             m_hdr_texture;
     };
 } // namespace RealmEngine
 

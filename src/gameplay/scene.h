@@ -6,9 +6,6 @@
 
 namespace RealmEngine
 {
-    /**
-     * A global object that represents all the things in our current scene.
-     */
     class Scene
     {
     public:

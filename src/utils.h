@@ -6,6 +6,8 @@
 
 namespace RealmEngine
 {
+    // Logger helpers
+
     inline static void info(const std::string& str)
     {
         g_context.m_logger->log(Logger::LogLevel::info, "[" + std::string(__FUNCTION__) + "]" + str);

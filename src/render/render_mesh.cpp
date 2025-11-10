@@ -62,7 +62,7 @@ namespace RealmEngine
         glActiveTexture(GL_TEXTURE0);
 
         // draw mesh
-        glBindVertexArray(mVAO);
+        glBindVertexArray(m_vao);
         glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
     }
@@ -70,19 +70,19 @@ namespace RealmEngine
     void RenderMesh::init()
     {
         // create our data structures
-        glGenVertexArrays(1, &mVAO);
-        glGenBuffers(1, &mVBO);
-        glGenBuffers(1, &mEBO);
+        glGenVertexArrays(1, &m_vao);
+        glGenBuffers(1, &m_vbo);
+        glGenBuffers(1, &m_ebo);
 
-        glBindVertexArray(mVAO); // use this VAO for subsequent calls
+        glBindVertexArray(m_vao); // use this VAO for subsequent calls
 
-        glBindBuffer(GL_ARRAY_BUFFER, mVBO); // use this VBO for subsequent calls
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo); // use this VBO for subsequent calls
         glBufferData(GL_ARRAY_BUFFER,
                      m_vertices.size() * sizeof(RenderVertex),
                      &m_vertices[0],
                      GL_STATIC_DRAW); // copy over the vertex data
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO); // use this EBO for subsequent calls
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo); // use this EBO for subsequent calls
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                      m_indices.size() * sizeof(unsigned int),
                      &m_indices[0],

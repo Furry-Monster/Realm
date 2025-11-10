@@ -48,22 +48,22 @@ namespace RealmEngine
 
     private:
         // prefiltered environment map
-        const unsigned int prefilteredEnvMapMipLevels = 5;
-        const unsigned int prefilteredEnvMapWidth     = 128;
-        const unsigned int prefilteredEnvMapHeight    = 128;
+        const unsigned int m_prefiltered_env_map_mip_levels = 5;
+        const unsigned int m_prefiltered_env_map_width     = 128;
+        const unsigned int m_prefiltered_env_map_height    = 128;
 
-        const unsigned int environmentCubemapId;
+        const unsigned int m_environment_cubemap_id;
 
-        std::unique_ptr<Shader>                  prefilteredEnvMapShader;
-        std::unique_ptr<MipmapCubemapFramebuffer> prefilteredEnvMapFramebuffer;
+        std::unique_ptr<Shader>                  m_prefiltered_env_map_shader;
+        std::unique_ptr<MipmapCubemapFramebuffer> m_prefiltered_env_map_framebuffer;
 
         // brdf convolution
-        unsigned int brdfConvolutionMapId;
-        const unsigned int brdfConvolutionMapWidth  = 512;
-        const unsigned int brdfConvolutionMapHeight = 512;
+        unsigned int m_brdf_convolution_map_id;
+        const unsigned int m_brdf_convolution_map_width  = 512;
+        const unsigned int m_brdf_convolution_map_height = 512;
 
-        std::unique_ptr<Shader>                    brdfConvolutionShader;
-        std::unique_ptr<BrdfConvolutionFramebuffer> brdfConvolutionFramebuffer;
+        std::unique_ptr<Shader>                    m_brdf_convolution_shader;
+        std::unique_ptr<BrdfConvolutionFramebuffer> m_brdf_convolution_framebuffer;
     };
 } // namespace RealmEngine
 

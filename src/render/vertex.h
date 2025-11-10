@@ -4,9 +4,6 @@
 
 namespace RealmEngine
 {
-    /**
-     * Vertex attributes.
-     */
     struct RenderVertex
     {
         glm::vec3 m_position;
@@ -16,4 +13,3 @@ namespace RealmEngine
         glm::vec3 m_bitangent;
     };
 } // namespace RealmEngine
-

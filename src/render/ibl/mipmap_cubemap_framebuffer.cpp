@@ -6,23 +6,23 @@
 namespace RealmEngine
 {
     MipmapCubemapFramebuffer::MipmapCubemapFramebuffer(unsigned int width, unsigned int height)
-        : mWidth(width), mHeight(height), mMipLevel(0)
+        : m_width(width), m_height(height), m_mip_level(0)
     {
         // framebuffer
-        glGenFramebuffers(1, &mFramebufferId);
-        glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);
+        glGenFramebuffers(1, &m_framebuffer_id);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id);
 
         // depth buffer
-        glGenRenderbuffers(1, &mDepthRenderbufferId);
-        glBindRenderbuffer(GL_RENDERBUFFER, mDepthRenderbufferId);
+        glGenRenderbuffers(1, &m_depth_renderbuffer_id);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_depth_renderbuffer_id);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 
         // attach the depth buffer
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderbufferId);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_renderbuffer_id);
 
         // cubemap
-        glGenTextures(1, &mCubemapTextureId);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTextureId);
+        glGenTextures(1, &m_cubemap_texture_id);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap_texture_id);
 
         // specify/allocate each face for the cubemap
         for (auto i = 0; i < 6; i++)
@@ -40,31 +40,31 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void MipmapCubemapFramebuffer::bind() { glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId); }
+    void MipmapCubemapFramebuffer::bind() { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id); }
 
     void MipmapCubemapFramebuffer::setMipLevel(unsigned int level)
     {
-        mMipLevel   = level;
-        mMipWidth   = static_cast<unsigned int>(mWidth * std::pow(0.5, mMipLevel));
-        mMipHeight  = static_cast<unsigned int>(mHeight * std::pow(0.5, mMipLevel));
+        m_mip_level   = level;
+        m_mip_width   = static_cast<unsigned int>(m_width * std::pow(0.5, m_mip_level));
+        m_mip_height  = static_cast<unsigned int>(m_height * std::pow(0.5, m_mip_level));
 
-        glBindRenderbuffer(GL_RENDERBUFFER, mDepthRenderbufferId);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mMipWidth, mMipHeight);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_depth_renderbuffer_id);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_mip_width, m_mip_height);
     }
 
-    unsigned int MipmapCubemapFramebuffer::getWidth() const { return mMipWidth; }
+    unsigned int MipmapCubemapFramebuffer::getWidth() const { return m_mip_width; }
 
-    unsigned int MipmapCubemapFramebuffer::getHeight() const { return mMipHeight; }
+    unsigned int MipmapCubemapFramebuffer::getHeight() const { return m_mip_height; }
 
     void MipmapCubemapFramebuffer::setCubeFace(unsigned int faceIndex)
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER,
                                 GL_COLOR_ATTACHMENT0,
                                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex,
-                                mCubemapTextureId,
-                                mMipLevel);
+                                m_cubemap_texture_id,
+                                m_mip_level);
     }
 
-    unsigned int MipmapCubemapFramebuffer::getCubemapTextureId() const { return mCubemapTextureId; }
+    unsigned int MipmapCubemapFramebuffer::getCubemapTextureId() const { return m_cubemap_texture_id; }
 } // namespace RealmEngine
 

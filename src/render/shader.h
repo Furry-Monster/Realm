@@ -6,22 +6,19 @@
 
 namespace RealmEngine
 {
-    /**
-     * A shader program created from vertex + fragment shader.
-     */
     class Shader
     {
     public:
         Shader(const std::string& vertexPath, const std::string& fragmentPath);
-        ~Shader();
+        ~Shader() noexcept;
 
-        Shader(const Shader&)            = delete;
-        Shader& operator=(const Shader&) = delete;
+        Shader(const Shader&)                = delete;
+        Shader& operator=(const Shader&)     = delete;
+        Shader(Shader&&) noexcept            = default;
+        Shader& operator=(Shader&&) noexcept = default;
 
-        // activate the shader
         void use() const;
 
-        // uniform functions
         void setBool(const std::string& name, bool value) const;
         void setInt(const std::string& name, int value) const;
         void setFloat(const std::string& name, float value) const;
@@ -33,10 +30,9 @@ namespace RealmEngine
                                             const glm::mat4& view,
                                             const glm::mat4& projection) const;
 
-        unsigned int getId() const { return mId; }
+        unsigned int getId() const { return m_id; }
 
     private:
-        // program ID
-        unsigned int mId;
+        unsigned int m_id;
     };
 } // namespace RealmEngine

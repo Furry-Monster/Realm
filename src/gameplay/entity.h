@@ -7,13 +7,16 @@
 
 namespace RealmEngine
 {
-    /**
-     * A model paired with a position, scale, and orientation.
-     */
     class Entity
     {
     public:
         explicit Entity(std::shared_ptr<RenderModel> model);
+        ~Entity() noexcept = default;
+
+        Entity(const Entity&)                = default;
+        Entity& operator=(const Entity&)     = default;
+        Entity(Entity&&) noexcept            = default;
+        Entity& operator=(Entity&&) noexcept = default;
 
         void      setPosition(glm::vec3 position);
         glm::vec3 getPosition() const;
@@ -27,9 +30,9 @@ namespace RealmEngine
         std::shared_ptr<RenderModel> getModel() const;
 
     private:
-        glm::vec3                    mPosition;
-        glm::vec3                    mScale = glm::vec3(1.0, 1.0, 1.0);
-        glm::quat                    mOrientation;
-        std::shared_ptr<RenderModel> mModel;
+        glm::vec3                    m_position {glm::vec3(0.0)};
+        glm::vec3                    m_scale {glm::vec3(1.0, 1.0, 1.0)};
+        glm::quat                    m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
+        std::shared_ptr<RenderModel> m_model;
     };
 } // namespace RealmEngine

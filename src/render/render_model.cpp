@@ -1,7 +1,6 @@
 #include "render/render_model.h"
 
 #include <glad/gl.h>
-// STB_IMAGE_IMPLEMENTATION already defined in hdr_texture.cpp
 #include "utils.h"
 #include <stb/stb_image.h>
 #include <assimp/GltfMaterial.h>
@@ -13,14 +12,14 @@ namespace RealmEngine
     RenderModel::RenderModel(std::string path, bool flipTexturesVertically) { loadModel(path, flipTexturesVertically); }
 
     RenderModel::RenderModel(std::string path, std::shared_ptr<RenderMaterial> material, bool flipTexturesVertically) :
-        mMaterialOverride(material)
+        m_material_override(material)
     {
         loadModel(path, flipTexturesVertically);
     }
 
     void RenderModel::draw(Shader& shader)
     {
-        for (auto& mesh : mMeshes)
+        for (auto& mesh : m_meshes)
         {
             mesh.draw(shader);
         }
@@ -43,21 +42,21 @@ namespace RealmEngine
         size_t last_slash = path.find_last_of("/\\");
         if (last_slash != std::string::npos)
         {
-            mDirectory = path.substr(0, last_slash);
+            m_directory = path.substr(0, last_slash);
         }
         else
         {
-            mDirectory = ".";
+            m_directory = ".";
         }
 
         info("Loading model from: " + path);
-        info("Model directory: " + mDirectory);
+        info("Model directory: " + m_directory);
         info("Scene has " + std::to_string(scene->mNumMeshes) + " meshes, " + 
              std::to_string(scene->mNumMaterials) + " materials");
 
         processNode(scene->mRootNode, scene);
         
-        info("Loaded " + std::to_string(mMeshes.size()) + " meshes from model");
+        info("Loaded " + std::to_string(m_meshes.size()) + " meshes from model");
         
         stbi_set_flip_vertically_on_load(true);
     }
@@ -69,7 +68,7 @@ namespace RealmEngine
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            mMeshes.push_back(processMesh(mesh, scene));
+            m_meshes.push_back(processMesh(mesh, scene));
         }
 
         // continue with children
@@ -86,9 +85,9 @@ namespace RealmEngine
         std::vector<unsigned int> indices;
         RenderMaterial             material;
 
-        if (mMaterialOverride)
+        if (m_material_override)
         {
-            material = *mMaterialOverride;
+            material = *m_material_override;
         }
 
         // vertices
@@ -168,7 +167,7 @@ namespace RealmEngine
         }
 
         // material
-        if (!mMaterialOverride)
+        if (!m_material_override)
         {
             if (mesh->mMaterialIndex >= 0)
             {
@@ -244,19 +243,19 @@ namespace RealmEngine
         material->GetTexture(type, 0, &path);
 
         // check if we already have it loaded and use that if so
-        auto iterator = mTexturesLoaded.find(std::string(path.C_Str()));
-        if (iterator != mTexturesLoaded.end())
+        auto iterator = m_textures_loaded.find(std::string(path.C_Str()));
+        if (iterator != m_textures_loaded.end())
         {
             return iterator->second;
         }
 
         auto texture = std::make_shared<Texture>();
 
-        texture->m_id   = textureFromFile(path.C_Str(), mDirectory, type);
+        texture->m_id   = textureFromFile(path.C_Str(), m_directory, type);
         texture->m_path = path.C_Str();
 
         // cache it for future lookups
-        mTexturesLoaded.insert(std::pair<std::string, std::shared_ptr<Texture>>(path.C_Str(), texture));
+        m_textures_loaded.insert(std::pair<std::string, std::shared_ptr<Texture>>(path.C_Str(), texture));
 
         return texture;
     }

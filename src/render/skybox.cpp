@@ -3,44 +3,43 @@
 #include "render/cube.h"
 #include "utils.h"
 #include <glad/gl.h>
-// STB_IMAGE_IMPLEMENTATION already defined in hdr_texture.cpp
 #include <stb/stb_image.h>
 
 namespace RealmEngine
 {
-    Skybox::Skybox(std::string textureDirectoryPath)
+    Skybox::Skybox(std::string texture_directory_path)
     {
-        loadCubemapTextures(textureDirectoryPath);
-        mCube = std::make_unique<Cube>();
+        loadCubemapTextures(texture_directory_path);
+        m_cube = std::make_unique<Cube>();
     }
 
-    Skybox::Skybox(unsigned int textureId) : mTextureId(textureId) { mCube = std::make_unique<Cube>(); }
+    Skybox::Skybox(unsigned int texture_id) : m_texture_id(texture_id) { m_cube = std::make_unique<Cube>(); }
 
     void Skybox::draw()
     {
+        // NOTE:
         // default depth buffer value is 1.0
         // skybox depth is 1.0 everywhere
         // need equality to make sure skybox passes depth test in default value places
         glDepthFunc(GL_LEQUAL);
 
-        // draw mesh
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureId);
-        mCube->draw();
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture_id);
+        m_cube->draw();
         glDepthFunc(GL_LESS); // go back to default depth comparison
     }
 
-    void Skybox::loadCubemapTextures(std::string textureDirectoryPath)
+    void Skybox::loadCubemapTextures(std::string texture_directory_path)
     {
-        stbi_set_flip_vertically_on_load(false); // cubemaps in OpenGL are weird and don't require flip
+        stbi_set_flip_vertically_on_load(false);
 
-        glGenTextures(1, &mTextureId);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureId);
+        glGenTextures(1, &m_texture_id);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture_id);
 
         int width, height, num_channels;
 
-        for (unsigned int i = 0; i < mFaceTextureFileNames.size(); i++)
+        for (unsigned int i = 0; i < m_face_texture_file_names.size(); i++)
         {
-            std::string path = textureDirectoryPath + '/' + mFaceTextureFileNames[i];
+            std::string    path = texture_directory_path + '/' + m_face_texture_file_names[i];
             unsigned char* data = stbi_load(path.c_str(), &width, &height, &num_channels, 0);
 
             if (!data)
@@ -49,7 +48,8 @@ namespace RealmEngine
                 continue;
             }
 
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         }
 
@@ -62,4 +62,3 @@ namespace RealmEngine
         stbi_set_flip_vertically_on_load(true);
     }
 } // namespace RealmEngine
-

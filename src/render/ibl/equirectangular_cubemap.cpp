@@ -12,9 +12,9 @@ namespace RealmEngine
         std::string hdriVertexShaderPath   = engineRoot + "/shaders/ibl/hdricube.vert";
         std::string hdriFragmentShaderPath = engineRoot + "/shaders/ibl/hdricube.frag";
 
-        hdriShader   = std::make_unique<Shader>(hdriVertexShaderPath, hdriFragmentShaderPath);
-        hdriCube     = std::make_unique<HDRICube>(hdriPath);
-        framebuffer  = std::make_unique<CubemapFramebuffer>(cubemapWidth, cubemapHeight);
+        m_hdri_shader   = std::make_unique<Shader>(hdriVertexShaderPath, hdriFragmentShaderPath);
+        m_hdri_cube     = std::make_unique<HDRICube>(hdriPath);
+        m_framebuffer  = std::make_unique<CubemapFramebuffer>(m_cubemap_width, m_cubemap_height);
     }
 
     void EquirectangularCubemap::compute()
@@ -34,27 +34,27 @@ namespace RealmEngine
                                                  0.1f,
                                                  2.0f);
 
-        glViewport(0, 0, cubemapWidth, cubemapHeight);
+        glViewport(0, 0, m_cubemap_width, m_cubemap_height);
 
         // render the equirectangular HDR texture to a cubemap
-        framebuffer->bind();
-        hdriShader->use();
+        m_framebuffer->bind();
+        m_hdri_shader->use();
 
         // render to each side of the cubemap
         for (auto i = 0; i < 6; i++)
         {
-            hdriShader->setModelViewProjectionMatrices(model, cameraAngles[i], projection);
-            framebuffer->setCubeFace(i);
+            m_hdri_shader->setModelViewProjectionMatrices(model, cameraAngles[i], projection);
+            m_framebuffer->setCubeFace(i);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            hdriCube->draw(*hdriShader);
+            m_hdri_cube->draw(*m_hdri_shader);
         }
 
-        framebuffer->generateMipmap();
+        m_framebuffer->generateMipmap();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    unsigned int EquirectangularCubemap::getCubemapId() const { return framebuffer->getCubemapTextureId(); }
+    unsigned int EquirectangularCubemap::getCubemapId() const { return m_framebuffer->getCubemapTextureId(); }
 } // namespace RealmEngine
 

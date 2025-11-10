@@ -34,11 +34,11 @@ namespace RealmEngine
         unsigned int getColorTextureId() const;
 
     private:
-        unsigned int mWidth, mHeight;
+        unsigned int m_width, m_height;
 
-        unsigned int mFramebufferId;
-        unsigned int mDepthRenderbufferId;
-        unsigned int mColorTextureId;
+        unsigned int m_framebuffer_id;
+        unsigned int m_depth_renderbuffer_id;
+        unsigned int m_color_texture_id;
     };
 } // namespace RealmEngine
 

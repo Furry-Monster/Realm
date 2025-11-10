@@ -9,7 +9,6 @@
 #include "window.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <memory>
 #include <string>
 
@@ -18,9 +17,6 @@ namespace RealmEngine
     void Engine::boot()
     {
         g_context.create();
-
-        // Initialize renderer with window
-        g_context.m_renderer->initialize(g_context.m_window);
 
         info("<<< Boot Engine Done. >>>");
     }
@@ -116,7 +112,7 @@ namespace RealmEngine
     void Engine::terminate()
     {
         info("<<< Now Terminating Engine. >>>");
-        g_context.m_renderer->shutdown();
+
         g_context.destroy();
     }
 

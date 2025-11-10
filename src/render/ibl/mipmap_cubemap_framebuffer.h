@@ -38,13 +38,13 @@ namespace RealmEngine
         unsigned int getCubemapTextureId() const;
 
     private:
-        unsigned int mWidth, mHeight;
-        unsigned int mMipWidth, mMipHeight;
-        unsigned int mMipLevel;
+        unsigned int m_width, m_height;
+        unsigned int m_mip_width, m_mip_height;
+        unsigned int m_mip_level;
 
-        unsigned int mFramebufferId;
-        unsigned int mDepthRenderbufferId;
-        unsigned int mCubemapTextureId;
+        unsigned int m_framebuffer_id;
+        unsigned int m_depth_renderbuffer_id;
+        unsigned int m_cubemap_texture_id;
     };
 } // namespace RealmEngine
 

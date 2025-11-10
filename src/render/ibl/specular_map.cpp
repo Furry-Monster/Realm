@@ -10,21 +10,21 @@
 namespace RealmEngine
 {
     SpecularMap::SpecularMap(const std::string& engineRoot, const unsigned int environmentCubemapId)
-        : environmentCubemapId(environmentCubemapId)
+        : m_environment_cubemap_id(environmentCubemapId)
     {
         // pre-filtered env map
         std::string prefilteredEnvMapVertexShaderPath   = engineRoot + "/shaders/ibl/specularenv.vert";
         std::string prefilteredEnvMapFragmentShaderPath = engineRoot + "/shaders/ibl/specularenv.frag";
 
-        prefilteredEnvMapShader     = std::make_unique<Shader>(prefilteredEnvMapVertexShaderPath, prefilteredEnvMapFragmentShaderPath);
-        prefilteredEnvMapFramebuffer = std::make_unique<MipmapCubemapFramebuffer>(prefilteredEnvMapWidth, prefilteredEnvMapHeight);
+        m_prefiltered_env_map_shader     = std::make_unique<Shader>(prefilteredEnvMapVertexShaderPath, prefilteredEnvMapFragmentShaderPath);
+        m_prefiltered_env_map_framebuffer = std::make_unique<MipmapCubemapFramebuffer>(m_prefiltered_env_map_width, m_prefiltered_env_map_height);
 
         // BRDF convolution
         std::string brdfConvolutionVertexShaderPath   = engineRoot + "/shaders/ibl/brdfconvolution.vert";
         std::string brdfConvolutionFragmentShaderPath = engineRoot + "/shaders/ibl/brdfconvolution.frag";
 
-        brdfConvolutionShader     = std::make_unique<Shader>(brdfConvolutionVertexShaderPath, brdfConvolutionFragmentShaderPath);
-        brdfConvolutionFramebuffer = std::make_unique<BrdfConvolutionFramebuffer>(brdfConvolutionMapWidth, brdfConvolutionMapHeight);
+        m_brdf_convolution_shader     = std::make_unique<Shader>(brdfConvolutionVertexShaderPath, brdfConvolutionFragmentShaderPath);
+        m_brdf_convolution_framebuffer = std::make_unique<BrdfConvolutionFramebuffer>(m_brdf_convolution_map_width, m_brdf_convolution_map_height);
     }
 
     void SpecularMap::computePrefilteredEnvMap()
@@ -45,30 +45,30 @@ namespace RealmEngine
                                                  2.0f);
 
         auto cube = Cube();
-        prefilteredEnvMapFramebuffer->bind();
-        prefilteredEnvMapShader->use();
-        prefilteredEnvMapShader->setInt("environmentCubemap", 0);
+        m_prefiltered_env_map_framebuffer->bind();
+        m_prefiltered_env_map_shader->use();
+        m_prefiltered_env_map_shader->setInt("environmentCubemap", 0);
 
-        for (unsigned int mipLevel = 0; mipLevel < prefilteredEnvMapMipLevels; mipLevel++)
+        for (unsigned int mipLevel = 0; mipLevel < m_prefiltered_env_map_mip_levels; mipLevel++)
         {
-            prefilteredEnvMapFramebuffer->setMipLevel(mipLevel);
+            m_prefiltered_env_map_framebuffer->setMipLevel(mipLevel);
 
-            glViewport(0, 0, prefilteredEnvMapFramebuffer->getWidth(), prefilteredEnvMapFramebuffer->getHeight());
+            glViewport(0, 0, m_prefiltered_env_map_framebuffer->getWidth(), m_prefiltered_env_map_framebuffer->getHeight());
 
             // each mip level has increasing roughness
-            float roughness = static_cast<float>(mipLevel) / static_cast<float>(prefilteredEnvMapMipLevels - 1);
-            prefilteredEnvMapShader->setFloat("roughness", roughness);
+            float roughness = static_cast<float>(mipLevel) / static_cast<float>(m_prefiltered_env_map_mip_levels - 1);
+            m_prefiltered_env_map_shader->setFloat("roughness", roughness);
 
             // render to each side of the cubemap
             for (auto i = 0; i < 6; i++)
             {
-                prefilteredEnvMapShader->setModelViewProjectionMatrices(model, cameraAngles[i], projection);
-                prefilteredEnvMapFramebuffer->setCubeFace(i);
+                m_prefiltered_env_map_shader->setModelViewProjectionMatrices(model, cameraAngles[i], projection);
+                m_prefiltered_env_map_framebuffer->setCubeFace(i);
 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_CUBE_MAP, environmentCubemapId);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, m_environment_cubemap_id);
                 cube.draw();
             }
         }
@@ -76,23 +76,23 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    unsigned int SpecularMap::getPrefilteredEnvMapId() const { return prefilteredEnvMapFramebuffer->getCubemapTextureId(); }
+    unsigned int SpecularMap::getPrefilteredEnvMapId() const { return m_prefiltered_env_map_framebuffer->getCubemapTextureId(); }
 
     void SpecularMap::computeBrdfConvolutionMap()
     {
         auto fullscreenQuad = FullscreenQuad();
-        brdfConvolutionFramebuffer->bind();
-        brdfConvolutionShader->use();
+        m_brdf_convolution_framebuffer->bind();
+        m_brdf_convolution_shader->use();
 
-        glViewport(0, 0, brdfConvolutionMapWidth, brdfConvolutionMapHeight);
+        glViewport(0, 0, m_brdf_convolution_map_width, m_brdf_convolution_map_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         fullscreenQuad.draw();
 
-        brdfConvolutionMapId = brdfConvolutionFramebuffer->getColorTextureId();
+        m_brdf_convolution_map_id = m_brdf_convolution_framebuffer->getColorTextureId();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    unsigned int SpecularMap::getBrdfConvolutionMapId() const { return brdfConvolutionMapId; }
+    unsigned int SpecularMap::getBrdfConvolutionMapId() const { return m_brdf_convolution_map_id; }
 } // namespace RealmEngine
 

@@ -34,12 +34,12 @@ namespace RealmEngine
         unsigned int getCubemapId() const;
 
     private:
-        const unsigned int cubemapWidth  = 512;
-        const unsigned int cubemapHeight = 512;
+        const unsigned int m_cubemap_width  = 512;
+        const unsigned int m_cubemap_height = 512;
 
-        std::unique_ptr<Shader>              hdriShader;
-        std::unique_ptr<HDRICube>           hdriCube;
-        std::unique_ptr<CubemapFramebuffer> framebuffer;
+        std::unique_ptr<Shader>              m_hdri_shader;
+        std::unique_ptr<HDRICube>           m_hdri_cube;
+        std::unique_ptr<CubemapFramebuffer> m_framebuffer;
     };
 } // namespace RealmEngine
 
