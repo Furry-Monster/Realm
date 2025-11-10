@@ -1,8 +1,9 @@
 build/
 bin/
 
-assets/
-docs/
+assets/sphere/
+assets/Cian.fbx
+assets/Voodoo-Dool.fbx
 
 .cache/
 .vscode/
