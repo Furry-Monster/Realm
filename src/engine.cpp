@@ -1,12 +1,13 @@
 #include "engine.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include <string>
-#include <utility>
 #include "config_manager.h"
 #include "gameplay/scene.h"
 #include "global_context.h"
+#include "input.h"
 #include "render/render_entity.h"
 #include "render/render_model.h"
 #include "render/render_scene.h"
@@ -36,7 +37,7 @@ namespace RealmEngine
         m_scene        = scene;
         m_render_scene = render_scene;
 
-        std::string model_path = g_context.m_cfg->getAssetFolder().generic_string() + "/helmet/DamagedHelmet.gltf";
+        std::string model_path = g_context.m_config->getAssetFolder().generic_string() + "/helmet/DamagedHelmet.gltf";
         try
         {
             // Don't flip textures for glTF
@@ -103,6 +104,7 @@ namespace RealmEngine
             return;
         }
 
+        g_context.m_input->tick();
         g_context.m_window->pollEvents();
     }
 

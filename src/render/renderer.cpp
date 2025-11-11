@@ -30,9 +30,9 @@ namespace RealmEngine
         m_camera->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
         // Setup paths
-        m_engine_root_path = g_context.m_cfg->getRootFolder().generic_string();
-        m_shader_root_path = g_context.m_cfg->getShaderFolder().generic_string();
-        m_hdri_path        = g_context.m_cfg->getAssetFolder().generic_string() + "/hdr/newport_loft.hdr";
+        m_engine_root_path = g_context.m_config->getRootFolder().generic_string();
+        m_shader_root_path = g_context.m_config->getShaderFolder().generic_string();
+        m_hdri_path        = g_context.m_config->getAssetFolder().generic_string() + "/hdr/newport_loft.hdr";
 
         // Setup shaders
         setupShaders();

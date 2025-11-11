@@ -73,11 +73,26 @@ endif()
 add_library(reflibs INTERFACE)
 target_link_libraries(reflibs INTERFACE glad glfw glm imgui assimp spdlog nlohmann)
 
+# Link OpenGL library
 if(UNIX AND NOT APPLE)
+    # linux only support x11 framework
+    set(OPENGL_GL_PREFERENCE GLVND)
     find_package(OpenGL REQUIRED)
     find_package(X11 REQUIRED)
     target_link_libraries(reflibs INTERFACE
         OpenGL::GL
         ${X11_LIBRARIES}
+    )
+elseif(WIN32)
+    # OpenGL was supported by opengl32.lib on Win
+    target_link_libraries(reflibs INTERFACE opengl32)
+elseif(APPLE)
+    find_package(OpenGL REQUIRED)
+    # macOS need system framework link
+    target_link_libraries(reflibs INTERFACE
+        OpenGL::GL
+        "-framework Cocoa"
+        "-framework IOKit"
+        "-framework CoreVideo"
     )
 endif()

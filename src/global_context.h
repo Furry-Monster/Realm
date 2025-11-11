@@ -9,6 +9,7 @@ namespace RealmEngine
     class AssetManager;
     class Window;
     class Renderer;
+    class Input;
 
     class GlobalContext
     {
@@ -25,11 +26,13 @@ namespace RealmEngine
         void destroy();
 
         std::shared_ptr<Logger>        m_logger;
-        std::shared_ptr<ConfigManager> m_cfg;
+        std::shared_ptr<ConfigManager> m_config;
         std::shared_ptr<AssetManager>  m_assets;
         std::shared_ptr<Window>        m_window;
         std::shared_ptr<Renderer>      m_renderer;
+        std::shared_ptr<Input>         m_input;
     };
 
     extern GlobalContext g_context;
+
 } // namespace RealmEngine
