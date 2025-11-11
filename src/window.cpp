@@ -102,4 +102,10 @@ namespace RealmEngine
     bool Window::isMSAAEnabled() const { return m_msaa_samples > 0; }
     bool Window::isVSyncEnabled() const { return m_vsync; }
 
+    void Window::setCursorMode(int mode) const
+    {
+        if (m_window)
+            glfwSetInputMode(m_window.get(), GLFW_CURSOR, mode);
+    }
+
 } // namespace RealmEngine

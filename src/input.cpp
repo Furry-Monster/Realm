@@ -32,6 +32,7 @@ namespace RealmEngine
                 case GLFW_KEY_LEFT_ALT:
                     m_curr_command |= static_cast<Command>(BindableCommand::FOCUS);
                     m_focus = true;
+                    setCursorHidden(true);
                     break;
                 default:
                     break;
@@ -55,6 +56,11 @@ namespace RealmEngine
                     break;
                 case GLFW_KEY_LEFT_SHIFT:
                     m_curr_command &= (COMMAND_COMPLETE_MASK ^ static_cast<Command>(BindableCommand::SPRINT));
+                    break;
+                case GLFW_KEY_LEFT_ALT:
+                    m_curr_command &= (COMMAND_COMPLETE_MASK ^ static_cast<Command>(BindableCommand::FOCUS));
+                    m_focus = false;
+                    setCursorHidden(false);
                     break;
                 default:
                     break;
@@ -128,4 +134,12 @@ namespace RealmEngine
     void Input::resetCommand() { m_curr_command = 0; }
 
     Command Input::getCurrentCommand() const { return m_curr_command; }
+
+    void Input::setCursorHidden(bool hidden)
+    {
+        if (auto window = g_context.m_window)
+        {
+            window->setCursorMode(hidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+        }
+    }
 } // namespace RealmEngine

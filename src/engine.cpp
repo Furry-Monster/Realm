@@ -1,7 +1,8 @@
 #include "engine.h"
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include <string>
 #include "config_manager.h"
@@ -63,9 +64,13 @@ namespace RealmEngine
         g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
+        scene->initialize(g_context.m_renderer->getCamera());
+
+        m_last_frame_time = glfwGetTime();
+
         info("Starting render loop for helmet model...");
 
-        while (!g_context.m_window->shouldClose() && frame_count < 600)
+        while (!g_context.m_window->shouldClose())
         {
             tick();
             frame_count++;
@@ -87,16 +92,24 @@ namespace RealmEngine
     {
         info("<<< Now Terminating Engine. >>>");
 
+        m_delta_time = 0.0f;
+
         g_context.destroy();
     }
 
     void Engine::tick()
     {
+        double current_time = glfwGetTime();
+        m_delta_time        = static_cast<float>(current_time - m_last_frame_time);
+        m_last_frame_time   = current_time;
+        if (m_delta_time > 0.1f)
+            m_delta_time = 0.1f;
+
         logicalTick(m_scene);
         renderTick(m_render_scene);
     }
 
-    void Engine::logicalTick(std::shared_ptr<Scene> scene)
+    void Engine::logicalTick(std::shared_ptr<Scene> scene) const
     {
         if (scene == nullptr)
         {
@@ -106,6 +119,7 @@ namespace RealmEngine
 
         g_context.m_input->tick();
         g_context.m_window->pollEvents();
+        scene->tick(m_delta_time);
     }
 
     void Engine::renderTick(std::shared_ptr<RenderScene> scene)

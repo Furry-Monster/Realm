@@ -94,6 +94,8 @@ namespace RealmEngine
         bool isMSAAEnabled() const;
         bool isVSyncEnabled() const;
 
+        void setCursorMode(int mode) const;
+
         using onResetFunc           = std::function<void()>;
         using onKeyFunc             = std::function<void(int, int, int, int)>;
         using onCharFunc            = std::function<void(unsigned int)>;

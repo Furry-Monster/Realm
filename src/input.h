@@ -33,6 +33,8 @@ namespace RealmEngine
         void    resetCommand();
         Command getCurrentCommand() const;
 
+        void setCursorHidden(bool hidden);
+
         int m_cursor_delta_x {0};
         int m_cursor_delta_y {0};
 
