@@ -6,9 +6,11 @@ namespace RealmEngine
     {
     public:
         BloomFramebuffer(int width, int height);
-        void         init();
-        void         bind() const;
-        void         resize(int width, int height);
+
+        void init();
+        void bind() const;
+        void resize(int width, int height);
+
         void         setMipLevel(int mipLevel);
         unsigned int getColorTextureId() const;
 

@@ -18,7 +18,6 @@ namespace RealmEngine
     public:
         explicit RenderObject(std::string path);
         RenderObject(std::string path, bool flipTexturesVertically);
-
         RenderObject(std::string path, std::shared_ptr<RenderMaterial> material, bool flipTexturesVertically);
 
         void draw(Shader& shader);
@@ -26,10 +25,8 @@ namespace RealmEngine
     private:
         void loadModel(std::string path, bool flipTexturesVertically);
 
-        void processNode(aiNode* node, const aiScene* scene);
-
-        RenderMesh processMesh(aiMesh* mesh, const aiScene* scene);
-
+        void                     processNode(aiNode* node, const aiScene* scene);
+        RenderMesh               processMesh(aiMesh* mesh, const aiScene* scene);
         std::shared_ptr<Texture> loadMaterialTexture(aiMaterial* material, aiTextureType type);
         unsigned int             textureFromFile(const char* file_name, std::string directory, aiTextureType type);
 

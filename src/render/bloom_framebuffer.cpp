@@ -9,7 +9,6 @@ namespace RealmEngine
 
     void BloomFramebuffer::init()
     {
-        // create the framebuffer
         glGenFramebuffers(1, &m_framebuffer_id);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id);
 

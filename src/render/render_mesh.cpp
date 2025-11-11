@@ -13,7 +13,6 @@ namespace RealmEngine
 
     void RenderMesh::draw(Shader& shader)
     {
-        // albedo
         shader.setBool("material.useTextureAlbedo", m_material.use_texture_albedo);
         shader.setVec3("material.albedo", m_material.albedo);
         if (m_material.use_texture_albedo)
@@ -61,7 +60,6 @@ namespace RealmEngine
 
         glActiveTexture(GL_TEXTURE0);
 
-        // draw mesh
         glBindVertexArray(m_vao);
         glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
@@ -87,7 +85,6 @@ namespace RealmEngine
                      &m_indices[0],
                      GL_STATIC_DRAW); // copy over the index data
 
-        // setup the locations of vertex data
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(0));
 

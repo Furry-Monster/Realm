@@ -54,12 +54,9 @@ namespace RealmEngine
 
             glm::quat current_rotation = m_camera->getRotation();
 
-            // Apply yaw rotation (around world Y axis)
-            glm::quat yaw_rotation = glm::angleAxis(glm::radians(-yaw_delta), glm::vec3(0.0f, 1.0f, 0.0f));
-            // Apply pitch rotation (around local right axis)
-            glm::quat pitch_rotation = glm::angleAxis(glm::radians(-pitch_delta), m_camera->getLocalRight());
+            glm::quat yaw_rotation   = glm::angleAxis(glm::radians(-yaw_delta), glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::quat pitch_rotation = glm::angleAxis(glm::radians(-pitch_delta), glm::vec3(1.0f, 0.0f, 0.0f));
 
-            // Combine rotations: yaw first, then pitch
             glm::quat new_rotation = yaw_rotation * current_rotation * pitch_rotation;
             m_camera->setRotation(new_rotation);
         }

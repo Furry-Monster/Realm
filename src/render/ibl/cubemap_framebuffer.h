@@ -12,10 +12,6 @@ namespace RealmEngine
         void bind() const;
         void generateMipmap() const;
 
-        /**
-         * Set which cube face texture to render to.
-         * @param index
-         */
         void setCubeFace(unsigned int index) const;
 
         unsigned int getCubemapTextureId() const;

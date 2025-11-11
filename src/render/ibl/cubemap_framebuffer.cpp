@@ -6,7 +6,6 @@ namespace RealmEngine
 {
     CubemapFramebuffer::CubemapFramebuffer(int width, int height)
     {
-        // framebuffer
         glGenFramebuffers(1, &m_framebuffer_id);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_id);
 
