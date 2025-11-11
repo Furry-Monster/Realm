@@ -39,18 +39,11 @@ namespace RealmEngine
     }
     void RenderCamera::lookAt(const glm::vec3& target, const glm::vec3& up)
     {
-        // Use glm::lookAt to compute the view matrix directly
-        // This ensures correctness and handles edge cases
         glm::mat4 view_matrix = glm::lookAt(m_position, target, up);
 
-        // Extract rotation from view matrix
-        // glm::lookAt returns: view = R^T * T, where R^T is transposed rotation
-        // To extract the rotation quaternion, we need to transpose the rotation part
         glm::mat3 rotation_part = glm::mat3(view_matrix);
-        // Transpose to get the actual rotation (from world to camera)
-        rotation_part = glm::transpose(rotation_part);
+        rotation_part           = glm::transpose(rotation_part);
 
-        // Convert to quaternion
         m_rotation       = glm::normalize(glm::quat_cast(rotation_part));
         m_view_mat_dirty = true;
     }
@@ -155,14 +148,9 @@ namespace RealmEngine
 
     void RenderCamera::updateViewMatrix()
     {
-        // View matrix transforms from world space to camera space
-        // Standard OpenGL view matrix: view = R^T * T
-        // where R^T is the transposed rotation matrix and T is the translation
-        // Since we store rotation as quaternion (world-to-camera), we need to transpose it
         glm::mat4 rotation_matrix    = glm::transpose(glm::mat4_cast(m_rotation));
         glm::mat4 translation_matrix = glm::translate(glm::mat4(1.0f), -m_position);
-        // View matrix: first translate, then rotate (inverse order in matrix multiplication)
-        m_view_matrix = rotation_matrix * translation_matrix;
+        m_view_matrix                = rotation_matrix * translation_matrix;
     }
 
     void RenderCamera::updateProjectionMatrix()

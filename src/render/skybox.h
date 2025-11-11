@@ -10,16 +10,7 @@ namespace RealmEngine
     class Skybox
     {
     public:
-        /**
-         * Create a skybox by loading 6 cube face textures.
-         * @param texture_directory_path
-         */
         explicit Skybox(std::string texture_directory_path);
-
-        /**
-         * Create a skybox from an existing cubemap texture.
-         * @param texture_id
-         */
         explicit Skybox(unsigned int texture_id);
 
         void draw();

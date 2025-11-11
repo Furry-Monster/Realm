@@ -3,14 +3,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
-#include "render/render_model.h"
+#include "render/render_object.h"
 
 namespace RealmEngine
 {
     class Entity
     {
     public:
-        explicit Entity(std::shared_ptr<RenderModel> model);
+        explicit Entity(std::shared_ptr<RenderObject> model);
         ~Entity() noexcept = default;
 
         Entity(const Entity&)                = default;
@@ -27,12 +27,12 @@ namespace RealmEngine
         void      setOrientation(glm::quat orientation);
         glm::quat getOrientation() const;
 
-        std::shared_ptr<RenderModel> getModel() const;
+        std::shared_ptr<RenderObject> getModel() const;
 
     private:
-        glm::vec3                    m_position {glm::vec3(0.0)};
-        glm::vec3                    m_scale {glm::vec3(1.0, 1.0, 1.0)};
-        glm::quat                    m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
-        std::shared_ptr<RenderModel> m_model;
+        glm::vec3                     m_position {glm::vec3(0.0)};
+        glm::vec3                     m_scale {glm::vec3(1.0, 1.0, 1.0)};
+        glm::quat                     m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
+        std::shared_ptr<RenderObject> m_model;
     };
 } // namespace RealmEngine

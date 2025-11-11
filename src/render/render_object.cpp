@@ -1,4 +1,4 @@
-#include "render/render_model.h"
+#include "render/render_object.h"
 
 #include <assimp/GltfMaterial.h>
 #include <glad/gl.h>
@@ -7,25 +7,27 @@
 
 namespace RealmEngine
 {
-    RenderModel::RenderModel(std::string path) { loadModel(path, true); }
+    RenderObject::RenderObject(std::string path) { loadModel(path, true); }
 
-    RenderModel::RenderModel(std::string path, bool flipTexturesVertically) { loadModel(path, flipTexturesVertically); }
-
-    RenderModel::RenderModel(std::string path, std::shared_ptr<RenderMaterial> material, bool flipTexturesVertically) :
-        m_material_override(material)
+    RenderObject::RenderObject(std::string path, bool flipTexturesVertically)
     {
         loadModel(path, flipTexturesVertically);
     }
 
-    void RenderModel::draw(Shader& shader)
+    RenderObject::RenderObject(std::string                     path,
+                               std::shared_ptr<RenderMaterial> material,
+                               bool                            flipTexturesVertically) : m_material_override(material)
     {
-        for (auto& mesh : m_meshes)
-        {
-            mesh.draw(shader);
-        }
+        loadModel(path, flipTexturesVertically);
     }
 
-    void RenderModel::loadModel(std::string path, bool flipTexturesVertically)
+    void RenderObject::draw(Shader& shader)
+    {
+        for (auto& mesh : m_meshes)
+            mesh.draw(shader);
+    }
+
+    void RenderObject::loadModel(std::string path, bool flipTexturesVertically)
     {
         Assimp::Importer importer;
         stbi_set_flip_vertically_on_load(flipTexturesVertically);
@@ -38,7 +40,6 @@ namespace RealmEngine
             return;
         }
 
-        // Extract directory path - handle both '/' and '\' separators
         size_t last_slash = path.find_last_of("/\\");
         if (last_slash != std::string::npos)
         {
@@ -61,25 +62,21 @@ namespace RealmEngine
         stbi_set_flip_vertically_on_load(true);
     }
 
-    // recursively load all meshes in the node tree
-    void RenderModel::processNode(aiNode* node, const aiScene* scene)
+    void RenderObject::processNode(aiNode* node, const aiScene* scene)
     {
-        // process all of this node's meshes if it has any
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             m_meshes.push_back(processMesh(mesh, scene));
         }
 
-        // continue with children
         for (unsigned int i = 0; i < node->mNumChildren; i++)
         {
             processNode(node->mChildren[i], scene);
         }
     }
 
-    // convert assimp mesh to our own mesh class
-    RenderMesh RenderModel::processMesh(aiMesh* mesh, const aiScene* scene)
+    RenderMesh RenderObject::processMesh(aiMesh* mesh, const aiScene* scene)
     {
         std::vector<RenderVertex> vertices;
         std::vector<unsigned int> indices;
@@ -239,7 +236,7 @@ namespace RealmEngine
     }
 
     // loads the first texture of given type
-    std::shared_ptr<Texture> RenderModel::loadMaterialTexture(aiMaterial* material, aiTextureType type)
+    std::shared_ptr<Texture> RenderObject::loadMaterialTexture(aiMaterial* material, aiTextureType type)
     {
         aiString path;
         material->GetTexture(type, 0, &path);
@@ -256,27 +253,23 @@ namespace RealmEngine
         texture->m_id   = textureFromFile(path.C_Str(), m_directory, type);
         texture->m_path = path.C_Str();
 
-        // cache it for future lookups
         m_textures_loaded.insert(std::pair<std::string, std::shared_ptr<Texture>>(path.C_Str(), texture));
 
         return texture;
     }
 
-    unsigned int RenderModel::textureFromFile(const char* file_name, std::string directory, aiTextureType type)
+    unsigned int RenderObject::textureFromFile(const char* file_name, std::string directory, aiTextureType type)
     {
         int width, height, num_channels;
 
         std::string relative_path = file_name;
-        // Handle both absolute and relative paths
         std::string path;
         if (relative_path[0] == '/' || (relative_path.length() > 1 && relative_path[1] == ':'))
         {
-            // Absolute path
             path = relative_path;
         }
         else
         {
-            // Relative path - combine with directory
             path = directory + '/' + relative_path;
         }
 
@@ -332,7 +325,7 @@ namespace RealmEngine
         glGenTextures(1, &texture_id);
         glBindTexture(GL_TEXTURE_2D, texture_id);
 
-        // generate the texture
+        // generate the texture mipmap
         glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 

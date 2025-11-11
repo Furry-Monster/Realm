@@ -2,7 +2,7 @@
 
 namespace RealmEngine
 {
-    RenderEntity::RenderEntity(std::shared_ptr<RenderModel> model) : m_model(model) {}
+    RenderEntity::RenderEntity(std::shared_ptr<RenderObject> object) : m_render_object(object) {}
 
     void RenderEntity::setPosition(glm::vec3 position) { m_position = position; }
 
@@ -16,5 +16,5 @@ namespace RealmEngine
 
     glm::quat RenderEntity::getOrientation() const { return m_orientation; }
 
-    std::shared_ptr<RenderModel> RenderEntity::getModel() const { return m_model; }
+    std::shared_ptr<RenderObject> RenderEntity::getObject() const { return m_render_object; }
 } // namespace RealmEngine

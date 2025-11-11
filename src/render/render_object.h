@@ -13,22 +13,13 @@
 
 namespace RealmEngine
 {
-    class RenderModel
+    class RenderObject
     {
     public:
-        /**
-         * Load a glTF 2.0 model.
-         * @param path
-         */
-        explicit RenderModel(std::string path);
-        RenderModel(std::string path, bool flipTexturesVertically);
+        explicit RenderObject(std::string path);
+        RenderObject(std::string path, bool flipTexturesVertically);
 
-        /**
-         * Load a glTF 2.0 model using a provided material. This will ignore any material
-         * present in the model file.
-         * @param path
-         */
-        RenderModel(std::string path, std::shared_ptr<RenderMaterial> material, bool flipTexturesVertically);
+        RenderObject(std::string path, std::shared_ptr<RenderMaterial> material, bool flipTexturesVertically);
 
         void draw(Shader& shader);
 

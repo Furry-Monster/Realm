@@ -17,11 +17,13 @@ namespace RealmEngine
     {
         m_window = window;
 
-        // OpenGL options
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); // interpolate between cubemap faces
+        m_engine_root_path = g_context.m_config->getRootFolder().generic_string();
+        m_shader_root_path = g_context.m_config->getShaderFolder().generic_string();
+        m_hdri_path        = g_context.m_config->getAssetFolder().generic_string() + "/hdr/newport_loft.hdr";
 
-        // Setup camera
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
         m_camera = std::make_shared<RenderCamera>();
         m_camera->initialize();
         m_camera->setPerspective(
@@ -29,21 +31,10 @@ namespace RealmEngine
         m_camera->setPosition(glm::vec3(0.0f, 0.0f, 5.0f));
         m_camera->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
-        // Setup paths
-        m_engine_root_path = g_context.m_config->getRootFolder().generic_string();
-        m_shader_root_path = g_context.m_config->getShaderFolder().generic_string();
-        m_hdri_path        = g_context.m_config->getAssetFolder().generic_string() + "/hdr/newport_loft.hdr";
-
-        // Setup shaders
         setupShaders();
-
-        // Setup framebuffers
         setupFramebuffers();
-
-        // Setup IBL
         setupIBL();
 
-        // Setup fullscreen quad
         m_fullscreen_quad = std::make_unique<FullscreenQuad>();
 
         glViewport(0, 0, window->getWidth(), window->getHeight());
@@ -88,9 +79,8 @@ namespace RealmEngine
         glDepthFunc(GL_LESS);
         glDepthMask(GL_TRUE); // Enable depth writing
 
-        // Ensure camera matrices are up to date
+        // update camera first.
         m_camera->update();
-
         glm::vec3 camera_position = m_camera->getPosition();
         glm::mat4 projection      = m_camera->getProjMatrix();
         glm::mat4 view            = m_camera->getViewMatrix();
@@ -143,7 +133,7 @@ namespace RealmEngine
 
             m_pbr_shader->setModelViewProjectionMatrices(model, view, projection);
 
-            if (auto model_ptr = entity.getModel())
+            if (auto model_ptr = entity.getObject())
             {
                 // Ensure depth writing is enabled for models
                 glDepthMask(GL_TRUE);
@@ -151,38 +141,11 @@ namespace RealmEngine
             }
         }
 
-        // skybox (draw this last to avoid running fragment shader in places where objects are present
-        m_skybox_shader->use();
-        glm::mat4 model       = glm::mat4(1.0f);
-        glm::mat4 skybox_view = glm::mat4(glm::mat3(view)); // remove translation so skybox is always surrounding camera
-
-        m_skybox_shader->setModelViewProjectionMatrices(model, skybox_view, projection);
-        m_skybox_shader->setInt("skybox", 0); // set skybox sampler to slot 0
-        m_skybox_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
-        m_skybox->draw();
+        renderSkybox();
 
         renderBloom();
 
-        // Post-processing pass
-        glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch back to default fb
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        m_post_shader->use();
-
-        m_post_shader->setBool("bloomEnabled", m_bloom_enabled);
-        m_post_shader->setFloat("bloomIntensity", m_bloom_intensity);
-        m_post_shader->setBool("tonemappingEnabled", m_tonemapping_enabled);
-        m_post_shader->setFloat("gammaCorrectionFactor", m_gamma_correction_factor);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_framebuffer->getColorTextureId());
-        m_post_shader->setInt("colorTexture", 0);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, m_bloom_framebuffers[m_bloom_framebuffer_result]->getColorTextureId());
-        m_post_shader->setInt("bloomTexture", 1);
-
-        m_fullscreen_quad->draw();
+        renderPostprocess();
     }
 
     void Renderer::setupShaders()
@@ -232,6 +195,19 @@ namespace RealmEngine
 
         // Create skybox from the equirectangular cubemap
         m_skybox = std::make_unique<Skybox>(m_ibl_equirectangular_cubemap->getCubemapId());
+    }
+
+    void Renderer::renderSkybox()
+    {
+        // Skybox pass
+        m_skybox_shader->use();
+        glm::mat4 model       = glm::mat4(1.0f);
+        glm::mat4 skybox_view = glm::mat4(glm::mat3(m_camera->getViewMatrix()));
+
+        m_skybox_shader->setModelViewProjectionMatrices(model, skybox_view, m_camera->getProjMatrix());
+        m_skybox_shader->setInt("skybox", 0);
+        m_skybox_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
+        m_skybox->draw();
     }
 
     void Renderer::renderBloom()
@@ -285,5 +261,29 @@ namespace RealmEngine
 
             m_bloom_framebuffer_result = bloom_framebuffer;
         }
+    }
+
+    void Renderer::renderPostprocess()
+    {
+        // Postprocess Pass
+        glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch back to default fb
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m_post_shader->use();
+
+        m_post_shader->setBool("bloomEnabled", m_bloom_enabled);
+        m_post_shader->setFloat("bloomIntensity", m_bloom_intensity);
+        m_post_shader->setBool("tonemappingEnabled", m_tonemapping_enabled);
+        m_post_shader->setFloat("gammaCorrectionFactor", m_gamma_correction_factor);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_framebuffer->getColorTextureId());
+        m_post_shader->setInt("colorTexture", 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_bloom_framebuffers[m_bloom_framebuffer_result]->getColorTextureId());
+        m_post_shader->setInt("bloomTexture", 1);
+
+        m_fullscreen_quad->draw();
     }
 } // namespace RealmEngine

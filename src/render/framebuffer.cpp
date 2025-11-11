@@ -9,7 +9,6 @@ namespace RealmEngine
 
     void Framebuffer::init()
     {
-        // create the framebuffer
         glGenFramebuffers(1, &m_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
@@ -40,9 +39,6 @@ namespace RealmEngine
         glBindTexture(GL_TEXTURE_2D, 0);
 
         // create depth/stencil buffer
-        // we use renderbuffer which is similar to textures except you can't sample it
-        // that is okay because we never actually need to read the values in depth/stencil buffer
-        // its all done by hardware depth/stencil tests
         glGenRenderbuffers(1, &m_depth_stencil_renderbuffer);
         glBindRenderbuffer(GL_RENDERBUFFER, m_depth_stencil_renderbuffer);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
@@ -55,7 +51,6 @@ namespace RealmEngine
         unsigned int color_attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
         glDrawBuffers(2, color_attachments);
 
-        // make sure the framebuffer was created successfully
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         {
             err("Error initializing framebuffer: framebuffer not complete");

@@ -22,10 +22,9 @@ namespace RealmEngine
         // skybox depth is 1.0 everywhere
         // need equality to make sure skybox passes depth test in default value places
         glDepthFunc(GL_LEQUAL);
-
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture_id);
         m_cube->draw();
-        glDepthFunc(GL_LESS); // go back to default depth comparison
+        glDepthFunc(GL_LESS);
     }
 
     void Skybox::loadCubemapTextures(std::string texture_directory_path)

@@ -38,6 +38,8 @@ namespace RealmEngine
 
         Renderer(const Renderer&)            = delete;
         Renderer& operator=(const Renderer&) = delete;
+        Renderer(Renderer&&)                 = delete;
+        Renderer& operator=(Renderer&&)      = delete;
 
         void initialize(std::shared_ptr<Window> window);
         void disposal();
@@ -49,15 +51,17 @@ namespace RealmEngine
         void setupShaders();
         void setupFramebuffers();
         void setupIBL();
-        void renderBloom();
 
-        std::shared_ptr<Window> m_window;
+        void renderSkybox();
+        void renderBloom();
+        void renderPostprocess();
 
         // framebuffers
         std::unique_ptr<Framebuffer>      m_framebuffer;
         std::unique_ptr<BloomFramebuffer> m_bloom_framebuffers[2];
         unsigned int                      m_bloom_framebuffer_result;
 
+        std::shared_ptr<Window>       m_window;
         std::unique_ptr<Skybox>       m_skybox;
         std::shared_ptr<RenderScene>  m_scene;
         std::shared_ptr<RenderCamera> m_camera;

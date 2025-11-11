@@ -6,11 +6,6 @@ namespace RealmEngine
 {
     const unsigned int QUAD_NUM_TRIANGLES = 6;
 
-    /**
-     * A unit square that covers the whole screen.
-     *
-     * Includes texture coordinates.
-     */
     class FullscreenQuad
     {
     public:
@@ -23,10 +18,8 @@ namespace RealmEngine
         unsigned int m_vao;
         unsigned int m_vbo;
 
-        std::vector<float> m_vertices = {
-            // positions   // textureCoordinates
-            -1.0f, 1.0f, 0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, 0.0f,
+        std::vector<float> m_vertices = {-1.0f, 1.0f, 0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, 0.0f,
 
-            -1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  1.0f, 1.0f};
+                                         -1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  1.0f, 1.0f};
     };
 } // namespace RealmEngine
