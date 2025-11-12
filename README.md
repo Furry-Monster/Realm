@@ -34,6 +34,23 @@
 - **ImGui** - 即时模式 GUI
 - **stb** - 图像加载
 
+项目中依赖库大部分使用submodule管理，克隆时请同时克隆依赖库，例如：
+
+```bash
+# 1.使用递归克隆
+git clone --recursive https://github.com/Furry-Monster/Realm
+
+# 2.手动管理依赖库
+# 克隆原始仓库
+git clone https://github.com/Furry-Monster/Realm
+
+# 初始化子模块
+git submodule init
+
+# 下载依赖库
+git submodule update
+```
+
 ## 快速开始
 
 ### 使用构建脚本（推荐）
