@@ -71,6 +71,8 @@ python build.py --run
 python build.py --clean --run
 ```
 
+windows下暂时不支持MSVC，请使用MinGW工具链手动编译，后面搞懂了再加MSVC的支持。
+
 ### 手动构建
 
 ```bash

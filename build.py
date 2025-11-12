@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 RealmEngine Build Script - Platform Router
-根据平台自动调用对应的构建脚本
 """
 
 import platform
@@ -11,7 +10,7 @@ from pathlib import Path
 
 def main():
     system = platform.system()
-    
+
     if system == "Windows":
         script = Path(__file__).parent / "build_windows.py"
         if not script.exists():
