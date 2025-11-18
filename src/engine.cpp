@@ -99,6 +99,7 @@ namespace RealmEngine
 
     void Engine::tick()
     {
+        // tick timer first
         double current_time = glfwGetTime();
         m_delta_time        = static_cast<float>(current_time - m_last_frame_time);
         m_last_frame_time   = current_time;

@@ -1,4 +1,6 @@
 #include "render/renderer.h"
+#include <filesystem>
+#include <string>
 
 #include "config_manager.h"
 #include "global_context.h"
@@ -13,13 +15,14 @@
 
 namespace RealmEngine
 {
-    void Renderer::initialize(std::shared_ptr<Window> window)
+    void Renderer::initialize()
     {
-        m_window = window;
+        // NOTE:renderer must be initialized after window
+        m_window = g_context.m_window;
 
-        m_engine_root_path = g_context.m_config->getRootFolder().generic_string();
-        m_shader_root_path = g_context.m_config->getShaderFolder().generic_string();
-        m_hdri_path        = g_context.m_config->getAssetFolder().generic_string() + "/hdr/newport_loft.hdr";
+        m_root_path   = g_context.m_config->getRootFolder();
+        m_shader_path = g_context.m_config->getShaderFolder();
+        m_asset_path  = g_context.m_config->getAssetFolder();
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -27,7 +30,7 @@ namespace RealmEngine
         m_camera = std::make_shared<RenderCamera>();
         m_camera->initialize();
         m_camera->setPerspective(
-            45.0f, static_cast<float>(window->getWidth()) / static_cast<float>(window->getHeight()), 0.1f, 100.0f);
+            45.0f, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1f, 100.0f);
         m_camera->setPosition(glm::vec3(0.0f, 0.0f, 5.0f));
         m_camera->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
@@ -37,7 +40,7 @@ namespace RealmEngine
 
         m_fullscreen_quad = std::make_unique<FullscreenQuad>();
 
-        glViewport(0, 0, window->getWidth(), window->getHeight());
+        glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
 
         info("Renderer initialized.");
     }
@@ -54,7 +57,7 @@ namespace RealmEngine
         m_ibl_equirectangular_cubemap.reset();
         m_ibl_diffuse_irradiance_map.reset();
         m_ibl_specular_map.reset();
-        m_skybox.reset();
+        m_ibl_skybox.reset();
         m_fullscreen_quad.reset();
         m_camera.reset();
         m_window.reset();
@@ -150,21 +153,24 @@ namespace RealmEngine
 
     void Renderer::setupShaders()
     {
-        std::string vertex_path   = m_shader_root_path + "/pbr.vert";
-        std::string fragment_path = m_shader_root_path + "/pbr.frag";
-        m_pbr_shader              = std::make_unique<Shader>(vertex_path, fragment_path);
+        std::filesystem::path vertex_path;
+        std::filesystem::path fragment_path;
 
-        vertex_path    = m_shader_root_path + "/bloom.vert";
-        fragment_path  = m_shader_root_path + "/bloom.frag";
-        m_bloom_shader = std::make_unique<Shader>(vertex_path, fragment_path);
+        vertex_path   = m_shader_path / "pbr.vert";
+        fragment_path = m_shader_path / "pbr.frag";
+        m_pbr_shader  = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
 
-        vertex_path   = m_shader_root_path + "/post.vert";
-        fragment_path = m_shader_root_path + "/post.frag";
-        m_post_shader = std::make_unique<Shader>(vertex_path, fragment_path);
+        vertex_path    = m_shader_path / "bloom.vert";
+        fragment_path  = m_shader_path / "bloom.frag";
+        m_bloom_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
 
-        vertex_path     = m_shader_root_path + "/skybox.vert";
-        fragment_path   = m_shader_root_path + "/skybox.frag";
-        m_skybox_shader = std::make_unique<Shader>(vertex_path, fragment_path);
+        vertex_path   = m_shader_path / "post.vert";
+        fragment_path = m_shader_path / "post.frag";
+        m_post_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
+
+        vertex_path     = m_shader_path / "skybox.vert";
+        fragment_path   = m_shader_path / "skybox.frag";
+        m_skybox_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
     }
 
     void Renderer::setupFramebuffers()
@@ -180,26 +186,29 @@ namespace RealmEngine
 
     void Renderer::setupIBL()
     {
+        std::string root_path = m_root_path.generic_string();
+        std::string hdri_path = (m_asset_path / "hdr/barcelona_rooftop.hdr").generic_string();
+
         // Pre-compute IBL stuff
-        m_ibl_equirectangular_cubemap = std::make_unique<EquirectangularCubemap>(m_engine_root_path, m_hdri_path);
+        m_ibl_equirectangular_cubemap = std::make_unique<EquirectangularCubemap>(root_path, hdri_path);
         m_ibl_equirectangular_cubemap->compute();
 
         m_ibl_diffuse_irradiance_map =
-            std::make_unique<DiffuseIrradianceMap>(m_engine_root_path, m_ibl_equirectangular_cubemap->getCubemapId());
+            std::make_unique<DiffuseIrradianceMap>(root_path, m_ibl_equirectangular_cubemap->getCubemapId());
         m_ibl_diffuse_irradiance_map->compute();
 
-        m_ibl_specular_map =
-            std::make_unique<SpecularMap>(m_engine_root_path, m_ibl_equirectangular_cubemap->getCubemapId());
+        m_ibl_specular_map = std::make_unique<SpecularMap>(root_path, m_ibl_equirectangular_cubemap->getCubemapId());
         m_ibl_specular_map->computePrefilteredEnvMap();
         m_ibl_specular_map->computeBrdfConvolutionMap();
 
         // Create skybox from the equirectangular cubemap
-        m_skybox = std::make_unique<Skybox>(m_ibl_equirectangular_cubemap->getCubemapId());
+        m_ibl_skybox = std::make_unique<Skybox>(m_ibl_equirectangular_cubemap->getCubemapId());
     }
 
     void Renderer::renderSkybox()
     {
         // Skybox pass
+        // this should be after IBL pass cuz it's relating to IBL
         m_skybox_shader->use();
         glm::mat4 model       = glm::mat4(1.0f);
         glm::mat4 skybox_view = glm::mat4(glm::mat3(m_camera->getViewMatrix()));
@@ -207,7 +216,7 @@ namespace RealmEngine
         m_skybox_shader->setModelViewProjectionMatrices(model, skybox_view, m_camera->getProjMatrix());
         m_skybox_shader->setInt("skybox", 0);
         m_skybox_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
-        m_skybox->draw();
+        m_ibl_skybox->draw();
     }
 
     void Renderer::renderBloom()

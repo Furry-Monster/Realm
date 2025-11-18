@@ -27,4 +27,5 @@ namespace RealmEngine
 #endif
         return std::filesystem::current_path() / "RealmEngine";
     }
+
 } // namespace RealmEngine

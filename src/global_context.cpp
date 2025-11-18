@@ -28,7 +28,7 @@ namespace RealmEngine
         m_window->initialize();
 
         m_renderer = std::make_shared<Renderer>();
-        m_renderer->initialize(m_window);
+        m_renderer->initialize();
 
         m_input = std::make_shared<Input>();
         m_input->initialize();

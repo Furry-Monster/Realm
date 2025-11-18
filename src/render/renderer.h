@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
-#include <string>
 #include "render/bloom_framebuffer.h"
 #include "render/framebuffer.h"
 #include "render/fullscreen_quad.h"
@@ -41,7 +41,7 @@ namespace RealmEngine
         Renderer(Renderer&&)                 = delete;
         Renderer& operator=(Renderer&&)      = delete;
 
-        void initialize(std::shared_ptr<Window> window);
+        void initialize();
         void disposal();
         void render(std::shared_ptr<RenderScene> scene);
 
@@ -62,13 +62,12 @@ namespace RealmEngine
         unsigned int                      m_bloom_framebuffer_result;
 
         std::shared_ptr<Window>       m_window;
-        std::unique_ptr<Skybox>       m_skybox;
         std::shared_ptr<RenderScene>  m_scene;
         std::shared_ptr<RenderCamera> m_camera;
 
-        std::string m_shader_root_path;
-        std::string m_engine_root_path;
-        std::string m_hdri_path;
+        std::filesystem::path m_root_path;
+        std::filesystem::path m_shader_path;
+        std::filesystem::path m_asset_path;
 
         std::unique_ptr<Shader> m_pbr_shader;
         std::unique_ptr<Shader> m_bloom_shader;
@@ -76,6 +75,7 @@ namespace RealmEngine
         std::unique_ptr<Shader> m_skybox_shader;
 
         // pre-computed IBL stuff
+        std::unique_ptr<Skybox>                 m_ibl_skybox;
         std::unique_ptr<EquirectangularCubemap> m_ibl_equirectangular_cubemap;
         std::unique_ptr<DiffuseIrradianceMap>   m_ibl_diffuse_irradiance_map;
         std::unique_ptr<SpecularMap>            m_ibl_specular_map;
@@ -86,7 +86,7 @@ namespace RealmEngine
         float                           m_bloom_intensity         = 1.0f;
         int                             m_bloom_iterations        = 10;
         BloomDirection                  m_bloom_direction         = BloomDirection::BOTH;
-        bool                            m_tonemapping_enabled     = false;
+        bool                            m_tonemapping_enabled     = true;
         float                           m_gamma_correction_factor = 2.2f;
         float                           m_bloom_brightness_cutoff = 1.0f;
     };
