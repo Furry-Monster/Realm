@@ -5,9 +5,7 @@ int main(int /*argc*/, char** /*argv*/)
     RealmEngine::Engine engine;
 
     engine.boot();
-
-    engine.debugRun();
-
+    engine.run();
     engine.terminate();
 
     return 0;

@@ -18,7 +18,6 @@ namespace RealmEngine
         Engine& operator=(Engine&& that)      = delete;
 
         void boot();
-        void debugRun();
         void run();
         void terminate();
 

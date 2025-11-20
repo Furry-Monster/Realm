@@ -21,10 +21,10 @@ namespace RealmEngine
         Logger()           = default;
         ~Logger() noexcept = default;
 
-        Logger(const Logger& that)            = delete;
-        Logger(Logger&& that)                 = delete;
-        Logger& operator=(const Logger& that) = delete;
-        Logger& operator=(Logger&& that)      = delete;
+        Logger(const Logger& that)                = delete;
+        Logger& operator=(const Logger& that)     = delete;
+        Logger(Logger&& that) noexcept            = default;
+        Logger& operator=(Logger&& that) noexcept = default;
 
         void initialize();
         void disposal();

@@ -25,18 +25,18 @@ namespace RealmEngine
         info("<<< Boot Engine Done. >>>");
     }
 
-    void Engine::debugRun()
+    void Engine::run()
     {
         int frame_count = 0;
 
-        auto&& scene        = std::make_shared<Scene>();
-        auto&& render_scene = std::make_shared<RenderScene>();
+        auto scene        = std::make_shared<Scene>();
+        auto render_scene = std::make_shared<RenderScene>();
 
         render_scene->m_light_positions.push_back(glm::vec3(0.0f, 10.0f, 0.0f));
         render_scene->m_light_colors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
 
-        m_scene        = scene;
-        m_render_scene = render_scene;
+        m_scene        = std::move(scene);
+        m_render_scene = std::move(render_scene);
 
         std::string model_path = g_context.m_config->getAssetFolder().generic_string() + "/helmet/DamagedHelmet.gltf";
         try
@@ -48,7 +48,7 @@ namespace RealmEngine
             entity.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
 
             entity.setOrientation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
-            render_scene->m_entities.push_back(entity);
+            m_render_scene->m_entities.push_back(entity);
             info("Successfully loaded helmet model: " + model_path);
         }
         catch (const std::exception& e)
@@ -64,7 +64,7 @@ namespace RealmEngine
         g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
-        scene->initialize(g_context.m_renderer->getCamera());
+        m_scene->initialize(g_context.m_renderer->getCamera());
 
         m_last_frame_time = glfwGetTime();
 
@@ -80,12 +80,6 @@ namespace RealmEngine
         }
 
         debug("Render loop completed. Total frames: " + std::to_string(frame_count));
-    }
-
-    void Engine::run()
-    {
-        while (!g_context.m_window->shouldClose())
-            tick();
     }
 
     void Engine::terminate()

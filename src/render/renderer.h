@@ -61,19 +61,6 @@ namespace RealmEngine
         std::unique_ptr<BloomFramebuffer> m_bloom_framebuffers[2];
         unsigned int                      m_bloom_framebuffer_result;
 
-        std::shared_ptr<Window>       m_window;
-        std::shared_ptr<RenderScene>  m_scene;
-        std::shared_ptr<RenderCamera> m_camera;
-
-        std::filesystem::path m_root_path;
-        std::filesystem::path m_shader_path;
-        std::filesystem::path m_asset_path;
-
-        std::unique_ptr<Shader> m_pbr_shader;
-        std::unique_ptr<Shader> m_bloom_shader;
-        std::unique_ptr<Shader> m_post_shader;
-        std::unique_ptr<Shader> m_skybox_shader;
-
         // pre-computed IBL stuff
         std::unique_ptr<Skybox>                 m_ibl_skybox;
         std::unique_ptr<EquirectangularCubemap> m_ibl_equirectangular_cubemap;
@@ -89,5 +76,19 @@ namespace RealmEngine
         bool                            m_tonemapping_enabled     = true;
         float                           m_gamma_correction_factor = 2.2f;
         float                           m_bloom_brightness_cutoff = 1.0f;
+
+        // misc rendering stuff
+        std::shared_ptr<Window>       m_window;
+        std::shared_ptr<RenderScene>  m_scene;
+        std::shared_ptr<RenderCamera> m_camera;
+
+        std::filesystem::path m_root_path;
+        std::filesystem::path m_shader_path;
+        std::filesystem::path m_asset_path;
+
+        std::unique_ptr<Shader> m_pbr_shader;
+        std::unique_ptr<Shader> m_bloom_shader;
+        std::unique_ptr<Shader> m_post_shader;
+        std::unique_ptr<Shader> m_skybox_shader;
     };
 } // namespace RealmEngine
