@@ -4,11 +4,11 @@
 #include <filesystem>
 #include <memory>
 #include "render/bloom_framebuffer.h"
-#include "render/framebuffer.h"
 #include "render/fullscreen_quad.h"
 #include "render/ibl/diffuse_irradiance_map.h"
 #include "render/ibl/equirectangular_cubemap.h"
 #include "render/ibl/specular_map.h"
+#include "render/pbr_framebuffer.h"
 #include "render/render_camera.h"
 #include "render/render_scene.h"
 #include "render/shader.h"
@@ -56,26 +56,24 @@ namespace RealmEngine
         void renderBloom();
         void renderPostprocess();
 
-        // framebuffers
-        std::unique_ptr<Framebuffer>      m_framebuffer;
-        std::unique_ptr<BloomFramebuffer> m_bloom_framebuffers[2];
-        unsigned int                      m_bloom_framebuffer_result;
-
-        // pre-computed IBL stuff
+        // main pass
+        std::unique_ptr<PBRFramebuffer>         m_framebuffer;
         std::unique_ptr<Skybox>                 m_ibl_skybox;
         std::unique_ptr<EquirectangularCubemap> m_ibl_equirectangular_cubemap;
         std::unique_ptr<DiffuseIrradianceMap>   m_ibl_diffuse_irradiance_map;
         std::unique_ptr<SpecularMap>            m_ibl_specular_map;
 
         // post-processing stuff
-        std::unique_ptr<FullscreenQuad> m_fullscreen_quad;
-        bool                            m_bloom_enabled           = true;
-        float                           m_bloom_intensity         = 1.0f;
-        int                             m_bloom_iterations        = 10;
-        BloomDirection                  m_bloom_direction         = BloomDirection::BOTH;
-        bool                            m_tonemapping_enabled     = true;
-        float                           m_gamma_correction_factor = 2.2f;
-        float                           m_bloom_brightness_cutoff = 1.0f;
+        std::unique_ptr<FullscreenQuad>   m_fullscreen_quad;
+        bool                              m_bloom_enabled           = true;
+        float                             m_bloom_intensity         = 1.0f;
+        int                               m_bloom_iterations        = 10;
+        BloomDirection                    m_bloom_direction         = BloomDirection::BOTH;
+        bool                              m_tonemapping_enabled     = true;
+        float                             m_gamma_correction_factor = 2.2f;
+        float                             m_bloom_brightness_cutoff = 1.0f;
+        std::unique_ptr<BloomFramebuffer> m_bloom_framebuffers[2];
+        unsigned int                      m_bloom_framebuffer_result;
 
         // misc rendering stuff
         std::shared_ptr<Window>       m_window;

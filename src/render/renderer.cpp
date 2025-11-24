@@ -175,7 +175,7 @@ namespace RealmEngine
 
     void Renderer::setupFramebuffers()
     {
-        m_framebuffer = std::make_unique<Framebuffer>(m_window->getWidth(), m_window->getHeight());
+        m_framebuffer = std::make_unique<PBRFramebuffer>(m_window->getWidth(), m_window->getHeight());
         m_framebuffer->init();
 
         m_bloom_framebuffers[0] = std::make_unique<BloomFramebuffer>(m_window->getWidth(), m_window->getHeight());

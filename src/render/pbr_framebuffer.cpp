@@ -1,13 +1,13 @@
-#include "render/framebuffer.h"
+#include "render/pbr_framebuffer.h"
 
 #include <glad/gl.h>
 #include "utils.h"
 
 namespace RealmEngine
 {
-    Framebuffer::Framebuffer(int width, int height) : m_width(width), m_height(height) {}
+    PBRFramebuffer::PBRFramebuffer(int width, int height) : m_width(width), m_height(height) {}
 
-    void Framebuffer::init()
+    void PBRFramebuffer::init()
     {
         glGenFramebuffers(1, &m_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
@@ -59,9 +59,9 @@ namespace RealmEngine
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void Framebuffer::bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer); }
+    void PBRFramebuffer::bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer); }
 
-    void Framebuffer::resize(int width, int height)
+    void PBRFramebuffer::resize(int width, int height)
     {
         m_width  = width;
         m_height = height;
@@ -79,9 +79,9 @@ namespace RealmEngine
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
-    unsigned int Framebuffer::getFramebufferId() const { return m_framebuffer; }
+    unsigned int PBRFramebuffer::getFramebufferId() const { return m_framebuffer; }
 
-    unsigned int Framebuffer::getColorTextureId() const { return m_color_texture; }
+    unsigned int PBRFramebuffer::getColorTextureId() const { return m_color_texture; }
 
-    unsigned int Framebuffer::getBloomColorTextureId() const { return m_bloom_color_texture; }
+    unsigned int PBRFramebuffer::getBloomColorTextureId() const { return m_bloom_color_texture; }
 } // namespace RealmEngine

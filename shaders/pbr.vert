@@ -18,9 +18,9 @@ uniform mat4 projection;
 
 void main()
 {
+    textureCoordinates = aTextureCoordinates;
     worldCoordinates   = (model * vec4(aPos, 1.0f)).xyz;
     gl_Position        = projection * view * model * vec4(aPos, 1.0f);
-    textureCoordinates = aTextureCoordinates;
 
     mat3 normalMatrix = transpose(inverse(mat3(model)));
 

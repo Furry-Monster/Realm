@@ -2,11 +2,11 @@
 
 namespace RealmEngine
 {
-    class Framebuffer
+    class PBRFramebuffer
     {
         // this is the main frame buffer
     public:
-        Framebuffer(int width, int height);
+        PBRFramebuffer(int width, int height);
 
         void init();
         void bind() const;
