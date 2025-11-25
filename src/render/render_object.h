@@ -8,14 +8,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "render/render_mesh.h"
 
 namespace RealmEngine
 {
+    using TextureCache = std::unordered_map<std::string, std::shared_ptr<Texture>>;
+
     class RenderObject
     {
     public:
@@ -40,13 +42,12 @@ namespace RealmEngine
         std::shared_ptr<Texture> loadMaterialTexture(aiMaterial* material, aiTextureType type);
         unsigned int             textureFromFile(const char* file_name, std::string directory, aiTextureType type);
 
-        glm::vec3 m_position {glm::vec3(0.0)};
-        glm::vec3 m_scale {glm::vec3(1.0, 1.0, 1.0)};
-        glm::quat m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
-
-        std::vector<RenderMesh>                         m_meshes;
-        std::string                                     m_directory;
-        std::map<std::string, std::shared_ptr<Texture>> m_textures_loaded;
-        std::shared_ptr<RenderMaterial>                 m_material_override;
+        glm::vec3                       m_position {glm::vec3(0.0)};
+        glm::vec3                       m_scale {glm::vec3(1.0, 1.0, 1.0)};
+        glm::quat                       m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
+        std::vector<RenderMesh>         m_meshes;
+        std::string                     m_directory;
+        TextureCache                    m_textures_loaded;
+        std::shared_ptr<RenderMaterial> m_material_override;
     };
 } // namespace RealmEngine

@@ -17,7 +17,7 @@ namespace RealmEngine
         RenderScene(RenderScene&&) noexcept            = default;
         RenderScene& operator=(RenderScene&&) noexcept = default;
 
-        std::vector<RenderObject> m_objects;
+        std::vector<RenderObject> m_render_objects;
         std::vector<glm::vec3>    m_light_positions;
         std::vector<glm::vec3>    m_light_colors;
     };

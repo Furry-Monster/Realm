@@ -6,6 +6,16 @@
 
 namespace RealmEngine
 {
+    // texture channel offsets
+    const static int TEXTURE_UNIT_ALBEDO                 = 0; // pbr
+    const static int TEXTURE_UNIT_METALLIC_ROUGHNESS     = 1;
+    const static int TEXTURE_UNIT_NORMAL                 = 2;
+    const static int TEXTURE_UNIT_AMBIENT_OCCLUSION      = 3;
+    const static int TEXTURE_UNIT_EMISSIVE               = 4;
+    const static int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10; // ibl
+    const static int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
+    const static int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
+
     struct RenderMaterial
     {
         bool use_texture_albedo             = false;

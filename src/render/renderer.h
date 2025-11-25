@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <filesystem>
 #include <memory>
 
@@ -19,18 +18,6 @@ namespace RealmEngine
 {
     class Window;
 
-    enum class BloomDirection : uint8_t
-    {
-        BOTH       = 0,
-        HORIZONTAL = 1,
-        VERTICAL   = 2
-    };
-
-    // IBL texture units offset
-    static const int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10;
-    static const int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
-    static const int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
-
     class Renderer
     {
     public:
@@ -44,7 +31,7 @@ namespace RealmEngine
 
         void initialize();
         void disposal();
-        void render(std::shared_ptr<RenderScene> scene);
+        void render(std::shared_ptr<RenderScene> render_scene);
 
         std::shared_ptr<RenderCamera> getCamera() const { return m_camera; }
 

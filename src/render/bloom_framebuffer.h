@@ -1,7 +1,17 @@
 #pragma once
 
+#include <cstdint>
+
 namespace RealmEngine
 {
+
+    enum class BloomDirection : uint8_t
+    {
+        BOTH       = 0,
+        HORIZONTAL = 1,
+        VERTICAL   = 2
+    };
+
     class BloomFramebuffer
     {
     public:

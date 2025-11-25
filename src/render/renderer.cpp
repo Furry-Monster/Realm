@@ -77,12 +77,12 @@ namespace RealmEngine
         info("Renderer shutdown.");
     }
 
-    void Renderer::render(std::shared_ptr<RenderScene> scene)
+    void Renderer::render(std::shared_ptr<RenderScene> render_scene)
     {
-        if (!scene)
+        if (!render_scene)
             return;
 
-        m_scene = scene;
+        m_scene = render_scene;
 
         // Main pass
         m_pbr_framebuffer->bind();
@@ -104,10 +104,10 @@ namespace RealmEngine
         // Set light data
         std::vector<glm::vec3> light_positions(4, glm::vec3(0.0f));
         std::vector<glm::vec3> light_colors(4, glm::vec3(0.0f));
-        for (size_t i = 0; i < std::min(scene->m_light_positions.size(), static_cast<size_t>(4)); ++i)
-            light_positions[i] = scene->m_light_positions[i];
-        for (size_t i = 0; i < std::min(scene->m_light_colors.size(), static_cast<size_t>(4)); ++i)
-            light_colors[i] = scene->m_light_colors[i];
+        for (size_t i = 0; i < std::min(render_scene->m_light_positions.size(), static_cast<size_t>(4)); ++i)
+            light_positions[i] = render_scene->m_light_positions[i];
+        for (size_t i = 0; i < std::min(render_scene->m_light_colors.size(), static_cast<size_t>(4)); ++i)
+            light_colors[i] = render_scene->m_light_colors[i];
 
         m_pbr_shader->setVec3Array("lightPositions", light_positions);
         m_pbr_shader->setVec3Array("lightColors", light_colors);
@@ -130,19 +130,19 @@ namespace RealmEngine
         m_pbr_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
 
         // Render entities
-        for (auto& object : scene->m_objects)
+        for (auto& ro : render_scene->m_render_objects)
         {
             glm::mat4 model = glm::mat4(1.0f);
 
-            auto rotation_matrix = glm::toMat4(object.getOrientation());
+            auto rotation_matrix = glm::toMat4(ro.getOrientation());
             model                = rotation_matrix * model;
-            model                = glm::translate(model, object.getPosition());
-            model                = glm::scale(model, object.getScale());
+            model                = glm::translate(model, ro.getPosition());
+            model                = glm::scale(model, ro.getScale());
 
             m_pbr_shader->setModelViewProjectionMatrices(model, view, projection);
 
             glDepthMask(GL_TRUE);
-            object.draw(*m_pbr_shader);
+            ro.draw(*m_pbr_shader);
         }
 
         renderSkybox();

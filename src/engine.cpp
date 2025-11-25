@@ -41,7 +41,7 @@ namespace RealmEngine
         try
         {
             // Don't flip textures for glTF
-            auto& obj = m_render_scene->m_objects.emplace_back(model_path, false);
+            auto& obj = m_render_scene->m_render_objects.emplace_back(model_path, false);
 
             obj.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
             obj.setScale(glm::vec3(1.0f, 1.0f, 1.0f));

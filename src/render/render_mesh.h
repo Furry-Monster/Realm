@@ -8,12 +8,6 @@
 
 namespace RealmEngine
 {
-    const int TEXTURE_UNIT_ALBEDO             = 0;
-    const int TEXTURE_UNIT_METALLIC_ROUGHNESS = 1;
-    const int TEXTURE_UNIT_NORMAL             = 2;
-    const int TEXTURE_UNIT_AMBIENT_OCCLUSION  = 3;
-    const int TEXTURE_UNIT_EMISSIVE           = 4;
-
     class RenderMesh
     {
     public:
