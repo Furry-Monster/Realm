@@ -8,7 +8,52 @@ namespace RealmEngine
                            std::vector<unsigned int> indices,
                            RenderMaterial material) : m_vertices(vertices), m_indices(indices), m_material(material)
     {
-        init();
+        glGenVertexArrays(1, &m_vao);
+        glGenBuffers(1, &m_vbo);
+        glGenBuffers(1, &m_ebo);
+
+        glBindVertexArray(m_vao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     m_vertices.size() * sizeof(RenderVertex),
+                     &m_vertices[0],
+                     GL_STATIC_DRAW); // copy over the vertex data
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     m_indices.size() * sizeof(unsigned int),
+                     &m_indices[0],
+                     GL_STATIC_DRAW); // copy over the index data
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(0));
+
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(
+            1, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(offsetof(RenderVertex, m_normal)));
+
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2,
+                              2,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              sizeof(RenderVertex),
+                              reinterpret_cast<void*>(offsetof(RenderVertex, m_texture_coordinates)));
+
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(
+            3, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(offsetof(RenderVertex, m_tangent)));
+
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4,
+                              3,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              sizeof(RenderVertex),
+                              reinterpret_cast<void*>(offsetof(RenderVertex, m_bitangent)));
+
+        glBindVertexArray(0);
     }
 
     void RenderMesh::draw(Shader& shader)
@@ -62,56 +107,6 @@ namespace RealmEngine
 
         glBindVertexArray(m_vao);
         glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
-        glBindVertexArray(0);
-    }
-
-    void RenderMesh::init()
-    {
-        glGenVertexArrays(1, &m_vao);
-        glGenBuffers(1, &m_vbo);
-        glGenBuffers(1, &m_ebo);
-
-        glBindVertexArray(m_vao);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER,
-                     m_vertices.size() * sizeof(RenderVertex),
-                     &m_vertices[0],
-                     GL_STATIC_DRAW); // copy over the vertex data
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     m_indices.size() * sizeof(unsigned int),
-                     &m_indices[0],
-                     GL_STATIC_DRAW); // copy over the index data
-
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(0));
-
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(
-            1, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(offsetof(RenderVertex, m_normal)));
-
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              sizeof(RenderVertex),
-                              reinterpret_cast<void*>(offsetof(RenderVertex, m_texture_coordinates)));
-
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(
-            3, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(offsetof(RenderVertex, m_tangent)));
-
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4,
-                              3,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              sizeof(RenderVertex),
-                              reinterpret_cast<void*>(offsetof(RenderVertex, m_bitangent)));
-
         glBindVertexArray(0);
     }
 } // namespace RealmEngine

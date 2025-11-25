@@ -86,8 +86,6 @@ namespace RealmEngine
         std::string getTitle() const;
         int         getWidth() const;
         int         getHeight() const;
-        int         getFramebufferWidth() const;
-        int         getFramebufferHeight() const;
         int         getMSAASamples() const;
 
         bool isHDREnabled() const;
@@ -204,8 +202,6 @@ namespace RealmEngine
             if (app)
             {
                 app->onFramebufferSize(width, height);
-                app->m_framebuffer_width  = width;
-                app->m_framebuffer_height = height;
             }
         }
         static void windowCloseCallback(GLFWwindow* window)
@@ -285,8 +281,6 @@ namespace RealmEngine
         std::string                                    m_title {"RealmEngine"};
         int                                            m_width {0};
         int                                            m_height {0};
-        int                                            m_framebuffer_width {0};
-        int                                            m_framebuffer_height {0};
         int                                            m_msaa_samples {0};
         bool                                           m_vsync {false};
 

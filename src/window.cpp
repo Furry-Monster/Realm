@@ -59,8 +59,7 @@ namespace RealmEngine
         glfwSetFramebufferSizeCallback(m_window.get(), framebufferSizeCallback);
         glfwSetWindowCloseCallback(m_window.get(), windowCloseCallback);
 
-        glfwGetFramebufferSize(m_window.get(), &m_framebuffer_width, &m_framebuffer_height);
-        glViewport(0, 0, m_framebuffer_width, m_framebuffer_height);
+        glViewport(0, 0, m_width, m_height);
         glfwSwapInterval(m_vsync ? 1 : 0);
         if (m_msaa_samples > 0)
             glEnable(GL_MULTISAMPLE);
@@ -94,11 +93,8 @@ namespace RealmEngine
     std::string Window::getTitle() const { return m_title; }
     int         Window::getWidth() const { return m_width; }
     int         Window::getHeight() const { return m_height; }
-    int         Window::getFramebufferWidth() const { return m_framebuffer_width; }
-    int         Window::getFramebufferHeight() const { return m_framebuffer_height; }
     int         Window::getMSAASamples() const { return m_msaa_samples; }
 
-    bool Window::isHDREnabled() const { return m_framebuffer_width > m_width && m_framebuffer_height > m_height; }
     bool Window::isMSAAEnabled() const { return m_msaa_samples > 0; }
     bool Window::isVSyncEnabled() const { return m_vsync; }
 

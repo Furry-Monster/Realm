@@ -26,8 +26,6 @@ namespace RealmEngine
         RenderMaterial            m_material;
 
     private:
-        void init();
-
         unsigned int m_vao, m_vbo, m_ebo;
     };
 } // namespace RealmEngine

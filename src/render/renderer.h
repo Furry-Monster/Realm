@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+
 #include "render/bloom_framebuffer.h"
 #include "render/fullscreen_quad.h"
 #include "render/ibl/diffuse_irradiance_map.h"
@@ -25,7 +26,7 @@ namespace RealmEngine
         VERTICAL   = 2
     };
 
-    // IBL texture units
+    // IBL texture units offset
     static const int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10;
     static const int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
     static const int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
@@ -33,7 +34,7 @@ namespace RealmEngine
     class Renderer
     {
     public:
-        Renderer()           = default;
+        Renderer();
         ~Renderer() noexcept = default;
 
         Renderer(const Renderer&)            = delete;
@@ -49,7 +50,6 @@ namespace RealmEngine
 
     private:
         void setupShaders();
-        void setupFramebuffers();
         void setupIBL();
 
         void renderSkybox();
@@ -57,7 +57,7 @@ namespace RealmEngine
         void renderPostprocess();
 
         // main pass
-        std::unique_ptr<PBRFramebuffer>         m_framebuffer;
+        std::unique_ptr<PBRFramebuffer>         m_pbr_framebuffer;
         std::unique_ptr<Skybox>                 m_ibl_skybox;
         std::unique_ptr<EquirectangularCubemap> m_ibl_equirectangular_cubemap;
         std::unique_ptr<DiffuseIrradianceMap>   m_ibl_diffuse_irradiance_map;

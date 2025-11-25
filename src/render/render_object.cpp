@@ -21,6 +21,18 @@ namespace RealmEngine
         loadModel(path, flipTexturesVertically);
     }
 
+    void RenderObject::setPosition(glm::vec3 position) { m_position = position; }
+
+    glm::vec3 RenderObject::getPosition() const { return m_position; }
+
+    void RenderObject::setScale(glm::vec3 scale) { m_scale = scale; }
+
+    glm::vec3 RenderObject::getScale() const { return m_scale; }
+
+    void RenderObject::setOrientation(glm::quat orientation) { m_orientation = orientation; }
+
+    glm::quat RenderObject::getOrientation() const { return m_orientation; }
+
     void RenderObject::draw(Shader& shader)
     {
         for (auto& mesh : m_meshes)
@@ -71,9 +83,7 @@ namespace RealmEngine
         }
 
         for (unsigned int i = 0; i < node->mNumChildren; i++)
-        {
             processNode(node->mChildren[i], scene);
-        }
     }
 
     RenderMesh RenderObject::processMesh(aiMesh* mesh, const aiScene* scene)
@@ -83,9 +93,7 @@ namespace RealmEngine
         RenderMaterial            material;
 
         if (m_material_override)
-        {
             material = *m_material_override;
-        }
 
         // vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)

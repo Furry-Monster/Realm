@@ -12,7 +12,7 @@ namespace RealmEngine
         glGenFramebuffers(1, &m_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
-        // create color texture
+        // create color texture on ch0
         glGenTextures(1, &m_color_texture);
         glBindTexture(GL_TEXTURE_2D, m_color_texture);
 
@@ -24,7 +24,7 @@ namespace RealmEngine
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_color_texture, 0);
 
-        // create bloom texture
+        // create bloom texture on ch1
         glGenTextures(1, &m_bloom_color_texture);
         glBindTexture(GL_TEXTURE_2D, m_bloom_color_texture);
 
@@ -35,7 +35,6 @@ namespace RealmEngine
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_bloom_color_texture, 0);
-
         glBindTexture(GL_TEXTURE_2D, 0);
 
         // create depth/stencil buffer
@@ -44,17 +43,15 @@ namespace RealmEngine
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-        // attach the renderbuffer to the framebuffer
+        // attach.
         glFramebufferRenderbuffer(
             GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depth_stencil_renderbuffer);
 
-        unsigned int color_attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        static const unsigned int color_attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
         glDrawBuffers(2, color_attachments);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        {
-            err("Error initializing framebuffer: framebuffer not complete");
-        }
+            fatal("Error initializing framebuffer: framebuffer not complete");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }

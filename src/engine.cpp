@@ -9,7 +9,6 @@
 #include "gameplay/scene.h"
 #include "global_context.h"
 #include "input.h"
-#include "render/render_entity.h"
 #include "render/render_object.h"
 #include "render/render_scene.h"
 #include "render/renderer.h"
@@ -42,13 +41,12 @@ namespace RealmEngine
         try
         {
             // Don't flip textures for glTF
-            auto model  = std::make_shared<RenderObject>(model_path, false);
-            auto entity = RenderEntity(model);
-            entity.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-            entity.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+            auto& obj = m_render_scene->m_objects.emplace_back(model_path, false);
 
-            entity.setOrientation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
-            m_render_scene->m_entities.push_back(entity);
+            obj.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+            obj.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+            obj.setOrientation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
+
             info("Successfully loaded helmet model: " + model_path);
         }
         catch (const std::exception& e)

@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
-#include "render/render_entity.h"
+#include "render/render_object.h"
 
 namespace RealmEngine
 {
@@ -17,7 +17,7 @@ namespace RealmEngine
         RenderScene(RenderScene&&) noexcept            = default;
         RenderScene& operator=(RenderScene&&) noexcept = default;
 
-        std::vector<RenderEntity> m_entities;
+        std::vector<RenderObject> m_objects;
         std::vector<glm::vec3>    m_light_positions;
         std::vector<glm::vec3>    m_light_colors;
     };

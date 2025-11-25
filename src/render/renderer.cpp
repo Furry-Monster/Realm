@@ -1,6 +1,4 @@
 #include "render/renderer.h"
-#include <filesystem>
-#include <string>
 
 #include "config_manager.h"
 #include "global_context.h"
@@ -15,30 +13,41 @@
 
 namespace RealmEngine
 {
+    Renderer::Renderer()
+    {
+        m_root_path   = g_context.m_config->getRootFolder();
+        m_shader_path = g_context.m_config->getShaderFolder();
+        m_asset_path  = g_context.m_config->getAssetFolder();
+
+        m_camera = std::make_shared<RenderCamera>();
+
+        setupShaders();
+    }
+
     void Renderer::initialize()
     {
         // NOTE:renderer must be initialized after window
         m_window = g_context.m_window;
 
-        m_root_path   = g_context.m_config->getRootFolder();
-        m_shader_path = g_context.m_config->getShaderFolder();
-        m_asset_path  = g_context.m_config->getAssetFolder();
-
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-        m_camera = std::make_shared<RenderCamera>();
         m_camera->initialize();
         m_camera->setPerspective(
             45.0f, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1f, 100.0f);
         m_camera->setPosition(glm::vec3(0.0f, 0.0f, 5.0f));
         m_camera->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
-        setupShaders();
-        setupFramebuffers();
+        m_pbr_framebuffer = std::make_unique<PBRFramebuffer>(m_window->getWidth(), m_window->getHeight());
+        m_pbr_framebuffer->init();
+
         setupIBL();
 
-        m_fullscreen_quad = std::make_unique<FullscreenQuad>();
+        m_fullscreen_quad       = std::make_unique<FullscreenQuad>();
+        m_bloom_framebuffers[0] = std::make_unique<BloomFramebuffer>(m_window->getWidth(), m_window->getHeight());
+        m_bloom_framebuffers[0]->init();
+        m_bloom_framebuffers[1] = std::make_unique<BloomFramebuffer>(m_window->getWidth(), m_window->getHeight());
+        m_bloom_framebuffers[1]->init();
 
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
 
@@ -51,14 +60,17 @@ namespace RealmEngine
         m_bloom_shader.reset();
         m_post_shader.reset();
         m_skybox_shader.reset();
-        m_framebuffer.reset();
-        m_bloom_framebuffers[0].reset();
-        m_bloom_framebuffers[1].reset();
+
+        m_pbr_framebuffer.reset();
         m_ibl_equirectangular_cubemap.reset();
         m_ibl_diffuse_irradiance_map.reset();
         m_ibl_specular_map.reset();
         m_ibl_skybox.reset();
         m_fullscreen_quad.reset();
+        m_bloom_framebuffers[0].reset();
+        m_bloom_framebuffers[1].reset();
+
+        m_camera->disposal();
         m_camera.reset();
         m_window.reset();
 
@@ -73,14 +85,13 @@ namespace RealmEngine
         m_scene = scene;
 
         // Main pass
-        m_framebuffer->bind();
+        m_pbr_framebuffer->bind();
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
-        glDepthMask(GL_TRUE); // Enable depth writing
 
         // update camera first.
         m_camera->update();
@@ -90,17 +101,13 @@ namespace RealmEngine
 
         m_pbr_shader->use();
 
-        // Set light data (pad to 4 lights if needed)
+        // Set light data
         std::vector<glm::vec3> light_positions(4, glm::vec3(0.0f));
         std::vector<glm::vec3> light_colors(4, glm::vec3(0.0f));
         for (size_t i = 0; i < std::min(scene->m_light_positions.size(), static_cast<size_t>(4)); ++i)
-        {
             light_positions[i] = scene->m_light_positions[i];
-        }
         for (size_t i = 0; i < std::min(scene->m_light_colors.size(), static_cast<size_t>(4)); ++i)
-        {
             light_colors[i] = scene->m_light_colors[i];
-        }
 
         m_pbr_shader->setVec3Array("lightPositions", light_positions);
         m_pbr_shader->setVec3Array("lightColors", light_colors);
@@ -119,29 +126,23 @@ namespace RealmEngine
         m_pbr_shader->setInt("brdfConvolutionMap", TEXTURE_UNIT_BRDF_CONVOLUTION_MAP);
         glBindTexture(GL_TEXTURE_2D, m_ibl_specular_map->getBrdfConvolutionMapId());
 
-        // post stuff for main shader
+        // post stuff
         m_pbr_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
 
         // Render entities
-        for (auto& entity : scene->m_entities)
+        for (auto& object : scene->m_objects)
         {
             glm::mat4 model = glm::mat4(1.0f);
 
-            // Match reference implementation transformation order
-            auto rotation_matrix = glm::toMat4(entity.getOrientation());
+            auto rotation_matrix = glm::toMat4(object.getOrientation());
             model                = rotation_matrix * model;
-
-            model = glm::translate(model, entity.getPosition());
-            model = glm::scale(model, entity.getScale());
+            model                = glm::translate(model, object.getPosition());
+            model                = glm::scale(model, object.getScale());
 
             m_pbr_shader->setModelViewProjectionMatrices(model, view, projection);
 
-            if (auto model_ptr = entity.getObject())
-            {
-                // Ensure depth writing is enabled for models
-                glDepthMask(GL_TRUE);
-                model_ptr->draw(*m_pbr_shader);
-            }
+            glDepthMask(GL_TRUE);
+            object.draw(*m_pbr_shader);
         }
 
         renderSkybox();
@@ -173,17 +174,6 @@ namespace RealmEngine
         m_skybox_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
     }
 
-    void Renderer::setupFramebuffers()
-    {
-        m_framebuffer = std::make_unique<PBRFramebuffer>(m_window->getWidth(), m_window->getHeight());
-        m_framebuffer->init();
-
-        m_bloom_framebuffers[0] = std::make_unique<BloomFramebuffer>(m_window->getWidth(), m_window->getHeight());
-        m_bloom_framebuffers[0]->init();
-        m_bloom_framebuffers[1] = std::make_unique<BloomFramebuffer>(m_window->getWidth(), m_window->getHeight());
-        m_bloom_framebuffers[1]->init();
-    }
-
     void Renderer::setupIBL()
     {
         std::string root_path = m_root_path.generic_string();
@@ -208,7 +198,6 @@ namespace RealmEngine
     void Renderer::renderSkybox()
     {
         // Skybox pass
-        // this should be after IBL pass cuz it's relating to IBL
         m_skybox_shader->use();
         glm::mat4 model       = glm::mat4(1.0f);
         glm::mat4 skybox_view = glm::mat4(glm::mat3(m_camera->getViewMatrix()));
@@ -237,7 +226,7 @@ namespace RealmEngine
                 break;
         }
 
-        glBindTexture(GL_TEXTURE_2D, m_framebuffer->getBloomColorTextureId());
+        glBindTexture(GL_TEXTURE_2D, m_pbr_framebuffer->getBloomColorTextureId());
         glGenerateMipmap(GL_TEXTURE_2D);
 
         m_bloom_shader->use();
@@ -249,7 +238,7 @@ namespace RealmEngine
 
             // first iteration we use the bloom buffer from the main render pass
             m_bloom_framebuffers[0]->bind();
-            glBindTexture(GL_TEXTURE_2D, m_framebuffer->getBloomColorTextureId());
+            glBindTexture(GL_TEXTURE_2D, m_pbr_framebuffer->getBloomColorTextureId());
             m_bloom_shader->setInt("sampleMipLevel", mip_level);
             m_bloom_shader->setVec2("blurDirection", blur_direction_x);
 
@@ -286,7 +275,7 @@ namespace RealmEngine
         m_post_shader->setFloat("gammaCorrectionFactor", m_gamma_correction_factor);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_framebuffer->getColorTextureId());
+        glBindTexture(GL_TEXTURE_2D, m_pbr_framebuffer->getColorTextureId());
         m_post_shader->setInt("colorTexture", 0);
 
         glActiveTexture(GL_TEXTURE1);
