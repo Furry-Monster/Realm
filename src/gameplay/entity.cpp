@@ -9,7 +9,7 @@ namespace RealmEngine
         if (!component)
             return;
 
-        size_t type_id = component->getTypeId();
+        size_t type_id        = component->getTypeId();
         m_components[type_id] = std::move(component);
     }
 
@@ -25,14 +25,8 @@ namespace RealmEngine
         return (it != m_components.end()) ? it->second.get() : nullptr;
     }
 
-    bool Entity::hasComponent(size_t type_id) const
-    {
-        return m_components.find(type_id) != m_components.end();
-    }
+    bool Entity::hasComponent(size_t type_id) const { return m_components.find(type_id) != m_components.end(); }
 
-    void Entity::removeComponent(size_t type_id)
-    {
-        m_components.erase(type_id);
-    }
+    void Entity::removeComponent(size_t type_id) { m_components.erase(type_id); }
 
 } // namespace RealmEngine

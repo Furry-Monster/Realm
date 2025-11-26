@@ -179,15 +179,15 @@ namespace RealmEngine
         {
             glm::mat4 model = glm::mat4(1.0f);
 
-            auto rotation_matrix = glm::toMat4(ro.getOrientation());
+            auto rotation_matrix = glm::toMat4(ro->getOrientation());
             model                = rotation_matrix * model;
-            model                = glm::translate(model, ro.getPosition());
-            model                = glm::scale(model, ro.getScale());
+            model                = glm::translate(model, ro->getPosition());
+            model                = glm::scale(model, ro->getScale());
 
             m_pbr_shader->setModelViewProjectionMatrices(model, view, projection);
 
             glDepthMask(GL_TRUE);
-            ro.draw(*m_pbr_shader);
+            ro->draw(*m_pbr_shader);
         }
 
         renderSkybox();

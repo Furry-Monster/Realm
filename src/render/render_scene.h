@@ -1,11 +1,15 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <memory>
 #include <vector>
+#include "gameplay/scene_node.h"
 #include "render/render_object.h"
 
 namespace RealmEngine
 {
+    class Scene;
+
     class RenderScene
     {
     public:
@@ -17,8 +21,13 @@ namespace RealmEngine
         RenderScene(RenderScene&&) noexcept            = default;
         RenderScene& operator=(RenderScene&&) noexcept = default;
 
-        std::vector<RenderObject> m_render_objects;
-        std::vector<glm::vec3>    m_light_positions;
-        std::vector<glm::vec3>    m_light_colors;
+        void syncFromScene(std::shared_ptr<Scene> scene);
+
+        std::vector<std::shared_ptr<RenderObject>> m_render_objects;
+        std::vector<glm::vec3>                     m_light_positions;
+        std::vector<glm::vec3>                     m_light_colors;
+
+    private:
+        void syncNode(std::shared_ptr<Scene> scene, std::shared_ptr<SceneNode> node);
     };
 } // namespace RealmEngine

@@ -10,6 +10,8 @@ namespace RealmEngine
 {
     class Entity
     {
+        using ComponentSet = std::unordered_map<size_t, std::unique_ptr<Component>>;
+
     public:
         explicit Entity(size_t id);
         ~Entity() noexcept = default;
@@ -21,14 +23,13 @@ namespace RealmEngine
 
         size_t getId() const { return m_id; }
 
-        // 组件管理（通过接口）
-        void addComponent(std::unique_ptr<Component> component);
-        Component* getComponent(size_t type_id);
+        void             addComponent(std::unique_ptr<Component> component);
+        Component*       getComponent(size_t type_id);
         const Component* getComponent(size_t type_id) const;
-        bool hasComponent(size_t type_id) const;
-        void removeComponent(size_t type_id);
+        bool             hasComponent(size_t type_id) const;
+        void             removeComponent(size_t type_id);
 
-        // 类型安全的辅助方法
+        // Template methods
         template<typename T>
         T* getComponent();
 
@@ -42,24 +43,14 @@ namespace RealmEngine
         void removeComponent();
 
     private:
-        size_t                                          m_id;
-        std::unordered_map<size_t, std::unique_ptr<Component>> m_components;
-
-        template<typename T>
-        static size_t getComponentTypeId();
+        size_t       m_id;
+        ComponentSet m_components;
     };
-
-    // 模板辅助方法实现
-    template<typename T>
-    size_t Entity::getComponentTypeId()
-    {
-        return std::type_index(typeid(T)).hash_code();
-    }
 
     template<typename T>
     T* Entity::getComponent()
     {
-        size_t type_id = getComponentTypeId<T>();
+        size_t type_id = std::type_index(typeid(T)).hash_code();
         auto*  comp    = getComponent(type_id);
         return dynamic_cast<T*>(comp);
     }
@@ -67,22 +58,22 @@ namespace RealmEngine
     template<typename T>
     const T* Entity::getComponent() const
     {
-        size_t       type_id = getComponentTypeId<T>();
-        const auto*  comp    = getComponent(type_id);
+        size_t      type_id = std::type_index(typeid(T)).hash_code();
+        const auto* comp    = getComponent(type_id);
         return dynamic_cast<const T*>(comp);
     }
 
     template<typename T>
     bool Entity::hasComponent() const
     {
-        size_t type_id = getComponentTypeId<T>();
+        size_t type_id = std::type_index(typeid(T)).hash_code();
         return hasComponent(type_id);
     }
 
     template<typename T>
     void Entity::removeComponent()
     {
-        size_t type_id = getComponentTypeId<T>();
+        size_t type_id = std::type_index(typeid(T)).hash_code();
         removeComponent(type_id);
     }
 

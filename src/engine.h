@@ -21,8 +21,6 @@ namespace RealmEngine
         void run();
         void terminate();
 
-        RenderObject& addRenderObject(std::string path);
-
         double m_delta_time {0.0f};
 
     protected:
