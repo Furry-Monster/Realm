@@ -1,20 +1,23 @@
 #pragma once
 
+#include "gameplay/component.h"
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/vector_float3.hpp"
 
 namespace RealmEngine
 {
-    class Transform
+    class Transform : public Component
     {
     public:
         Transform();
-        ~Transform() noexcept = default;
+        ~Transform() noexcept override = default;
 
-        Transform(const Transform&)                = default;
-        Transform& operator=(const Transform&)     = default;
+        Transform(const Transform&)                = delete;
+        Transform& operator=(const Transform&)     = delete;
         Transform(Transform&&) noexcept            = default;
         Transform& operator=(Transform&&) noexcept = default;
+
+        size_t getTypeId() const override;
 
         // Position
         void      setPosition(const glm::vec3& position);

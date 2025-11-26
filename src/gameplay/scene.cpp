@@ -8,13 +8,13 @@
 
 namespace RealmEngine
 {
-    Scene::Scene() { m_root = std::make_shared<SceneNode>("Root"); }
-
-    void Scene::initialize(std::shared_ptr<RenderCamera> camera)
+    Scene::Scene()
     {
+        m_root              = std::make_shared<SceneNode>("Root");
         m_camera_controller = std::make_shared<CameraController>();
-        m_camera_controller->initialize(camera);
     }
+
+    void Scene::setCamera(std::shared_ptr<RenderCamera> camera) { m_camera_controller->initialize(camera); }
 
     void Scene::tick(float delta_time)
     {

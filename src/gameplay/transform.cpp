@@ -1,10 +1,13 @@
 #include "gameplay/transform.h"
+#include <typeindex>
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/gtc/quaternion.hpp"
 
 namespace RealmEngine
 {
     Transform::Transform() { reset(); }
+
+    size_t Transform::getTypeId() const { return std::type_index(typeid(Transform)).hash_code(); }
 
     // Position
     void Transform::setPosition(const glm::vec3& position) { m_position = position; }
@@ -60,13 +63,9 @@ namespace RealmEngine
     {
         // Standard model matrix order: M = T * R * S
         glm::mat4 model = glm::mat4(1.0f);
-
-        model = glm::scale(model, m_scale);
-
-        glm::mat4 rotation_matrix = glm::mat4_cast(m_rotation);
-        model                     = rotation_matrix * model;
-
-        model = glm::translate(model, m_position);
+        model           = glm::scale(model, m_scale);
+        model           = glm::mat4_cast(m_rotation) * model;
+        model           = glm::translate(model, m_position);
 
         return model;
     }
