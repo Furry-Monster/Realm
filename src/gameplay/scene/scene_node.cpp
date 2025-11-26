@@ -21,9 +21,7 @@ namespace RealmEngine
 
         auto old_parent = child->m_parent.lock();
         if (old_parent)
-        {
             old_parent->removeChild(child);
-        }
 
         m_children.push_back(child);
         child->updateParentReference(shared_from_this());

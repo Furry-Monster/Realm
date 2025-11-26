@@ -30,7 +30,6 @@ namespace RealmEngine
 
     void Engine::run()
     {
-        int frame_count = 0;
 
         std::filesystem::path scene_file = g_context.m_config->getRootFolder() / "scene.json";
 
@@ -59,15 +58,8 @@ namespace RealmEngine
         m_scene->setCamera(g_context.m_renderer->getCamera());
 
         m_last_frame_time = glfwGetTime();
-
-        info("Starting render loop...");
-
         while (!g_context.m_window->shouldClose())
-        {
             tick();
-        }
-
-        debug("Render loop completed. Total frames: " + std::to_string(frame_count));
 
         info("Saving scene to: " + scene_file.string());
         if (SceneSerializer::saveToFile(m_scene, scene_file.string()))

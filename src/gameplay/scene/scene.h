@@ -39,8 +39,6 @@ namespace RealmEngine
 
         static size_t hashName(const std::string& name);
 
-        bool m_dirty {false};
-
     private:
         std::shared_ptr<SceneNode>                          m_root;
         std::unordered_map<size_t, std::shared_ptr<Entity>> m_entities;

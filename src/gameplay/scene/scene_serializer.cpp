@@ -1,6 +1,7 @@
 #include "gameplay/scene/scene_serializer.h"
 
 #include <fstream>
+#include <iostream>
 #include <json.hpp>
 #include <sstream>
 
@@ -44,8 +45,10 @@ namespace RealmEngine
                 if (root)
                 {
                     scene->getRoot()->clearChildren();
-                    root->forEachChild(
-                        [scene](std::shared_ptr<SceneNode> child) { scene->getRoot()->addChild(child); });
+                    std::vector<std::shared_ptr<SceneNode>> children;
+                    root->forEachChild([&children](std::shared_ptr<SceneNode> child) { children.push_back(child); });
+                    for (auto& child : children)
+                        scene->getRoot()->addChild(child);
                 }
             }
 

@@ -31,7 +31,6 @@ namespace RealmEngine
 
         auto entity    = std::make_shared<Entity>(id);
         m_entities[id] = entity;
-        m_dirty        = true;
         return entity;
     }
 
@@ -66,7 +65,6 @@ namespace RealmEngine
         auto it = m_entities.find(id);
         if (it != m_entities.end())
             m_entities.erase(it);
-        m_dirty = true;
     }
 
     std::shared_ptr<SceneNode> Scene::createNode(const std::string& name, size_t entity_id)
@@ -74,7 +72,6 @@ namespace RealmEngine
         auto node = std::make_shared<SceneNode>(name);
         if (entity_id != 0)
             node->setEntityId(entity_id);
-        m_dirty = true;
         return node;
     }
 

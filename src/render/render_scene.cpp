@@ -10,7 +10,7 @@ namespace RealmEngine
 {
     void RenderScene::syncFromScene(std::shared_ptr<Scene> scene)
     {
-        if (!scene || !scene->m_dirty)
+        if (!scene)
             return;
 
         m_render_objects.clear();
@@ -20,8 +20,6 @@ namespace RealmEngine
         auto root = scene->getRoot();
         if (root)
             syncNode(scene, root);
-
-        scene->m_dirty = false;
     }
 
     void RenderScene::syncNode(std::shared_ptr<Scene> scene, std::shared_ptr<SceneNode> node)
