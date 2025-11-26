@@ -17,5 +17,5 @@ void main()
     // this keeps the skybox behind everything.
     gl_Position = vec4(position.xy, position.w, position.w);
 
-    textureCoordinates = vec3(aPos.x, -aPos.y, aPos.z);
+    textureCoordinates = aPos;
 }

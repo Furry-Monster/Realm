@@ -12,6 +12,8 @@ namespace RealmEngine
 {
     HDRTexture::HDRTexture(const std::string& path)
     {
+        stbi_set_flip_vertically_on_load(true);
+
         int    width, height, num_channels;
         float* data = stbi_loadf(path.c_str(), &width, &height, &num_channels, 0);
 

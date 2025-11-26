@@ -108,10 +108,12 @@ namespace RealmEngine
         m_ibl_equirectangular_cubemap = std::make_unique<EquirectangularCubemap>(root_path, hdri_path);
         m_ibl_equirectangular_cubemap->compute();
 
+        // diffuse term
         m_ibl_diffuse_irradiance_map =
             std::make_unique<DiffuseIrradianceMap>(root_path, m_ibl_equirectangular_cubemap->getCubemapId());
         m_ibl_diffuse_irradiance_map->compute();
 
+        // specular term
         m_ibl_specular_map = std::make_unique<SpecularMap>(root_path, m_ibl_equirectangular_cubemap->getCubemapId());
         m_ibl_specular_map->computePrefilteredEnvMap();
         m_ibl_specular_map->computeBrdfConvolutionMap();
