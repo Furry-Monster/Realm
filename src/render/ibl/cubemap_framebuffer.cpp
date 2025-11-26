@@ -14,7 +14,6 @@ namespace RealmEngine
         glBindRenderbuffer(GL_RENDERBUFFER, m_depth_renderbuffer_id);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 
-        // attach the depth buffer
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_renderbuffer_id);
 
         // cubemap

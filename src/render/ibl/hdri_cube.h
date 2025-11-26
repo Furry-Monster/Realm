@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include "render/cube.h"
-#include "render/hdr_texture.h"
+#include "render/ibl/hdr_texture.h"
 
 namespace RealmEngine
 {

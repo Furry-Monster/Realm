@@ -2,9 +2,6 @@
 
 namespace RealmEngine
 {
-    /**
-     * Framebuffer for rendering to faces of a cubemap.
-     */
     class CubemapFramebuffer
     {
     public:

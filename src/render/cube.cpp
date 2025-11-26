@@ -5,16 +5,7 @@
 
 namespace RealmEngine
 {
-    Cube::Cube() { loadVertexData(); }
-
-    void Cube::draw()
-    {
-        glBindVertexArray(m_vao);
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(mVertices.size() / 3));
-        glBindVertexArray(0);
-    }
-
-    void Cube::loadVertexData()
+    Cube::Cube()
     {
         glGenVertexArrays(1, &m_vao);
         glGenBuffers(1, &m_vbo);
@@ -30,6 +21,13 @@ namespace RealmEngine
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
 
+        glBindVertexArray(0);
+    }
+
+    void Cube::draw()
+    {
+        glBindVertexArray(m_vao);
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(mVertices.size() / 3));
         glBindVertexArray(0);
     }
 } // namespace RealmEngine

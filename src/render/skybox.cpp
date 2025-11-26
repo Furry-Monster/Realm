@@ -21,6 +21,7 @@ namespace RealmEngine
         // default depth buffer value is 1.0
         // skybox depth is 1.0 everywhere
         // need equality to make sure skybox passes depth test in default value places
+        glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture_id);
         m_cube->draw();

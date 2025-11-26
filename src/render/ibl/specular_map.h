@@ -9,41 +9,15 @@ namespace RealmEngine
 {
     class Shader;
 
-    /**
-     * Computes specular maps to be used for PBR.
-     *
-     * The pre-filtered environment map has different mip levels for different roughness.
-     *
-     * The BRDF convolution map is a 2D map of NdotV vs. roughness, that provides F0 scale and F0 bias values.
-     */
     class SpecularMap
     {
     public:
-        /**
-         * Initialize a specular map.
-         */
         SpecularMap(const std::string& engineRoot, unsigned int environmentCubemapId);
 
-        /**
-         * Render the pre-filtered environment map.
-         */
-        void computePrefilteredEnvMap();
-
-        /**
-         * Get the GL texture ID of the computed pre-filtered environment cubemap.
-         * @return
-         */
+        void         computePrefilteredEnvMap();
         unsigned int getPrefilteredEnvMapId() const;
 
-        /**
-         * Render the BRDF convolution map.
-         */
-        void computeBrdfConvolutionMap();
-
-        /**
-         * Get the GL texture ID of the computed BRDF convolution map.
-         * @return
-         */
+        void         computeBrdfConvolutionMap();
         unsigned int getBrdfConvolutionMapId() const;
 
     private:
