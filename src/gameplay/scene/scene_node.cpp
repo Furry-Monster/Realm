@@ -1,4 +1,4 @@
-#include "gameplay/scene_node.h"
+#include "gameplay/scene/scene_node.h"
 #include <algorithm>
 #include <functional>
 

@@ -11,8 +11,7 @@
 #include <memory>
 #include <string>
 #include "config_manager.h"
-#include "gameplay/scene.h"
-#include "gameplay/scene_serializer.h"
+#include "gameplay/scene/scene_serializer.h"
 #include "global_context.h"
 #include "input.h"
 #include "render/render_scene.h"
@@ -33,7 +32,6 @@ namespace RealmEngine
     {
         int frame_count = 0;
 
-        m_render_scene                   = std::make_shared<RenderScene>();
         std::filesystem::path scene_file = g_context.m_config->getRootFolder() / "scene.json";
 
         if (std::filesystem::exists(scene_file))
@@ -67,17 +65,13 @@ namespace RealmEngine
         while (!g_context.m_window->shouldClose())
         {
             tick();
-            frame_count++;
-
-            if (frame_count % 60 == 0)
-                debug("Rendered " + std::to_string(frame_count) + " frames");
         }
 
         debug("Render loop completed. Total frames: " + std::to_string(frame_count));
 
         info("Saving scene to: " + scene_file.string());
         if (SceneSerializer::saveToFile(m_scene, scene_file.string()))
-            info("Scene saved successfully.");
+            debug("Scene saved successfully.");
         else
             err("Failed to save scene file.");
     }
@@ -164,7 +158,7 @@ namespace RealmEngine
             m_delta_time = 0.1f;
 
         logicalTick(m_scene);
-        renderTick(m_render_scene);
+        renderTick();
     }
 
     void Engine::logicalTick(std::shared_ptr<Scene> scene) const
@@ -180,17 +174,10 @@ namespace RealmEngine
         scene->tick(m_delta_time);
     }
 
-    void Engine::renderTick(std::shared_ptr<RenderScene> render_scene)
+    void Engine::renderTick()
     {
-        if (render_scene == nullptr)
-        {
-            err("Render Ticking failed due to the missing render scene data.");
-            return;
-        }
-
-        render_scene->syncFromScene(m_scene);
-
-        g_context.m_renderer->render(render_scene);
+        g_context.m_renderer->getRenderScene()->syncFromScene(m_scene);
+        g_context.m_renderer->render();
         g_context.m_window->swapBuffer();
     }
 

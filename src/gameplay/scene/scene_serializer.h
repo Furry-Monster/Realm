@@ -3,7 +3,7 @@
 #include <json.hpp>
 #include <memory>
 #include <string>
-#include "gameplay/scene.h"
+#include "gameplay/scene/scene.h"
 
 namespace RealmEngine
 {

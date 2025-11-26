@@ -1,4 +1,4 @@
-#include "gameplay/scene.h"
+#include "gameplay/scene/scene.h"
 
 #include <functional>
 #include <memory>

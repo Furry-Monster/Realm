@@ -1,7 +1,9 @@
 #include "render/renderer.h"
+#include <memory>
 
 #include "config_manager.h"
 #include "global_context.h"
+#include "render/render_scene.h"
 #include "utils.h"
 #include "window.h"
 
@@ -19,7 +21,8 @@ namespace RealmEngine
         m_shader_path = g_context.m_config->getShaderFolder();
         m_asset_path  = g_context.m_config->getAssetFolder();
 
-        m_camera = std::make_shared<RenderCamera>();
+        m_camera       = std::make_shared<RenderCamera>();
+        m_render_scene = std::make_shared<RenderScene>();
 
         compileShaders();
     }
@@ -72,6 +75,7 @@ namespace RealmEngine
 
         m_camera->disposal();
         m_camera.reset();
+        m_render_scene.reset();
         m_window.reset();
 
         info("Renderer shutdown.");
@@ -122,12 +126,10 @@ namespace RealmEngine
         m_ibl_skybox = std::make_unique<Skybox>(m_ibl_equirectangular_cubemap->getCubemapId());
     }
 
-    void Renderer::render(std::shared_ptr<RenderScene> render_scene)
+    void Renderer::render()
     {
-        if (!render_scene)
-            return;
-
-        m_scene = render_scene;
+        if (m_render_scene == nullptr)
+            err("Render scene not setted yet.");
 
         // Main pass
         m_pbr_framebuffer->bind();
@@ -149,10 +151,10 @@ namespace RealmEngine
         // Set light data
         std::vector<glm::vec3> light_positions(4, glm::vec3(0.0f));
         std::vector<glm::vec3> light_colors(4, glm::vec3(0.0f));
-        for (size_t i = 0; i < std::min(render_scene->m_light_positions.size(), static_cast<size_t>(4)); ++i)
-            light_positions[i] = render_scene->m_light_positions[i];
-        for (size_t i = 0; i < std::min(render_scene->m_light_colors.size(), static_cast<size_t>(4)); ++i)
-            light_colors[i] = render_scene->m_light_colors[i];
+        for (size_t i = 0; i < std::min(m_render_scene->m_light_positions.size(), static_cast<size_t>(4)); ++i)
+            light_positions[i] = m_render_scene->m_light_positions[i];
+        for (size_t i = 0; i < std::min(m_render_scene->m_light_colors.size(), static_cast<size_t>(4)); ++i)
+            light_colors[i] = m_render_scene->m_light_colors[i];
 
         m_pbr_shader->setVec3Array("lightPositions", light_positions);
         m_pbr_shader->setVec3Array("lightColors", light_colors);
@@ -175,7 +177,7 @@ namespace RealmEngine
         m_pbr_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
 
         // Render entities
-        for (auto& ro : render_scene->m_render_objects)
+        for (auto& ro : m_render_scene->m_render_objects)
         {
             glm::mat4 model = glm::mat4(1.0f);
 

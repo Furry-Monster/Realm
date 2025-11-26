@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "gameplay/scene.h"
+#include "gameplay/scene/scene.h"
 #include "render/render_scene.h"
 
 namespace RealmEngine
@@ -26,13 +26,12 @@ namespace RealmEngine
     protected:
         void tick();
         void logicalTick(std::shared_ptr<Scene> scene) const;
-        void renderTick(std::shared_ptr<RenderScene> scene);
+        void renderTick();
 
     private:
         std::shared_ptr<Scene> createDefaultScene();
 
-        std::shared_ptr<Scene>       m_scene;
-        std::shared_ptr<RenderScene> m_render_scene;
+        std::shared_ptr<Scene> m_scene;
 
         double m_last_frame_time {0.0f};
     };

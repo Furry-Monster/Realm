@@ -1,4 +1,4 @@
-#include "gameplay/scene_serializer.h"
+#include "gameplay/scene/scene_serializer.h"
 
 #include <fstream>
 #include <json.hpp>
@@ -8,7 +8,7 @@
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 #include "gameplay/entity.h"
-#include "gameplay/scene_node.h"
+#include "gameplay/scene/scene_node.h"
 
 namespace RealmEngine
 {

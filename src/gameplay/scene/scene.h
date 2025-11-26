@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "gameplay/components/camera_controller.h"
 #include "gameplay/entity.h"
-#include "gameplay/scene_node.h"
+#include "gameplay/scene/scene_node.h"
 
 namespace RealmEngine
 {
@@ -42,7 +42,6 @@ namespace RealmEngine
         bool m_dirty {false};
 
     private:
-
         std::shared_ptr<SceneNode>                          m_root;
         std::unordered_map<size_t, std::shared_ptr<Entity>> m_entities;
         std::shared_ptr<CameraController>                   m_camera_controller;

@@ -31,9 +31,10 @@ namespace RealmEngine
 
         void initialize();
         void disposal();
-        void render(std::shared_ptr<RenderScene> render_scene);
+        void render();
 
         std::shared_ptr<RenderCamera> getCamera() const { return m_camera; }
+        std::shared_ptr<RenderScene>  getRenderScene() const { return m_render_scene; }
 
     private:
         void compileShaders();
@@ -64,7 +65,7 @@ namespace RealmEngine
 
         // misc rendering stuff
         std::shared_ptr<Window>       m_window;
-        std::shared_ptr<RenderScene>  m_scene;
+        std::shared_ptr<RenderScene>  m_render_scene;
         std::shared_ptr<RenderCamera> m_camera;
 
         std::filesystem::path m_root_path;

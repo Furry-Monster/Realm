@@ -3,8 +3,8 @@
 #include "gameplay/components/lighting.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
-#include "gameplay/scene.h"
-#include "gameplay/scene_node.h"
+#include "gameplay/scene/scene.h"
+#include "gameplay/scene/scene_node.h"
 
 namespace RealmEngine
 {
@@ -20,6 +20,8 @@ namespace RealmEngine
         auto root = scene->getRoot();
         if (root)
             syncNode(scene, root);
+
+        scene->m_dirty = false;
     }
 
     void RenderScene::syncNode(std::shared_ptr<Scene> scene, std::shared_ptr<SceneNode> node)

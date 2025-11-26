@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
-#include "gameplay/scene_node.h"
+#include "gameplay/scene/scene_node.h"
 #include "render/render_object.h"
 
 namespace RealmEngine
