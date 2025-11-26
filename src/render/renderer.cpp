@@ -26,7 +26,7 @@ namespace RealmEngine
 
     void Renderer::initialize()
     {
-        // NOTE:renderer must be initialized after window
+        // NOTE: renderer must be initialized after window
         m_window = g_context.m_window;
 
         glEnable(GL_DEPTH_TEST);
@@ -149,7 +149,7 @@ namespace RealmEngine
 
         renderBloom();
 
-        renderPostprocess();
+        applyPostprocess();
     }
 
     void Renderer::setupShaders()
@@ -199,12 +199,14 @@ namespace RealmEngine
     {
         // Skybox pass
         m_skybox_shader->use();
-        glm::mat4 model       = glm::mat4(1.0f);
-        glm::mat4 skybox_view = glm::mat4(glm::mat3(m_camera->getViewMatrix()));
+        glm::mat4 skybox_model = glm::mat4(1.0f);
+        glm::mat4 skybox_view  = glm::mat4(glm::mat3(m_camera->getViewMatrix()));
+        glm::mat4 skybox_proj  = m_camera->getProjMatrix();
 
-        m_skybox_shader->setModelViewProjectionMatrices(model, skybox_view, m_camera->getProjMatrix());
+        m_skybox_shader->setModelViewProjectionMatrices(skybox_model, skybox_view, skybox_proj);
         m_skybox_shader->setInt("skybox", 0);
         m_skybox_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
+
         m_ibl_skybox->draw();
     }
 
@@ -236,7 +238,7 @@ namespace RealmEngine
             m_bloom_framebuffers[0]->setMipLevel(mip_level);
             m_bloom_framebuffers[1]->setMipLevel(mip_level);
 
-            // first iteration we use the bloom buffer from the main render pass
+            // NOTE: first iteration we'll use the bloom buffer from the main render pass
             m_bloom_framebuffers[0]->bind();
             glBindTexture(GL_TEXTURE_2D, m_pbr_framebuffer->getBloomColorTextureId());
             m_bloom_shader->setInt("sampleMipLevel", mip_level);
@@ -244,29 +246,32 @@ namespace RealmEngine
 
             m_fullscreen_quad->draw();
 
-            unsigned int bloom_framebuffer = 1; // which buffer to use
-
+            // ping-pong it
+            unsigned int bloom_framebuffer = 1;
+            unsigned int source_buffer     = 0;
             for (auto i = 1; i < m_bloom_iterations; i++)
             {
-                unsigned int source_buffer = bloom_framebuffer == 1 ? 0 : 1;
+                source_buffer = bloom_framebuffer == 1 ? 0 : 1;
+
                 m_bloom_framebuffers[bloom_framebuffer]->bind();
                 auto blur_direction = bloom_framebuffer == 1 ? blur_direction_y : blur_direction_x;
                 m_bloom_shader->setVec2("blurDirection", blur_direction);
                 glBindTexture(GL_TEXTURE_2D, m_bloom_framebuffers[source_buffer]->getColorTextureId());
+
                 m_fullscreen_quad->draw();
                 bloom_framebuffer = source_buffer;
             }
 
-            m_bloom_framebuffer_result = bloom_framebuffer;
+            m_bloom_result_id = bloom_framebuffer;
         }
     }
 
-    void Renderer::renderPostprocess()
+    void Renderer::applyPostprocess()
     {
-        // Postprocess Pass
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch back to default fb
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch back to default framebuffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         m_post_shader->use();
 
         m_post_shader->setBool("bloomEnabled", m_bloom_enabled);
@@ -279,7 +284,7 @@ namespace RealmEngine
         m_post_shader->setInt("colorTexture", 0);
 
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, m_bloom_framebuffers[m_bloom_framebuffer_result]->getColorTextureId());
+        glBindTexture(GL_TEXTURE_2D, m_bloom_framebuffers[m_bloom_result_id]->getColorTextureId());
         m_post_shader->setInt("bloomTexture", 1);
 
         m_fullscreen_quad->draw();

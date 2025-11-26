@@ -12,9 +12,9 @@ void main()
 {
     vec4 position = projection * view * model * vec4(aPos, 1.0f);
 
-    // we set z = w so that after perspective divide z will be 1.0, which is max depth value
-    // this keeps the skybox behind everything
-    // got z-fighting for (w / w), hence the subtractio to make the depth a little less than max
+    // Note: In clipspace,
+    // we set z = w so that after perspective divide z will be 1.0, which is max depth value,
+    // this keeps the skybox behind everything.
     gl_Position = vec4(position.xy, position.w, position.w);
 
     textureCoordinates = vec3(aPos.x, -aPos.y, aPos.z);

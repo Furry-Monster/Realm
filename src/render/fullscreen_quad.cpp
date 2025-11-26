@@ -5,18 +5,7 @@
 
 namespace RealmEngine
 {
-    FullscreenQuad::FullscreenQuad() { loadVertexData(); }
-
-    void FullscreenQuad::draw() const
-    {
-        glDisable(GL_DEPTH_TEST);
-        glBindVertexArray(m_vao);
-        glDrawArrays(GL_TRIANGLES, 0, QUAD_NUM_TRIANGLES);
-        glEnable(GL_DEPTH_TEST);
-        glBindVertexArray(0);
-    }
-
-    void FullscreenQuad::loadVertexData()
+    FullscreenQuad::FullscreenQuad()
     {
         glGenVertexArrays(1, &m_vao);
         glGenBuffers(1, &m_vbo);
@@ -35,6 +24,15 @@ namespace RealmEngine
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
 
+        glBindVertexArray(0);
+    }
+
+    void FullscreenQuad::draw() const
+    {
+        glDisable(GL_DEPTH_TEST);
+        glBindVertexArray(m_vao);
+        glDrawArrays(GL_TRIANGLES, 0, QUAD_NUM_TRIANGLES);
+        glEnable(GL_DEPTH_TEST);
         glBindVertexArray(0);
     }
 } // namespace RealmEngine

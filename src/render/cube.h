@@ -11,8 +11,6 @@ namespace RealmEngine
         void draw();
 
     private:
-        void loadVertexData();
-
         unsigned int m_vao, m_vbo;
 
         // NOTE:

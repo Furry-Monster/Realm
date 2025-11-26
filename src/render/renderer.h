@@ -41,7 +41,7 @@ namespace RealmEngine
 
         void renderSkybox();
         void renderBloom();
-        void renderPostprocess();
+        void applyPostprocess();
 
         // main pass
         std::unique_ptr<PBRFramebuffer>         m_pbr_framebuffer;
@@ -60,7 +60,7 @@ namespace RealmEngine
         float                             m_gamma_correction_factor = 2.2f;
         float                             m_bloom_brightness_cutoff = 1.0f;
         std::unique_ptr<BloomFramebuffer> m_bloom_framebuffers[2];
-        unsigned int                      m_bloom_framebuffer_result;
+        unsigned int                      m_bloom_result_id;
 
         // misc rendering stuff
         std::shared_ptr<Window>       m_window;

@@ -3,8 +3,19 @@
 out vec4 FragColor;
 in vec2  textureCoordinates;
 
-// first weight is for the central pixel, the remaining are on either side of it
-// meaning we are working with a 9x9 kernel
+// Note: we are working with a 9x9 kernel,
+// first weight is for the central pixel,
+// the remaining are on either side of it.
+// like this:
+//         4
+//         3
+//         2
+//         1
+// 4 3 2 1 0 1 2 3 4
+//         1
+//         2
+//         3
+//         4
 const float gaussianBlurWeights[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
 uniform sampler2D inputColorTexture;
