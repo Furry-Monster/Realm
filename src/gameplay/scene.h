@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <unordered_map>
-#include "gameplay/camera_controller.h"
+#include "gameplay/components/camera_controller.h"
 #include "gameplay/entity.h"
 #include "gameplay/scene_node.h"
 

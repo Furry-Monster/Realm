@@ -1,10 +1,10 @@
 #include "render/render_scene.h"
 
-#include "gameplay/lighting.h"
-#include "gameplay/renderable.h"
+#include "gameplay/components/lighting.h"
+#include "gameplay/components/renderable.h"
+#include "gameplay/components/transform.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_node.h"
-#include "gameplay/transform.h"
 
 namespace RealmEngine
 {

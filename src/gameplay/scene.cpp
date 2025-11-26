@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <memory>
-#include "gameplay/camera_controller.h"
 #include "gameplay/entity.h"
 #include "render/render_camera.h"
 

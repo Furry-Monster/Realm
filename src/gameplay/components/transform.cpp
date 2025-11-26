@@ -1,4 +1,4 @@
-#include "gameplay/transform.h"
+#include "gameplay/components/transform.h"
 #include <typeindex>
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/gtc/quaternion.hpp"

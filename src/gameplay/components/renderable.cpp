@@ -1,4 +1,4 @@
-#include "gameplay/renderable.h"
+#include "gameplay/components/renderable.h"
 #include <typeindex>
 
 namespace RealmEngine

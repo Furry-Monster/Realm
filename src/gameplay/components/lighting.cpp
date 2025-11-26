@@ -1,4 +1,4 @@
-#include "gameplay/lighting.h"
+#include "gameplay/components/lighting.h"
 #include <typeindex>
 
 namespace RealmEngine

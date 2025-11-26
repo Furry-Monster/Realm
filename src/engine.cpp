@@ -1,4 +1,7 @@
 #include "engine.h"
+#include "gameplay/components/lighting.h"
+#include "gameplay/components/renderable.h"
+#include "gameplay/components/transform.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -7,10 +10,7 @@
 #include <memory>
 #include <string>
 #include "config_manager.h"
-#include "gameplay/lighting.h"
-#include "gameplay/renderable.h"
 #include "gameplay/scene.h"
-#include "gameplay/transform.h"
 #include "global_context.h"
 #include "input.h"
 #include "render/render_object.h"
