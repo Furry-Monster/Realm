@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include "config_manager.h"
 #include "gameplay/scene.h"
@@ -37,27 +38,10 @@ namespace RealmEngine
         m_scene        = std::move(scene);
         m_render_scene = std::move(render_scene);
 
-        std::string model_path = g_context.m_config->getAssetFolder().generic_string() + "/helmet/DamagedHelmet.gltf";
-        try
-        {
-            // Don't flip textures for glTF
-            auto& obj = m_render_scene->m_render_objects.emplace_back(model_path, false);
-
-            obj.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-            obj.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
-            obj.setOrientation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
-
-            info("Successfully loaded helmet model: " + model_path);
-        }
-        catch (const std::exception& e)
-        {
-            err("Failed to load helmet model: " + model_path);
-            err("Error: " + std::string(e.what()));
-        }
-        catch (...)
-        {
-            err("Failed to load helmet model: " + model_path + " (unknown error)");
-        }
+        auto& obj1 = addRenderObject("/helmet/DamagedHelmet.gltf");
+        obj1.setPosition({1.0, 1.0, 1.0});
+        auto& obj2 = addRenderObject("/sphere/sphere.gltf");
+        obj2.setPosition({5.0, 5.0, 5.0});
 
         g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -87,6 +71,33 @@ namespace RealmEngine
         m_delta_time = 0.0f;
 
         g_context.destroy();
+    }
+
+    RenderObject& Engine::addRenderObject(std::string path)
+    {
+        std::string model_path = g_context.m_config->getAssetFolder().generic_string() + path;
+        try
+        {
+            // Don't flip textures for glTF
+            auto& obj = m_render_scene->m_render_objects.emplace_back(model_path, false);
+
+            obj.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+            obj.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+            obj.setOrientation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
+
+            return obj;
+        }
+        catch (const std::exception& e)
+        {
+            err("Failed to load : " + model_path);
+            fatal("Error: " + std::string(e.what()));
+            throw std::runtime_error(std::string("Failed to load ") + model_path + ": " + e.what());
+        }
+        catch (...)
+        {
+            fatal("Failed to load : " + model_path + " (unknown error)");
+            throw std::runtime_error(std::string("Failed to load ") + model_path + " (unknown error)");
+        }
     }
 
     void Engine::tick()
