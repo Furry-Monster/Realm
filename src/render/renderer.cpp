@@ -1,9 +1,9 @@
 #include "render/renderer.h"
 #include <memory>
 
-#include "config_manager.h"
 #include "global_context.h"
 #include "render/render_scene.h"
+#include "resource/config_manager.h"
 #include "utils.h"
 #include "window.h"
 
@@ -35,11 +35,26 @@ namespace RealmEngine
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
+        const RendererConfig& render_config = g_context.m_config->getRendererConfig();
+
         m_camera->initialize();
-        m_camera->setPerspective(
-            45.0f, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1f, 100.0f);
-        m_camera->setPosition(glm::vec3(0.0f, 0.0f, 5.0f));
-        m_camera->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+        m_camera->setPerspective(render_config.camera_fov,
+                                 static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()),
+                                 render_config.camera_near_plane,
+                                 render_config.camera_far_plane);
+        m_camera->setPosition(glm::vec3(render_config.camera_initial_pos_x,
+                                        render_config.camera_initial_pos_y,
+                                        render_config.camera_initial_pos_z));
+        m_camera->lookAt(
+            glm::vec3(render_config.camera_look_at_x, render_config.camera_look_at_y, render_config.camera_look_at_z));
+
+        m_bloom_enabled           = render_config.bloom_enabled;
+        m_bloom_intensity         = render_config.bloom_intensity;
+        m_bloom_iterations        = render_config.bloom_iterations;
+        m_bloom_direction         = static_cast<BloomDirection>(render_config.bloom_direction);
+        m_bloom_brightness_cutoff = render_config.bloom_brightness_cutoff;
+        m_tonemapping_enabled     = render_config.tonemapping_enabled;
+        m_gamma_correction_factor = render_config.gamma_correction_factor;
 
         m_pbr_framebuffer = std::make_unique<PBRFramebuffer>(m_window->getWidth(), m_window->getHeight());
         m_pbr_framebuffer->init();
@@ -105,8 +120,9 @@ namespace RealmEngine
 
     void Renderer::precomputeIBL()
     {
-        std::string root_path = m_root_path.generic_string();
-        std::string hdri_path = (m_asset_path / "hdr/barcelona_rooftop.hdr").generic_string();
+        std::string           root_path     = m_root_path.generic_string();
+        const RendererConfig& render_config = g_context.m_config->getRendererConfig();
+        std::string           hdri_path     = (m_asset_path / render_config.hdri_path).generic_string();
 
         // Pre-compute IBL stuff
         m_ibl_equirectangular_cubemap = std::make_unique<EquirectangularCubemap>(root_path, hdri_path);
@@ -134,7 +150,11 @@ namespace RealmEngine
         // Main pass
         m_pbr_framebuffer->bind();
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        const RendererConfig& render_config = g_context.m_config->getRendererConfig();
+        glClearColor(render_config.clear_color_r,
+                     render_config.clear_color_g,
+                     render_config.clear_color_b,
+                     render_config.clear_color_a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnable(GL_DEPTH_TEST);

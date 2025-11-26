@@ -19,49 +19,6 @@ namespace RealmEngine
         }
     };
 
-    struct WindowConfig
-    {
-        int          width        = 1280;
-        int          height       = 720;
-        std::string  title        = "RealmEngine";
-        bool         fullscreen   = false;
-        bool         vsync        = true;
-        int          msaa_samples = 4;
-        GLFWmonitor* monitor      = nullptr; // For fullscreen mode
-
-        WindowConfig& setSize(int w, int h)
-        {
-            width  = w;
-            height = h;
-            return *this;
-        }
-        WindowConfig& setTitle(const std::string& t)
-        {
-            title = t;
-            return *this;
-        }
-        WindowConfig& setFullscreen(bool f)
-        {
-            fullscreen = f;
-            return *this;
-        }
-        WindowConfig& setVSync(bool v)
-        {
-            vsync = v;
-            return *this;
-        }
-        WindowConfig& setMSAA(int samples)
-        {
-            msaa_samples = samples;
-            return *this;
-        }
-        WindowConfig& setMonitor(GLFWmonitor* m)
-        {
-            monitor = m;
-            return *this;
-        }
-    };
-
     class Window
     {
     public:
@@ -74,9 +31,6 @@ namespace RealmEngine
         Window& operator=(Window&& that)      = delete;
 
         void initialize();
-        void initialize(int width, int height, const std::string& title);
-        void initialize(WindowConfig cfg);
-
         void disposal();
 
         bool shouldClose() const;

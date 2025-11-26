@@ -1,7 +1,4 @@
 #include "engine.h"
-#include "gameplay/components/lighting.h"
-#include "gameplay/components/renderable.h"
-#include "gameplay/components/transform.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -10,12 +7,16 @@
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
 #include <string>
-#include "config_manager.h"
+
+#include "gameplay/components/lighting.h"
+#include "gameplay/components/renderable.h"
+#include "gameplay/components/transform.h"
 #include "gameplay/scene/scene_serializer.h"
 #include "global_context.h"
 #include "input.h"
 #include "render/render_scene.h"
 #include "render/renderer.h"
+#include "resource/config_manager.h"
 #include "utils.h"
 #include "window.h"
 
