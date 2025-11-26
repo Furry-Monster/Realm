@@ -5,15 +5,16 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
 #include <string>
 #include "config_manager.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_serializer.h"
 #include "global_context.h"
 #include "input.h"
-#include "render/render_object.h"
 #include "render/render_scene.h"
 #include "render/renderer.h"
 #include "utils.h"
@@ -32,77 +33,36 @@ namespace RealmEngine
     {
         int frame_count = 0;
 
-        auto scene        = std::make_shared<Scene>();
-        auto render_scene = std::make_shared<RenderScene>();
+        m_render_scene                   = std::make_shared<RenderScene>();
+        std::filesystem::path scene_file = g_context.m_config->getRootFolder() / "scene.json";
 
-        m_scene        = std::move(scene);
-        m_render_scene = std::move(render_scene);
+        if (std::filesystem::exists(scene_file))
+        {
+            info("Loading scene from: " + scene_file.string());
+            m_scene = SceneSerializer::loadFromFile(scene_file.string());
+            if (!m_scene)
+            {
+                warn("Failed to load scene file, creating default scene.");
+                m_scene = createDefaultScene();
+            }
+            else
+            {
+                info("Scene loaded successfully.");
+            }
+        }
+        else
+        {
+            info("Scene file not found, creating default scene.");
+            m_scene = createDefaultScene();
+        }
 
         g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
         m_scene->setCamera(g_context.m_renderer->getCamera());
 
-        // Models
-        std::string asset_path = g_context.m_config->getAssetFolder().generic_string();
-        try
-        {
-            auto helmet_node   = m_scene->createNodeWithEntity("Helmet");
-            auto helmet_entity = m_scene->getEntity("Helmet");
-
-            auto transform1 = std::make_shared<Transform>();
-            transform1->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-            transform1->setRotation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
-            helmet_entity->addComponent(transform1);
-
-            std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";
-            auto        render_obj1 = std::make_shared<RenderObject>(helmet_path, false);
-            auto        renderable1 = std::make_shared<Renderable>(render_obj1);
-            helmet_entity->addComponent(renderable1);
-
-            m_scene->getRoot()->addChild(helmet_node);
-        }
-        catch (const std::exception& e)
-        {
-            err("Failed to load helmet model: " + std::string(e.what()));
-        }
-
-        try
-        {
-            auto sphere_node   = m_scene->createNodeWithEntity("Sphere");
-            auto sphere_entity = m_scene->getEntity("Sphere");
-
-            auto transform2 = std::make_shared<Transform>();
-            transform2->setPosition(glm::vec3(1.0f, 2.0f, 0.0f));
-            sphere_entity->addComponent(transform2);
-
-            std::string sphere_path = asset_path + "/sphere/sphere.gltf";
-            auto        render_obj2 = std::make_shared<RenderObject>(sphere_path, false);
-            auto        renderable2 = std::make_shared<Renderable>(render_obj2);
-            sphere_entity->addComponent(renderable2);
-
-            m_scene->getRoot()->addChild(sphere_node);
-        }
-        catch (const std::exception& e)
-        {
-            err("Failed to load sphere model: " + std::string(e.what()));
-        }
-
-        // lights
-        auto light_node   = m_scene->createNodeWithEntity("Light");
-        auto light_entity = m_scene->getEntity("Light");
-
-        auto light_transform = std::make_shared<Transform>();
-        light_transform->setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
-        light_entity->addComponent(light_transform);
-
-        auto lighting = std::make_shared<Lighting>(glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(200.0f, 200.0f, 200.0f));
-        light_entity->addComponent(lighting);
-
-        m_scene->getRoot()->addChild(light_node);
-
         m_last_frame_time = glfwGetTime();
 
-        info("Starting render loop for helmet model...");
+        info("Starting render loop...");
 
         while (!g_context.m_window->shouldClose())
         {
@@ -114,6 +74,75 @@ namespace RealmEngine
         }
 
         debug("Render loop completed. Total frames: " + std::to_string(frame_count));
+
+        info("Saving scene to: " + scene_file.string());
+        if (SceneSerializer::saveToFile(m_scene, scene_file.string()))
+            info("Scene saved successfully.");
+        else
+            err("Failed to save scene file.");
+    }
+
+    std::shared_ptr<Scene> Engine::createDefaultScene()
+    {
+        auto scene = std::make_shared<Scene>();
+
+        // Models
+        std::string asset_path = g_context.m_config->getAssetFolder().generic_string();
+        try
+        {
+            auto helmet_node   = scene->createNodeWithEntity("Helmet");
+            auto helmet_entity = scene->getEntity("Helmet");
+
+            auto transform1 = std::make_shared<Transform>();
+            transform1->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+            transform1->setRotation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
+            helmet_entity->addComponent(transform1);
+
+            std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";
+            auto        renderable1 = std::make_shared<Renderable>(helmet_path, false);
+            helmet_entity->addComponent(renderable1);
+
+            scene->getRoot()->addChild(helmet_node);
+        }
+        catch (const std::exception& e)
+        {
+            err("Failed to load helmet model: " + std::string(e.what()));
+        }
+
+        try
+        {
+            auto sphere_node   = scene->createNodeWithEntity("Sphere");
+            auto sphere_entity = scene->getEntity("Sphere");
+
+            auto transform2 = std::make_shared<Transform>();
+            transform2->setPosition(glm::vec3(1.0f, 2.0f, 0.0f));
+            sphere_entity->addComponent(transform2);
+
+            std::string sphere_path = asset_path + "/sphere/sphere.gltf";
+            auto        renderable2 = std::make_shared<Renderable>(sphere_path, false);
+            sphere_entity->addComponent(renderable2);
+
+            scene->getRoot()->addChild(sphere_node);
+        }
+        catch (const std::exception& e)
+        {
+            err("Failed to load sphere model: " + std::string(e.what()));
+        }
+
+        // lights
+        auto light_node   = scene->createNodeWithEntity("Light");
+        auto light_entity = scene->getEntity("Light");
+
+        auto light_transform = std::make_shared<Transform>();
+        light_transform->setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
+        light_entity->addComponent(light_transform);
+
+        auto lighting = std::make_shared<Lighting>(glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(200.0f, 200.0f, 200.0f));
+        light_entity->addComponent(lighting);
+
+        scene->getRoot()->addChild(light_node);
+
+        return scene;
     }
 
     void Engine::terminate()

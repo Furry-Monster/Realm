@@ -11,6 +11,8 @@ namespace RealmEngine
     public:
         Renderable();
         explicit Renderable(std::shared_ptr<RenderObject> render_object);
+        explicit Renderable(const std::string& model_path);
+        Renderable(const std::string& model_path, bool flip_textures_vertically);
         ~Renderable() noexcept override = default;
 
         Renderable(const Renderable&)                = delete;
@@ -24,8 +26,13 @@ namespace RealmEngine
         std::shared_ptr<RenderObject> getRenderObject() const;
         bool                          hasRenderObject() const;
 
+        void                setModelPath(const std::string& model_path);
+        const std::string&  getModelPath() const;
+        bool                hasModelPath() const;
+
     private:
         std::shared_ptr<RenderObject> m_render_object;
+        std::string                   m_model_path;
     };
 
 } // namespace RealmEngine

@@ -29,7 +29,8 @@ namespace RealmEngine
         void renderTick(std::shared_ptr<RenderScene> scene);
 
     private:
-        // TODO: Scene and render scene shouldn't be directly managed by Engine.
+        std::shared_ptr<Scene> createDefaultScene();
+
         std::shared_ptr<Scene>       m_scene;
         std::shared_ptr<RenderScene> m_render_scene;
 

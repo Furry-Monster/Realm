@@ -21,7 +21,7 @@ namespace RealmEngine
             m_camera_controller->update(delta_time);
     }
 
-    constexpr size_t Scene::hashName(const std::string& name) { return std::hash<std::string> {}(name); }
+    size_t Scene::hashName(const std::string& name) { return std::hash<std::string> {}(name); }
 
     std::shared_ptr<Entity> Scene::createEntity(const std::string& name)
     {
