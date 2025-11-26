@@ -1,16 +1,20 @@
 #include "window.h"
+#include "global_context.h"
+#include "resource/config_manager.h"
 #include "utils.h"
 
 namespace RealmEngine
 {
 
-    void Window::initialize(const WindowConfig cfg)
+    void Window::initialize()
     {
-        m_width        = cfg.width;
-        m_height       = cfg.height;
-        m_title        = cfg.title;
-        m_msaa_samples = cfg.msaa_samples;
-        m_vsync        = cfg.vsync;
+        const WindowConfig& window_config = g_context.m_config->getWindowConfig();
+
+        m_width        = window_config.width;
+        m_height       = window_config.height;
+        m_title        = window_config.title;
+        m_msaa_samples = window_config.msaa_samples;
+        m_vsync        = window_config.vsync;
 
         if (!glfwInit())
         {
@@ -23,10 +27,10 @@ namespace RealmEngine
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        if (cfg.msaa_samples > 0)
+        if (window_config.msaa_samples > 0)
             glfwWindowHint(GLFW_SAMPLES, m_msaa_samples);
 
-        GLFWmonitor* monitor = cfg.fullscreen ? (cfg.monitor ? cfg.monitor : glfwGetPrimaryMonitor()) : nullptr;
+        GLFWmonitor* monitor = window_config.fullscreen ? glfwGetPrimaryMonitor() : nullptr;
 
         GLFWwindow* raw_window_ptr = glfwCreateWindow(m_width, m_height, m_title.c_str(), monitor, nullptr);
         if (!raw_window_ptr)
@@ -65,17 +69,6 @@ namespace RealmEngine
             glEnable(GL_MULTISAMPLE);
 
         info("GLFW window initialized.");
-    }
-
-    void Window::initialize() { initialize(WindowConfig {}); }
-
-    void Window::initialize(int width, int height, const std::string& title = "RealmEngine")
-    {
-        WindowConfig cfg;
-        cfg.width  = width;
-        cfg.height = height;
-        cfg.title  = title;
-        initialize(cfg);
     }
 
     void Window::disposal()
