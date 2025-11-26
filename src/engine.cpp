@@ -42,22 +42,22 @@ namespace RealmEngine
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
         m_scene->setCamera(g_context.m_renderer->getCamera());
 
+        // Models
         std::string asset_path = g_context.m_config->getAssetFolder().generic_string();
-
         try
         {
             auto helmet_node   = m_scene->createNodeWithEntity("Helmet");
             auto helmet_entity = m_scene->getEntity("Helmet");
 
-            auto transform1 = std::make_unique<Transform>();
+            auto transform1 = std::make_shared<Transform>();
             transform1->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
             transform1->setRotation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
-            helmet_entity->addComponent(std::move(transform1));
+            helmet_entity->addComponent(transform1);
 
             std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";
             auto        render_obj1 = std::make_shared<RenderObject>(helmet_path, false);
-            auto        renderable1 = std::make_unique<Renderable>(render_obj1);
-            helmet_entity->addComponent(std::move(renderable1));
+            auto        renderable1 = std::make_shared<Renderable>(render_obj1);
+            helmet_entity->addComponent(renderable1);
 
             m_scene->getRoot()->addChild(helmet_node);
         }
@@ -71,14 +71,14 @@ namespace RealmEngine
             auto sphere_node   = m_scene->createNodeWithEntity("Sphere");
             auto sphere_entity = m_scene->getEntity("Sphere");
 
-            auto transform2 = std::make_unique<Transform>();
+            auto transform2 = std::make_shared<Transform>();
             transform2->setPosition(glm::vec3(1.0f, 2.0f, 0.0f));
-            sphere_entity->addComponent(std::move(transform2));
+            sphere_entity->addComponent(transform2);
 
             std::string sphere_path = asset_path + "/sphere/sphere.gltf";
             auto        render_obj2 = std::make_shared<RenderObject>(sphere_path, false);
-            auto        renderable2 = std::make_unique<Renderable>(render_obj2);
-            sphere_entity->addComponent(std::move(renderable2));
+            auto        renderable2 = std::make_shared<Renderable>(render_obj2);
+            sphere_entity->addComponent(renderable2);
 
             m_scene->getRoot()->addChild(sphere_node);
         }
@@ -87,15 +87,16 @@ namespace RealmEngine
             err("Failed to load sphere model: " + std::string(e.what()));
         }
 
+        // lights
         auto light_node   = m_scene->createNodeWithEntity("Light");
         auto light_entity = m_scene->getEntity("Light");
 
-        auto light_transform = std::make_unique<Transform>();
+        auto light_transform = std::make_shared<Transform>();
         light_transform->setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
-        light_entity->addComponent(std::move(light_transform));
+        light_entity->addComponent(light_transform);
 
-        auto lighting = std::make_unique<Lighting>(glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(200.0f, 200.0f, 200.0f));
-        light_entity->addComponent(std::move(lighting));
+        auto lighting = std::make_shared<Lighting>(glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(200.0f, 200.0f, 200.0f));
+        light_entity->addComponent(lighting);
 
         m_scene->getRoot()->addChild(light_node);
 
@@ -150,21 +151,17 @@ namespace RealmEngine
         scene->tick(m_delta_time);
     }
 
-    void Engine::renderTick(std::shared_ptr<RenderScene> scene)
+    void Engine::renderTick(std::shared_ptr<RenderScene> render_scene)
     {
-        if (scene == nullptr)
+        if (render_scene == nullptr)
         {
             err("Render Ticking failed due to the missing render scene data.");
             return;
         }
 
-        // 从Scene同步渲染信息
-        if (m_scene)
-        {
-            scene->syncFromScene(m_scene);
-        }
+        render_scene->syncFromScene(m_scene);
 
-        g_context.m_renderer->render(scene);
+        g_context.m_renderer->render(render_scene);
         g_context.m_window->swapBuffer();
     }
 

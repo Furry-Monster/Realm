@@ -10,7 +10,7 @@ namespace RealmEngine
 {
     void RenderScene::syncFromScene(std::shared_ptr<Scene> scene)
     {
-        if (!scene)
+        if (!scene || !scene->m_dirty)
             return;
 
         m_render_objects.clear();
@@ -34,13 +34,13 @@ namespace RealmEngine
 
             if (entity)
             {
-                auto* renderable = entity->getComponent<Renderable>();
+                auto renderable = entity->getComponent<Renderable>();
                 if (renderable && renderable->hasRenderObject())
                 {
                     auto render_obj = renderable->getRenderObject();
                     if (render_obj)
                     {
-                        auto* transform = entity->getComponent<Transform>();
+                        auto transform = entity->getComponent<Transform>();
                         if (transform)
                         {
                             render_obj->setPosition(transform->getPosition());
@@ -52,13 +52,13 @@ namespace RealmEngine
                     }
                 }
 
-                auto* lighting = entity->getComponent<Lighting>();
+                auto lighting = entity->getComponent<Lighting>();
                 if (lighting)
                 {
                     glm::vec3 position = lighting->getPosition();
                     glm::vec3 color    = lighting->getColor();
 
-                    auto* transform = entity->getComponent<Transform>();
+                    auto transform = entity->getComponent<Transform>();
                     if (transform)
                         position = transform->getPosition();
 

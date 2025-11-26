@@ -10,7 +10,7 @@ namespace RealmEngine
 {
     class Entity
     {
-        using ComponentSet = std::unordered_map<size_t, std::unique_ptr<Component>>;
+        using ComponentSet = std::unordered_map<size_t, std::shared_ptr<Component>>;
 
     public:
         explicit Entity(size_t id);
@@ -23,18 +23,18 @@ namespace RealmEngine
 
         size_t getId() const { return m_id; }
 
-        void             addComponent(std::unique_ptr<Component> component);
-        Component*       getComponent(size_t type_id);
-        const Component* getComponent(size_t type_id) const;
-        bool             hasComponent(size_t type_id) const;
-        void             removeComponent(size_t type_id);
+        void                             addComponent(std::shared_ptr<Component> component);
+        std::shared_ptr<Component>       getComponent(size_t type_id);
+        std::shared_ptr<const Component> getComponent(size_t type_id) const;
+        bool                             hasComponent(size_t type_id) const;
+        void                             removeComponent(size_t type_id);
 
         // Template methods
         template<typename T>
-        T* getComponent();
+        std::shared_ptr<T> getComponent();
 
         template<typename T>
-        const T* getComponent() const;
+        std::shared_ptr<const T> getComponent() const;
 
         template<typename T>
         bool hasComponent() const;
@@ -48,19 +48,23 @@ namespace RealmEngine
     };
 
     template<typename T>
-    T* Entity::getComponent()
+    std::shared_ptr<T> Entity::getComponent()
     {
         size_t type_id = std::type_index(typeid(T)).hash_code();
-        auto*  comp    = getComponent(type_id);
-        return dynamic_cast<T*>(comp);
+        auto   comp    = getComponent(type_id);
+        if (comp)
+            return std::dynamic_pointer_cast<T>(comp);
+        return nullptr;
     }
 
     template<typename T>
-    const T* Entity::getComponent() const
+    std::shared_ptr<const T> Entity::getComponent() const
     {
-        size_t      type_id = std::type_index(typeid(T)).hash_code();
-        const auto* comp    = getComponent(type_id);
-        return dynamic_cast<const T*>(comp);
+        size_t type_id = std::type_index(typeid(T)).hash_code();
+        auto   comp    = getComponent(type_id);
+        if (comp)
+            return std::dynamic_pointer_cast<const T>(comp);
+        return nullptr;
     }
 
     template<typename T>

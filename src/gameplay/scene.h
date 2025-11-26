@@ -37,6 +37,8 @@ namespace RealmEngine
         std::shared_ptr<SceneNode> createNode(const std::string& name, size_t entity_id = 0);
         std::shared_ptr<SceneNode> createNodeWithEntity(const std::string& name);
 
+        bool m_dirty {false};
+
     private:
         constexpr static size_t hashName(const std::string& name);
 
