@@ -1,9 +1,9 @@
 #include "render/renderer.h"
 #include <memory>
 
-#include "config_manager.h"
 #include "global_context.h"
 #include "render/render_scene.h"
+#include "resource/config_manager.h"
 #include "utils.h"
 #include "window.h"
 

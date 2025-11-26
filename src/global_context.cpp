@@ -1,9 +1,9 @@
 #include "global_context.h"
 
-#include "config_manager.h"
 #include "input.h"
 #include "logger.h"
 #include "render/renderer.h"
+#include "resource/config_manager.h"
 #include "window.h"
 
 #include <memory>

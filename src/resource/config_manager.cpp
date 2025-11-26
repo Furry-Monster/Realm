@@ -1,4 +1,4 @@
-#include "config_manager.h"
+#include "resource/config_manager.h"
 
 #include "plateform/plateform.h"
 #include "utils.h"
