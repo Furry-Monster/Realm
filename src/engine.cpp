@@ -1,4 +1,7 @@
 #include "engine.h"
+#include "gameplay/components/lighting.h"
+#include "gameplay/components/renderable.h"
+#include "gameplay/components/transform.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -8,9 +11,6 @@
 #include <memory>
 #include <string>
 
-#include "gameplay/components/lighting.h"
-#include "gameplay/components/renderable.h"
-#include "gameplay/components/transform.h"
 #include "gameplay/scene/scene_serializer.h"
 #include "global_context.h"
 #include "input.h"
@@ -26,31 +26,27 @@ namespace RealmEngine
     {
         g_context.create();
 
+        const GamePlayConfig& gameplay_config = g_context.m_config->getGamePlayConfig();
+        m_max_delta_time                      = gameplay_config.max_delta_time;
+
         info("<<< Boot Engine Done. >>>");
     }
 
     void Engine::run()
     {
 
-        std::filesystem::path scene_file = g_context.m_config->getRootFolder() / "scene.json";
+        std::filesystem::path scene_file =
+            g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
 
         if (std::filesystem::exists(scene_file))
         {
             info("Loading scene from: " + scene_file.string());
             m_scene = SceneSerializer::loadFromFile(scene_file.string());
-            if (!m_scene)
-            {
-                warn("Failed to load scene file, creating default scene.");
-                m_scene = createDefaultScene();
-            }
-            else
-            {
-                info("Scene loaded successfully.");
-            }
         }
-        else
+
+        if (!m_scene)
         {
-            info("Scene file not found, creating default scene.");
+            info("Loading failed, creat default scene instead.");
             m_scene = createDefaultScene();
         }
 
@@ -147,8 +143,8 @@ namespace RealmEngine
         double current_time = glfwGetTime();
         m_delta_time        = static_cast<float>(current_time - m_last_frame_time);
         m_last_frame_time   = current_time;
-        if (m_delta_time > 0.1f)
-            m_delta_time = 0.1f;
+        if (m_delta_time > m_max_delta_time)
+            m_delta_time = m_max_delta_time;
 
         logicalTick(m_scene);
         renderTick();

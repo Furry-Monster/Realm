@@ -50,6 +50,17 @@ namespace RealmEngine
         float clear_color_a = 1.0f;
     };
 
+    struct GamePlayConfig
+    {
+        float camera_move_speed        = 5.0f;
+        float camera_sprint_multiplier = 2.0f;
+        float camera_mouse_sensitivity = 0.1f;
+
+        std::string scene_file = "scene.json";
+
+        float max_delta_time = 0.1f;
+    };
+
     class ConfigManager
     {
     public:
@@ -62,15 +73,17 @@ namespace RealmEngine
         ConfigManager& operator=(ConfigManager&&) noexcept = default;
 
         void initialize();
-        void disposal();
+        void disposal() const;
 
         const GeneralConfig&  getGeneralConfig() const;
         const WindowConfig&   getWindowConfig() const;
         const RendererConfig& getRendererConfig() const;
+        const GamePlayConfig& getGamePlayConfig() const;
 
         void setGeneralConfig(const GeneralConfig& config);
         void setWindowConfig(const WindowConfig& config);
         void setRendererConfig(const RendererConfig& config);
+        void setGamePlayConfig(const GamePlayConfig& config);
 
         // Helper
         const std::filesystem::path& getRootFolder() const;
@@ -81,5 +94,6 @@ namespace RealmEngine
         GeneralConfig  m_general_config;
         WindowConfig   m_window_config;
         RendererConfig m_renderer_config;
+        GamePlayConfig m_gameplay_config;
     };
 } // namespace RealmEngine

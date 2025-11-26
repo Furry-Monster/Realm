@@ -32,6 +32,7 @@ namespace RealmEngine
         std::shared_ptr<Scene> createDefaultScene();
 
         std::shared_ptr<Scene> m_scene;
+        double                 m_max_delta_time {0.1f};
         double                 m_last_frame_time {0.0f};
     };
 } // namespace RealmEngine

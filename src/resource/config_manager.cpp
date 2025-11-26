@@ -1,6 +1,7 @@
 #include "resource/config_manager.h"
 
 #include "plateform/plateform.h"
+#include "resource/config_serializer.h"
 #include "utils.h"
 
 #include <filesystem>
@@ -20,10 +21,25 @@ namespace RealmEngine
         if (!std::filesystem::exists(m_general_config.shader_folder))
             fatal("Shaders folder not found: " + m_general_config.shader_folder.string());
 
+        std::filesystem::path config_file = m_general_config.root_folder / "config.json";
+        if (ConfigSerializer::loadFromFile(*this, config_file.string()))
+            info("Config loaded from: " + config_file.string());
+        else
+            info("Using default config.");
+
         info("Config manager initialized.");
     }
 
-    void ConfigManager::disposal() { info("Config manager dispoed all resources."); }
+    void ConfigManager::disposal() const
+    {
+        std::filesystem::path config_file = m_general_config.root_folder / "config.json";
+        if (ConfigSerializer::saveToFile(*this, config_file.string()))
+            info("Config saved to: " + config_file.string());
+        else
+            err("Failed to save config file.");
+
+        info("Config manager dispoed all resources.");
+    }
 
     const GeneralConfig& ConfigManager::getGeneralConfig() const { return m_general_config; }
 
@@ -42,5 +58,9 @@ namespace RealmEngine
     const RendererConfig& ConfigManager::getRendererConfig() const { return m_renderer_config; }
 
     void ConfigManager::setRendererConfig(const RendererConfig& config) { m_renderer_config = config; }
+
+    const GamePlayConfig& ConfigManager::getGamePlayConfig() const { return m_gameplay_config; }
+
+    void ConfigManager::setGamePlayConfig(const GamePlayConfig& config) { m_gameplay_config = config; }
 
 } // namespace RealmEngine
