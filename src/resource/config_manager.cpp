@@ -43,4 +43,8 @@ namespace RealmEngine
 
     void ConfigManager::setRendererConfig(const RendererConfig& config) { m_renderer_config = config; }
 
+    const GamePlayConfig& ConfigManager::getGamePlayConfig() const { return m_gameplay_config; }
+
+    void ConfigManager::setGamePlayConfig(const GamePlayConfig& config) { m_gameplay_config = config; }
+
 } // namespace RealmEngine

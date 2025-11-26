@@ -8,9 +8,6 @@
 #include <memory>
 #include <string>
 
-#include "gameplay/components/lighting.h"
-#include "gameplay/components/renderable.h"
-#include "gameplay/components/transform.h"
 #include "gameplay/scene/scene_serializer.h"
 #include "global_context.h"
 #include "input.h"
@@ -26,31 +23,26 @@ namespace RealmEngine
     {
         g_context.create();
 
+        const GamePlayConfig& gameplay_config = g_context.m_config->getGamePlayConfig();
+        m_max_delta_time                      = gameplay_config.max_delta_time;
+
         info("<<< Boot Engine Done. >>>");
     }
 
     void Engine::run()
     {
 
-        std::filesystem::path scene_file = g_context.m_config->getRootFolder() / "scene.json";
+        std::filesystem::path scene_file =
+            g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
 
         if (std::filesystem::exists(scene_file))
         {
             info("Loading scene from: " + scene_file.string());
             m_scene = SceneSerializer::loadFromFile(scene_file.string());
-            if (!m_scene)
-            {
-                warn("Failed to load scene file, creating default scene.");
-                m_scene = createDefaultScene();
-            }
-            else
-            {
-                info("Scene loaded successfully.");
-            }
         }
-        else
+        if (!m_scene)
         {
-            info("Scene file not found, creating default scene.");
+            info("Loading failed, creat default scene instead.");
             m_scene = createDefaultScene();
         }
 
@@ -73,62 +65,6 @@ namespace RealmEngine
     {
         auto scene = std::make_shared<Scene>();
 
-        // Models
-        std::string asset_path = g_context.m_config->getAssetFolder().generic_string();
-        try
-        {
-            auto helmet_node   = scene->createNodeWithEntity("Helmet");
-            auto helmet_entity = scene->getEntity("Helmet");
-
-            auto transform1 = std::make_shared<Transform>();
-            transform1->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-            transform1->setRotation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
-            helmet_entity->addComponent(transform1);
-
-            std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";
-            auto        renderable1 = std::make_shared<Renderable>(helmet_path, false);
-            helmet_entity->addComponent(renderable1);
-
-            scene->getRoot()->addChild(helmet_node);
-        }
-        catch (const std::exception& e)
-        {
-            err("Failed to load helmet model: " + std::string(e.what()));
-        }
-
-        try
-        {
-            auto sphere_node   = scene->createNodeWithEntity("Sphere");
-            auto sphere_entity = scene->getEntity("Sphere");
-
-            auto transform2 = std::make_shared<Transform>();
-            transform2->setPosition(glm::vec3(1.0f, 2.0f, 0.0f));
-            sphere_entity->addComponent(transform2);
-
-            std::string sphere_path = asset_path + "/sphere/sphere.gltf";
-            auto        renderable2 = std::make_shared<Renderable>(sphere_path, false);
-            sphere_entity->addComponent(renderable2);
-
-            scene->getRoot()->addChild(sphere_node);
-        }
-        catch (const std::exception& e)
-        {
-            err("Failed to load sphere model: " + std::string(e.what()));
-        }
-
-        // lights
-        auto light_node   = scene->createNodeWithEntity("Light");
-        auto light_entity = scene->getEntity("Light");
-
-        auto light_transform = std::make_shared<Transform>();
-        light_transform->setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
-        light_entity->addComponent(light_transform);
-
-        auto lighting = std::make_shared<Lighting>(glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(200.0f, 200.0f, 200.0f));
-        light_entity->addComponent(lighting);
-
-        scene->getRoot()->addChild(light_node);
-
         return scene;
     }
 
@@ -147,8 +83,8 @@ namespace RealmEngine
         double current_time = glfwGetTime();
         m_delta_time        = static_cast<float>(current_time - m_last_frame_time);
         m_last_frame_time   = current_time;
-        if (m_delta_time > 0.1f)
-            m_delta_time = 0.1f;
+        if (m_delta_time > m_max_delta_time)
+            m_delta_time = m_max_delta_time;
 
         logicalTick(m_scene);
         renderTick();
