@@ -4,7 +4,6 @@
 #include "input.h"
 #include "logger.h"
 #include "render/renderer.h"
-#include "resource/asset_manager.h"
 #include "window.h"
 
 #include <memory>
@@ -20,9 +19,6 @@ namespace RealmEngine
 
         m_config = std::make_shared<ConfigManager>();
         m_config->initialize();
-
-        m_assets = std::make_shared<AssetManager>();
-        m_assets->initialize();
 
         m_window = std::make_shared<Window>();
         m_window->initialize();
@@ -44,9 +40,6 @@ namespace RealmEngine
 
         m_window->disposal();
         m_window.reset();
-
-        m_assets->disposal();
-        m_assets.reset();
 
         m_config->disposal();
         m_config.reset();
