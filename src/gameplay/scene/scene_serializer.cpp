@@ -10,6 +10,7 @@
 #include "gameplay/components/transform.h"
 #include "gameplay/entity.h"
 #include "gameplay/scene/scene_node.h"
+#include "utils.h"
 
 namespace RealmEngine
 {
@@ -60,16 +61,25 @@ namespace RealmEngine
         }
     }
 
-    bool SceneSerializer::saveToFile(std::shared_ptr<Scene> scene, const std::string& filepath)
+    bool SceneSerializer::saveToFile(std::shared_ptr<Scene> scene, const std::string& filepath, bool encrypt)
     {
         try
         {
-            std::string   json_str = serialize(scene);
+            std::string json_str = serialize(scene);
+            std::string output   = json_str;
+
+            if (encrypt)
+            {
+                std::string key       = "Elysia";
+                std::string encrypted = xorEncrypt(json_str, key);
+                output                = base64Encode(encrypted);
+            }
+
             std::ofstream file(filepath);
             if (!file.is_open())
                 return false;
 
-            file << json_str;
+            file << output;
             file.close();
             return true;
         }
@@ -79,7 +89,7 @@ namespace RealmEngine
         }
     }
 
-    std::shared_ptr<Scene> SceneSerializer::loadFromFile(const std::string& filepath)
+    std::shared_ptr<Scene> SceneSerializer::loadFromFile(const std::string& filepath, bool encrypted)
     {
         try
         {
@@ -91,7 +101,17 @@ namespace RealmEngine
             buffer << file.rdbuf();
             file.close();
 
-            return deserialize(buffer.str());
+            std::string content  = buffer.str();
+            std::string json_str = content;
+
+            if (encrypted)
+            {
+                std::string key     = "Elysia";
+                std::string decoded = base64Decode(content);
+                json_str            = xorDecrypt(decoded, key);
+            }
+
+            return deserialize(json_str);
         }
         catch (...)
         {

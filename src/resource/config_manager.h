@@ -73,7 +73,7 @@ namespace RealmEngine
         ConfigManager& operator=(ConfigManager&&) noexcept = default;
 
         void initialize();
-        void disposal();
+        void disposal() const;
 
         const GeneralConfig&  getGeneralConfig() const;
         const WindowConfig&   getWindowConfig() const;

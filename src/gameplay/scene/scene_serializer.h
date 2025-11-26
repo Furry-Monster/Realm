@@ -21,8 +21,8 @@ namespace RealmEngine
         static std::string            serialize(std::shared_ptr<Scene> scene);
         static std::shared_ptr<Scene> deserialize(const std::string& json);
 
-        static bool                   saveToFile(std::shared_ptr<Scene> scene, const std::string& filepath);
-        static std::shared_ptr<Scene> loadFromFile(const std::string& filepath);
+        static bool saveToFile(std::shared_ptr<Scene> scene, const std::string& filepath, bool encrypt = false);
+        static std::shared_ptr<Scene> loadFromFile(const std::string& filepath, bool encrypted = false);
 
     private:
         static void serializeNode(nlohmann::json& json, std::shared_ptr<SceneNode> node, std::shared_ptr<Scene> scene);
