@@ -23,7 +23,6 @@ namespace RealmEngine
     public:
         explicit RenderObject(std::string path);
         RenderObject(std::string path, bool flipTexturesVertically);
-        RenderObject(std::string path, std::shared_ptr<RenderMaterial> material, bool flipTexturesVertically);
 
         void      setPosition(glm::vec3 position);
         glm::vec3 getPosition() const;
@@ -42,12 +41,11 @@ namespace RealmEngine
         std::shared_ptr<Texture> loadMaterialTexture(aiMaterial* material, aiTextureType type);
         unsigned int             textureFromFile(const char* file_name, std::string directory, aiTextureType type);
 
-        glm::vec3                       m_position {glm::vec3(0.0)};
-        glm::vec3                       m_scale {glm::vec3(1.0, 1.0, 1.0)};
-        glm::quat                       m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
-        std::vector<RenderMesh>         m_meshes;
-        std::string                     m_directory;
-        TextureCache                    m_textures_loaded;
-        std::shared_ptr<RenderMaterial> m_material_override;
+        glm::vec3               m_position {glm::vec3(0.0)};
+        glm::vec3               m_scale {glm::vec3(1.0, 1.0, 1.0)};
+        glm::quat               m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
+        std::vector<RenderMesh> m_meshes;
+        std::string             m_directory;
+        TextureCache            m_textures_loaded;
     };
 } // namespace RealmEngine

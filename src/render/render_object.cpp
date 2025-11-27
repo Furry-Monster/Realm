@@ -14,13 +14,6 @@ namespace RealmEngine
         loadModel(path, flipTexturesVertically);
     }
 
-    RenderObject::RenderObject(std::string                     path,
-                               std::shared_ptr<RenderMaterial> material,
-                               bool                            flipTexturesVertically) : m_material_override(material)
-    {
-        loadModel(path, flipTexturesVertically);
-    }
-
     void RenderObject::setPosition(glm::vec3 position) { m_position = position; }
 
     glm::vec3 RenderObject::getPosition() const { return m_position; }
@@ -54,13 +47,9 @@ namespace RealmEngine
 
         size_t last_slash = path.find_last_of("/\\");
         if (last_slash != std::string::npos)
-        {
             m_directory = path.substr(0, last_slash);
-        }
         else
-        {
             m_directory = ".";
-        }
 
         info("Loading model from: " + path);
         info("Model directory: " + m_directory);
@@ -91,9 +80,6 @@ namespace RealmEngine
         std::vector<RenderVertex> vertices;
         std::vector<unsigned int> indices;
         RenderMaterial            material;
-
-        if (m_material_override)
-            material = *m_material_override;
 
         // vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -172,71 +158,67 @@ namespace RealmEngine
         }
 
         // material
-        if (!m_material_override)
+        if (mesh->mMaterialIndex >= 0)
         {
-            if (mesh->mMaterialIndex >= 0)
+            aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
+
+            // albedo - try glTF base color first, then fallback to diffuse
+            if (ai_material->GetTextureCount(aiTextureType_BASE_COLOR))
             {
-                aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
+                // glTF 2.0 base color
+                material.use_texture_albedo = true;
+                material.texture_albedo     = loadMaterialTexture(ai_material, aiTextureType_BASE_COLOR);
+            }
+            else if (ai_material->GetTextureCount(aiTextureType_DIFFUSE))
+            {
+                // FBX/OBJ diffuse fallback
+                material.use_texture_albedo = true;
+                material.texture_albedo     = loadMaterialTexture(ai_material, aiTextureType_DIFFUSE);
+            }
 
-                // albedo - try glTF base color first, then fallback to diffuse
-                if (ai_material->GetTextureCount(aiTextureType_BASE_COLOR))
-                {
-                    // glTF 2.0 base color
-                    material.use_texture_albedo = true;
-                    material.texture_albedo     = loadMaterialTexture(ai_material, aiTextureType_BASE_COLOR);
-                }
-                else if (ai_material->GetTextureCount(aiTextureType_DIFFUSE))
-                {
-                    // FBX/OBJ diffuse fallback
-                    material.use_texture_albedo = true;
-                    material.texture_albedo     = loadMaterialTexture(ai_material, aiTextureType_DIFFUSE);
-                }
+            // metallicRoughness (in gltf 2.0 they are combined in one texture)
+            // Try glTF-specific texture type first
+            if (ai_material->GetTextureCount(aiTextureType_GLTF_METALLIC_ROUGHNESS))
+            {
+                // glTF combined metallic-roughness texture
+                material.use_texture_metallic_roughness = true;
+                material.texture_metallic_roughness =
+                    loadMaterialTexture(ai_material, aiTextureType_GLTF_METALLIC_ROUGHNESS);
+            }
+            else if (ai_material->GetTextureCount(aiTextureType_UNKNOWN))
+            {
+                // Fallback to UNKNOWN type (defined in assimp pbrmaterial.h)
+                // https://github.com/assimp/assimp/blob/master/include/assimp/pbrmaterial.h#L57
+                material.use_texture_metallic_roughness = true;
+                material.texture_metallic_roughness     = loadMaterialTexture(ai_material, aiTextureType_UNKNOWN);
+            }
 
-                // metallicRoughness (in gltf 2.0 they are combined in one texture)
-                // Try glTF-specific texture type first
-                if (ai_material->GetTextureCount(aiTextureType_GLTF_METALLIC_ROUGHNESS))
-                {
-                    // glTF combined metallic-roughness texture
-                    material.use_texture_metallic_roughness = true;
-                    material.texture_metallic_roughness =
-                        loadMaterialTexture(ai_material, aiTextureType_GLTF_METALLIC_ROUGHNESS);
-                }
-                else if (ai_material->GetTextureCount(aiTextureType_UNKNOWN))
-                {
-                    // Fallback to UNKNOWN type (defined in assimp pbrmaterial.h)
-                    // https://github.com/assimp/assimp/blob/master/include/assimp/pbrmaterial.h#L57
-                    material.use_texture_metallic_roughness = true;
-                    material.texture_metallic_roughness     = loadMaterialTexture(ai_material, aiTextureType_UNKNOWN);
-                }
+            // normal
+            if (ai_material->GetTextureCount(aiTextureType_NORMALS))
+            {
+                material.use_texture_normal = true;
+                material.texture_normal     = loadMaterialTexture(ai_material, aiTextureType_NORMALS);
+            }
 
-                // normal
-                if (ai_material->GetTextureCount(aiTextureType_NORMALS))
-                {
-                    material.use_texture_normal = true;
-                    material.texture_normal     = loadMaterialTexture(ai_material, aiTextureType_NORMALS);
-                }
+            // ambient occlusion - try glTF AO first, then lightmap
+            if (ai_material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION))
+            {
+                // glTF AO map
+                material.use_texture_ambient_occlusion = true;
+                material.texture_ambient_occlusion = loadMaterialTexture(ai_material, aiTextureType_AMBIENT_OCCLUSION);
+            }
+            else if (ai_material->GetTextureCount(aiTextureType_LIGHTMAP))
+            {
+                // FBX lightmap fallback
+                material.use_texture_ambient_occlusion = true;
+                material.texture_ambient_occlusion     = loadMaterialTexture(ai_material, aiTextureType_LIGHTMAP);
+            }
 
-                // ambient occlusion - try glTF AO first, then lightmap
-                if (ai_material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION))
-                {
-                    // glTF AO map
-                    material.use_texture_ambient_occlusion = true;
-                    material.texture_ambient_occlusion =
-                        loadMaterialTexture(ai_material, aiTextureType_AMBIENT_OCCLUSION);
-                }
-                else if (ai_material->GetTextureCount(aiTextureType_LIGHTMAP))
-                {
-                    // FBX lightmap fallback
-                    material.use_texture_ambient_occlusion = true;
-                    material.texture_ambient_occlusion     = loadMaterialTexture(ai_material, aiTextureType_LIGHTMAP);
-                }
-
-                // emissive
-                if (ai_material->GetTextureCount(aiTextureType_EMISSIVE))
-                {
-                    material.use_texture_emissive = true;
-                    material.texture_emissive     = loadMaterialTexture(ai_material, aiTextureType_EMISSIVE);
-                }
+            // emissive
+            if (ai_material->GetTextureCount(aiTextureType_EMISSIVE))
+            {
+                material.use_texture_emissive = true;
+                material.texture_emissive     = loadMaterialTexture(ai_material, aiTextureType_EMISSIVE);
             }
         }
 
@@ -273,13 +255,9 @@ namespace RealmEngine
         std::string relative_path = file_name;
         std::string path;
         if (relative_path[0] == '/' || (relative_path.length() > 1 && relative_path[1] == ':'))
-        {
             path = relative_path;
-        }
         else
-        {
             path = directory + '/' + relative_path;
-        }
 
         debug("Loading texture: " + path);
 
@@ -320,13 +298,9 @@ namespace RealmEngine
         if (type == aiTextureType_DIFFUSE)
         {
             if (internal_format == GL_RGB)
-            {
                 internal_format = GL_SRGB;
-            }
             else if (internal_format == GL_RGBA)
-            {
                 internal_format = GL_SRGB_ALPHA;
-            }
         }
 
         unsigned int texture_id;
