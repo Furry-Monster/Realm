@@ -1,6 +1,6 @@
 # RealmEngine
 
-一个基于 OpenGL 的现代游戏引擎，专注于基于物理的渲染（PBR）和高质量图形效果，支持IBL与Bloom后处理。现已包含完整的编辑器系统和实体组件系统（ECS）。
+一个基于 OpenGL 的现代游戏引擎，专注于基于物理的渲染（PBR）和高质量图形效果，支持IBL与Bloom后处理。现已包含完整的编辑器系统和实体组件系统（EC）。
 
 ![pbr demo](helmet.png "pbr demo")
 
