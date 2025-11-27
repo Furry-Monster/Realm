@@ -11,7 +11,7 @@ namespace RealmEngine
     class SceneHierarchyWidget : public Widget
     {
     public:
-        explicit SceneHierarchyWidget(EditorContext* context);
+        explicit SceneHierarchyWidget(std::shared_ptr<EditorContext> context);
         ~SceneHierarchyWidget() override = default;
 
         SceneHierarchyWidget(const SceneHierarchyWidget&)            = delete;
@@ -24,7 +24,7 @@ namespace RealmEngine
     private:
         void renderNode(std::shared_ptr<SceneNode> node);
 
-        EditorContext* m_context {nullptr};
+        std::shared_ptr<EditorContext> m_context;
     };
 
 } // namespace RealmEngine

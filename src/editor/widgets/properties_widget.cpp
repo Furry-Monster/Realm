@@ -11,7 +11,9 @@
 
 namespace RealmEngine
 {
-    PropertiesWidget::PropertiesWidget(EditorContext* context) : Widget("Properties"), m_context(context) {}
+    PropertiesWidget::PropertiesWidget(std::shared_ptr<EditorContext> context) :
+        Widget("Properties"), m_context(context)
+    {}
 
     void PropertiesWidget::render()
     {

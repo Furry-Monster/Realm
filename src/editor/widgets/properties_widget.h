@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "editor/widget.h"
 
 namespace RealmEngine
@@ -9,7 +10,7 @@ namespace RealmEngine
     class PropertiesWidget : public Widget
     {
     public:
-        explicit PropertiesWidget(EditorContext* context);
+        explicit PropertiesWidget(std::shared_ptr<EditorContext> context);
         ~PropertiesWidget() override = default;
 
         PropertiesWidget(const PropertiesWidget&)            = delete;
@@ -24,7 +25,7 @@ namespace RealmEngine
         void renderRenderable();
         void renderLighting();
 
-        EditorContext* m_context {nullptr};
+        std::shared_ptr<EditorContext> m_context;
     };
 
 } // namespace RealmEngine

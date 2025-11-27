@@ -33,8 +33,8 @@ namespace RealmEngine
 
         bool                                 m_initialized {false};
         std::unique_ptr<Engine>              m_engine;
-        std::unique_ptr<EditorContext>       m_context;
-        std::vector<std::unique_ptr<Widget>> m_panels;
+        std::shared_ptr<EditorContext>       m_context;
+        std::vector<std::shared_ptr<Widget>> m_panels;
     };
 
 } // namespace RealmEngine

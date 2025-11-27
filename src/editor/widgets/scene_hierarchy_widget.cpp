@@ -10,7 +10,8 @@
 
 namespace RealmEngine
 {
-    SceneHierarchyWidget::SceneHierarchyWidget(EditorContext* context) : Widget("Scene Hierarchy"), m_context(context)
+    SceneHierarchyWidget::SceneHierarchyWidget(std::shared_ptr<EditorContext> context) :
+        Widget("Scene Hierarchy"), m_context(context)
     {}
 
     void SceneHierarchyWidget::render()

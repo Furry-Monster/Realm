@@ -1,6 +1,17 @@
 #include "editor/widgets/menu_bar_widget.h"
 
+#include "editor/widgets/file_dialog_widget.h"
+#include "gameplay/scene/scene_manager.h"
+#include "global_context.h"
+#include "resource/config_manager.h"
+#include "utils.h"
+#include "window.h"
+
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 #include <imgui.h>
+#include <filesystem>
 
 namespace RealmEngine
 {
@@ -24,29 +35,59 @@ namespace RealmEngine
         {
             if (ImGui::MenuItem("New Scene"))
             {
-                // TODO: 创建新场景
+                auto new_scene = g_context.m_scene->createDefaultScene();
+                if (new_scene)
+                {
+                    g_context.m_scene->setCurrentScene(new_scene);
+                    info("New scene created");
+                }
             }
 
             if (ImGui::MenuItem("Open Scene..."))
             {
-                // TODO: 打开场景文件
+                if (m_file_dialog)
+                {
+                    std::filesystem::path initial_path = g_context.m_config->getRootFolder();
+                    m_file_dialog->open(FileDialogWidget::Mode::Open, "Open Scene", ".json", initial_path);
+                }
             }
 
             if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
             {
-                // TODO: 保存场景
+                if (g_context.m_scene->getCurrentScene())
+                {
+                    std::filesystem::path scene_file =
+                        g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+
+                    if (g_context.m_scene->saveCurrentScene(scene_file.string()))
+                    {
+                        info("Scene saved to: " + scene_file.string());
+                    }
+                    else
+                    {
+                        err("Failed to save scene to: " + scene_file.string());
+                    }
+                }
+                else
+                {
+                    info("No scene to save");
+                }
             }
 
             if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
             {
-                // TODO: 另存为场景
+                if (m_file_dialog && g_context.m_scene->getCurrentScene())
+                {
+                    std::filesystem::path initial_path = g_context.m_config->getRootFolder();
+                    m_file_dialog->open(FileDialogWidget::Mode::Save, "Save Scene As", ".json", initial_path);
+                }
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Exit"))
             {
-                // TODO: 退出编辑器
+                glfwSetWindowShouldClose(g_context.m_window->getGLFWWindow(), GLFW_TRUE);
             }
 
             ImGui::EndMenu();
@@ -59,29 +100,29 @@ namespace RealmEngine
         {
             if (ImGui::MenuItem("Undo", "Ctrl+Z", false, false))
             {
-                // TODO: 撤销
+                // TODO: Implement undo
             }
 
             if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false))
             {
-                // TODO: 重做
+                // TODO: Implement redo
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Cut", "Ctrl+X", false, false))
             {
-                // TODO: 剪切
+                // TODO: Implement cut
             }
 
             if (ImGui::MenuItem("Copy", "Ctrl+C", false, false))
             {
-                // TODO: 复制
+                // TODO: Implement copy
             }
 
             if (ImGui::MenuItem("Paste", "Ctrl+V", false, false))
             {
-                // TODO: 粘贴
+                // TODO: Implement paste
             }
 
             ImGui::EndMenu();
@@ -92,19 +133,20 @@ namespace RealmEngine
     {
         if (ImGui::BeginMenu("View"))
         {
-            if (ImGui::MenuItem("Scene Hierarchy"))
+            if (m_widgets)
             {
-                // TODO: 显示/隐藏场景层次面板
-            }
-
-            if (ImGui::MenuItem("Properties"))
-            {
-                // TODO: 显示/隐藏属性面板
-            }
-
-            if (ImGui::MenuItem("Viewport"))
-            {
-                // TODO: 显示/隐藏视口面板
+                for (size_t i = 1; i < m_widgets->size(); ++i) // Skip menu bar itself
+                {
+                    auto widget = m_widgets->at(i);
+                    if (widget)
+                    {
+                        bool is_open = widget->isOpen();
+                        if (ImGui::MenuItem(widget->getName().c_str(), nullptr, &is_open))
+                        {
+                            widget->setOpen(is_open);
+                        }
+                    }
+                }
             }
 
             ImGui::EndMenu();

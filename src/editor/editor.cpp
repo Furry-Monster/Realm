@@ -2,11 +2,13 @@
 #include <memory>
 
 #include "editor/editor_context.h"
+#include "editor/widgets/file_dialog_widget.h"
 #include "editor/widgets/menu_bar_widget.h"
 #include "editor/widgets/properties_widget.h"
 #include "editor/widgets/scene_hierarchy_widget.h"
 #include "editor/widgets/viewport_panel.h"
 #include "engine.h"
+#include "gameplay/scene/scene_manager.h"
 #include "global_context.h"
 #include "utils.h"
 #include "window.h"
@@ -51,11 +53,52 @@ namespace RealmEngine
         ImGui_ImplGlfw_InitForOpenGL(g_context.m_window->getGLFWWindow(), true);
         ImGui_ImplOpenGL3_Init("#version 330");
 
-        m_context = std::make_unique<EditorContext>();
-        m_panels.push_back(std::make_unique<MenuBarWidget>());
-        m_panels.push_back(std::make_unique<SceneHierarchyWidget>(m_context.get()));
-        m_panels.push_back(std::make_unique<PropertiesWidget>(m_context.get()));
-        m_panels.push_back(std::make_unique<ViewportPanel>());
+        m_context = std::make_shared<EditorContext>();
+
+        auto file_dialog = std::make_shared<FileDialogWidget>();
+        file_dialog->setOnFileSelected([file_dialog](const std::filesystem::path& path) {
+            if (file_dialog->getMode() == FileDialogWidget::Mode::Open)
+            {
+                auto loaded = g_context.m_scene->loadScene(path.string());
+                if (loaded)
+                {
+                    g_context.m_scene->setCurrentScene(loaded);
+                    info("Scene loaded from: " + path.string());
+                }
+                else
+                {
+                    err("Failed to load scene from: " + path.string());
+                }
+            }
+            else // Save
+            {
+                if (g_context.m_scene->getCurrentScene())
+                {
+                    if (g_context.m_scene->saveCurrentScene(path.string()))
+                    {
+                        info("Scene saved to: " + path.string());
+                    }
+                    else
+                    {
+                        err("Failed to save scene to: " + path.string());
+                    }
+                }
+            }
+        });
+
+        m_panels.push_back(std::make_shared<MenuBarWidget>());
+        m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context));
+        m_panels.push_back(std::make_shared<PropertiesWidget>(m_context));
+        m_panels.push_back(std::make_shared<ViewportPanel>());
+        m_panels.push_back(file_dialog);
+
+        auto widgets_shared = std::make_shared<std::vector<std::shared_ptr<Widget>>>(m_panels);
+        auto menu_bar       = std::dynamic_pointer_cast<MenuBarWidget>(m_panels[0]);
+        if (menu_bar)
+        {
+            menu_bar->setWidgets(widgets_shared);
+            menu_bar->setFileDialog(file_dialog);
+        }
 
         m_initialized = true;
     }
