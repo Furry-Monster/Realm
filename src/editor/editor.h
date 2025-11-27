@@ -1,16 +1,18 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 namespace RealmEngine
 {
     class Engine;
+    class Widget;
 
     class Editor
     {
     public:
-        Editor()           = default;
-        ~Editor() noexcept = default;
+        Editor();
+        ~Editor() noexcept;
 
         Editor(const Editor&)            = delete;
         Editor& operator=(const Editor&) = delete;
@@ -28,8 +30,9 @@ namespace RealmEngine
         void render() const;
         void endFrame() const;
 
-        bool                    m_initialized {false};
-        std::unique_ptr<Engine> m_engine;
+        bool                                 m_initialized {false};
+        std::unique_ptr<Engine>              m_engine;
+        std::vector<std::unique_ptr<Widget>> m_panels;
     };
 
 } // namespace RealmEngine
