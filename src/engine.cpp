@@ -36,19 +36,20 @@ namespace RealmEngine
         std::filesystem::path scene_file =
             g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
 
+        std::shared_ptr<Scene> loaded;
         if (std::filesystem::exists(scene_file))
         {
             info("Loading scene from: " + scene_file.string());
-            auto loaded = g_context.m_scene->loadScene(scene_file.string());
-
-            if (!loaded)
-            {
-                info("Loading failed, create default scene instead.");
-                loaded = g_context.m_scene->createDefaultScene();
-            }
-
-            g_context.m_scene->setCurrentScene(loaded);
+            loaded = g_context.m_scene->loadScene(scene_file.string());
         }
+
+        if (!loaded)
+        {
+            info("Loading failed, create default scene instead.");
+            loaded = g_context.m_scene->createDefaultScene();
+        }
+
+        g_context.m_scene->setCurrentScene(loaded);
 
         g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
