@@ -32,6 +32,7 @@ namespace RealmEngine
         void                   setCurrentScene(const std::string& name);
         void                   setCurrentScene(std::shared_ptr<Scene> scene);
         std::shared_ptr<Scene> getCurrentScene() const;
+        std::shared_ptr<Scene> getCurrentOrNewScene();
         std::shared_ptr<Scene> getScene(const std::string& name) const;
         bool                   hasScene(const std::string& name) const;
         void                   removeScene(const std::string& name);

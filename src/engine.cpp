@@ -98,12 +98,12 @@ namespace RealmEngine
     {
         g_context.m_input->tick();
         g_context.m_window->pollEvents();
-        g_context.m_scene->getCurrentScene()->tick(m_delta_time);
+        g_context.m_scene->getCurrentOrNewScene()->tick(m_delta_time);
     }
 
     void Engine::renderTick() const
     {
-        g_context.m_renderer->getRenderScene()->syncFromScene(g_context.m_scene->getCurrentScene());
+        g_context.m_renderer->getRenderScene()->syncFromCurrentScene();
         g_context.m_renderer->render();
     }
 

@@ -4,7 +4,9 @@
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 #include "gameplay/scene/scene.h"
+#include "gameplay/scene/scene_manager.h"
 #include "gameplay/scene/scene_node.h"
+#include "global_context.h"
 
 namespace RealmEngine
 {
@@ -20,6 +22,12 @@ namespace RealmEngine
         auto root = scene->getRoot();
         if (root)
             syncNode(scene, root);
+    }
+
+    void RenderScene::syncFromCurrentScene()
+    {
+        auto scene = g_context.m_scene->getCurrentScene();
+        syncFromScene(scene);
     }
 
     void RenderScene::syncNode(std::shared_ptr<Scene> scene, std::shared_ptr<SceneNode> node)

@@ -1,4 +1,5 @@
 #include "gameplay/scene/scene_manager.h"
+
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -133,6 +134,14 @@ namespace RealmEngine
     }
 
     std::shared_ptr<Scene> SceneManager::getCurrentScene() const { return m_current_scene; }
+
+    std::shared_ptr<Scene> SceneManager::getCurrentOrNewScene()
+    {
+        if (!m_current_scene)
+            setCurrentScene(createScene("Unsaved"));
+
+        return m_current_scene;
+    }
 
     std::shared_ptr<Scene> SceneManager::getScene(const std::string& name) const
     {
