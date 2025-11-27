@@ -87,6 +87,7 @@ namespace RealmEngine
     int         Window::getWidth() const { return m_width; }
     int         Window::getHeight() const { return m_height; }
     int         Window::getMSAASamples() const { return m_msaa_samples; }
+    GLFWwindow* Window::getGLFWWindow() const { return m_window.get(); }
 
     bool Window::isMSAAEnabled() const { return m_msaa_samples > 0; }
     bool Window::isVSyncEnabled() const { return m_vsync; }
