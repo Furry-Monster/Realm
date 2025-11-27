@@ -1,6 +1,10 @@
 #include "editor/editor.h"
 #include <memory>
 
+#include "editor/editor_context.h"
+#include "editor/widgets/menu_bar_widget.h"
+#include "editor/widgets/properties_widget.h"
+#include "editor/widgets/scene_hierarchy_widget.h"
 #include "editor/widgets/viewport_panel.h"
 #include "engine.h"
 #include "global_context.h"
@@ -47,6 +51,10 @@ namespace RealmEngine
         ImGui_ImplGlfw_InitForOpenGL(g_context.m_window->getGLFWWindow(), true);
         ImGui_ImplOpenGL3_Init("#version 330");
 
+        m_context = std::make_unique<EditorContext>();
+        m_panels.push_back(std::make_unique<MenuBarWidget>());
+        m_panels.push_back(std::make_unique<SceneHierarchyWidget>(m_context.get()));
+        m_panels.push_back(std::make_unique<PropertiesWidget>(m_context.get()));
         m_panels.push_back(std::make_unique<ViewportPanel>());
 
         m_initialized = true;
@@ -106,12 +114,15 @@ namespace RealmEngine
         if (!m_initialized)
             return;
 
+        if (!m_panels.empty() && m_panels[0])
+            m_panels[0]->render();
+
         ImGui::DockSpaceOverViewport();
 
-        for (const auto& panel : m_panels)
+        for (size_t i = 1; i < m_panels.size(); ++i)
         {
-            if (panel && panel->isOpen())
-                panel->render();
+            if (m_panels[i] && m_panels[i]->isOpen())
+                m_panels[i]->render();
         }
     }
 
