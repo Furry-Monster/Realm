@@ -76,10 +76,24 @@ namespace RealmEngine
 
             if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
             {
-                if (m_file_dialog && g_context.m_scene->getCurrentScene())
+                // Use default path for now (file dialog can be added later)
+                if (g_context.m_scene->getCurrentScene())
                 {
-                    std::filesystem::path initial_path = g_context.m_config->getRootFolder();
-                    m_file_dialog->open(FileDialogWidget::Mode::Save, "Save Scene As", ".json", initial_path);
+                    std::filesystem::path scene_file =
+                        g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+
+                    if (g_context.m_scene->saveCurrentScene(scene_file.string()))
+                    {
+                        info("Scene saved to: " + scene_file.string());
+                    }
+                    else
+                    {
+                        err("Failed to save scene to: " + scene_file.string());
+                    }
+                }
+                else
+                {
+                    info("No scene to save");
                 }
             }
 

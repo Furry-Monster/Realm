@@ -6,7 +6,6 @@
 #include "editor/widgets/menu_bar_widget.h"
 #include "editor/widgets/properties_widget.h"
 #include "editor/widgets/scene_hierarchy_widget.h"
-#include "editor/widgets/viewport_panel.h"
 #include "engine.h"
 #include "gameplay/scene/scene_manager.h"
 #include "global_context.h"
@@ -89,7 +88,6 @@ namespace RealmEngine
         m_panels.push_back(std::make_shared<MenuBarWidget>());
         m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context));
-        m_panels.push_back(std::make_shared<ViewportPanel>());
         m_panels.push_back(file_dialog);
 
         auto widgets_shared = std::make_shared<std::vector<std::shared_ptr<Widget>>>(m_panels);
@@ -159,8 +157,6 @@ namespace RealmEngine
 
         if (!m_panels.empty() && m_panels[0])
             m_panels[0]->render();
-
-        ImGui::DockSpaceOverViewport();
 
         for (size_t i = 1; i < m_panels.size(); ++i)
         {
