@@ -26,9 +26,9 @@ namespace RealmEngine
         std::shared_ptr<RenderObject> getRenderObject() const;
         bool                          hasRenderObject() const;
 
-        void                setModelPath(const std::string& model_path);
-        const std::string&  getModelPath() const;
-        bool                hasModelPath() const;
+        void               setModelPath(const std::string& model_path);
+        const std::string& getModelPath() const;
+        bool               hasModelPath() const;
 
     private:
         std::shared_ptr<RenderObject> m_render_object;

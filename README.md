@@ -1,23 +1,28 @@
 # RealmEngine
 
-一个基于 OpenGL 的现代游戏引擎(现在还只是个渲染器，之后有时间会慢慢完善)，专注于基于物理的渲染（PBR）和高质量图形效果，支持IBL与Bloom后处理。
+一个基于 OpenGL 的现代游戏引擎，专注于基于物理的渲染（PBR）和高质量图形效果，支持IBL与Bloom后处理。现已包含完整的编辑器系统和实体组件系统（ECS）。
 
-![img](helmet.png)
+![pbr demo](helmet.png "pbr demo")
+
+![编辑器demo](editor.png "editor demo")
 
 ## 特性
 
 - **基于物理的渲染（PBR）** - 支持金属度/粗糙度工作流
 - **基于图像的照明（IBL）** - 支持 HDR 环境贴图和预计算光照
-- **Bloom 后处理** - 可配置的光晕效果
+- **Bloom 后处理** - 可配置的泛光效果、色调映射与伽马矫正
+- **可视化编辑器** - 基于 ImGui 的完整编辑器，支持场景编辑、实体管理和属性调整
+- **实体组件系统（ECS）** - 灵活的组件系统，支持 Transform、Renderable、Lighting、CameraController 等组件
+- **场景管理** - 完整的场景创建、加载、保存和管理系统，支持场景序列化
 - **资源管理** - 支持 glTF、FBX 等模型格式
+- **配置管理** - 统一的配置管理系统，支持序列化和加密
 - **窗口管理** - 基于 GLFW 的跨平台窗口系统
 - **日志系统** - 基于 spdlog 的日志记录
-- **场景管理** - 灵活的场景和实体系统
 
 ## 系统要求
 
-- **操作系统**: Linux / macOS / Windows
-- **编译器**: 支持 C++17 的编译器（GCC 7+, Clang 5+, MSVC 2017+）
+- **操作系统**: Linux / macOS ，Windows不支持
+- **编译器**: 支持 C++17 的编译器（GCC 7+, Clang 5+, MSVC暂不支持）
 - **CMake**: 3.20 或更高版本
 - **OpenGL**: 3.3 或更高版本
 - **Python**: 3.6+（手动构建也行，不推荐）
@@ -58,18 +63,23 @@ git submodule update
 最简单的方式是使用提供的 Python 构建脚本：
 
 ```bash
-# 默认构建（Debug 模式）
+# 默认构建
 python build.py
 
 # Release 模式构建
 python build.py --type Release
 
-# 构建并运行
+# 构建并运行编辑器
 python build.py --run
+
+# 运行调试模式，不启用编辑器
+python build.py --run --debug
 
 # 清理并重新构建
 python build.py --clean --run
 ```
+
+构建完成后，运行 `bin/RealmEngine` 将启动编辑器模式。如需运行调试模式（无编辑器界面），使用 `bin/RealmEngine debug`。
 
 windows下暂时不支持MSVC，请使用MinGW工具链手动编译，后面搞懂了再加MSVC的支持。
 
@@ -87,9 +97,6 @@ cmake --build . -j$(nproc)
 
 # 运行（Linux/macOS）
 ../bin/RealmEngine
-
-# 运行（Windows）
-..\bin\RealmEngine.exe
 ```
 
 ## 项目结构
@@ -97,12 +104,17 @@ cmake --build . -j$(nproc)
 ```
 RealmEngine/
 ├── assets/          # 资源文件（模型、纹理、HDR 等，这里的文件会自动打包成导出资源）
-├── shaders/         # GLSL 着色器文件（通上，也会打包成导出资源）
+├── shaders/         # GLSL 着色器文件（同上，也会打包成导出资源）
 ├── src/             # 源代码
-│   ├── main.cpp     # 引擎主循环
+│   ├── main.cpp     # 引擎主循环（支持编辑器模式和调试模式）
+│   ├── editor/      # 编辑器系统
+│   │   ├── widgets/ # 编辑器组件（菜单栏、场景层次、属性面板、文件对话框等）
+│   │   └── ...
 │   ├── render/      # 渲染系统
 │   ├── resource/    # 资源管理
 │   ├── gameplay/    # 游戏逻辑
+│   │   ├── components/  # 组件系统（Transform、Renderable、Lighting、CameraController）
+│   │   └── scene/       # 场景管理（Scene、SceneManager、SceneSerializer）
 │   └── ...
 ├── libs/            # 第三方库
 ├── bin/             # 构建输出目录
@@ -158,6 +170,18 @@ python build.py --lint-fix
 # 或使用 CMake 目标
 cmake --build build --target lint-fix
 ```
+
+## 编辑器功能
+
+编辑器提供了以下功能面板：
+
+- **菜单栏** - 文件操作（新建、打开、保存场景）、编辑功能等
+- **场景层次结构** - 显示场景中的所有实体和节点，支持选择和操作
+- **属性面板** - 显示和编辑选中实体的组件属性（Transform、Renderable、Lighting 等）
+- **视口面板** - 实时预览场景渲染结果
+- **文件对话框** - 用于打开和保存场景文件
+
+场景文件以 JSON 格式保存，支持完整的场景序列化和反序列化。
 
 ## 资源文件
 

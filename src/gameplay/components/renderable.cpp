@@ -13,8 +13,7 @@ namespace RealmEngine
         m_render_object = std::make_shared<RenderObject>(model_path, false);
     }
 
-    Renderable::Renderable(const std::string& model_path, bool flip_textures_vertically)
-        : m_model_path(model_path)
+    Renderable::Renderable(const std::string& model_path, bool flip_textures_vertically) : m_model_path(model_path)
     {
         m_render_object = std::make_shared<RenderObject>(model_path, flip_textures_vertically);
     }
