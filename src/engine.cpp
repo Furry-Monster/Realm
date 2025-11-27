@@ -52,7 +52,6 @@ namespace RealmEngine
 
         g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
-        m_scene->setCamera(g_context.m_renderer->getCamera());
 
         m_last_frame_time = glfwGetTime();
         while (!g_context.m_window->shouldClose())

@@ -5,11 +5,20 @@
 #include <memory>
 #include "global_context.h"
 #include "input.h"
-#include "render/render_camera.h"
+#include "render/renderer.h"
+#include "resource/config_manager.h"
 
 namespace RealmEngine
 {
-    void CameraController::initialize(std::shared_ptr<RenderCamera> camera) { m_camera = camera; }
+    CameraController::CameraController()
+    {
+        m_camera = g_context.m_renderer->getCamera();
+
+        const GamePlayConfig& gameplay_config = g_context.m_config->getGamePlayConfig();
+        m_mouse_sensitivity                   = gameplay_config.camera_mouse_sensitivity;
+        m_move_speed                          = gameplay_config.camera_move_speed;
+        m_sprint_multiplier                   = gameplay_config.camera_sprint_multiplier;
+    }
 
     void CameraController::update(float delta_time)
     {
@@ -22,9 +31,7 @@ namespace RealmEngine
         // Calculate movement speed
         float move_speed = m_move_speed;
         if (cmd & static_cast<Command>(BindableCommand::SPRINT))
-        {
             move_speed *= m_sprint_multiplier;
-        }
 
         // Calculate movement direction
         glm::vec3 move_dir(0.0f);
