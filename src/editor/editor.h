@@ -4,13 +4,13 @@
 
 namespace RealmEngine
 {
-    class Scene;
+    class Engine;
 
     class Editor
     {
     public:
-        Editor() = default;
-        ~Editor() noexcept;
+        Editor()           = default;
+        ~Editor() noexcept = default;
 
         Editor(const Editor&)            = delete;
         Editor& operator=(const Editor&) = delete;
@@ -19,15 +19,17 @@ namespace RealmEngine
 
         void initialize();
         void shutdown();
-
-        void beginFrame() const;
-        void endFrame() const;
-
-        void setScene(std::shared_ptr<Scene> scene) { m_scene = scene; }
+        void run();
 
     private:
-        bool                   m_initialized {false};
-        std::shared_ptr<Scene> m_scene;
+        void tick();
+
+        void beginFrame() const;
+        void render() const;
+        void endFrame() const;
+
+        bool                    m_initialized {false};
+        std::unique_ptr<Engine> m_engine;
     };
 
 } // namespace RealmEngine

@@ -18,13 +18,11 @@ namespace RealmEngine
         Engine& operator=(Engine&& that)      = delete;
 
         void boot();
-        void run();
+        void debug();
+        void tick();
         void terminate();
 
-        double m_delta_time {0.0f};
-
     protected:
-        void tick();
         void logicalTick(std::shared_ptr<Scene> scene) const;
         void renderTick();
 
@@ -32,7 +30,9 @@ namespace RealmEngine
         std::shared_ptr<Scene> createDefaultScene();
 
         std::shared_ptr<Scene> m_scene;
-        double                 m_max_delta_time {0.1f};
-        double                 m_last_frame_time {0.0f};
+
+        double m_delta_time {0.0f};
+        double m_max_delta_time {0.1f};
+        double m_last_frame_time {0.0f};
     };
 } // namespace RealmEngine

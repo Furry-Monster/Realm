@@ -1,16 +1,17 @@
 #include "engine.h"
-#include "gameplay/components/lighting.h"
-#include "gameplay/components/renderable.h"
-#include "gameplay/components/transform.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+
+#include <filesystem>
 #include <memory>
 #include <string>
 
+#include "gameplay/components/lighting.h"
+#include "gameplay/components/renderable.h"
+#include "gameplay/components/transform.h"
 #include "gameplay/scene/scene_serializer.h"
 #include "global_context.h"
 #include "input.h"
@@ -29,12 +30,6 @@ namespace RealmEngine
         const GamePlayConfig& gameplay_config = g_context.m_config->getGamePlayConfig();
         m_max_delta_time                      = gameplay_config.max_delta_time;
 
-        info("<<< Boot Engine Done. >>>");
-    }
-
-    void Engine::run()
-    {
-
         std::filesystem::path scene_file =
             g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
 
@@ -46,7 +41,7 @@ namespace RealmEngine
 
         if (!m_scene)
         {
-            info("Loading failed, creat default scene instead.");
+            info("Loading failed, create default scene instead.");
             m_scene = createDefaultScene();
         }
 
@@ -54,14 +49,19 @@ namespace RealmEngine
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
         m_last_frame_time = glfwGetTime();
-        while (!g_context.m_window->shouldClose())
-            tick();
 
-        info("Saving scene to: " + scene_file.string());
-        if (SceneSerializer::saveToFile(m_scene, scene_file.string()))
-            debug("Scene saved successfully.");
-        else
-            err("Failed to save scene file.");
+        info("<<< Boot Engine Done. >>>");
+    }
+
+    void Engine::debug()
+    {
+        info("<<< Run in Debug-Mode. >>>");
+
+        while (!g_context.m_window->shouldClose())
+        {
+            tick();
+            g_context.m_window->swapBuffer();
+        }
     }
 
     std::shared_ptr<Scene> Engine::createDefaultScene()
@@ -131,8 +131,19 @@ namespace RealmEngine
     {
         info("<<< Now Terminating Engine. >>>");
 
-        m_delta_time = 0.0f;
+        if (m_scene)
+        {
+            std::filesystem::path scene_file =
+                g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
 
+            info("Saving scene to: " + scene_file.string());
+            if (SceneSerializer::saveToFile(m_scene, scene_file.string()))
+                info("Scene saved successfully.");
+            else
+                err("Failed to save scene file.");
+        }
+
+        m_delta_time = 0.0f;
         g_context.destroy();
     }
 
@@ -166,7 +177,6 @@ namespace RealmEngine
     {
         g_context.m_renderer->getRenderScene()->syncFromScene(m_scene);
         g_context.m_renderer->render();
-        g_context.m_window->swapBuffer();
     }
 
 } // namespace RealmEngine
