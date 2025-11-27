@@ -1,5 +1,6 @@
 #include "global_context.h"
 
+#include "gameplay/scene/scene_manager.h"
 #include "input.h"
 #include "logger.h"
 #include "render/renderer.h"
@@ -19,6 +20,8 @@ namespace RealmEngine
 
         m_config = std::make_shared<ConfigManager>();
         m_config->initialize();
+
+        m_scene = std::make_shared<SceneManager>();
 
         m_window = std::make_shared<Window>();
         m_window->initialize();
@@ -40,6 +43,8 @@ namespace RealmEngine
 
         m_window->disposal();
         m_window.reset();
+
+        m_scene.reset();
 
         m_config->disposal();
         m_config.reset();
