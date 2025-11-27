@@ -3,7 +3,6 @@
 #include <functional>
 #include <memory>
 #include "gameplay/entity.h"
-#include "render/render_camera.h"
 
 namespace RealmEngine
 {
@@ -12,8 +11,6 @@ namespace RealmEngine
         m_root              = std::make_shared<SceneNode>("Root");
         m_camera_controller = std::make_shared<CameraController>();
     }
-
-    void Scene::setCamera(std::shared_ptr<RenderCamera> camera) { m_camera_controller->initialize(camera); }
 
     void Scene::tick(float delta_time)
     {

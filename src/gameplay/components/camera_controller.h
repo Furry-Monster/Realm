@@ -8,7 +8,7 @@ namespace RealmEngine
     class CameraController
     {
     public:
-        CameraController()           = default;
+        CameraController();
         ~CameraController() noexcept = default;
 
         CameraController(const CameraController&)                = delete;
@@ -16,7 +16,6 @@ namespace RealmEngine
         CameraController(CameraController&&) noexcept            = default;
         CameraController& operator=(CameraController&&) noexcept = default;
 
-        void initialize(std::shared_ptr<RenderCamera> camera);
         void update(float delta_time);
 
         void setMoveSpeed(float speed) { m_move_speed = speed; }

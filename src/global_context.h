@@ -7,6 +7,7 @@ namespace RealmEngine
     class Logger;
     class ConfigManager;
     class AssetManager;
+    class SceneManager;
     class Window;
     class Renderer;
     class Input;
@@ -28,6 +29,7 @@ namespace RealmEngine
         std::shared_ptr<Logger>        m_logger;
         std::shared_ptr<ConfigManager> m_config;
         std::shared_ptr<AssetManager>  m_assets;
+        std::shared_ptr<SceneManager>  m_scene;
         std::shared_ptr<Window>        m_window;
         std::shared_ptr<Renderer>      m_renderer;
         std::shared_ptr<Input>         m_input;

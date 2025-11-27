@@ -144,12 +144,13 @@ namespace RealmEngine
 
     void Renderer::render()
     {
-        if (m_render_scene == nullptr)
+        if (!m_render_scene)
             err("Render scene not setted yet.");
 
         // Main pass
         m_pbr_framebuffer->bind();
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
+
         const RendererConfig& render_config = g_context.m_config->getRendererConfig();
         glClearColor(render_config.clear_color_r,
                      render_config.clear_color_g,
@@ -262,7 +263,8 @@ namespace RealmEngine
             m_bloom_framebuffers[0]->setMipLevel(mip_level);
             m_bloom_framebuffers[1]->setMipLevel(mip_level);
 
-            // NOTE: first iteration we'll use the bloom buffer from the main render pass
+            // NOTE: first iteration we'll use the bloom buffer from the main render
+            // pass
             m_bloom_framebuffers[0]->bind();
             glBindTexture(GL_TEXTURE_2D, m_pbr_framebuffer->getBloomColorTextureId());
             m_bloom_shader->setInt("sampleMipLevel", mip_level);

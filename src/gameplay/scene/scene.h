@@ -24,7 +24,6 @@ namespace RealmEngine
         void tick(float delta_time);
 
         std::shared_ptr<SceneNode> getRoot() const { return m_root; }
-        void                       setCamera(std::shared_ptr<RenderCamera> camera);
 
         std::shared_ptr<Entity> createEntity(const std::string& name);
         std::shared_ptr<Entity> getEntity(const std::string& name) const;

@@ -41,6 +41,7 @@ namespace RealmEngine
         int         getWidth() const;
         int         getHeight() const;
         int         getMSAASamples() const;
+        GLFWwindow* getGLFWWindow() const;
 
         bool isHDREnabled() const;
         bool isMSAAEnabled() const;

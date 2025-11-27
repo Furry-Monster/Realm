@@ -34,6 +34,7 @@ if(NOT TARGET imgui)
     )
     target_link_libraries(imgui PUBLIC glfw)
     target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
+    target_compile_definitions(imgui PUBLIC IMGUI_HAS_DOCK)
 endif()
 
 if(NOT TARGET stb)

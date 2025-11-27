@@ -147,7 +147,7 @@ def install_project(build_dir, generator, build_type):
     run_command(cmd, cwd=build_path)
     print_success("Installation completed")
 
-def run_executable(executable_path):
+def run_executable(executable_path, debug=False):
     """Run the executable"""
     exe_path = Path(executable_path)
     if not exe_path.exists():
@@ -156,8 +156,15 @@ def run_executable(executable_path):
         return False
 
     print_info(f"Running executable: {exe_path}")
+    if debug:
+        print_info("Running in debug mode (no editor)")
     print_info("---")
-    run_command([str(exe_path)])
+    
+    cmd = [str(exe_path)]
+    if debug:
+        cmd.append("debug")
+    
+    run_command(cmd)
     return True
 
 def main():
@@ -169,6 +176,7 @@ Examples:
   python build_windows.py                    # Default build (Debug)
   python build_windows.py --type Release     # Release build
   python build_windows.py --clean --run      # Clean build and run
+  python build_windows.py --run --debug      # Run in debug mode (no editor)
         """
     )
 
@@ -187,6 +195,8 @@ Examples:
                         help="Clean build directory before building")
     parser.add_argument("-r", "--run", action="store_true",
                         help="Run the executable after building")
+    parser.add_argument("--debug", action="store_true",
+                        help="Run in debug mode (without editor)")
     parser.add_argument("-i", "--install", action="store_true",
                         help="Install after building")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -224,7 +234,7 @@ Examples:
     # Run if requested
     if args.run:
         executable = Path("bin/RealmEngine.exe")
-        run_executable(executable)
+        run_executable(executable, debug=args.debug)
 
     print_success("All done!")
 
