@@ -23,7 +23,10 @@ namespace RealmEngine
     private:
         void renderTransform();
         void renderRenderable();
-        void renderLighting();
+        void renderPointLight();
+        void renderSpotLight();
+        void renderDirectionalLight();
+        void renderAreaLight();
 
         std::shared_ptr<EditorContext> m_context;
     };

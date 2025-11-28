@@ -1,7 +1,10 @@
 #include "editor/widgets/properties_widget.h"
 
 #include "editor/editor_context.h"
+#include "gameplay/components/lighting/area.h"
+#include "gameplay/components/lighting/directional.h"
 #include "gameplay/components/lighting/point.h"
+#include "gameplay/components/lighting/spot.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 
@@ -41,7 +44,16 @@ namespace RealmEngine
             renderRenderable();
 
         if (entity->hasComponent<Point>())
-            renderLighting();
+            renderPointLight();
+
+        if (entity->hasComponent<Spot>())
+            renderSpotLight();
+
+        if (entity->hasComponent<Directional>())
+            renderDirectionalLight();
+
+        if (entity->hasComponent<Area>())
+            renderAreaLight();
 
         ImGui::End();
     }
@@ -118,7 +130,7 @@ namespace RealmEngine
         }
     }
 
-    void PropertiesWidget::renderLighting()
+    void PropertiesWidget::renderPointLight()
     {
         if (!m_context || !m_context->hasSelectedEntity())
             return;
@@ -161,6 +173,120 @@ namespace RealmEngine
 
                 ImGui::TreePop();
             }
+        }
+    }
+
+    void PropertiesWidget::renderSpotLight()
+    {
+        if (!m_context || !m_context->hasSelectedEntity())
+            return;
+
+        auto entity     = m_context->getSelectedEntity();
+        auto spot_light = entity->getComponent<Spot>();
+        if (!spot_light)
+            return;
+
+        if (ImGui::CollapsingHeader("Spot Light", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            bool enabled = spot_light->isEnabled();
+            if (ImGui::Checkbox("Enabled", &enabled))
+                spot_light->setEnabled(enabled);
+
+            glm::vec3 color = spot_light->getColor();
+            if (ImGui::ColorEdit3("Color", &color.x))
+                spot_light->setColor(color);
+
+            float intensity = spot_light->getIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+                spot_light->setIntensity(intensity);
+
+            float range = spot_light->getRange();
+            if (ImGui::DragFloat("Range", &range, 1.0f, 0.0f, 1000.0f))
+                spot_light->setRange(range);
+
+            float inner_angle = spot_light->getInnerConeAngle();
+            if (ImGui::DragFloat("Inner Cone Angle", &inner_angle, 1.0f, 0.0f, 180.0f))
+                spot_light->setInnerConeAngle(inner_angle);
+
+            float outer_angle = spot_light->getOuterConeAngle();
+            if (ImGui::DragFloat("Outer Cone Angle", &outer_angle, 1.0f, 0.0f, 180.0f))
+                spot_light->setOuterConeAngle(outer_angle);
+
+            if (ImGui::TreeNode("Attenuation"))
+            {
+                float constant  = spot_light->getConstantAttenuation();
+                float linear    = spot_light->getLinearAttenuation();
+                float quadratic = spot_light->getQuadraticAttenuation();
+
+                if (ImGui::DragFloat("Constant", &constant, 0.01f, 0.0f, 10.0f))
+                    spot_light->setConstantAttenuation(constant);
+                if (ImGui::DragFloat("Linear", &linear, 0.001f, 0.0f, 1.0f))
+                    spot_light->setLinearAttenuation(linear);
+                if (ImGui::DragFloat("Quadratic", &quadratic, 0.0001f, 0.0f, 1.0f))
+                    spot_light->setQuadraticAttenuation(quadratic);
+
+                ImGui::TreePop();
+            }
+        }
+    }
+
+    void PropertiesWidget::renderDirectionalLight()
+    {
+        if (!m_context || !m_context->hasSelectedEntity())
+            return;
+
+        auto entity            = m_context->getSelectedEntity();
+        auto directional_light = entity->getComponent<Directional>();
+        if (!directional_light)
+            return;
+
+        if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            bool enabled = directional_light->isEnabled();
+            if (ImGui::Checkbox("Enabled", &enabled))
+                directional_light->setEnabled(enabled);
+
+            glm::vec3 color = directional_light->getColor();
+            if (ImGui::ColorEdit3("Color", &color.x))
+                directional_light->setColor(color);
+
+            float intensity = directional_light->getIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+                directional_light->setIntensity(intensity);
+        }
+    }
+
+    void PropertiesWidget::renderAreaLight()
+    {
+        if (!m_context || !m_context->hasSelectedEntity())
+            return;
+
+        auto entity     = m_context->getSelectedEntity();
+        auto area_light = entity->getComponent<Area>();
+        if (!area_light)
+            return;
+
+        if (ImGui::CollapsingHeader("Area Light", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            bool enabled = area_light->isEnabled();
+            if (ImGui::Checkbox("Enabled", &enabled))
+                area_light->setEnabled(enabled);
+
+            glm::vec3 color = area_light->getColor();
+            if (ImGui::ColorEdit3("Color", &color.x))
+                area_light->setColor(color);
+
+            float intensity = area_light->getIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+                area_light->setIntensity(intensity);
+
+            float width = area_light->getWidth();
+            if (ImGui::DragFloat("Width", &width, 0.1f, 0.0f, 100.0f))
+                area_light->setWidth(width);
+
+            float height = area_light->getHeight();
+            if (ImGui::DragFloat("Height", &height, 0.1f, 0.0f, 100.0f))
+                area_light->setHeight(height);
         }
     }
 

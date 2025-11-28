@@ -5,7 +5,10 @@
 #include <json.hpp>
 #include <sstream>
 
+#include "gameplay/components/lighting/area.h"
+#include "gameplay/components/lighting/directional.h"
 #include "gameplay/components/lighting/point.h"
+#include "gameplay/components/lighting/spot.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 #include "gameplay/entity.h"
@@ -184,6 +187,30 @@ namespace RealmEngine
             components_json.push_back(comp_json);
         }
 
+        auto spot_light = entity->getComponent<Spot>();
+        if (spot_light)
+        {
+            nlohmann::json comp_json;
+            serializeComponent(comp_json, spot_light);
+            components_json.push_back(comp_json);
+        }
+
+        auto directional_light = entity->getComponent<Directional>();
+        if (directional_light)
+        {
+            nlohmann::json comp_json;
+            serializeComponent(comp_json, directional_light);
+            components_json.push_back(comp_json);
+        }
+
+        auto area_light = entity->getComponent<Area>();
+        if (area_light)
+        {
+            nlohmann::json comp_json;
+            serializeComponent(comp_json, area_light);
+            components_json.push_back(comp_json);
+        }
+
         json["components"] = components_json;
     }
 
@@ -230,6 +257,47 @@ namespace RealmEngine
             json["constant"]  = point_light->getConstantAttenuation();
             json["linear"]    = point_light->getLinearAttenuation();
             json["quadratic"] = point_light->getQuadraticAttenuation();
+            return;
+        }
+
+        auto spot_light = std::dynamic_pointer_cast<Spot>(component);
+        if (spot_light)
+        {
+            json["type"]             = "Spot";
+            auto color               = spot_light->getColor();
+            json["color"]            = nlohmann::json::array({color.x, color.y, color.z});
+            json["intensity"]        = spot_light->getIntensity();
+            json["enabled"]          = spot_light->isEnabled();
+            json["range"]            = spot_light->getRange();
+            json["constant"]         = spot_light->getConstantAttenuation();
+            json["linear"]           = spot_light->getLinearAttenuation();
+            json["quadratic"]        = spot_light->getQuadraticAttenuation();
+            json["inner_cone_angle"] = spot_light->getInnerConeAngle();
+            json["outer_cone_angle"] = spot_light->getOuterConeAngle();
+            return;
+        }
+
+        auto directional_light = std::dynamic_pointer_cast<Directional>(component);
+        if (directional_light)
+        {
+            json["type"]      = "Directional";
+            auto color        = directional_light->getColor();
+            json["color"]     = nlohmann::json::array({color.x, color.y, color.z});
+            json["intensity"] = directional_light->getIntensity();
+            json["enabled"]   = directional_light->isEnabled();
+            return;
+        }
+
+        auto area_light = std::dynamic_pointer_cast<Area>(component);
+        if (area_light)
+        {
+            json["type"]      = "Area";
+            auto color        = area_light->getColor();
+            json["color"]     = nlohmann::json::array({color.x, color.y, color.z});
+            json["intensity"] = area_light->getIntensity();
+            json["enabled"]   = area_light->isEnabled();
+            json["width"]     = area_light->getWidth();
+            json["height"]    = area_light->getHeight();
             return;
         }
     }
@@ -335,6 +403,87 @@ namespace RealmEngine
                 point_light->setQuadraticAttenuation(json["quadratic"]);
 
             return point_light;
+        }
+
+        if (type == "Spot")
+        {
+            auto spot_light = std::make_shared<Spot>();
+
+            if (json.contains("color") && json["color"].is_array() && json["color"].size() == 3)
+            {
+                glm::vec3 color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
+                spot_light->setColor(color);
+            }
+
+            if (json.contains("intensity") && json["intensity"].is_number())
+                spot_light->setIntensity(json["intensity"]);
+
+            if (json.contains("enabled") && json["enabled"].is_boolean())
+                spot_light->setEnabled(json["enabled"]);
+
+            if (json.contains("range") && json["range"].is_number())
+                spot_light->setRange(json["range"]);
+
+            if (json.contains("constant") && json["constant"].is_number())
+                spot_light->setConstantAttenuation(json["constant"]);
+
+            if (json.contains("linear") && json["linear"].is_number())
+                spot_light->setLinearAttenuation(json["linear"]);
+
+            if (json.contains("quadratic") && json["quadratic"].is_number())
+                spot_light->setQuadraticAttenuation(json["quadratic"]);
+
+            if (json.contains("inner_cone_angle") && json["inner_cone_angle"].is_number())
+                spot_light->setInnerConeAngle(json["inner_cone_angle"]);
+
+            if (json.contains("outer_cone_angle") && json["outer_cone_angle"].is_number())
+                spot_light->setOuterConeAngle(json["outer_cone_angle"]);
+
+            return spot_light;
+        }
+
+        if (type == "Directional")
+        {
+            auto directional_light = std::make_shared<Directional>();
+
+            if (json.contains("color") && json["color"].is_array() && json["color"].size() == 3)
+            {
+                glm::vec3 color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
+                directional_light->setColor(color);
+            }
+
+            if (json.contains("intensity") && json["intensity"].is_number())
+                directional_light->setIntensity(json["intensity"]);
+
+            if (json.contains("enabled") && json["enabled"].is_boolean())
+                directional_light->setEnabled(json["enabled"]);
+
+            return directional_light;
+        }
+
+        if (type == "Area")
+        {
+            auto area_light = std::make_shared<Area>();
+
+            if (json.contains("color") && json["color"].is_array() && json["color"].size() == 3)
+            {
+                glm::vec3 color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
+                area_light->setColor(color);
+            }
+
+            if (json.contains("intensity") && json["intensity"].is_number())
+                area_light->setIntensity(json["intensity"]);
+
+            if (json.contains("enabled") && json["enabled"].is_boolean())
+                area_light->setEnabled(json["enabled"]);
+
+            if (json.contains("width") && json["width"].is_number())
+                area_light->setWidth(json["width"]);
+
+            if (json.contains("height") && json["height"].is_number())
+                area_light->setHeight(json["height"]);
+
+            return area_light;
         }
 
         if (type == "Renderable")
