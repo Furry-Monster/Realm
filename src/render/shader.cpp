@@ -145,6 +145,16 @@ namespace RealmEngine
         glUniform3fv(glGetUniformLocation(m_id, name.c_str()), values.size(), &values[0][0]);
     }
 
+    void Shader::setFloatArray(const std::string& name, const std::vector<float>& values) const
+    {
+        glUniform1fv(glGetUniformLocation(m_id, name.c_str()), values.size(), values.data());
+    }
+
+    void Shader::setIntArray(const std::string& name, const std::vector<int>& values) const
+    {
+        glUniform1iv(glGetUniformLocation(m_id, name.c_str()), values.size(), values.data());
+    }
+
     void Shader::setMat4(const std::string& name, const glm::mat4& value) const
     {
         glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &value[0][0]);
@@ -157,5 +167,12 @@ namespace RealmEngine
         setMat4("model", model);
         setMat4("view", view);
         setMat4("projection", projection);
+    }
+
+    void Shader::bindUniformBlock(const std::string& name, unsigned int binding_point) const
+    {
+        unsigned int block_index = glGetUniformBlockIndex(m_id, name.c_str());
+        if (block_index != GL_INVALID_INDEX)
+            glUniformBlockBinding(m_id, block_index, binding_point);
     }
 } // namespace RealmEngine

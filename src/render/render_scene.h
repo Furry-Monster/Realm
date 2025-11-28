@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "gameplay/scene/scene_node.h"
+#include "render/light.h"
 #include "render/render_object.h"
 
 namespace RealmEngine
@@ -25,8 +26,7 @@ namespace RealmEngine
         void syncFromCurrentScene();
 
         std::vector<std::shared_ptr<RenderObject>> m_render_objects;
-        std::vector<glm::vec3>                     m_light_positions;
-        std::vector<glm::vec3>                     m_light_colors;
+        std::vector<Light>                         m_lights;
 
     private:
         void syncNode(std::shared_ptr<Scene> scene, std::shared_ptr<SceneNode> node);

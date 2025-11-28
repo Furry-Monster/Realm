@@ -1,0 +1,74 @@
+#pragma once
+
+#include <cstdint>
+#include <glm/glm.hpp>
+#include <vector>
+#include "glm/ext/vector_float3.hpp"
+#include "window.h"
+
+namespace RealmEngine
+{
+    enum class LightType : uint8_t
+    {
+        Point,
+        Directional,
+        Spot,
+        Area
+    };
+
+    struct Light
+    {
+        LightType type;
+        glm::vec3 position;
+        glm::vec3 direction;
+        glm::vec3 color;
+        float     intensity;
+
+        // Attenuation (for Point and Spot lights)
+        float constant;
+        float linear;
+        float quadratic;
+        float range;
+
+        // Spot light parameters
+        float inner_cone_angle;
+        float outer_cone_angle;
+
+        // Area light parameters
+        float width;
+        float height;
+    };
+
+    struct alignas(16) LightData
+    {
+        glm::vec4 position;    // xyz = position, w = type
+        glm::vec4 direction;   // xyz = direction, w = intensity
+        glm::vec4 color;       // rgb = color, w = constant
+        glm::vec4 attenuation; // x = linear, y = quadratic, z = range, w = inner_cone_angle
+        glm::vec4 spot_area;   // x = outer_cone_angle, y = width, z = height, w = padding
+    };
+
+    static constexpr size_t MAX_LIGHTS              = 16;
+    static constexpr size_t BUFFER_SIZE             = 16 + MAX_LIGHTS * sizeof(LightData);
+    static constexpr GLuint LIGHT_UBO_BINDING_POINT = 0;
+
+    class LightUBO
+    {
+    public:
+        LightUBO();
+        ~LightUBO() noexcept;
+
+        LightUBO(const LightUBO&)            = delete;
+        LightUBO& operator=(const LightUBO&) = delete;
+        LightUBO(LightUBO&&) noexcept;
+        LightUBO& operator=(LightUBO&&) noexcept;
+
+        void         updateLights(const std::vector<Light>& lights) const;
+        void         bind(unsigned int binding_point) const;
+        unsigned int getId() const { return m_ubo_id; }
+
+    private:
+        unsigned int m_ubo_id;
+    };
+
+} // namespace RealmEngine

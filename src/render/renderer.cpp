@@ -24,6 +24,8 @@ namespace RealmEngine
         m_camera       = std::make_shared<RenderCamera>();
         m_render_scene = std::make_shared<RenderScene>();
 
+        m_light_ubo = std::make_unique<LightUBO>();
+
         compileShaders();
     }
 
@@ -105,6 +107,8 @@ namespace RealmEngine
         fragment_path = m_shader_path / "pbr.frag";
         m_pbr_shader  = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
 
+        m_pbr_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
+
         vertex_path    = m_shader_path / "bloom.vert";
         fragment_path  = m_shader_path / "bloom.frag";
         m_bloom_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
@@ -149,6 +153,8 @@ namespace RealmEngine
 
         // Main pass
         m_pbr_framebuffer->bind();
+        m_pbr_shader->use();
+
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
 
         const RendererConfig& render_config = g_context.m_config->getRendererConfig();
@@ -161,25 +167,17 @@ namespace RealmEngine
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
 
-        // update camera first.
+        // update camera
         m_camera->update();
         glm::vec3 camera_position = m_camera->getPosition();
         glm::mat4 projection      = m_camera->getProjMatrix();
         glm::mat4 view            = m_camera->getViewMatrix();
 
-        m_pbr_shader->use();
-
-        // Set light data
-        std::vector<glm::vec3> light_positions(4, glm::vec3(0.0f));
-        std::vector<glm::vec3> light_colors(4, glm::vec3(0.0f));
-        for (size_t i = 0; i < std::min(m_render_scene->m_light_positions.size(), static_cast<size_t>(4)); ++i)
-            light_positions[i] = m_render_scene->m_light_positions[i];
-        for (size_t i = 0; i < std::min(m_render_scene->m_light_colors.size(), static_cast<size_t>(4)); ++i)
-            light_colors[i] = m_render_scene->m_light_colors[i];
-
-        m_pbr_shader->setVec3Array("lightPositions", light_positions);
-        m_pbr_shader->setVec3Array("lightColors", light_colors);
         m_pbr_shader->setVec3("cameraPosition", camera_position);
+
+        // set light ubo
+        m_light_ubo->updateLights(m_render_scene->m_lights);
+        m_light_ubo->bind(LIGHT_UBO_BINDING_POINT);
 
         // IBL stuff
         glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP);
@@ -263,8 +261,7 @@ namespace RealmEngine
             m_bloom_framebuffers[0]->setMipLevel(mip_level);
             m_bloom_framebuffers[1]->setMipLevel(mip_level);
 
-            // NOTE: first iteration we'll use the bloom buffer from the main render
-            // pass
+            // NOTE: first iteration we'll use the bloom buffer from the main pass
             m_bloom_framebuffers[0]->bind();
             glBindTexture(GL_TEXTURE_2D, m_pbr_framebuffer->getBloomColorTextureId());
             m_bloom_shader->setInt("sampleMipLevel", mip_level);

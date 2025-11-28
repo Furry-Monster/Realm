@@ -1,7 +1,10 @@
 #include "editor/widgets/properties_widget.h"
 
 #include "editor/editor_context.h"
-#include "gameplay/components/lighting.h"
+#include "gameplay/components/lighting/area.h"
+#include "gameplay/components/lighting/directional.h"
+#include "gameplay/components/lighting/point.h"
+#include "gameplay/components/lighting/spot.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 
@@ -40,8 +43,17 @@ namespace RealmEngine
         if (entity->hasComponent<Renderable>())
             renderRenderable();
 
-        if (entity->hasComponent<Lighting>())
-            renderLighting();
+        if (entity->hasComponent<Point>())
+            renderPointLight();
+
+        if (entity->hasComponent<Spot>())
+            renderSpotLight();
+
+        if (entity->hasComponent<Directional>())
+            renderDirectionalLight();
+
+        if (entity->hasComponent<Area>())
+            renderAreaLight();
 
         ImGui::End();
     }
@@ -94,7 +106,6 @@ namespace RealmEngine
 
         if (ImGui::CollapsingHeader("Renderable", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // Model path
             if (renderable->hasModelPath())
             {
                 std::string model_path = renderable->getModelPath();
@@ -112,43 +123,170 @@ namespace RealmEngine
                 ImGui::Text("No model path");
             }
 
-            // Render object status
             if (renderable->hasRenderObject())
-            {
                 ImGui::Text("Render Object: Loaded");
-            }
             else
-            {
                 ImGui::Text("Render Object: Not loaded");
-            }
         }
     }
 
-    void PropertiesWidget::renderLighting()
+    void PropertiesWidget::renderPointLight()
     {
         if (!m_context || !m_context->hasSelectedEntity())
             return;
 
-        auto entity   = m_context->getSelectedEntity();
-        auto lighting = entity->getComponent<Lighting>();
-        if (!lighting)
+        auto entity      = m_context->getSelectedEntity();
+        auto point_light = entity->getComponent<Point>();
+        if (!point_light)
             return;
 
-        if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader("Point Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // Position
-            glm::vec3 position = lighting->getPosition();
-            if (ImGui::DragFloat3("Position", &position.x, 0.1f))
-            {
-                lighting->setPosition(position);
-            }
+            bool enabled = point_light->isEnabled();
+            if (ImGui::Checkbox("Enabled", &enabled))
+                point_light->setEnabled(enabled);
 
-            // Color
-            glm::vec3 color = lighting->getColor();
+            glm::vec3 color = point_light->getColor();
             if (ImGui::ColorEdit3("Color", &color.x))
+                point_light->setColor(color);
+
+            float intensity = point_light->getIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+                point_light->setIntensity(intensity);
+
+            float range = point_light->getRange();
+            if (ImGui::DragFloat("Range", &range, 1.0f, 0.0f, 1000.0f))
+                point_light->setRange(range);
+
+            if (ImGui::TreeNode("Attenuation"))
             {
-                lighting->setColor(color);
+                float constant  = point_light->getConstantAttenuation();
+                float linear    = point_light->getLinearAttenuation();
+                float quadratic = point_light->getQuadraticAttenuation();
+
+                if (ImGui::DragFloat("Constant", &constant, 0.01f, 0.0f, 10.0f))
+                    point_light->setConstantAttenuation(constant);
+                if (ImGui::DragFloat("Linear", &linear, 0.001f, 0.0f, 1.0f))
+                    point_light->setLinearAttenuation(linear);
+                if (ImGui::DragFloat("Quadratic", &quadratic, 0.0001f, 0.0f, 1.0f))
+                    point_light->setQuadraticAttenuation(quadratic);
+
+                ImGui::TreePop();
             }
+        }
+    }
+
+    void PropertiesWidget::renderSpotLight()
+    {
+        if (!m_context || !m_context->hasSelectedEntity())
+            return;
+
+        auto entity     = m_context->getSelectedEntity();
+        auto spot_light = entity->getComponent<Spot>();
+        if (!spot_light)
+            return;
+
+        if (ImGui::CollapsingHeader("Spot Light", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            bool enabled = spot_light->isEnabled();
+            if (ImGui::Checkbox("Enabled", &enabled))
+                spot_light->setEnabled(enabled);
+
+            glm::vec3 color = spot_light->getColor();
+            if (ImGui::ColorEdit3("Color", &color.x))
+                spot_light->setColor(color);
+
+            float intensity = spot_light->getIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+                spot_light->setIntensity(intensity);
+
+            float range = spot_light->getRange();
+            if (ImGui::DragFloat("Range", &range, 1.0f, 0.0f, 1000.0f))
+                spot_light->setRange(range);
+
+            float inner_angle = spot_light->getInnerConeAngle();
+            if (ImGui::DragFloat("Inner Cone Angle", &inner_angle, 1.0f, 0.0f, 180.0f))
+                spot_light->setInnerConeAngle(inner_angle);
+
+            float outer_angle = spot_light->getOuterConeAngle();
+            if (ImGui::DragFloat("Outer Cone Angle", &outer_angle, 1.0f, 0.0f, 180.0f))
+                spot_light->setOuterConeAngle(outer_angle);
+
+            if (ImGui::TreeNode("Attenuation"))
+            {
+                float constant  = spot_light->getConstantAttenuation();
+                float linear    = spot_light->getLinearAttenuation();
+                float quadratic = spot_light->getQuadraticAttenuation();
+
+                if (ImGui::DragFloat("Constant", &constant, 0.01f, 0.0f, 10.0f))
+                    spot_light->setConstantAttenuation(constant);
+                if (ImGui::DragFloat("Linear", &linear, 0.001f, 0.0f, 1.0f))
+                    spot_light->setLinearAttenuation(linear);
+                if (ImGui::DragFloat("Quadratic", &quadratic, 0.0001f, 0.0f, 1.0f))
+                    spot_light->setQuadraticAttenuation(quadratic);
+
+                ImGui::TreePop();
+            }
+        }
+    }
+
+    void PropertiesWidget::renderDirectionalLight()
+    {
+        if (!m_context || !m_context->hasSelectedEntity())
+            return;
+
+        auto entity            = m_context->getSelectedEntity();
+        auto directional_light = entity->getComponent<Directional>();
+        if (!directional_light)
+            return;
+
+        if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            bool enabled = directional_light->isEnabled();
+            if (ImGui::Checkbox("Enabled", &enabled))
+                directional_light->setEnabled(enabled);
+
+            glm::vec3 color = directional_light->getColor();
+            if (ImGui::ColorEdit3("Color", &color.x))
+                directional_light->setColor(color);
+
+            float intensity = directional_light->getIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+                directional_light->setIntensity(intensity);
+        }
+    }
+
+    void PropertiesWidget::renderAreaLight()
+    {
+        if (!m_context || !m_context->hasSelectedEntity())
+            return;
+
+        auto entity     = m_context->getSelectedEntity();
+        auto area_light = entity->getComponent<Area>();
+        if (!area_light)
+            return;
+
+        if (ImGui::CollapsingHeader("Area Light", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            bool enabled = area_light->isEnabled();
+            if (ImGui::Checkbox("Enabled", &enabled))
+                area_light->setEnabled(enabled);
+
+            glm::vec3 color = area_light->getColor();
+            if (ImGui::ColorEdit3("Color", &color.x))
+                area_light->setColor(color);
+
+            float intensity = area_light->getIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+                area_light->setIntensity(intensity);
+
+            float width = area_light->getWidth();
+            if (ImGui::DragFloat("Width", &width, 0.1f, 0.0f, 100.0f))
+                area_light->setWidth(width);
+
+            float height = area_light->getHeight();
+            if (ImGui::DragFloat("Height", &height, 0.1f, 0.0f, 100.0f))
+                area_light->setHeight(height);
         }
     }
 
