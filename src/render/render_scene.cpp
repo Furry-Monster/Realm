@@ -1,6 +1,6 @@
 #include "render/render_scene.h"
 
-#include "gameplay/components/lighting.h"
+#include "gameplay/components/lighting/point.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 #include "gameplay/scene/scene.h"
@@ -60,15 +60,14 @@ namespace RealmEngine
                     }
                 }
 
-                auto lighting = entity->getComponent<Lighting>();
-                if (lighting)
+                auto point_light = entity->getComponent<Point>();
+                if (point_light && point_light->isEnabled())
                 {
-                    glm::vec3 position = lighting->getPosition();
-                    glm::vec3 color    = lighting->getColor();
-
                     auto transform = entity->getComponent<Transform>();
-                    if (transform)
-                        position = transform->getPosition();
+
+                    glm::vec3 position = transform->getPosition();
+                    glm::vec3 color    = point_light->getColor();
+                    color *= point_light->getIntensity();
 
                     m_light_positions.push_back(position);
                     m_light_colors.push_back(color);

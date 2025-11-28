@@ -5,7 +5,7 @@
 #include <json.hpp>
 #include <sstream>
 
-#include "gameplay/components/lighting.h"
+#include "gameplay/components/lighting/point.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 #include "gameplay/entity.h"
@@ -176,11 +176,11 @@ namespace RealmEngine
             components_json.push_back(comp_json);
         }
 
-        auto lighting = entity->getComponent<Lighting>();
-        if (lighting)
+        auto point_light = entity->getComponent<Point>();
+        if (point_light)
         {
             nlohmann::json comp_json;
-            serializeComponent(comp_json, lighting);
+            serializeComponent(comp_json, point_light);
             components_json.push_back(comp_json);
         }
 
@@ -218,15 +218,18 @@ namespace RealmEngine
             return;
         }
 
-        auto lighting = std::dynamic_pointer_cast<Lighting>(component);
-        if (lighting)
+        auto point_light = std::dynamic_pointer_cast<Point>(component);
+        if (point_light)
         {
-            json["type"] = "Lighting";
-            auto pos     = lighting->getPosition();
-            auto color   = lighting->getColor();
-
-            json["position"] = nlohmann::json::array({pos.x, pos.y, pos.z});
-            json["color"]    = nlohmann::json::array({color.x, color.y, color.z});
+            json["type"]      = "Point";
+            auto color        = point_light->getColor();
+            json["color"]     = nlohmann::json::array({color.x, color.y, color.z});
+            json["intensity"] = point_light->getIntensity();
+            json["enabled"]   = point_light->isEnabled();
+            json["range"]     = point_light->getRange();
+            json["constant"]  = point_light->getConstantAttenuation();
+            json["linear"]    = point_light->getLinearAttenuation();
+            json["quadratic"] = point_light->getQuadraticAttenuation();
             return;
         }
     }
@@ -303,18 +306,35 @@ namespace RealmEngine
             return transform;
         }
 
-        if (type == "Lighting")
+        if (type == "Point")
         {
-            glm::vec3 position(0.0f);
-            glm::vec3 color(1.0f);
-
-            if (json.contains("position") && json["position"].is_array() && json["position"].size() == 3)
-                position = glm::vec3(json["position"][0], json["position"][1], json["position"][2]);
+            auto point_light = std::make_shared<Point>();
 
             if (json.contains("color") && json["color"].is_array() && json["color"].size() == 3)
-                color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
+            {
+                glm::vec3 color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
+                point_light->setColor(color);
+            }
 
-            return std::make_shared<Lighting>(position, color);
+            if (json.contains("intensity") && json["intensity"].is_number())
+                point_light->setIntensity(json["intensity"]);
+
+            if (json.contains("enabled") && json["enabled"].is_boolean())
+                point_light->setEnabled(json["enabled"]);
+
+            if (json.contains("range") && json["range"].is_number())
+                point_light->setRange(json["range"]);
+
+            if (json.contains("constant") && json["constant"].is_number())
+                point_light->setConstantAttenuation(json["constant"]);
+
+            if (json.contains("linear") && json["linear"].is_number())
+                point_light->setLinearAttenuation(json["linear"]);
+
+            if (json.contains("quadratic") && json["quadratic"].is_number())
+                point_light->setQuadraticAttenuation(json["quadratic"]);
+
+            return point_light;
         }
 
         if (type == "Renderable")

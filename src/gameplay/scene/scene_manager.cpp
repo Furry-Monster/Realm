@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include "gameplay/components/lighting.h"
+#include "gameplay/components/lighting/point.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 #include "gameplay/scene/scene_serializer.h"
@@ -76,8 +76,10 @@ namespace RealmEngine
         light_transform->setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
         light_entity->addComponent(light_transform);
 
-        auto lighting = std::make_shared<Lighting>(glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(200.0f, 200.0f, 200.0f));
-        light_entity->addComponent(lighting);
+        auto point_light = std::make_shared<Point>();
+        point_light->setColor(glm::vec3(200.0f, 200.0f, 200.0f));
+        point_light->setIntensity(1.0f);
+        light_entity->addComponent(point_light);
 
         scene->getRoot()->addChild(light_node);
 

@@ -1,7 +1,7 @@
 #include "editor/widgets/properties_widget.h"
 
 #include "editor/editor_context.h"
-#include "gameplay/components/lighting.h"
+#include "gameplay/components/lighting/point.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 
@@ -40,7 +40,7 @@ namespace RealmEngine
         if (entity->hasComponent<Renderable>())
             renderRenderable();
 
-        if (entity->hasComponent<Lighting>())
+        if (entity->hasComponent<Point>())
             renderLighting();
 
         ImGui::End();
@@ -94,7 +94,6 @@ namespace RealmEngine
 
         if (ImGui::CollapsingHeader("Renderable", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // Model path
             if (renderable->hasModelPath())
             {
                 std::string model_path = renderable->getModelPath();
@@ -112,15 +111,10 @@ namespace RealmEngine
                 ImGui::Text("No model path");
             }
 
-            // Render object status
             if (renderable->hasRenderObject())
-            {
                 ImGui::Text("Render Object: Loaded");
-            }
             else
-            {
                 ImGui::Text("Render Object: Not loaded");
-            }
         }
     }
 
@@ -129,25 +123,43 @@ namespace RealmEngine
         if (!m_context || !m_context->hasSelectedEntity())
             return;
 
-        auto entity   = m_context->getSelectedEntity();
-        auto lighting = entity->getComponent<Lighting>();
-        if (!lighting)
+        auto entity      = m_context->getSelectedEntity();
+        auto point_light = entity->getComponent<Point>();
+        if (!point_light)
             return;
 
-        if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader("Point Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // Position
-            glm::vec3 position = lighting->getPosition();
-            if (ImGui::DragFloat3("Position", &position.x, 0.1f))
-            {
-                lighting->setPosition(position);
-            }
+            bool enabled = point_light->isEnabled();
+            if (ImGui::Checkbox("Enabled", &enabled))
+                point_light->setEnabled(enabled);
 
-            // Color
-            glm::vec3 color = lighting->getColor();
+            glm::vec3 color = point_light->getColor();
             if (ImGui::ColorEdit3("Color", &color.x))
+                point_light->setColor(color);
+
+            float intensity = point_light->getIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+                point_light->setIntensity(intensity);
+
+            float range = point_light->getRange();
+            if (ImGui::DragFloat("Range", &range, 1.0f, 0.0f, 1000.0f))
+                point_light->setRange(range);
+
+            if (ImGui::TreeNode("Attenuation"))
             {
-                lighting->setColor(color);
+                float constant  = point_light->getConstantAttenuation();
+                float linear    = point_light->getLinearAttenuation();
+                float quadratic = point_light->getQuadraticAttenuation();
+
+                if (ImGui::DragFloat("Constant", &constant, 0.01f, 0.0f, 10.0f))
+                    point_light->setConstantAttenuation(constant);
+                if (ImGui::DragFloat("Linear", &linear, 0.001f, 0.0f, 1.0f))
+                    point_light->setLinearAttenuation(linear);
+                if (ImGui::DragFloat("Quadratic", &quadratic, 0.0001f, 0.0f, 1.0f))
+                    point_light->setQuadraticAttenuation(quadratic);
+
+                ImGui::TreePop();
             }
         }
     }
