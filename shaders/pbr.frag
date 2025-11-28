@@ -38,21 +38,20 @@ uniform Material material;
 
 uniform vec3 cameraPosition;
 
-// Unified light system
-uniform int   lightCount;
-uniform int   lightTypes[16];
-uniform vec3  lightPositions[16];
-uniform vec3  lightDirections[16];
-uniform vec3  lightColors[16];
-uniform float lightIntensities[16];
-uniform float lightConstants[16];
-uniform float lightLinears[16];
-uniform float lightQuadratics[16];
-uniform float lightRanges[16];
-uniform float lightInnerConeAngles[16];
-uniform float lightOuterConeAngles[16];
-uniform float lightWidths[16];
-uniform float lightHeights[16];
+struct LightData
+{
+    vec4 position;    // xyz = position, w = type
+    vec4 direction;   // xyz = direction, w = intensity
+    vec4 color;       // rgb = color, w = constant
+    vec4 attenuation; // x = linear, y = quadratic, z = range, w = inner_cone_angle
+    vec4 spot_area;   // x = outer_cone_angle, y = width, z = height, w = padding
+};
+
+layout(std140) uniform LightBlock
+{
+    int       lightCount;
+    LightData lights[16];
+};
 
 // PBR
 // IBL precomputed maps
@@ -139,8 +138,6 @@ vec3 calculateNormal(vec3 tangentNormal)
     return normalize(TBN * norm); // tangent --> world
 }
 
-// Helper function to calculate PBR lighting contribution
-//
 // Cook-Torrance specular BRDF term
 //
 //                DFG
@@ -152,14 +149,14 @@ vec3 calculateNormal(vec3 tangentNormal)
 // f_r = kd * f_lambert + ks * f_cook-torrance
 //
 // where f_lambert = c / pi
-vec3 calculateLightContribution(vec3  l,
-                                vec3  radiance,
-                                vec3  n,
-                                vec3  v,
-                                vec3  albedo,
-                                float metallic,
-                                float roughness,
-                                vec3  f0)
+vec3 discreteMonteCarloContribution(vec3  l,
+                                    vec3  radiance,
+                                    vec3  n,
+                                    vec3  v,
+                                    vec3  albedo,
+                                    float metallic,
+                                    float roughness,
+                                    vec3  f0)
 {
     vec3 h = normalize(v + l);
 
@@ -234,50 +231,62 @@ void main()
 
     vec3 Lo = vec3(0.0);
 
-    // Direct lighting with unified Light structure
+    // Direct lighting :
     for (int i = 0; i < lightCount; i++)
     {
-        int  lightType = lightTypes[i];
+        int  lightType = int(lights[i].position.w);
         vec3 radiance  = vec3(0.0);
         vec3 l         = vec3(0.0);
+
+        vec3  lightPosition       = lights[i].position.xyz;
+        vec3  lightDirection      = lights[i].direction.xyz;
+        float lightIntensity      = lights[i].direction.w;
+        vec3  lightColor          = lights[i].color.rgb;
+        float lightConstant       = lights[i].color.w;
+        float lightLinear         = lights[i].attenuation.x;
+        float lightQuadratic      = lights[i].attenuation.y;
+        float lightRange          = lights[i].attenuation.z;
+        float lightInnerConeAngle = lights[i].attenuation.w;
+        float lightOuterConeAngle = lights[i].spot_area.x;
+        float lightWidth          = lights[i].spot_area.y;
+        float lightHeight         = lights[i].spot_area.z;
 
         // Point Light (0)
         if (lightType == 0)
         {
-            vec3  lightDir = lightPositions[i] - worldCoordinates;
+            vec3  lightDir = lightPosition - worldCoordinates;
             float distance = length(lightDir);
 
-            if (distance > lightRanges[i])
+            if (distance > lightRange)
                 continue;
 
             l = normalize(lightDir);
 
-            float attenuation =
-                1.0 / (lightConstants[i] + lightLinears[i] * distance + lightQuadratics[i] * distance * distance);
+            float attenuation = 1.0 / (lightConstant + lightLinear * distance + lightQuadratic * distance * distance);
 
-            radiance = lightColors[i] * lightIntensities[i] * attenuation;
+            radiance = lightColor * lightIntensity * attenuation;
         }
         // Directional Light (1)
         else if (lightType == 1)
         {
-            l        = normalize(-lightDirections[i]);
-            radiance = lightColors[i] * lightIntensities[i];
+            l        = normalize(-lightDirection);
+            radiance = lightColor * lightIntensity;
         }
         // Spot Light (2)
         else if (lightType == 2)
         {
-            vec3  lightDir = lightPositions[i] - worldCoordinates;
+            vec3  lightDir = lightPosition - worldCoordinates;
             float distance = length(lightDir);
 
-            if (distance > lightRanges[i])
+            if (distance > lightRange)
                 continue;
 
             l            = normalize(lightDir);
-            vec3 spotDir = normalize(lightDirections[i]);
+            vec3 spotDir = normalize(lightDirection);
 
             float theta    = dot(l, -spotDir);
-            float innerCos = cos(radians(lightInnerConeAngles[i]));
-            float outerCos = cos(radians(lightOuterConeAngles[i]));
+            float innerCos = cos(radians(lightInnerConeAngle));
+            float outerCos = cos(radians(lightOuterConeAngle));
 
             float epsilon    = innerCos - outerCos;
             float spotFactor = clamp((theta - outerCos) / epsilon, 0.0, 1.0);
@@ -285,28 +294,27 @@ void main()
             if (spotFactor <= 0.0)
                 continue;
 
-            float attenuation =
-                1.0 / (lightConstants[i] + lightLinears[i] * distance + lightQuadratics[i] * distance * distance);
+            float attenuation = 1.0 / (lightConstant + lightLinear * distance + lightQuadratic * distance * distance);
 
-            radiance = lightColors[i] * lightIntensities[i] * attenuation * spotFactor;
+            radiance = lightColor * lightIntensity * attenuation * spotFactor;
         }
         // Area Light (3)
         else if (lightType == 3)
         {
-            vec3  lightDir = lightPositions[i] - worldCoordinates;
+            vec3  lightDir = lightPosition - worldCoordinates;
             float distance = length(lightDir);
             l              = normalize(lightDir);
 
             float attenuation  = 1.0 / (distance * distance);
-            vec3  areaDir      = normalize(lightDirections[i]);
+            vec3  areaDir      = normalize(lightDirection);
             float facingFactor = max(dot(-areaDir, n), 0.0);
 
-            radiance = lightColors[i] * lightIntensities[i] * attenuation * facingFactor;
+            radiance = lightColor * lightIntensity * attenuation * facingFactor;
         }
 
         if (length(radiance) > 0.0)
         {
-            Lo += calculateLightContribution(l, radiance, n, v, albedo, metallic, roughness, f0);
+            Lo += discreteMonteCarloContribution(l, radiance, n, v, albedo, metallic, roughness, f0);
         }
     }
 

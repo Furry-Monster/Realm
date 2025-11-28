@@ -76,5 +76,7 @@ namespace RealmEngine
         std::unique_ptr<Shader> m_bloom_shader;
         std::unique_ptr<Shader> m_post_shader;
         std::unique_ptr<Shader> m_skybox_shader;
+
+        std::unique_ptr<LightUBO> m_light_ubo;
     };
 } // namespace RealmEngine

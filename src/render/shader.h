@@ -32,6 +32,8 @@ namespace RealmEngine
                                             const glm::mat4& view,
                                             const glm::mat4& projection) const;
 
+        void bindUniformBlock(const std::string& name, unsigned int binding_point) const;
+
         unsigned int getId() const { return m_id; }
 
     private:

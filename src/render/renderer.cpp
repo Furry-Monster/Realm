@@ -24,6 +24,8 @@ namespace RealmEngine
         m_camera       = std::make_shared<RenderCamera>();
         m_render_scene = std::make_shared<RenderScene>();
 
+        m_light_ubo = std::make_unique<LightUBO>();
+
         compileShaders();
     }
 
@@ -105,6 +107,8 @@ namespace RealmEngine
         fragment_path = m_shader_path / "pbr.frag";
         m_pbr_shader  = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
 
+        m_pbr_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
+
         vertex_path    = m_shader_path / "bloom.vert";
         fragment_path  = m_shader_path / "bloom.frag";
         m_bloom_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
@@ -171,56 +175,9 @@ namespace RealmEngine
 
         m_pbr_shader->setVec3("cameraPosition", camera_position);
 
-        // set lights
-        constexpr size_t max_lights  = 16;
-        size_t           light_count = std::min(m_render_scene->m_lights.size(), max_lights);
-        m_pbr_shader->setInt("lightCount", static_cast<int>(light_count));
-
-        std::vector<int>       light_types(light_count);
-        std::vector<glm::vec3> light_positions(light_count);
-        std::vector<glm::vec3> light_directions(light_count);
-        std::vector<glm::vec3> light_colors(light_count);
-        std::vector<float>     light_intensities(light_count);
-        std::vector<float>     light_constants(light_count);
-        std::vector<float>     light_linears(light_count);
-        std::vector<float>     light_quadratics(light_count);
-        std::vector<float>     light_ranges(light_count);
-        std::vector<float>     light_inner_cone_angles(light_count);
-        std::vector<float>     light_outer_cone_angles(light_count);
-        std::vector<float>     light_widths(light_count);
-        std::vector<float>     light_heights(light_count);
-
-        for (size_t i = 0; i < light_count; ++i)
-        {
-            const auto& light          = m_render_scene->m_lights[i];
-            light_types[i]             = static_cast<int>(light.type);
-            light_positions[i]         = light.position;
-            light_directions[i]        = light.direction;
-            light_colors[i]            = light.color;
-            light_intensities[i]       = light.intensity;
-            light_constants[i]         = light.constant;
-            light_linears[i]           = light.linear;
-            light_quadratics[i]        = light.quadratic;
-            light_ranges[i]            = light.range;
-            light_inner_cone_angles[i] = light.inner_cone_angle;
-            light_outer_cone_angles[i] = light.outer_cone_angle;
-            light_widths[i]            = light.width;
-            light_heights[i]           = light.height;
-        }
-
-        m_pbr_shader->setIntArray("lightTypes", light_types);
-        m_pbr_shader->setVec3Array("lightPositions", light_positions);
-        m_pbr_shader->setVec3Array("lightDirections", light_directions);
-        m_pbr_shader->setVec3Array("lightColors", light_colors);
-        m_pbr_shader->setFloatArray("lightIntensities", light_intensities);
-        m_pbr_shader->setFloatArray("lightConstants", light_constants);
-        m_pbr_shader->setFloatArray("lightLinears", light_linears);
-        m_pbr_shader->setFloatArray("lightQuadratics", light_quadratics);
-        m_pbr_shader->setFloatArray("lightRanges", light_ranges);
-        m_pbr_shader->setFloatArray("lightInnerConeAngles", light_inner_cone_angles);
-        m_pbr_shader->setFloatArray("lightOuterConeAngles", light_outer_cone_angles);
-        m_pbr_shader->setFloatArray("lightWidths", light_widths);
-        m_pbr_shader->setFloatArray("lightHeights", light_heights);
+        // set light ubo
+        m_light_ubo->updateLights(m_render_scene->m_lights);
+        m_light_ubo->bind(LIGHT_UBO_BINDING_POINT);
 
         // IBL stuff
         glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP);

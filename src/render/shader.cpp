@@ -168,4 +168,11 @@ namespace RealmEngine
         setMat4("view", view);
         setMat4("projection", projection);
     }
+
+    void Shader::bindUniformBlock(const std::string& name, unsigned int binding_point) const
+    {
+        unsigned int block_index = glGetUniformBlockIndex(m_id, name.c_str());
+        if (block_index != GL_INVALID_INDEX)
+            glUniformBlockBinding(m_id, block_index, binding_point);
+    }
 } // namespace RealmEngine

@@ -3,7 +3,10 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include "gameplay/components/lighting/area.h"
+#include "gameplay/components/lighting/directional.h"
 #include "gameplay/components/lighting/point.h"
+#include "gameplay/components/lighting/spot.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 #include "gameplay/scene/scene_serializer.h"
@@ -25,6 +28,7 @@ namespace RealmEngine
 
     std::shared_ptr<Scene> SceneManager::createDefaultScene()
     {
+        // NOTE: this method can be culled out when release.
         auto scene      = std::make_shared<Scene>();
         auto asset_path = g_context.m_config->getAssetFolder().generic_string();
 
@@ -69,19 +73,86 @@ namespace RealmEngine
             err("Failed to load sphere model: " + std::string(e.what()));
         }
 
-        auto light_node   = scene->createNodeWithEntity("Light");
-        auto light_entity = scene->getEntity("Light");
+        // Point light 1 - main white light from above
+        auto light1_node      = scene->createNodeWithEntity("PointLight1");
+        auto light1_entity    = scene->getEntity("PointLight1");
+        auto light1_transform = std::make_shared<Transform>();
+        light1_transform->setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
+        light1_entity->addComponent(light1_transform);
+        auto point_light1 = std::make_shared<Point>();
+        point_light1->setColor(glm::vec3(200.0f, 200.0f, 200.0f));
+        point_light1->setIntensity(1.0f);
+        point_light1->setRange(50.0f);
+        light1_entity->addComponent(point_light1);
+        scene->getRoot()->addChild(light1_node);
 
-        auto light_transform = std::make_shared<Transform>();
-        light_transform->setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
-        light_entity->addComponent(light_transform);
+        // Point light 2 - red light from left
+        auto light2_node      = scene->createNodeWithEntity("PointLight2");
+        auto light2_entity    = scene->getEntity("PointLight2");
+        auto light2_transform = std::make_shared<Transform>();
+        light2_transform->setPosition(glm::vec3(-5.0f, 3.0f, 0.0f));
+        light2_entity->addComponent(light2_transform);
+        auto point_light2 = std::make_shared<Point>();
+        point_light2->setColor(glm::vec3(200.0f, 50.0f, 50.0f));
+        point_light2->setIntensity(0.8f);
+        point_light2->setRange(30.0f);
+        light2_entity->addComponent(point_light2);
+        scene->getRoot()->addChild(light2_node);
 
-        auto point_light = std::make_shared<Point>();
-        point_light->setColor(glm::vec3(200.0f, 200.0f, 200.0f));
-        point_light->setIntensity(1.0f);
-        light_entity->addComponent(point_light);
+        // Point light 3 - blue light from right
+        auto light3_node      = scene->createNodeWithEntity("PointLight3");
+        auto light3_entity    = scene->getEntity("PointLight3");
+        auto light3_transform = std::make_shared<Transform>();
+        light3_transform->setPosition(glm::vec3(5.0f, 3.0f, 0.0f));
+        light3_entity->addComponent(light3_transform);
+        auto point_light3 = std::make_shared<Point>();
+        point_light3->setColor(glm::vec3(50.0f, 50.0f, 200.0f));
+        point_light3->setIntensity(0.8f);
+        point_light3->setRange(30.0f);
+        light3_entity->addComponent(point_light3);
+        scene->getRoot()->addChild(light3_node);
 
-        scene->getRoot()->addChild(light_node);
+        // Directional light - sun-like from top-right
+        auto dir_light_node      = scene->createNodeWithEntity("DirectionalLight");
+        auto dir_light_entity    = scene->getEntity("DirectionalLight");
+        auto dir_light_transform = std::make_shared<Transform>();
+        dir_light_transform->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+        // Rotate to point from top-right: forward should be normalize(vec3(-1, -1, 0))
+        glm::vec3 dir_forward     = glm::normalize(glm::vec3(-1.0f, -1.0f, 0.0f));
+        glm::vec3 default_forward = glm::vec3(0.0f, 0.0f, -1.0f);
+        glm::vec3 axis            = glm::cross(default_forward, dir_forward);
+        float     angle           = glm::acos(glm::dot(default_forward, dir_forward));
+        if (glm::length(axis) > 0.001f)
+            dir_light_transform->setRotation(glm::angleAxis(angle, glm::normalize(axis)));
+        dir_light_entity->addComponent(dir_light_transform);
+        auto directional_light = std::make_shared<Directional>();
+        directional_light->setColor(glm::vec3(255.0f, 250.0f, 200.0f));
+        directional_light->setIntensity(0.5f);
+        dir_light_entity->addComponent(directional_light);
+        scene->getRoot()->addChild(dir_light_node);
+
+        // Spot light - focused from front
+        auto      spot_light_node      = scene->createNodeWithEntity("SpotLight");
+        auto      spot_light_entity    = scene->getEntity("SpotLight");
+        auto      spot_light_transform = std::make_shared<Transform>();
+        glm::vec3 spot_position        = glm::vec3(0.0f, 5.0f, 8.0f);
+        spot_light_transform->setPosition(spot_position);
+        // Point towards origin
+        glm::vec3 spot_target  = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 spot_forward = glm::normalize(spot_target - spot_position);
+        glm::vec3 spot_axis    = glm::cross(default_forward, spot_forward);
+        float     spot_angle   = glm::acos(glm::dot(default_forward, spot_forward));
+        if (glm::length(spot_axis) > 0.001f)
+            spot_light_transform->setRotation(glm::angleAxis(spot_angle, glm::normalize(spot_axis)));
+        spot_light_entity->addComponent(spot_light_transform);
+        auto spot_light = std::make_shared<Spot>();
+        spot_light->setColor(glm::vec3(200.0f, 200.0f, 150.0f));
+        spot_light->setIntensity(1.2f);
+        spot_light->setRange(20.0f);
+        spot_light->setInnerConeAngle(15.0f);
+        spot_light->setOuterConeAngle(30.0f);
+        spot_light_entity->addComponent(spot_light);
+        scene->getRoot()->addChild(spot_light_node);
 
         return scene;
     }
