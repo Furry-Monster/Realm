@@ -149,6 +149,8 @@ namespace RealmEngine
 
         // Main pass
         m_pbr_framebuffer->bind();
+        m_pbr_shader->use();
+
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
 
         const RendererConfig& render_config = g_context.m_config->getRendererConfig();
@@ -161,25 +163,64 @@ namespace RealmEngine
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
 
-        // update camera first.
+        // update camera
         m_camera->update();
         glm::vec3 camera_position = m_camera->getPosition();
         glm::mat4 projection      = m_camera->getProjMatrix();
         glm::mat4 view            = m_camera->getViewMatrix();
 
-        m_pbr_shader->use();
-
-        // Set light data
-        std::vector<glm::vec3> light_positions(4, glm::vec3(0.0f));
-        std::vector<glm::vec3> light_colors(4, glm::vec3(0.0f));
-        for (size_t i = 0; i < std::min(m_render_scene->m_light_positions.size(), static_cast<size_t>(4)); ++i)
-            light_positions[i] = m_render_scene->m_light_positions[i];
-        for (size_t i = 0; i < std::min(m_render_scene->m_light_colors.size(), static_cast<size_t>(4)); ++i)
-            light_colors[i] = m_render_scene->m_light_colors[i];
-
-        m_pbr_shader->setVec3Array("lightPositions", light_positions);
-        m_pbr_shader->setVec3Array("lightColors", light_colors);
         m_pbr_shader->setVec3("cameraPosition", camera_position);
+
+        // set lights
+        constexpr size_t max_lights  = 16;
+        size_t           light_count = std::min(m_render_scene->m_lights.size(), max_lights);
+        m_pbr_shader->setInt("lightCount", static_cast<int>(light_count));
+
+        std::vector<int>       light_types(light_count);
+        std::vector<glm::vec3> light_positions(light_count);
+        std::vector<glm::vec3> light_directions(light_count);
+        std::vector<glm::vec3> light_colors(light_count);
+        std::vector<float>     light_intensities(light_count);
+        std::vector<float>     light_constants(light_count);
+        std::vector<float>     light_linears(light_count);
+        std::vector<float>     light_quadratics(light_count);
+        std::vector<float>     light_ranges(light_count);
+        std::vector<float>     light_inner_cone_angles(light_count);
+        std::vector<float>     light_outer_cone_angles(light_count);
+        std::vector<float>     light_widths(light_count);
+        std::vector<float>     light_heights(light_count);
+
+        for (size_t i = 0; i < light_count; ++i)
+        {
+            const auto& light          = m_render_scene->m_lights[i];
+            light_types[i]             = static_cast<int>(light.type);
+            light_positions[i]         = light.position;
+            light_directions[i]        = light.direction;
+            light_colors[i]            = light.color;
+            light_intensities[i]       = light.intensity;
+            light_constants[i]         = light.constant;
+            light_linears[i]           = light.linear;
+            light_quadratics[i]        = light.quadratic;
+            light_ranges[i]            = light.range;
+            light_inner_cone_angles[i] = light.inner_cone_angle;
+            light_outer_cone_angles[i] = light.outer_cone_angle;
+            light_widths[i]            = light.width;
+            light_heights[i]           = light.height;
+        }
+
+        m_pbr_shader->setIntArray("lightTypes", light_types);
+        m_pbr_shader->setVec3Array("lightPositions", light_positions);
+        m_pbr_shader->setVec3Array("lightDirections", light_directions);
+        m_pbr_shader->setVec3Array("lightColors", light_colors);
+        m_pbr_shader->setFloatArray("lightIntensities", light_intensities);
+        m_pbr_shader->setFloatArray("lightConstants", light_constants);
+        m_pbr_shader->setFloatArray("lightLinears", light_linears);
+        m_pbr_shader->setFloatArray("lightQuadratics", light_quadratics);
+        m_pbr_shader->setFloatArray("lightRanges", light_ranges);
+        m_pbr_shader->setFloatArray("lightInnerConeAngles", light_inner_cone_angles);
+        m_pbr_shader->setFloatArray("lightOuterConeAngles", light_outer_cone_angles);
+        m_pbr_shader->setFloatArray("lightWidths", light_widths);
+        m_pbr_shader->setFloatArray("lightHeights", light_heights);
 
         // IBL stuff
         glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP);
@@ -263,8 +304,7 @@ namespace RealmEngine
             m_bloom_framebuffers[0]->setMipLevel(mip_level);
             m_bloom_framebuffers[1]->setMipLevel(mip_level);
 
-            // NOTE: first iteration we'll use the bloom buffer from the main render
-            // pass
+            // NOTE: first iteration we'll use the bloom buffer from the main pass
             m_bloom_framebuffers[0]->bind();
             glBindTexture(GL_TEXTURE_2D, m_pbr_framebuffer->getBloomColorTextureId());
             m_bloom_shader->setInt("sampleMipLevel", mip_level);

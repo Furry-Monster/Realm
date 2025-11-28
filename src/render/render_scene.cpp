@@ -1,6 +1,9 @@
 #include "render/render_scene.h"
 
+#include "gameplay/components/lighting/area.h"
+#include "gameplay/components/lighting/directional.h"
 #include "gameplay/components/lighting/point.h"
+#include "gameplay/components/lighting/spot.h"
 #include "gameplay/components/renderable.h"
 #include "gameplay/components/transform.h"
 #include "gameplay/scene/scene.h"
@@ -16,8 +19,7 @@ namespace RealmEngine
             return;
 
         m_render_objects.clear();
-        m_light_positions.clear();
-        m_light_colors.clear();
+        m_lights.clear();
 
         auto root = scene->getRoot();
         if (root)
@@ -42,6 +44,12 @@ namespace RealmEngine
 
             if (entity)
             {
+                // everything must have Transform component
+                auto transform = entity->getComponent<Transform>();
+                if (!transform)
+                    transform = std::make_shared<Transform>();
+
+                // Renderable
                 auto renderable = entity->getComponent<Renderable>();
                 if (renderable && renderable->hasRenderObject())
                 {
@@ -60,17 +68,88 @@ namespace RealmEngine
                     }
                 }
 
+                // Point Light
                 auto point_light = entity->getComponent<Point>();
                 if (point_light && point_light->isEnabled())
                 {
-                    auto transform = entity->getComponent<Transform>();
+                    Light light {};
+                    light.type             = LightType::Point;
+                    light.position         = transform->getPosition();
+                    light.direction        = glm::vec3(0.0f);
+                    light.color            = point_light->getColor();
+                    light.intensity        = point_light->getIntensity();
+                    light.constant         = point_light->getConstantAttenuation();
+                    light.linear           = point_light->getLinearAttenuation();
+                    light.quadratic        = point_light->getQuadraticAttenuation();
+                    light.range            = point_light->getRange();
+                    light.inner_cone_angle = 0.0f;
+                    light.outer_cone_angle = 0.0f;
+                    light.width            = 0.0f;
+                    light.height           = 0.0f;
+                    m_lights.push_back(light);
+                }
 
-                    glm::vec3 position = transform->getPosition();
-                    glm::vec3 color    = point_light->getColor();
-                    color *= point_light->getIntensity();
+                // Spot Light
+                auto spot_light = entity->getComponent<Spot>();
+                if (spot_light && spot_light->isEnabled())
+                {
+                    Light light {};
+                    light.type             = LightType::Spot;
+                    light.position         = transform->getPosition();
+                    light.direction        = -transform->getForward();
+                    light.color            = spot_light->getColor();
+                    light.intensity        = spot_light->getIntensity();
+                    light.constant         = spot_light->getConstantAttenuation();
+                    light.linear           = spot_light->getLinearAttenuation();
+                    light.quadratic        = spot_light->getQuadraticAttenuation();
+                    light.range            = spot_light->getRange();
+                    light.inner_cone_angle = spot_light->getInnerConeAngle();
+                    light.outer_cone_angle = spot_light->getOuterConeAngle();
+                    light.width            = 0.0f;
+                    light.height           = 0.0f;
+                    m_lights.push_back(light);
+                }
 
-                    m_light_positions.push_back(position);
-                    m_light_colors.push_back(color);
+                // Area Light
+                auto area_light = entity->getComponent<Area>();
+                if (area_light && area_light->isEnabled())
+                {
+                    Light light {};
+                    light.type             = LightType::Area;
+                    light.position         = transform->getPosition();
+                    light.direction        = -transform->getForward();
+                    light.color            = area_light->getColor();
+                    light.intensity        = area_light->getIntensity();
+                    light.constant         = 0.0f;
+                    light.linear           = 0.0f;
+                    light.quadratic        = 0.0f;
+                    light.range            = 0.0f;
+                    light.inner_cone_angle = 0.0f;
+                    light.outer_cone_angle = 0.0f;
+                    light.width            = area_light->getWidth();
+                    light.height           = area_light->getHeight();
+                    m_lights.push_back(light);
+                }
+
+                // Directional Light
+                auto directional_light = entity->getComponent<Directional>();
+                if (directional_light && directional_light->isEnabled())
+                {
+                    Light light {};
+                    light.type             = LightType::Directional;
+                    light.position         = glm::vec3(0.0f);
+                    light.direction        = -transform->getForward();
+                    light.color            = directional_light->getColor();
+                    light.intensity        = directional_light->getIntensity();
+                    light.constant         = 0.0f;
+                    light.linear           = 0.0f;
+                    light.quadratic        = 0.0f;
+                    light.range            = 0.0f;
+                    light.inner_cone_angle = 0.0f;
+                    light.outer_cone_angle = 0.0f;
+                    light.width            = 0.0f;
+                    light.height           = 0.0f;
+                    m_lights.push_back(light);
                 }
             }
         }

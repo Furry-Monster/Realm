@@ -20,31 +20,18 @@ namespace RealmEngine
         glm::vec3 direction;
         glm::vec3 color;
         float     intensity;
-    };
 
-    struct Attenuation
-    {
+        // Attenuation (for Point and Spot lights)
         float constant;
         float linear;
         float quadratic;
         float range;
-    };
 
-    struct PointLight
-        : public Light
-        , public Attenuation
-    {};
-
-    struct SpotLight
-        : public Light
-        , public Attenuation
-    {
+        // Spot light parameters
         float inner_cone_angle;
         float outer_cone_angle;
-    };
 
-    struct AreaLight : public Light
-    {
+        // Area light parameters
         float width;
         float height;
     };
