@@ -208,18 +208,6 @@ def build_project(build_dir, generator, jobs, target=None, verbose=False):
 
     print_success("Build completed successfully")
 
-def install_project(build_dir, generator):
-    """Install the project"""
-    print_info("Installing...")
-    build_path = Path(build_dir)
-
-    if generator == "Ninja":
-        run_command(["ninja", "install"], cwd=build_path)
-    else:
-        run_command(["cmake", "--build", ".", "--target", "install"], cwd=build_path)
-
-    print_success("Installation completed")
-
 def run_executable(executable_path, debug=False):
     """Run the executable"""
     exe_path = Path(executable_path)
@@ -271,8 +259,6 @@ Examples:
                         help="Run the executable after building")
     parser.add_argument("--debug", action="store_true",
                         help="Run in debug mode (without editor)")
-    parser.add_argument("-i", "--install", action="store_true",
-                        help="Install after building")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Verbose output")
     parser.add_argument("--configure", action="store_true",
@@ -321,10 +307,6 @@ Examples:
 
     # Build
     build_project(args.dir, args.generator, args.jobs, args.target, args.verbose)
-
-    # Install if requested
-    if args.install:
-        install_project(args.dir, args.generator)
 
     # Run if requested
     if args.run:
