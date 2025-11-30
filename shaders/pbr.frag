@@ -191,11 +191,38 @@ vec3 discreteMonteCarloContribution(vec3  l,
 // shadow = ---  *   Σ  [currentDepth - bias > pcfDepth_i ? 1 : 0]
 //           N      i=0
 //
-// where N is the number of samples (typically 3x3 = 9)
+// where N is the number of samples (using Poisson disk sampling)
 //       bias is used to reduce shadow acne
 //       pcfDepth_i is the depth value from shadow map at sample position i
 //
 // The final shadow factor is: 1.0 - shadow
+
+// Poisson disk sampling offsets (16 samples )
+const vec2 poissonDisk[16] = vec2[](vec2(-0.613392, 0.617481),
+                                    vec2(0.170019, -0.040254),
+                                    vec2(-0.299417, 0.791925),
+                                    vec2(0.645680, 0.493210),
+                                    vec2(-0.651784, 0.717887),
+                                    vec2(0.421003, 0.027070),
+                                    vec2(-0.817194, -0.271096),
+                                    vec2(-0.705374, -0.668203),
+                                    vec2(0.977050, -0.108615),
+                                    vec2(0.063326, 0.142369),
+                                    vec2(0.203528, 0.214331),
+                                    vec2(-0.667531, 0.326090),
+                                    vec2(-0.098422, -0.295755),
+                                    vec2(-0.885922, 0.215369),
+                                    vec2(0.566637, 0.605213),
+                                    vec2(0.039766, -0.396100));
+
+vec2 rotate2D(vec2 v, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    mat2  m = mat2(c, -s, s, c);
+    return m * v;
+}
+
 float calculateShadow(vec4 fragPosLightSpace, vec3 n, vec3 l)
 {
     if (!shadowEnabled)
@@ -207,22 +234,27 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 n, vec3 l)
     if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0 || projCoords.z > 1.0)
         return 1.0;
 
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
     float bias         = max(0.05 * (1.0 - dot(n, l)), 0.005);
 
-    // sample multiple times and average
+    // use Poisson disk sampling with rotation
     float shadow    = 0.0;
     vec2  texelSize = 1.0 / textureSize(shadowMap, 0);
-    for (int x = -1; x <= 1; ++x)
+
+    float randomAngle = dot(projCoords.xy, vec2(12.9898, 78.233)) * 43758.5453;
+    randomAngle       = fract(randomAngle) * 6.28318; // 0 to 2*PI
+
+    float sampleRadius = 1.0;
+
+    for (int i = 0; i < 16; i++)
     {
-        for (int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-        }
+        vec2 offset      = rotate2D(poissonDisk[i], randomAngle) * sampleRadius;
+        vec2 sampleCoord = projCoords.xy + offset * texelSize;
+
+        float pcfDepth = texture(shadowMap, sampleCoord).r;
+        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
     }
-    shadow /= 9.0;
+    shadow /= 16.0;
 
     return 1.0 - shadow;
 }
