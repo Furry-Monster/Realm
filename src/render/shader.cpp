@@ -107,6 +107,133 @@ namespace RealmEngine
         glDeleteShader(fragment);
     }
 
+    Shader::Shader(const std::string& vertexPath, const std::string& geometryPath, const std::string& fragmentPath)
+    {
+        // load shaders
+        std::string   vertex_code;
+        std::string   geometry_code;
+        std::string   fragment_code;
+        std::ifstream vertex_shader_file;
+        std::ifstream geometry_shader_file;
+        std::ifstream fragment_shader_file;
+
+        vertex_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        geometry_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        fragment_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+        try
+        {
+            vertex_shader_file.open(vertexPath);
+            geometry_shader_file.open(geometryPath);
+            fragment_shader_file.open(fragmentPath);
+
+            std::stringstream vertex_shader_stream, geometry_shader_stream, fragment_shader_stream;
+
+            vertex_shader_stream << vertex_shader_file.rdbuf();
+            geometry_shader_stream << geometry_shader_file.rdbuf();
+            fragment_shader_stream << fragment_shader_file.rdbuf();
+
+            vertex_shader_file.close();
+            geometry_shader_file.close();
+            fragment_shader_file.close();
+
+            vertex_code   = vertex_shader_stream.str();
+            geometry_code = geometry_shader_stream.str();
+            fragment_code = fragment_shader_stream.str();
+        }
+        catch (std::ifstream::failure& e)
+        {
+            err("Error: failed to read shader file: " + vertexPath + ", " + geometryPath + " or " + fragmentPath);
+            m_id = 0;
+            return;
+        }
+
+        const char* vertex_shader_code   = vertex_code.c_str();
+        const char* geometry_shader_code = geometry_code.c_str();
+        const char* fragment_shader_code = fragment_code.c_str();
+
+        // compile shaders
+        unsigned int vertex, geometry, fragment;
+        int          success;
+        char         info_log[512];
+
+        vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &vertex_shader_code, nullptr);
+        glCompileShader(vertex);
+
+        glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+
+        if (!success)
+        {
+            glGetShaderInfoLog(vertex, 512, nullptr, info_log);
+            err("Error: vertex shader compilation failed for: " + vertexPath);
+            err(std::string(info_log));
+            m_id = 0;
+            return;
+        }
+
+        geometry = glCreateShader(GL_GEOMETRY_SHADER);
+        glShaderSource(geometry, 1, &geometry_shader_code, nullptr);
+        glCompileShader(geometry);
+
+        glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
+
+        if (!success)
+        {
+            glGetShaderInfoLog(geometry, 512, nullptr, info_log);
+            err("Error: geometry shader compilation failed for: " + geometryPath);
+            err(std::string(info_log));
+            glDeleteShader(vertex);
+            m_id = 0;
+            return;
+        }
+
+        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragment, 1, &fragment_shader_code, nullptr);
+        glCompileShader(fragment);
+
+        glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+
+        if (!success)
+        {
+            glGetShaderInfoLog(fragment, 512, nullptr, info_log);
+            err("Error: fragment shader compilation failed for: " + fragmentPath);
+            err(std::string(info_log));
+            glDeleteShader(vertex);
+            glDeleteShader(geometry);
+            m_id = 0;
+            return;
+        }
+
+        // link shaders
+        m_id = glCreateProgram();
+        glAttachShader(m_id, vertex);
+        glAttachShader(m_id, geometry);
+        glAttachShader(m_id, fragment);
+        glLinkProgram(m_id);
+
+        glGetProgramiv(m_id, GL_LINK_STATUS, &success);
+
+        if (!success)
+        {
+            glGetProgramInfoLog(m_id, 512, nullptr, info_log);
+            err("Error: shader program linking failed");
+            err(vertexPath);
+            err(geometryPath);
+            err(fragmentPath);
+            err(std::string(info_log));
+            glDeleteShader(vertex);
+            glDeleteShader(geometry);
+            glDeleteShader(fragment);
+            m_id = 0;
+            return;
+        }
+
+        glDeleteShader(vertex);
+        glDeleteShader(geometry);
+        glDeleteShader(fragment);
+    }
+
     Shader::~Shader() noexcept
     {
         if (m_id != 0)
