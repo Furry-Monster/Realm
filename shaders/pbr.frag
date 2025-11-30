@@ -184,30 +184,34 @@ vec3 discreteMonteCarloContribution(vec3  l,
 }
 
 // Percentage Closer Filtering - Shadow Calculating
+//
+// PCF samples multiple texels and averages the results to produce soft shadows
+//
+//           1      N-1
+// shadow = ---  *   Σ  [currentDepth - bias > pcfDepth_i ? 1 : 0]
+//           N      i=0
+//
+// where N is the number of samples (typically 3x3 = 9)
+//       bias is used to reduce shadow acne
+//       pcfDepth_i is the depth value from shadow map at sample position i
+//
+// The final shadow factor is: 1.0 - shadow
 float calculateShadow(vec4 fragPosLightSpace, vec3 n, vec3 l)
 {
     if (!shadowEnabled)
         return 1.0;
 
-    // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
+    projCoords      = projCoords * 0.5 + 0.5;
 
-    // check if fragment is outside light frustum
     if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0 || projCoords.z > 1.0)
         return 1.0;
 
-    // get closest depth value from light's perspective
     float closestDepth = texture(shadowMap, projCoords.xy).r;
-    // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
+    float bias         = max(0.05 * (1.0 - dot(n, l)), 0.005);
 
-    // check if current fragment is in shadow
-    // add bias to reduce shadow acne
-    float bias = max(0.05 * (1.0 - dot(n, l)), 0.005);
-
-    // PCF: sample multiple times and average
+    // sample multiple times and average
     float shadow    = 0.0;
     vec2  texelSize = 1.0 / textureSize(shadowMap, 0);
     for (int x = -1; x <= 1; ++x)
