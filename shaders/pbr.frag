@@ -2,16 +2,17 @@
 
 #define PI 3.1415926535897932384626433832795
 #define GREYSCALE_WEIGHT_VECTOR vec3(0.2126, 0.7152, 0.0722)
+#define PREFILTERED_ENV_MAP_LOD 4.0
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 BloomColor; // for bloom shader
 
-// vertex attributes
 in vec3 worldCoordinates;
 in vec2 textureCoordinates;
 in vec3 tangent;
 in vec3 bitangent;
 in vec3 normal;
+in vec4 fragPosLightSpace;
 
 struct Material
 {
@@ -34,10 +35,6 @@ struct Material
     sampler2D textureEmissive;
 };
 
-uniform Material material;
-
-uniform vec3 cameraPosition;
-
 struct LightData
 {
     vec4 position;    // xyz = position, w = type
@@ -47,19 +44,25 @@ struct LightData
     vec4 spot_area;   // x = outer_cone_angle, y = width, z = height, w = padding
 };
 
+// PBR uniforms
+uniform Material material;
+uniform vec3     cameraPosition;
+
 layout(std140) uniform LightBlock
 {
     int       lightCount;
     LightData lights[16];
 };
 
-// PBR
 // IBL precomputed maps
-const float PREFILTERED_ENV_MAP_LOD = 4.0; // how many mipmap levels
-
 uniform samplerCube diffuseIrradianceMap;
 uniform samplerCube prefilteredEnvMap;
 uniform sampler2D   brdfConvolutionMap;
+
+// Shadow parameters
+uniform sampler2D shadowMap;
+uniform bool      shadowEnabled;
+uniform mat4      lightSpaceMatrix;
 
 // Post parameters
 uniform float bloomBrightnessCutoff;
@@ -180,6 +183,46 @@ vec3 discreteMonteCarloContribution(vec3  l,
     return cookTorranceBrdf * radiance * nDotL;
 }
 
+// Percentage Closer Filtering - Shadow Calculating
+float calculateShadow(vec4 fragPosLightSpace, vec3 n, vec3 l)
+{
+    if (!shadowEnabled)
+        return 1.0;
+
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // check if fragment is outside light frustum
+    if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0 || projCoords.z > 1.0)
+        return 1.0;
+
+    // get closest depth value from light's perspective
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+
+    // check if current fragment is in shadow
+    // add bias to reduce shadow acne
+    float bias = max(0.05 * (1.0 - dot(n, l)), 0.005);
+
+    // PCF: sample multiple times and average
+    float shadow    = 0.0;
+    vec2  texelSize = 1.0 / textureSize(shadowMap, 0);
+    for (int x = -1; x <= 1; ++x)
+    {
+        for (int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+
+    return 1.0 - shadow;
+}
+
 void main()
 {
     // Preprocess:
@@ -271,6 +314,12 @@ void main()
         {
             l        = normalize(-lightDirection);
             radiance = lightColor * lightIntensity;
+
+            if (shadowEnabled)
+            {
+                float shadow = calculateShadow(fragPosLightSpace, n, l);
+                radiance *= shadow;
+            }
         }
         // Spot Light (2)
         else if (lightType == 2)

@@ -12,6 +12,7 @@
 #include "render/render_camera.h"
 #include "render/render_scene.h"
 #include "render/shader.h"
+#include "render/shadow_framebuffer.h"
 #include "render/skybox.h"
 
 namespace RealmEngine
@@ -40,9 +41,15 @@ namespace RealmEngine
         void compileShaders();
         void precomputeIBL();
 
+        void renderShadow();
         void renderSkybox();
         void renderBloom();
         void applyPostprocess();
+
+        // shadow pass
+        std::unique_ptr<ShadowFramebuffer> m_shadow_framebuffer;
+        glm::mat4                          m_light_space_matrix;
+        bool                               m_shadow_enabled = false;
 
         // main pass
         std::unique_ptr<PBRFramebuffer>         m_pbr_framebuffer;
@@ -51,7 +58,7 @@ namespace RealmEngine
         std::unique_ptr<DiffuseIrradianceMap>   m_ibl_diffuse_irradiance_map;
         std::unique_ptr<SpecularMap>            m_ibl_specular_map;
 
-        // post-processing stuff
+        // post pass
         std::unique_ptr<FullscreenQuad>   m_fullscreen_quad;
         bool                              m_bloom_enabled           = true;
         float                             m_bloom_intensity         = 1.0f;
@@ -63,7 +70,7 @@ namespace RealmEngine
         std::unique_ptr<BloomFramebuffer> m_bloom_framebuffers[2];
         unsigned int                      m_bloom_result_id;
 
-        // misc rendering stuff
+        // misc
         std::shared_ptr<Window>       m_window;
         std::shared_ptr<RenderScene>  m_render_scene;
         std::shared_ptr<RenderCamera> m_camera;
@@ -76,6 +83,7 @@ namespace RealmEngine
         std::unique_ptr<Shader> m_bloom_shader;
         std::unique_ptr<Shader> m_post_shader;
         std::unique_ptr<Shader> m_skybox_shader;
+        std::unique_ptr<Shader> m_shadow_shader;
 
         std::unique_ptr<LightUBO> m_light_ubo;
     };

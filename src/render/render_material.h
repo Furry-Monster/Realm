@@ -15,6 +15,7 @@ namespace RealmEngine
     const static int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10; // ibl
     const static int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
     const static int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
+    const static int TEXTURE_UNIT_SHADOW_MAP             = 13; // shadow
 
     struct RenderMaterial
     {
