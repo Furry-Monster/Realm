@@ -11,16 +11,19 @@ out vec3 worldCoordinates;
 out vec3 tangent;
 out vec3 bitangent;
 out vec3 normal;
+out vec4 fragPosLightSpace;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 lightSpaceMatrix;
 
 void main()
 {
     textureCoordinates = aTextureCoordinates;
     worldCoordinates   = (model * vec4(aPos, 1.0f)).xyz;
     gl_Position        = projection * view * model * vec4(aPos, 1.0f);
+    fragPosLightSpace  = lightSpaceMatrix * model * vec4(aPos, 1.0f);
 
     mat3 normalMatrix = transpose(inverse(mat3(model)));
 

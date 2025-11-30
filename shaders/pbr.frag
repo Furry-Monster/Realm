@@ -2,16 +2,17 @@
 
 #define PI 3.1415926535897932384626433832795
 #define GREYSCALE_WEIGHT_VECTOR vec3(0.2126, 0.7152, 0.0722)
+#define PREFILTERED_ENV_MAP_LOD 4.0
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 BloomColor; // for bloom shader
 
-// vertex attributes
 in vec3 worldCoordinates;
 in vec2 textureCoordinates;
 in vec3 tangent;
 in vec3 bitangent;
 in vec3 normal;
+in vec4 fragPosLightSpace;
 
 struct Material
 {
@@ -34,10 +35,6 @@ struct Material
     sampler2D textureEmissive;
 };
 
-uniform Material material;
-
-uniform vec3 cameraPosition;
-
 struct LightData
 {
     vec4 position;    // xyz = position, w = type
@@ -47,19 +44,25 @@ struct LightData
     vec4 spot_area;   // x = outer_cone_angle, y = width, z = height, w = padding
 };
 
+// PBR uniforms
+uniform Material material;
+uniform vec3     cameraPosition;
+
 layout(std140) uniform LightBlock
 {
     int       lightCount;
     LightData lights[16];
 };
 
-// PBR
 // IBL precomputed maps
-const float PREFILTERED_ENV_MAP_LOD = 4.0; // how many mipmap levels
-
 uniform samplerCube diffuseIrradianceMap;
 uniform samplerCube prefilteredEnvMap;
 uniform sampler2D   brdfConvolutionMap;
+
+// Shadow parameters
+uniform sampler2D shadowMap;
+uniform bool      shadowEnabled;
+uniform mat4      lightSpaceMatrix;
 
 // Post parameters
 uniform float bloomBrightnessCutoff;
@@ -180,6 +183,82 @@ vec3 discreteMonteCarloContribution(vec3  l,
     return cookTorranceBrdf * radiance * nDotL;
 }
 
+// Percentage Closer Filtering - Shadow Calculating
+//
+// PCF samples multiple texels and averages the results to produce soft shadows
+//
+//           1      N-1
+// shadow = ---  *   Σ  [currentDepth - bias > pcfDepth_i ? 1 : 0]
+//           N      i=0
+//
+// where N is the number of samples (using Poisson disk sampling)
+//       bias is used to reduce shadow acne
+//       pcfDepth_i is the depth value from shadow map at sample position i
+//
+// The final shadow factor is: 1.0 - shadow
+
+// Poisson disk sampling offsets (16 samples )
+const vec2 poissonDisk[16] = vec2[](vec2(-0.613392, 0.617481),
+                                    vec2(0.170019, -0.040254),
+                                    vec2(-0.299417, 0.791925),
+                                    vec2(0.645680, 0.493210),
+                                    vec2(-0.651784, 0.717887),
+                                    vec2(0.421003, 0.027070),
+                                    vec2(-0.817194, -0.271096),
+                                    vec2(-0.705374, -0.668203),
+                                    vec2(0.977050, -0.108615),
+                                    vec2(0.063326, 0.142369),
+                                    vec2(0.203528, 0.214331),
+                                    vec2(-0.667531, 0.326090),
+                                    vec2(-0.098422, -0.295755),
+                                    vec2(-0.885922, 0.215369),
+                                    vec2(0.566637, 0.605213),
+                                    vec2(0.039766, -0.396100));
+
+vec2 rotate2D(vec2 v, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    mat2  m = mat2(c, -s, s, c);
+    return m * v;
+}
+
+float calculateShadow(vec4 fragPosLightSpace, vec3 n, vec3 l)
+{
+    if (!shadowEnabled)
+        return 1.0;
+
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords      = projCoords * 0.5 + 0.5;
+
+    if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0 || projCoords.z > 1.0)
+        return 1.0;
+
+    float currentDepth = projCoords.z;
+    float bias         = max(0.05 * (1.0 - dot(n, l)), 0.005);
+
+    // use Poisson disk sampling with rotation
+    float shadow    = 0.0;
+    vec2  texelSize = 1.0 / textureSize(shadowMap, 0);
+
+    float randomAngle = dot(projCoords.xy, vec2(12.9898, 78.233)) * 43758.5453;
+    randomAngle       = fract(randomAngle) * 6.28318; // 0 to 2*PI
+
+    float sampleRadius = 1.0;
+
+    for (int i = 0; i < 16; i++)
+    {
+        vec2 offset      = rotate2D(poissonDisk[i], randomAngle) * sampleRadius;
+        vec2 sampleCoord = projCoords.xy + offset * texelSize;
+
+        float pcfDepth = texture(shadowMap, sampleCoord).r;
+        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+    }
+    shadow /= 16.0;
+
+    return 1.0 - shadow;
+}
+
 void main()
 {
     // Preprocess:
@@ -271,6 +350,12 @@ void main()
         {
             l        = normalize(-lightDirection);
             radiance = lightColor * lightIntensity;
+
+            if (shadowEnabled)
+            {
+                float shadow = calculateShadow(fragPosLightSpace, n, l);
+                radiance *= shadow;
+            }
         }
         // Spot Light (2)
         else if (lightType == 2)

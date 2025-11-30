@@ -1,5 +1,7 @@
 #include "render/renderer.h"
+#include <functional>
 #include <memory>
+#include <optional>
 
 #include "global_context.h"
 #include "render/render_scene.h"
@@ -58,6 +60,9 @@ namespace RealmEngine
         m_tonemapping_enabled     = render_config.tonemapping_enabled;
         m_gamma_correction_factor = render_config.gamma_correction_factor;
 
+        m_shadow_framebuffer = std::make_unique<ShadowFramebuffer>(SHADOW_WIDTH, SHADOW_HEIGHT);
+        m_shadow_framebuffer->init();
+
         m_pbr_framebuffer = std::make_unique<PBRFramebuffer>(m_window->getWidth(), m_window->getHeight());
         m_pbr_framebuffer->init();
 
@@ -80,8 +85,10 @@ namespace RealmEngine
         m_bloom_shader.reset();
         m_post_shader.reset();
         m_skybox_shader.reset();
+        m_shadow_shader.reset();
 
         m_pbr_framebuffer.reset();
+        m_shadow_framebuffer.reset();
         m_ibl_equirectangular_cubemap.reset();
         m_ibl_diffuse_irradiance_map.reset();
         m_ibl_specular_map.reset();
@@ -120,6 +127,10 @@ namespace RealmEngine
         vertex_path     = m_shader_path / "skybox.vert";
         fragment_path   = m_shader_path / "skybox.frag";
         m_skybox_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
+
+        vertex_path     = m_shader_path / "shadow.vert";
+        fragment_path   = m_shader_path / "shadow.frag";
+        m_shadow_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
     }
 
     void Renderer::precomputeIBL()
@@ -151,10 +162,13 @@ namespace RealmEngine
         if (!m_render_scene)
             err("Render scene not setted yet.");
 
+        renderShadow();
+
         // Main pass
         m_pbr_framebuffer->bind();
         m_pbr_shader->use();
 
+        // set basic opengl states
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
 
         const RendererConfig& render_config = g_context.m_config->getRendererConfig();
@@ -172,14 +186,13 @@ namespace RealmEngine
         glm::vec3 camera_position = m_camera->getPosition();
         glm::mat4 projection      = m_camera->getProjMatrix();
         glm::mat4 view            = m_camera->getViewMatrix();
-
         m_pbr_shader->setVec3("cameraPosition", camera_position);
 
-        // set light ubo
+        // update light ubo
         m_light_ubo->updateLights(m_render_scene->m_lights);
         m_light_ubo->bind(LIGHT_UBO_BINDING_POINT);
 
-        // IBL stuff
+        // set IBL stuff
         glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP);
         m_pbr_shader->setInt("diffuseIrradianceMap", TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_ibl_diffuse_irradiance_map->getCubemapId());
@@ -192,8 +205,23 @@ namespace RealmEngine
         m_pbr_shader->setInt("brdfConvolutionMap", TEXTURE_UNIT_BRDF_CONVOLUTION_MAP);
         glBindTexture(GL_TEXTURE_2D, m_ibl_specular_map->getBrdfConvolutionMapId());
 
-        // post stuff
+        // set post stuff
         m_pbr_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
+
+        // set shadow stuff
+        if (m_shadow_enabled)
+        {
+            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_SHADOW_MAP);
+            m_pbr_shader->setInt("shadowMap", TEXTURE_UNIT_SHADOW_MAP);
+            glBindTexture(GL_TEXTURE_2D, m_shadow_framebuffer->getDepthTextureId());
+            m_pbr_shader->setMat4("lightSpaceMatrix", m_light_space_matrix);
+            m_pbr_shader->setBool("shadowEnabled", true);
+        }
+        else
+        {
+            m_pbr_shader->setMat4("lightSpaceMatrix", glm::mat4(1.0f)); // identity matrix when no shadow
+            m_pbr_shader->setBool("shadowEnabled", false);
+        }
 
         // Render entities
         for (auto& ro : m_render_scene->m_render_objects)
@@ -216,6 +244,70 @@ namespace RealmEngine
         renderBloom();
 
         applyPostprocess();
+    }
+
+    void Renderer::renderShadow()
+    {
+        // Shadow pass
+        std::optional<std::reference_wrapper<Light>> directional_light;
+        for (auto& light : m_render_scene->m_lights)
+        {
+            if (light.type == LightType::Directional)
+            {
+                directional_light = std::ref(light);
+                break;
+            }
+        }
+
+        if (!directional_light.has_value())
+        {
+            m_shadow_enabled = false;
+            return;
+        }
+
+        m_shadow_framebuffer->bind();
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glCullFace(GL_FRONT);
+
+        m_shadow_shader->use();
+
+        // NOTE:
+        // for directional light, use orthographic projection
+        // shadow size is also size of frustum
+        float shadow_near = 0.1f;
+        float shadow_far  = 50.0f;
+        float shadow_size = 20.0f;
+
+        Light&    light = directional_light->get();
+        glm::mat4 light_projection =
+            glm::ortho(-shadow_size, shadow_size, -shadow_size, shadow_size, shadow_near, shadow_far);
+        glm::vec3 light_dir    = glm::normalize(light.direction);
+        glm::vec3 scene_center = m_camera->getPosition();
+        glm::vec3 light_target = scene_center;
+        glm::vec3 light_up     = glm::vec3(0.0f, 1.0f, 0.0f);
+        if (glm::abs(glm::dot(light_dir, light_up)) > 0.9f)
+            light_up = glm::vec3(1.0f, 0.0f, 0.0f);
+        glm::mat4 light_view = glm::lookAt(light_target - light_dir * shadow_size * 0.5f, light_target, light_up);
+
+        m_light_space_matrix = light_projection * light_view;
+        m_shadow_enabled     = true;
+
+        for (auto& ro : m_render_scene->m_render_objects)
+        {
+            glm::mat4 model           = glm::mat4(1.0f);
+            auto      rotation_matrix = glm::toMat4(ro->getOrientation());
+            model                     = rotation_matrix * model;
+            model                     = glm::translate(model, ro->getPosition());
+            model                     = glm::scale(model, ro->getScale());
+
+            m_shadow_shader->setMat4("lightSpaceMatrix", m_light_space_matrix);
+            m_shadow_shader->setMat4("model", model);
+
+            ro->draw(*m_shadow_shader);
+        }
+
+        glCullFace(GL_BACK); // restore back face culling
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void Renderer::renderSkybox()

@@ -8,7 +8,7 @@ namespace RealmEngine
     {
     public:
         Component()                   = default;
-        virtual ~Component() noexcept = default;
+        virtual ~Component() noexcept = 0;
 
         Component(const Component&)                = delete;
         Component& operator=(const Component&)     = delete;
