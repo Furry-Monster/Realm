@@ -2,20 +2,21 @@
 
 #include <glm/glm.hpp>
 #include <memory>
+
 #include "render/texture.h"
 
 namespace RealmEngine
 {
-    // texture channel offsets
-    const static int TEXTURE_UNIT_ALBEDO                 = 0; // pbr
-    const static int TEXTURE_UNIT_METALLIC_ROUGHNESS     = 1;
-    const static int TEXTURE_UNIT_NORMAL                 = 2;
-    const static int TEXTURE_UNIT_AMBIENT_OCCLUSION      = 3;
-    const static int TEXTURE_UNIT_EMISSIVE               = 4;
-    const static int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10; // ibl
-    const static int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
-    const static int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
-    const static int TEXTURE_UNIT_SHADOW_MAP             = 13; // shadow
+    // Texture unit bindings
+    static constexpr int TEXTURE_UNIT_ALBEDO                 = 0; // PBR material textures
+    static constexpr int TEXTURE_UNIT_METALLIC_ROUGHNESS     = 1;
+    static constexpr int TEXTURE_UNIT_NORMAL                 = 2;
+    static constexpr int TEXTURE_UNIT_AMBIENT_OCCLUSION      = 3;
+    static constexpr int TEXTURE_UNIT_EMISSIVE               = 4;
+    static constexpr int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10; // IBL
+    static constexpr int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
+    static constexpr int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
+    static constexpr int TEXTURE_UNIT_SHADOW_MAP             = 13; // Shadow
 
     struct RenderMaterial
     {

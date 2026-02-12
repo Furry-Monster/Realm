@@ -28,7 +28,7 @@ namespace RealmEngine
 
     std::shared_ptr<Scene> SceneManager::createDefaultScene()
     {
-        // NOTE: this method can be culled out when release.
+        // Creates a default scene with sample models and lights for testing
         auto scene      = std::make_shared<Scene>();
         auto asset_path = g_context.m_config->getAssetFolder().generic_string();
 
@@ -39,7 +39,7 @@ namespace RealmEngine
 
             auto transform1 = std::make_shared<Transform>();
             transform1->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-            transform1->setRotation(glm::angleAxis(1.5708f, glm::vec3(1.0f, 0.0f, 0.0f)));
+            transform1->setRotation(glm::angleAxis(glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)));
             helmet_entity->addComponent(transform1);
 
             std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";

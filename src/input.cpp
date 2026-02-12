@@ -118,8 +118,8 @@ namespace RealmEngine
 
     void Input::tick()
     {
-        m_cursor_delta_x = 0;
-        m_cursor_delta_y = 0;
+        m_cursor_delta_x = 0.0;
+        m_cursor_delta_y = 0.0;
 
         if (!m_focus)
             resetCommand();
@@ -127,8 +127,8 @@ namespace RealmEngine
 
     void Input::disposal()
     {
-        m_cursor_delta_x = 0;
-        m_cursor_delta_y = 0;
+        m_cursor_delta_x = 0.0;
+        m_cursor_delta_y = 0.0;
     }
 
     void Input::resetCommand() { m_curr_command = 0; }

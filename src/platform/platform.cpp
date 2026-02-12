@@ -1,9 +1,9 @@
-#include "plateform.h"
+#include "platform.h"
 #include <filesystem>
 
 namespace RealmEngine
 {
-    std::filesystem::path Plateform::getExecutablePath() noexcept
+    std::filesystem::path Platform::getExecutablePath() noexcept
     {
 #ifdef __linux__
         char    buffer[PATH_MAX];

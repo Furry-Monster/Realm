@@ -46,7 +46,7 @@ namespace RealmEngine
         {
             m_window.reset();
             glfwTerminate();
-            fatal("Failed to initalize GLAD");
+            fatal("Failed to initialize GLAD");
             return;
         }
 
@@ -76,7 +76,7 @@ namespace RealmEngine
         m_window.reset();
         glfwTerminate();
 
-        info("GLFW window destoyed.");
+        info("GLFW window destroyed.");
     }
 
     bool Window::shouldClose() const { return glfwWindowShouldClose(m_window.get()); }

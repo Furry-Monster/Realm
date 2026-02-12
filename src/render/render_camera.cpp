@@ -1,16 +1,9 @@
 #include "render_camera.h"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_float3x3.hpp"
-#include "glm/ext/matrix_float4x4.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/ext/quaternion_float.hpp"
-#include "glm/ext/quaternion_trigonometric.hpp"
-#include "glm/ext/vector_float3.hpp"
-#include "glm/ext/vector_float4.hpp"
-#include "glm/fwd.hpp"
-#include "glm/geometric.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "glm/trigonometric.hpp"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include "utils.h"
 
 namespace RealmEngine
@@ -23,16 +16,16 @@ namespace RealmEngine
         m_position       = pos;
         m_view_mat_dirty = true;
     }
-    void RenderCamera::setRotation(const glm::quat& rotat)
+    void RenderCamera::setRotation(const glm::quat& rotation)
     {
-        m_rotation       = glm::normalize(rotat);
+        m_rotation       = glm::normalize(rotation);
         m_view_mat_dirty = true;
     }
-    void RenderCamera::setRotation(const glm::vec3& eular_angle)
+    void RenderCamera::setRotation(const glm::vec3& euler_angles)
     {
-        glm::quat q_pitch = glm::angleAxis(glm::radians(eular_angle.x), glm::vec3(1, 0, 0));
-        glm::quat q_yaw   = glm::angleAxis(glm::radians(eular_angle.y), glm::vec3(0, 1, 0));
-        glm::quat q_roll  = glm::angleAxis(glm::radians(eular_angle.z), glm::vec3(0, 0, 1));
+        glm::quat q_pitch = glm::angleAxis(glm::radians(euler_angles.x), glm::vec3(1, 0, 0));
+        glm::quat q_yaw   = glm::angleAxis(glm::radians(euler_angles.y), glm::vec3(0, 1, 0));
+        glm::quat q_roll  = glm::angleAxis(glm::radians(euler_angles.z), glm::vec3(0, 0, 1));
 
         m_rotation       = glm::normalize(q_yaw * q_pitch * q_roll);
         m_view_mat_dirty = true;
@@ -64,7 +57,7 @@ namespace RealmEngine
         m_proj_mat_dirty  = true;
     }
     void
-    RenderCamera::serOrthographic(float left, float right, float bottom, float top, float near_plane, float far_plane)
+    RenderCamera::setOrthographic(float left, float right, float bottom, float top, float near_plane, float far_plane)
     {
         m_projection_type = ProjectionType::Orthographic;
         m_ortho_left      = left;

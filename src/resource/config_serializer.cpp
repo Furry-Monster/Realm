@@ -42,8 +42,7 @@ namespace RealmEngine
 
             if (encrypt)
             {
-                std::string key       = "Elysia";
-                std::string encrypted = xorEncrypt(json_str, key);
+                std::string encrypted = xorEncrypt(json_str, DEFAULT_ENCRYPTION_KEY);
                 output                = base64Encode(encrypted);
             }
 
@@ -85,9 +84,8 @@ namespace RealmEngine
 
             if (encrypted)
             {
-                std::string key     = "Elysia";
                 std::string decoded = base64Decode(content);
-                json_str            = xorDecrypt(decoded, key);
+                json_str            = xorDecrypt(decoded, DEFAULT_ENCRYPTION_KEY);
             }
 
             return deserialize(config, json_str);

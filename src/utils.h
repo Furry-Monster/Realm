@@ -10,6 +10,8 @@
 namespace RealmEngine
 {
     // Encryption helpers
+    static constexpr const char* DEFAULT_ENCRYPTION_KEY = "Elysia";
+
     inline static std::string xorEncrypt(const std::string& data, const std::string& key)
     {
         if (key.empty())

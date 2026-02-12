@@ -43,7 +43,6 @@ namespace RealmEngine
         int         getMSAASamples() const;
         GLFWwindow* getGLFWWindow() const;
 
-        bool isHDREnabled() const;
         bool isMSAAEnabled() const;
         bool isVSyncEnabled() const;
 

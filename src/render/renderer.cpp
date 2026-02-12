@@ -160,7 +160,10 @@ namespace RealmEngine
     void Renderer::render()
     {
         if (!m_render_scene)
-            err("Render scene not setted yet.");
+        {
+            err("Render scene not set.");
+            return;
+        }
 
         renderShadow();
 
@@ -271,23 +274,26 @@ namespace RealmEngine
 
         m_shadow_shader->use();
 
-        // NOTE:
-        // for directional light, use orthographic projection
-        // shadow size is also size of frustum
-        float shadow_near = 0.1f;
-        float shadow_far  = 50.0f;
-        float shadow_size = 20.0f;
+        // Orthographic projection for directional light shadow
+        static constexpr float SHADOW_NEAR_PLANE   = 0.1f;
+        static constexpr float SHADOW_FAR_PLANE    = 50.0f;
+        static constexpr float SHADOW_FRUSTUM_SIZE = 20.0f;
 
-        Light&    light = directional_light->get();
-        glm::mat4 light_projection =
-            glm::ortho(-shadow_size, shadow_size, -shadow_size, shadow_size, shadow_near, shadow_far);
-        glm::vec3 light_dir    = glm::normalize(light.direction);
-        glm::vec3 scene_center = m_camera->getPosition();
-        glm::vec3 light_target = scene_center;
-        glm::vec3 light_up     = glm::vec3(0.0f, 1.0f, 0.0f);
+        Light&    light            = directional_light->get();
+        glm::mat4 light_projection = glm::ortho(-SHADOW_FRUSTUM_SIZE,
+                                                SHADOW_FRUSTUM_SIZE,
+                                                -SHADOW_FRUSTUM_SIZE,
+                                                SHADOW_FRUSTUM_SIZE,
+                                                SHADOW_NEAR_PLANE,
+                                                SHADOW_FAR_PLANE);
+        glm::vec3 light_dir        = glm::normalize(light.direction);
+        glm::vec3 scene_center     = m_camera->getPosition();
+        glm::vec3 light_target     = scene_center;
+        glm::vec3 light_up         = glm::vec3(0.0f, 1.0f, 0.0f);
         if (glm::abs(glm::dot(light_dir, light_up)) > 0.9f)
             light_up = glm::vec3(1.0f, 0.0f, 0.0f);
-        glm::mat4 light_view = glm::lookAt(light_target - light_dir * shadow_size * 0.5f, light_target, light_up);
+        glm::mat4 light_view =
+            glm::lookAt(light_target - light_dir * SHADOW_FRUSTUM_SIZE * 0.5f, light_target, light_up);
 
         m_light_space_matrix = light_projection * light_view;
         m_shadow_enabled     = true;
@@ -348,12 +354,13 @@ namespace RealmEngine
 
         m_bloom_shader->use();
 
-        for (auto mip_level = 0; mip_level <= 5; mip_level++)
+        static constexpr int BLOOM_MAX_MIP_LEVEL = 5;
+        for (auto mip_level = 0; mip_level <= BLOOM_MAX_MIP_LEVEL; mip_level++)
         {
             m_bloom_framebuffers[0]->setMipLevel(mip_level);
             m_bloom_framebuffers[1]->setMipLevel(mip_level);
 
-            // NOTE: first iteration we'll use the bloom buffer from the main pass
+            // First iteration samples from the main pass bloom buffer
             m_bloom_framebuffers[0]->bind();
             glBindTexture(GL_TEXTURE_2D, m_pbr_framebuffer->getBloomColorTextureId());
             m_bloom_shader->setInt("sampleMipLevel", mip_level);

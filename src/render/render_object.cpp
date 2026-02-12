@@ -158,7 +158,7 @@ namespace RealmEngine
         }
 
         // material
-        if (mesh->mMaterialIndex >= 0)
+        if (mesh->mMaterialIndex < scene->mNumMaterials)
         {
             aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
 

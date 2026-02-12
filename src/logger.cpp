@@ -16,7 +16,7 @@ namespace RealmEngine
         const spdlog::sinks_init_list init_list {console_sink};
 
         spdlog::init_thread_pool(8192, 1);
-        m_spd_logger = std::make_shared<spdlog::async_logger>("muggle_logger",
+        m_spd_logger = std::make_shared<spdlog::async_logger>("realm_engine",
                                                               init_list.begin(),
                                                               init_list.end(),
                                                               spdlog::thread_pool(),

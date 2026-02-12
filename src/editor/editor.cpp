@@ -1,4 +1,6 @@
 #include "editor/editor.h"
+
+#include <filesystem>
 #include <memory>
 
 #include "editor/editor_context.h"
@@ -9,6 +11,7 @@
 #include "engine.h"
 #include "gameplay/scene/scene_manager.h"
 #include "global_context.h"
+#include "resource/config_manager.h"
 #include "utils.h"
 #include "window.h"
 
@@ -96,6 +99,33 @@ namespace RealmEngine
         {
             menu_bar->setWidgets(widgets_shared);
             menu_bar->setFileDialog(file_dialog);
+        }
+
+        // Auto-load scene.json if it exists
+        std::filesystem::path scene_file =
+            g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+        
+        if (std::filesystem::exists(scene_file))
+        {
+            info("Auto-loading scene from: " + scene_file.string());
+            auto loaded = g_context.m_scene->loadScene(scene_file.string());
+            if (loaded)
+            {
+                g_context.m_scene->setCurrentScene(loaded);
+                info("Scene loaded successfully.");
+            }
+            else
+            {
+                warn("Failed to load scene, creating default scene instead.");
+                auto default_scene = g_context.m_scene->createDefaultScene();
+                g_context.m_scene->setCurrentScene(default_scene);
+            }
+        }
+        else
+        {
+            info("No scene file found, creating default scene.");
+            auto default_scene = g_context.m_scene->createDefaultScene();
+            g_context.m_scene->setCurrentScene(default_scene);
         }
 
         m_initialized = true;

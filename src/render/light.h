@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <vector>
-#include "glm/ext/vector_float3.hpp"
-#include "window.h"
+
+#include <glad/gl.h>
 
 namespace RealmEngine
 {

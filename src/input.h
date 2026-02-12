@@ -17,7 +17,7 @@ namespace RealmEngine
         INVALID  = 1u << 31, // lost focus
     };
 
-    static Command COMMAND_COMPLETE_MASK = 0xFFFFFFFF;
+    static constexpr Command COMMAND_COMPLETE_MASK = 0xFFFFFFFF;
 
     class Input
     {
@@ -35,14 +35,14 @@ namespace RealmEngine
 
         void setCursorHidden(bool hidden);
 
-        int m_cursor_delta_x {0};
-        int m_cursor_delta_y {0};
+        double m_cursor_delta_x {0.0};
+        double m_cursor_delta_y {0.0};
 
     private:
         bool    m_focus {false};
         Command m_curr_command {0};
 
-        int m_last_cursor_x {0};
-        int m_last_cursor_y {0};
+        double m_last_cursor_x {0.0};
+        double m_last_cursor_y {0.0};
     };
 } // namespace RealmEngine

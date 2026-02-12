@@ -1,6 +1,6 @@
 #include "resource/config_manager.h"
 
-#include "plateform/plateform.h"
+#include "platform/platform.h"
 #include "resource/config_serializer.h"
 #include "utils.h"
 
@@ -10,7 +10,7 @@ namespace RealmEngine
 {
     void ConfigManager::initialize()
     {
-        std::filesystem::path exe_path = Plateform::getExecutablePath();
+        std::filesystem::path exe_path = Platform::getExecutablePath();
         m_general_config.root_folder   = exe_path.parent_path();
 
         m_general_config.asset_folder  = m_general_config.root_folder / "assets";
@@ -38,7 +38,7 @@ namespace RealmEngine
         else
             err("Failed to save config file.");
 
-        info("Config manager dispoed all resources.");
+        info("Config manager disposed all resources.");
     }
 
     const GeneralConfig& ConfigManager::getGeneralConfig() const { return m_general_config; }
