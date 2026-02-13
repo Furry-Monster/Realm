@@ -27,7 +27,7 @@ namespace RealmEngine
             paren = pf.size();
 
         auto space = pf.rfind(' ', paren);
-        auto start = (space == std::string_view::npos) ? std::string_view::size_type(0) : space + 1;
+        auto start = (space == std::string_view::npos) ? static_cast<std::string_view::size_type>(0) : space + 1;
 
         auto qualified = pf.substr(start, paren - start);
 
