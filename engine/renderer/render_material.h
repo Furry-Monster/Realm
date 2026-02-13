@@ -3,10 +3,10 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-#include "renderer/texture.h"
-
 namespace RealmEngine
 {
+    class RHITexture;
+
     // Texture unit bindings
     static constexpr int TEXTURE_UNIT_ALBEDO                 = 0; // PBR material textures
     static constexpr int TEXTURE_UNIT_METALLIC_ROUGHNESS     = 1;
@@ -32,10 +32,10 @@ namespace RealmEngine
         float     ambient_occlusion = 1.0f;
         glm::vec3 emissive          = glm::vec3(0.0, 0.0, 0.0);
 
-        std::shared_ptr<Texture> texture_albedo;
-        std::shared_ptr<Texture> texture_metallic_roughness;
-        std::shared_ptr<Texture> texture_normal;
-        std::shared_ptr<Texture> texture_ambient_occlusion;
-        std::shared_ptr<Texture> texture_emissive;
+        std::shared_ptr<RHITexture> texture_albedo;
+        std::shared_ptr<RHITexture> texture_metallic_roughness;
+        std::shared_ptr<RHITexture> texture_normal;
+        std::shared_ptr<RHITexture> texture_ambient_occlusion;
+        std::shared_ptr<RHITexture> texture_emissive;
     };
 } // namespace RealmEngine

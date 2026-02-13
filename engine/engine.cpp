@@ -19,6 +19,7 @@
 #include "renderer/renderer.h"
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
+#include "rhi/rhi_device.h"
 #include "scene/components/camera_controller.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
@@ -78,13 +79,13 @@ namespace RealmEngine
         m_input->disposal(*m_event_bus);
         m_input.reset();
 
+        m_scene.reset();
+
         m_renderer->disposal();
         m_renderer.reset();
 
         m_window->disposal();
         m_window.reset();
-
-        m_scene.reset();
 
         m_assets->disposal();
         m_assets.reset();
@@ -104,17 +105,19 @@ namespace RealmEngine
     {
         std::filesystem::path scene_file = m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
 
+        RHIDevice& device = m_renderer->getDevice();
+
         std::shared_ptr<Scene> loaded;
         if (std::filesystem::exists(scene_file))
         {
             RE_LOG_INFO("Loading scene from: " + scene_file.string());
-            loaded = m_scene->loadScene(scene_file.string());
+            loaded = m_scene->loadScene(scene_file.string(), device);
         }
 
         if (!loaded)
         {
             RE_LOG_INFO("Loading failed, create default scene instead.");
-            loaded = m_scene->createDefaultScene();
+            loaded = m_scene->createDefaultScene(device);
         }
 
         m_scene->setCurrentScene(loaded);

@@ -9,11 +9,11 @@
 
 namespace RealmEngine
 {
-    /// <summary>
-    /// Type-erased publish/subscribe event bus.
-    /// Subscribers register with a typed handler; the bus dispatches by event type at runtime.
-    /// Thread-safe for subscribe/unsubscribe; publish must happen on the main thread.
-    /// </summary>
+    /**
+     * @brief
+     * Type-erased publish/subscribe event bus.
+     * Thread-safe for subscribe/unsubscribe; publish must happen on the main thread.
+     */
     class EventBus
     {
     public:
@@ -27,7 +27,14 @@ namespace RealmEngine
         EventBus(EventBus&&)                 = delete;
         EventBus& operator=(EventBus&&)      = delete;
 
-        // Subscribe a callable to events of type E. Returns a handle for unsubscribe.
+        /**
+         * @brief
+         * Subscribe a callable to events of type E.
+         * Returns a handle for unsubscribe.
+         *
+         * @param handler callable to events of type E
+         * @return template<typename E> handle for unsubscribe
+         */
         template<typename E>
         HandlerId subscribe(std::function<void(const E&)> handler)
         {
@@ -40,7 +47,12 @@ namespace RealmEngine
             return id;
         }
 
-        // Remove a previously registered handler by its id
+        /**
+         * @brief
+         * Remove a previously registered handler by its id
+         *
+         * @param id
+         */
         void unsubscribe(HandlerId id)
         {
             std::lock_guard<std::mutex> lock(m_mutex);
@@ -56,7 +68,13 @@ namespace RealmEngine
             }
         }
 
-        // Publish an event to all subscribers of type E
+        /**
+         * @brief
+         * Publish an event to all subscribers of type E
+         *
+         * @tparam E
+         * @param event
+         */
         template<typename E>
         void publish(const E& event) const
         {

@@ -9,6 +9,8 @@
 
 namespace RealmEngine
 {
+    class RHIDevice;
+
     class SceneManager
     {
         using SceneTable = std::unordered_map<std::string, std::shared_ptr<Scene>>;
@@ -27,8 +29,8 @@ namespace RealmEngine
         void initialize(const std::filesystem::path& asset_folder);
 
         std::shared_ptr<Scene> createScene(const std::string& name);
-        std::shared_ptr<Scene> createDefaultScene();
-        std::shared_ptr<Scene> loadScene(const std::string& filepath);
+        std::shared_ptr<Scene> createDefaultScene(RHIDevice& device);
+        std::shared_ptr<Scene> loadScene(const std::string& filepath, RHIDevice& device);
         bool                   saveScene(const std::string& name, const std::string& filepath);
         bool                   saveCurrentScene(const std::string& filepath);
 

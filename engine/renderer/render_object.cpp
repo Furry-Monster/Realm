@@ -1,17 +1,19 @@
 #include "renderer/render_object.h"
 
 #include <assimp/GltfMaterial.h>
-#include <glad/gl.h>
 #include <stb/stb_image.h>
+
 #include "core/log/log_macros.h"
+#include "rhi/rhi_device.h"
+#include "rhi/rhi_texture.h"
 
 namespace RealmEngine
 {
-    RenderObject::RenderObject(std::string path) { loadModel(path, true); }
+    RenderObject::RenderObject(std::string path, RHIDevice& device) { loadModel(path, true, device); }
 
-    RenderObject::RenderObject(std::string path, bool flipTexturesVertically)
+    RenderObject::RenderObject(std::string path, bool flip_textures_vertically, RHIDevice& device)
     {
-        loadModel(path, flipTexturesVertically);
+        loadModel(path, flip_textures_vertically, device);
     }
 
     void RenderObject::setPosition(glm::vec3 position) { m_position = position; }
@@ -32,10 +34,10 @@ namespace RealmEngine
             mesh.draw(shader);
     }
 
-    void RenderObject::loadModel(std::string path, bool flipTexturesVertically)
+    void RenderObject::loadModel(std::string path, bool flip_textures_vertically, RHIDevice& device)
     {
         Assimp::Importer importer;
-        stbi_set_flip_vertically_on_load(flipTexturesVertically);
+        stbi_set_flip_vertically_on_load(flip_textures_vertically);
         const aiScene* scene =
             importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
@@ -56,199 +58,145 @@ namespace RealmEngine
         RE_LOG_INFO("Scene has " + std::to_string(scene->mNumMeshes) + " meshes, " +
                     std::to_string(scene->mNumMaterials) + " materials");
 
-        processNode(scene->mRootNode, scene);
+        processNode(scene->mRootNode, scene, device);
 
         RE_LOG_INFO("Loaded " + std::to_string(m_meshes.size()) + " meshes from model");
 
         stbi_set_flip_vertically_on_load(true);
     }
 
-    void RenderObject::processNode(aiNode* node, const aiScene* scene)
+    void RenderObject::processNode(aiNode* node, const aiScene* scene, RHIDevice& device)
     {
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            m_meshes.push_back(processMesh(mesh, scene));
+            m_meshes.push_back(processMesh(mesh, scene, device));
         }
 
         for (unsigned int i = 0; i < node->mNumChildren; i++)
-            processNode(node->mChildren[i], scene);
+            processNode(node->mChildren[i], scene, device);
     }
 
-    RenderMesh RenderObject::processMesh(aiMesh* mesh, const aiScene* scene)
+    RenderMesh RenderObject::processMesh(aiMesh* mesh, const aiScene* scene, RHIDevice& device)
     {
         std::vector<RenderVertex> vertices;
         std::vector<unsigned int> indices;
         RenderMaterial            material;
 
-        // vertices
+        // Vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
             RenderVertex vertex;
 
-            // position
-            glm::vec3 position;
-            position.x = mesh->mVertices[i].x;
-            position.y = mesh->mVertices[i].y;
-            position.z = mesh->mVertices[i].z;
+            vertex.m_position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+            vertex.m_normal   = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 
-            vertex.m_position = position;
-
-            // normal
-            glm::vec3 normal;
-            normal.x = mesh->mNormals[i].x;
-            normal.y = mesh->mNormals[i].y;
-            normal.z = mesh->mNormals[i].z;
-
-            vertex.m_normal = normal;
-
-            // texture coordinates
             if (mesh->mTextureCoords[0])
-            {
-                glm::vec2 texture_coordinates;
-                texture_coordinates.x        = mesh->mTextureCoords[0][i].x;
-                texture_coordinates.y        = mesh->mTextureCoords[0][i].y;
-                vertex.m_texture_coordinates = texture_coordinates;
-            }
+                vertex.m_texture_coordinates = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
             else
-            {
                 vertex.m_texture_coordinates = glm::vec2(0.0f, 0.0f);
-            }
 
-            // tangents
             if (mesh->mTangents && mesh->mNumVertices > 0)
-            {
-                glm::vec3 tangent;
-                tangent.x        = mesh->mTangents[i].x;
-                tangent.y        = mesh->mTangents[i].y;
-                tangent.z        = mesh->mTangents[i].z;
-                vertex.m_tangent = tangent;
-            }
+                vertex.m_tangent = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
             else
-            {
                 vertex.m_tangent = glm::vec3(0.0f);
-            }
 
-            // bitangents
             if (mesh->mBitangents && mesh->mNumVertices > 0)
-            {
-                glm::vec3 bitangent;
-                bitangent.x        = mesh->mBitangents[i].x;
-                bitangent.y        = mesh->mBitangents[i].y;
-                bitangent.z        = mesh->mBitangents[i].z;
-                vertex.m_bitangent = bitangent;
-            }
+                vertex.m_bitangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
             else
-            {
                 vertex.m_bitangent = glm::vec3(0.0f);
-            }
 
             vertices.push_back(vertex);
         }
 
-        // indices
+        // Indices
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
             aiFace face = mesh->mFaces[i];
-
             for (unsigned int j = 0; j < face.mNumIndices; j++)
-            {
                 indices.push_back(face.mIndices[j]);
-            }
         }
 
-        // material
+        // Material
         if (mesh->mMaterialIndex < scene->mNumMaterials)
         {
             aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
 
-            // albedo - try glTF base color first, then fallback to diffuse
+            // Albedo: try glTF base color first, then fallback to diffuse
             if (ai_material->GetTextureCount(aiTextureType_BASE_COLOR))
             {
-                // glTF 2.0 base color
                 material.use_texture_albedo = true;
-                material.texture_albedo     = loadMaterialTexture(ai_material, aiTextureType_BASE_COLOR);
+                material.texture_albedo     = loadMaterialTexture(ai_material, aiTextureType_BASE_COLOR, device);
             }
             else if (ai_material->GetTextureCount(aiTextureType_DIFFUSE))
             {
-                // FBX/OBJ diffuse fallback
                 material.use_texture_albedo = true;
-                material.texture_albedo     = loadMaterialTexture(ai_material, aiTextureType_DIFFUSE);
+                material.texture_albedo     = loadMaterialTexture(ai_material, aiTextureType_DIFFUSE, device);
             }
 
-            // metallicRoughness (in gltf 2.0 they are combined in one texture)
-            // Try glTF-specific texture type first
+            // Metallic-roughness (combined in glTF 2.0)
             if (ai_material->GetTextureCount(aiTextureType_GLTF_METALLIC_ROUGHNESS))
             {
-                // glTF combined metallic-roughness texture
                 material.use_texture_metallic_roughness = true;
                 material.texture_metallic_roughness =
-                    loadMaterialTexture(ai_material, aiTextureType_GLTF_METALLIC_ROUGHNESS);
+                    loadMaterialTexture(ai_material, aiTextureType_GLTF_METALLIC_ROUGHNESS, device);
             }
             else if (ai_material->GetTextureCount(aiTextureType_UNKNOWN))
             {
-                // Fallback to UNKNOWN type (defined in assimp pbrmaterial.h)
-                // https://github.com/assimp/assimp/blob/master/include/assimp/pbrmaterial.h#L57
                 material.use_texture_metallic_roughness = true;
-                material.texture_metallic_roughness     = loadMaterialTexture(ai_material, aiTextureType_UNKNOWN);
+                material.texture_metallic_roughness = loadMaterialTexture(ai_material, aiTextureType_UNKNOWN, device);
             }
 
-            // normal
+            // Normal
             if (ai_material->GetTextureCount(aiTextureType_NORMALS))
             {
                 material.use_texture_normal = true;
-                material.texture_normal     = loadMaterialTexture(ai_material, aiTextureType_NORMALS);
+                material.texture_normal     = loadMaterialTexture(ai_material, aiTextureType_NORMALS, device);
             }
 
-            // ambient occlusion - try glTF AO first, then lightmap
+            // Ambient occlusion: try glTF AO first, then lightmap fallback
             if (ai_material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION))
             {
-                // glTF AO map
                 material.use_texture_ambient_occlusion = true;
-                material.texture_ambient_occlusion = loadMaterialTexture(ai_material, aiTextureType_AMBIENT_OCCLUSION);
+                material.texture_ambient_occlusion =
+                    loadMaterialTexture(ai_material, aiTextureType_AMBIENT_OCCLUSION, device);
             }
             else if (ai_material->GetTextureCount(aiTextureType_LIGHTMAP))
             {
-                // FBX lightmap fallback
                 material.use_texture_ambient_occlusion = true;
-                material.texture_ambient_occlusion     = loadMaterialTexture(ai_material, aiTextureType_LIGHTMAP);
+                material.texture_ambient_occlusion = loadMaterialTexture(ai_material, aiTextureType_LIGHTMAP, device);
             }
 
-            // emissive
+            // Emissive
             if (ai_material->GetTextureCount(aiTextureType_EMISSIVE))
             {
                 material.use_texture_emissive = true;
-                material.texture_emissive     = loadMaterialTexture(ai_material, aiTextureType_EMISSIVE);
+                material.texture_emissive     = loadMaterialTexture(ai_material, aiTextureType_EMISSIVE, device);
             }
         }
 
-        return RenderMesh(vertices, indices, material);
+        return RenderMesh(vertices, indices, material, device);
     }
 
-    // loads the first texture of given type
-    std::shared_ptr<Texture> RenderObject::loadMaterialTexture(aiMaterial* material, aiTextureType type)
+    std::shared_ptr<RHITexture>
+    RenderObject::loadMaterialTexture(aiMaterial* material, aiTextureType type, RHIDevice& device)
     {
         aiString path;
         material->GetTexture(type, 0, &path);
 
-        // check if we already have it loaded and use that if so
         auto iterator = m_textures_loaded.find(std::string(path.C_Str()));
         if (iterator != m_textures_loaded.end())
-        {
             return iterator->second;
-        }
 
-        auto texture = std::make_shared<Texture>();
-
-        texture->m_id   = textureFromFile(path.C_Str(), m_directory, type);
-        texture->m_path = path.C_Str();
-
-        m_textures_loaded.insert(std::pair<std::string, std::shared_ptr<Texture>>(path.C_Str(), texture));
+        auto texture = textureFromFile(path.C_Str(), m_directory, type, device);
+        if (texture)
+            m_textures_loaded.insert({std::string(path.C_Str()), texture});
 
         return texture;
     }
 
-    unsigned int RenderObject::textureFromFile(const char* file_name, std::string directory, aiTextureType type)
+    std::shared_ptr<RHITexture>
+    RenderObject::textureFromFile(const char* file_name, std::string directory, aiTextureType type, RHIDevice& device)
     {
         int width, height, num_channels;
 
@@ -262,62 +210,49 @@ namespace RealmEngine
         RE_LOG_DEBUG("Loading texture: " + path);
 
         unsigned char* data = stbi_load(path.c_str(), &width, &height, &num_channels, 0);
-
         if (!data)
         {
             RE_LOG_ERROR("Failed to load texture data: " + path);
-            return 0;
+            return nullptr;
         }
 
-        GLenum format;
+        // Determine if this texture should be in sRGB color space.
+        // Diffuse / base-color textures are authored in sRGB; all others are linear.
+        bool is_srgb = (type == aiTextureType_DIFFUSE || type == aiTextureType_BASE_COLOR);
 
+        TextureFormat format;
         switch (num_channels)
         {
             case 1:
-                format = GL_RED;
+                format = TextureFormat::R8;
                 break;
             case 3:
-                format = GL_RGB;
+                format = is_srgb ? TextureFormat::SRGB8 : TextureFormat::RGB8;
                 break;
             case 4:
-                format = GL_RGBA;
+                format = is_srgb ? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
                 break;
             default:
                 RE_LOG_ERROR("Unsupported texture format with " + std::to_string(num_channels) + " channels");
                 stbi_image_free(data);
-                return 0;
+                return nullptr;
         }
 
-        GLenum internal_format = format;
+        TextureDesc desc;
+        desc.type       = TextureType::Texture2D;
+        desc.format     = format;
+        desc.width      = width;
+        desc.height     = height;
+        desc.min_filter = TextureFilter::Linear;
+        desc.mag_filter = TextureFilter::Linear;
+        desc.wrap_s     = TextureWrap::Repeat;
+        desc.wrap_t     = TextureWrap::Repeat;
+        desc.gen_mips   = true;
+        desc.data       = data;
 
-        // account for sRGB textures here
-        //
-        // diffuse textures are in sRGB space (non-linear)
-        // metallic/roughness/normals are usually in linear
-        // AO depends
-        if (type == aiTextureType_DIFFUSE)
-        {
-            if (internal_format == GL_RGB)
-                internal_format = GL_SRGB;
-            else if (internal_format == GL_RGBA)
-                internal_format = GL_SRGB_ALPHA;
-        }
-
-        unsigned int texture_id;
-        glGenTextures(1, &texture_id);
-        glBindTexture(GL_TEXTURE_2D, texture_id);
-
-        // generate the texture mipmap
-        glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // image is resized using bilinear filtering
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // image is enlarged using bilinear filtering
-
+        auto texture = device.createTexture(desc);
         stbi_image_free(data);
 
-        return texture_id;
+        return texture;
     }
 } // namespace RealmEngine

@@ -157,7 +157,7 @@ namespace RealmEngine
 
         // Bloom framebuffers
         {
-            auto makeFb = [&]() {
+            auto make_fb = [&]() {
                 FramebufferDesc desc;
                 desc.width  = m_window->getWidth();
                 desc.height = m_window->getHeight();
@@ -173,7 +173,7 @@ namespace RealmEngine
                 return m_device->createFramebuffer(desc);
             };
 
-            m_bloom_pass->setFramebuffers(makeFb(), makeFb());
+            m_bloom_pass->setFramebuffers(make_fb(), make_fb());
         }
 
         m_skybox_pass->setSkybox(m_skybox.get());
@@ -248,7 +248,7 @@ namespace RealmEngine
         // Recreate bloom framebuffers at new resolution
         if (m_bloom_pass)
         {
-            auto makeFb = [&]() {
+            auto make_fb = [&]() {
                 FramebufferDesc desc;
                 desc.width  = width;
                 desc.height = height;
@@ -264,13 +264,16 @@ namespace RealmEngine
                 return m_device->createFramebuffer(desc);
             };
 
-            m_bloom_pass->setFramebuffers(makeFb(), makeFb());
+            m_bloom_pass->setFramebuffers(make_fb(), make_fb());
         }
     }
 
     void Renderer::disposal()
     {
         m_pipeline.dispose();
+
+        if (m_render_scene)
+            m_render_scene->m_render_objects.clear();
 
         m_ibl_diffuse_tex.reset();
         m_ibl_prefiltered_tex.reset();

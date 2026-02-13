@@ -6,6 +6,7 @@
 namespace RealmEngine
 {
     class RenderObject;
+    class RHIDevice;
 
     struct Renderable
     {
@@ -13,8 +14,8 @@ namespace RealmEngine
         std::string                   model_path;
         bool                          flip_textures = false;
 
-        // Load model from model_path (call after setting model_path)
-        void loadModel();
+        // Load model from model_path (requires an initialized RHI device)
+        void loadModel(RHIDevice& device);
     };
 
 } // namespace RealmEngine

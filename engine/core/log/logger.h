@@ -58,7 +58,7 @@ namespace RealmEngine
         std::shared_ptr<spdlog::logger> m_spd_logger;
     };
 
-    // Global non-owning logger pointer, set by Engine during boot
+    // NOTE: global non-owning logger pointer, set by Engine during boot
     extern Logger* g_logger;
 
 } // namespace RealmEngine
