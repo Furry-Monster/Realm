@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "scene/entity.h"
 #include "scene/scene_node.h"
 
 namespace RealmEngine
@@ -25,14 +26,20 @@ namespace RealmEngine
         void tick(float delta_time);
 
         // Entity management
-        entt::entity createEntity(const std::string& name);
-        void         destroyEntity(entt::entity entity);
-        entt::entity findEntity(const std::string& name) const;
-        bool         valid(entt::entity entity) const;
+        Entity createEntity(const std::string& name);
+        void   destroyEntity(entt::entity entity);
+        Entity findEntity(const std::string& name) const;
+        bool   valid(entt::entity entity) const;
+
+        // Wrap a raw entt::entity handle into an Entity helper
+        Entity entity(entt::entity handle) { return Entity(handle, &m_registry); }
 
         // Component access (thin wrappers around entt::registry)
         template<typename T, typename... Args>
         T& emplace(entt::entity entity, Args&&... args);
+
+        template<typename T, typename... Args>
+        T& emplaceOrReplace(entt::entity entity, Args&&... args);
 
         template<typename T>
         T& get(entt::entity entity);
@@ -77,6 +84,12 @@ namespace RealmEngine
     T& Scene::emplace(entt::entity entity, Args&&... args)
     {
         return m_registry.emplace<T>(entity, std::forward<Args>(args)...);
+    }
+
+    template<typename T, typename... Args>
+    T& Scene::emplaceOrReplace(entt::entity entity, Args&&... args)
+    {
+        return m_registry.emplace_or_replace<T>(entity, std::forward<Args>(args)...);
     }
 
     template<typename T>

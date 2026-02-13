@@ -245,9 +245,9 @@ namespace RealmEngine
         if (json.contains("entity"))
         {
             deserializeEntity(json["entity"], scene, name);
-            entt::entity entity = scene.findEntity(name);
-            if (entity != entt::null)
-                node->setEntity(entity);
+            auto entity = scene.findEntity(name);
+            if (entity)
+                node->setEntity(entity.handle());
         }
 
         if (json.contains("children") && json["children"].is_array())
@@ -279,7 +279,7 @@ namespace RealmEngine
 
             if (type == "Transform")
             {
-                auto& tf = scene.emplace<Transform>(entity);
+                auto& tf = entity.emplace<Transform>();
 
                 if (comp_json.contains("position") && comp_json["position"].is_array() &&
                     comp_json["position"].size() == 3)
@@ -296,7 +296,7 @@ namespace RealmEngine
             }
             else if (type == "Renderable")
             {
-                auto& r = scene.emplace<Renderable>(entity);
+                auto& r = entity.emplace<Renderable>();
 
                 if (comp_json.contains("model_path") && comp_json["model_path"].is_string())
                     r.model_path = comp_json["model_path"];
@@ -308,7 +308,7 @@ namespace RealmEngine
             }
             else if (type == "Point")
             {
-                auto& pl = scene.emplace<PointLight>(entity);
+                auto& pl = entity.emplace<PointLight>();
 
                 if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
                     pl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
@@ -327,7 +327,7 @@ namespace RealmEngine
             }
             else if (type == "Spot")
             {
-                auto& sl = scene.emplace<SpotLight>(entity);
+                auto& sl = entity.emplace<SpotLight>();
 
                 if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
                     sl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
@@ -350,7 +350,7 @@ namespace RealmEngine
             }
             else if (type == "Directional")
             {
-                auto& dl = scene.emplace<DirectionalLight>(entity);
+                auto& dl = entity.emplace<DirectionalLight>();
 
                 if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
                     dl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
@@ -361,7 +361,7 @@ namespace RealmEngine
             }
             else if (type == "Area")
             {
-                auto& al = scene.emplace<AreaLight>(entity);
+                auto& al = entity.emplace<AreaLight>();
 
                 if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
                     al.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);

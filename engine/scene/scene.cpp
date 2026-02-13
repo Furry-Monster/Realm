@@ -2,6 +2,8 @@
 
 #include "scene/components/camera_controller.h"
 #include "scene/components/name_tag.h"
+#include "scene/systems/hierarchy_system.h"
+#include "scene/systems/transform_system.h"
 
 namespace RealmEngine
 {
@@ -13,21 +15,25 @@ namespace RealmEngine
 
     void Scene::tick(float delta_time)
     {
+        // Run ECS systems each frame
+        HierarchySystem::update(*this);
+        TransformSystem::update(*this);
+
         if (m_camera_controller)
             m_camera_controller->update(delta_time);
     }
 
-    entt::entity Scene::createEntity(const std::string& name)
+    Entity Scene::createEntity(const std::string& name)
     {
         // Return existing entity if name already taken
         auto it = m_name_index.find(name);
         if (it != m_name_index.end())
-            return it->second;
+            return Entity(it->second, &m_registry);
 
-        auto entity = m_registry.create();
-        m_registry.emplace<NameTag>(entity, NameTag {name});
-        m_name_index[name] = entity;
-        return entity;
+        auto handle = m_registry.create();
+        m_registry.emplace<NameTag>(handle, NameTag {name});
+        m_name_index[name] = handle;
+        return Entity(handle, &m_registry);
     }
 
     void Scene::destroyEntity(entt::entity entity)
@@ -40,10 +46,12 @@ namespace RealmEngine
         m_registry.destroy(entity);
     }
 
-    entt::entity Scene::findEntity(const std::string& name) const
+    Entity Scene::findEntity(const std::string& name) const
     {
         auto it = m_name_index.find(name);
-        return (it != m_name_index.end()) ? it->second : entt::null;
+        if (it != m_name_index.end())
+            return Entity(it->second, const_cast<entt::registry*>(&m_registry));
+        return Entity();
     }
 
     bool Scene::valid(entt::entity entity) const { return m_registry.valid(entity); }
@@ -54,7 +62,7 @@ namespace RealmEngine
     {
         auto entity = createEntity(name);
         auto node   = std::make_shared<SceneNode>(name);
-        node->setEntity(entity);
+        node->setEntity(entity.handle());
         return node;
     }
 
