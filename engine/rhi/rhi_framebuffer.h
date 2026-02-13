@@ -25,6 +25,9 @@ namespace RealmEngine
         // Select which mip level to render into (for bloom-style multi-resolution rendering)
         virtual void setMipLevel(int level) = 0;
 
+        // Select which cubemap face to render into (0-5 for +X,-X,+Y,-Y,+Z,-Z). No-op for non-cubemap FBOs.
+        virtual void setCubeFace(int face) = 0;
+
         int getWidth() const { return m_width; }
         int getHeight() const { return m_height; }
 

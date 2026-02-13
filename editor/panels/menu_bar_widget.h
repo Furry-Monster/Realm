@@ -18,8 +18,8 @@ namespace RealmEngine
 
         MenuBarWidget(const MenuBarWidget&)            = delete;
         MenuBarWidget& operator=(const MenuBarWidget&) = delete;
-        MenuBarWidget(MenuBarWidget&&)                 = default;
-        MenuBarWidget& operator=(MenuBarWidget&&)      = default;
+        MenuBarWidget(MenuBarWidget&&)                = delete;
+        MenuBarWidget& operator=(MenuBarWidget&&)      = delete;
 
         void render() override;
 

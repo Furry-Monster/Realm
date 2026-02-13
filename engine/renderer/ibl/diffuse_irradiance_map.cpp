@@ -1,29 +1,48 @@
 #include "renderer/ibl/diffuse_irradiance_map.h"
 
-#include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "core/math/cube.h"
-#include "rhi/opengl/gl_shader.h"
+
+#include "renderer/ibl/ibl_geometry.h"
+#include "rhi/rhi_device.h"
+#include "rhi/rhi_framebuffer.h"
+#include "rhi/rhi_shader.h"
+#include "rhi/rhi_types.h"
+#include "rhi/rhi_vertex_input.h"
 
 namespace RealmEngine
 {
-    DiffuseIrradianceMap::~DiffuseIrradianceMap() = default;
-
-    DiffuseIrradianceMap::DiffuseIrradianceMap(const std::string& engineRoot, const unsigned int environmentCubemapId) :
-        m_environment_cubemap_id(environmentCubemapId)
+    DiffuseIrradianceMap::DiffuseIrradianceMap(RHIDevice&         device,
+                                               const std::string& engine_root,
+                                               RHITexture*        environment_cubemap) :
+        m_environment_cubemap(environment_cubemap)
     {
-        std::string diffuse_irradiance_vertex_shader_path   = engineRoot + "/shaders/ibl/diffuseirradiance.vert";
-        std::string diffuse_irradiance_fragment_shader_path = engineRoot + "/shaders/ibl/diffuseirradiance.frag";
+        std::string vert_path = engine_root + "/shaders/ibl/diffuseirradiance.vert";
+        std::string frag_path = engine_root + "/shaders/ibl/diffuseirradiance.frag";
 
-        m_diffuse_irradiance_shader =
-            std::make_unique<GLShader>(diffuse_irradiance_vertex_shader_path, diffuse_irradiance_fragment_shader_path);
-        m_diffuse_irradiance_framebuffer =
-            std::make_unique<CubemapFramebuffer>(m_diffuse_irradiance_map_width, m_diffuse_irradiance_map_height);
+        m_shader = device.createShader(vert_path, frag_path);
+        if (!m_shader || !m_shader->isValid())
+            return;
+
+        FramebufferDesc desc;
+        desc.width  = m_width;
+        desc.height = m_height;
+        FramebufferAttachment color;
+        color.format                          = TextureFormat::RGB16F;
+        color.is_cubemap                      = true;
+        desc.color_attachments                = {color};
+        desc.has_depth                        = true;
+        desc.depth_attachment.format          = TextureFormat::Depth24;
+        desc.depth_attachment.is_renderbuffer = true;
+
+        m_framebuffer = device.createFramebuffer(desc);
     }
 
-    void DiffuseIrradianceMap::compute()
+    void DiffuseIrradianceMap::compute(RHIDevice& device)
     {
+        if (!m_shader || !m_shader->isValid() || !m_framebuffer || !m_environment_cubemap)
+            return;
+
         glm::mat4 model = glm::mat4(1.0f);
         glm::vec3 origin(0.0f, 0.0f, 0.0f);
         glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
@@ -36,35 +55,30 @@ namespace RealmEngine
                                      glm::lookAt(origin, -unit_y, -unit_z),
                                      glm::lookAt(origin, unit_z, -unit_y),
                                      glm::lookAt(origin, -unit_z, -unit_y)};
-        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), // 90 degrees to cover one face
-                                                1.0f,
-                                                0.1f,
-                                                2.0f);
+        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
 
-        auto cube = Cube();
-        glViewport(0, 0, m_diffuse_irradiance_map_width, m_diffuse_irradiance_map_height);
-        m_diffuse_irradiance_framebuffer->bind();
-        m_diffuse_irradiance_shader->use();
+        auto cube_mesh = createIblCubeMesh(device);
 
-        // render to each side of the cubemap
-        for (auto i = 0; i < 6; i++)
+        device.setViewport(0, 0, m_width, m_height);
+        m_framebuffer->bind();
+        m_shader->use();
+        m_shader->setInt("environmentCubemap", 0);
+        device.bindTexture(0, *m_environment_cubemap);
+
+        for (int i = 0; i < 6; i++)
         {
-            m_diffuse_irradiance_shader->setMVP(model, camera_angles[i], projection);
-            m_diffuse_irradiance_framebuffer->setCubeFace(i);
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            m_diffuse_irradiance_shader->setInt("environmentCubemap", 0);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, m_environment_cubemap_id);
-            cube.draw();
+            m_shader->setMVP(model, camera_angles[i], projection);
+            m_framebuffer->setCubeFace(i);
+            device.clear(ClearFlags::Color | ClearFlags::Depth);
+            cube_mesh.vertex_input->draw(PrimitiveType::Triangles, 36);
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        device.bindDefaultFramebuffer();
     }
 
-    unsigned int DiffuseIrradianceMap::getCubemapId() const
+    RHITexture* DiffuseIrradianceMap::getCubemapTexture() const
     {
-        return m_diffuse_irradiance_framebuffer->getCubemapTextureId();
+        return m_framebuffer ? m_framebuffer->getColorAttachment(0) : nullptr;
     }
+
 } // namespace RealmEngine

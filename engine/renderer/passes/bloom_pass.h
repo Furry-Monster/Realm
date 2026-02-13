@@ -30,7 +30,7 @@ namespace RealmEngine
                   BloomDirection     direction);
         ~BloomPass() override;
 
-        void initialize(RHIDevice& device) override;
+        void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 

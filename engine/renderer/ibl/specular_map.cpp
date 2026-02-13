@@ -1,40 +1,60 @@
 #include "renderer/ibl/specular_map.h"
 
-#include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "core/math/cube.h"
-#include "core/math/fullscreen_quad.h"
-#include "rhi/opengl/gl_shader.h"
+
+#include "renderer/ibl/ibl_geometry.h"
+#include "rhi/rhi_device.h"
+#include "rhi/rhi_framebuffer.h"
+#include "rhi/rhi_shader.h"
+#include "rhi/rhi_texture.h"
+#include "rhi/rhi_types.h"
+#include "rhi/rhi_vertex_input.h"
 
 namespace RealmEngine
 {
-    SpecularMap::~SpecularMap() = default;
-
-    SpecularMap::SpecularMap(const std::string& engineRoot, const unsigned int environmentCubemapId) :
-        m_environment_cubemap_id(environmentCubemapId)
+    SpecularMap::SpecularMap(RHIDevice& device, const std::string& engine_root, RHITexture* environment_cubemap) :
+        m_environment_cubemap(environment_cubemap)
     {
-        // pre-filtered env map
-        std::string prefiltered_env_map_vertex_shader_path   = engineRoot + "/shaders/ibl/specularenv.vert";
-        std::string prefiltered_env_map_fragment_shader_path = engineRoot + "/shaders/ibl/specularenv.frag";
+        std::string prefilter_vert = engine_root + "/shaders/ibl/specularenv.vert";
+        std::string prefilter_frag = engine_root + "/shaders/ibl/specularenv.frag";
+        m_prefilter_shader         = device.createShader(prefilter_vert, prefilter_frag);
 
-        m_prefiltered_env_map_shader = std::make_unique<GLShader>(prefiltered_env_map_vertex_shader_path,
-                                                                  prefiltered_env_map_fragment_shader_path);
-        m_prefiltered_env_map_framebuffer =
-            std::make_unique<MipmapCubemapFramebuffer>(m_prefiltered_env_map_width, m_prefiltered_env_map_height);
+        FramebufferDesc prefilter_desc;
+        prefilter_desc.width  = m_prefilter_width;
+        prefilter_desc.height = m_prefilter_height;
+        FramebufferAttachment prefilter_color;
+        prefilter_color.format                          = TextureFormat::RGB16F;
+        prefilter_color.is_cubemap                      = true;
+        prefilter_color.min_filter                      = TextureFilter::LinearMipmapLinear;
+        prefilter_color.gen_mips                        = true;
+        prefilter_desc.color_attachments                = {prefilter_color};
+        prefilter_desc.has_depth                        = true;
+        prefilter_desc.depth_attachment.format          = TextureFormat::Depth24;
+        prefilter_desc.depth_attachment.is_renderbuffer = true;
+        m_prefilter_framebuffer                         = device.createFramebuffer(prefilter_desc);
 
-        // BRDF convolution
-        std::string brdf_convolution_vertex_shader_path   = engineRoot + "/shaders/ibl/brdfconvolution.vert";
-        std::string brdf_convolution_fragment_shader_path = engineRoot + "/shaders/ibl/brdfconvolution.frag";
+        std::string brdf_vert = engine_root + "/shaders/ibl/brdfconvolution.vert";
+        std::string brdf_frag = engine_root + "/shaders/ibl/brdfconvolution.frag";
+        m_brdf_shader         = device.createShader(brdf_vert, brdf_frag);
 
-        m_brdf_convolution_shader =
-            std::make_unique<GLShader>(brdf_convolution_vertex_shader_path, brdf_convolution_fragment_shader_path);
-        m_brdf_convolution_framebuffer =
-            std::make_unique<BrdfConvolutionFramebuffer>(m_brdf_convolution_map_width, m_brdf_convolution_map_height);
+        FramebufferDesc brdf_desc;
+        brdf_desc.width  = m_brdf_width;
+        brdf_desc.height = m_brdf_height;
+        FramebufferAttachment brdf_color;
+        brdf_color.format                          = TextureFormat::RG16F;
+        brdf_desc.color_attachments                = {brdf_color};
+        brdf_desc.has_depth                        = true;
+        brdf_desc.depth_attachment.format          = TextureFormat::Depth24;
+        brdf_desc.depth_attachment.is_renderbuffer = true;
+        m_brdf_framebuffer                         = device.createFramebuffer(brdf_desc);
     }
 
-    void SpecularMap::computePrefilteredEnvMap()
+    void SpecularMap::computePrefilteredEnvMap(RHIDevice& device)
     {
+        if (!m_prefilter_shader || !m_prefilter_shader->isValid() || !m_prefilter_framebuffer || !m_environment_cubemap)
+            return;
+
         glm::mat4 model = glm::mat4(1.0f);
         glm::vec3 origin(0.0f, 0.0f, 0.0f);
         glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
@@ -47,63 +67,61 @@ namespace RealmEngine
                                      glm::lookAt(origin, -unit_y, -unit_z),
                                      glm::lookAt(origin, unit_z, -unit_y),
                                      glm::lookAt(origin, -unit_z, -unit_y)};
-        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), // 90 degrees to cover one face
-                                                1.0f,                // its a square
-                                                0.1f,
-                                                2.0f);
+        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
 
-        auto cube = Cube();
-        m_prefiltered_env_map_framebuffer->bind();
-        m_prefiltered_env_map_shader->use();
-        m_prefiltered_env_map_shader->setInt("environmentCubemap", 0);
+        auto cube_mesh = createIblCubeMesh(device);
 
-        for (unsigned int mip_level = 0; mip_level < m_prefiltered_env_map_mip_levels; mip_level++)
+        m_prefilter_framebuffer->bind();
+        m_prefilter_shader->use();
+        m_prefilter_shader->setInt("environmentCubemap", 0);
+        device.bindTexture(0, *m_environment_cubemap);
+
+        for (unsigned int mip = 0; mip < m_prefilter_mip_levels; mip++)
         {
-            m_prefiltered_env_map_framebuffer->setMipLevel(mip_level);
+            m_prefilter_framebuffer->setMipLevel(static_cast<int>(mip));
+            int w = std::max(1, m_prefilter_width >> mip);
+            int h = std::max(1, m_prefilter_height >> mip);
+            device.setViewport(0, 0, w, h);
 
-            glViewport(
-                0, 0, m_prefiltered_env_map_framebuffer->getWidth(), m_prefiltered_env_map_framebuffer->getHeight());
+            float roughness = static_cast<float>(mip) / static_cast<float>(m_prefilter_mip_levels - 1);
+            m_prefilter_shader->setFloat("roughness", roughness);
 
-            // each mip level has increasing roughness
-            float roughness = static_cast<float>(mip_level) / static_cast<float>(m_prefiltered_env_map_mip_levels - 1);
-            m_prefiltered_env_map_shader->setFloat("roughness", roughness);
-
-            // render to each side of the cubemap
-            for (auto i = 0; i < 6; i++)
+            for (int i = 0; i < 6; i++)
             {
-                m_prefiltered_env_map_shader->setMVP(model, camera_angles[i], projection);
-                m_prefiltered_env_map_framebuffer->setCubeFace(i);
-
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_CUBE_MAP, m_environment_cubemap_id);
-                cube.draw();
+                m_prefilter_shader->setMVP(model, camera_angles[i], projection);
+                m_prefilter_framebuffer->setCubeFace(i);
+                device.clear(ClearFlags::Color | ClearFlags::Depth);
+                cube_mesh.vertex_input->draw(PrimitiveType::Triangles, 36);
             }
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        device.bindDefaultFramebuffer();
     }
 
-    unsigned int SpecularMap::getPrefilteredEnvMapId() const
+    void SpecularMap::computeBrdfConvolutionMap(RHIDevice& device)
     {
-        return m_prefiltered_env_map_framebuffer->getCubemapTextureId();
+        if (!m_brdf_shader || !m_brdf_shader->isValid() || !m_brdf_framebuffer)
+            return;
+
+        auto quad_mesh = createIblFullscreenQuadMesh(device);
+
+        m_brdf_framebuffer->bind();
+        m_brdf_shader->use();
+        device.setViewport(0, 0, m_brdf_width, m_brdf_height);
+        device.clear(ClearFlags::Color | ClearFlags::Depth);
+        quad_mesh.vertex_input->draw(PrimitiveType::Triangles, 6);
+
+        device.bindDefaultFramebuffer();
     }
 
-    void SpecularMap::computeBrdfConvolutionMap()
+    RHITexture* SpecularMap::getPrefilteredEnvMapTexture() const
     {
-        auto fullscreen_quad = FullscreenQuad();
-        m_brdf_convolution_framebuffer->bind();
-        m_brdf_convolution_shader->use();
-
-        glViewport(0, 0, m_brdf_convolution_map_width, m_brdf_convolution_map_height);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        fullscreen_quad.draw();
-
-        m_brdf_convolution_map_id = m_brdf_convolution_framebuffer->getColorTextureId();
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return m_prefilter_framebuffer ? m_prefilter_framebuffer->getColorAttachment(0) : nullptr;
     }
 
-    unsigned int SpecularMap::getBrdfConvolutionMapId() const { return m_brdf_convolution_map_id; }
+    RHITexture* SpecularMap::getBrdfConvolutionTexture() const
+    {
+        return m_brdf_framebuffer ? m_brdf_framebuffer->getColorAttachment(0) : nullptr;
+    }
+
 } // namespace RealmEngine

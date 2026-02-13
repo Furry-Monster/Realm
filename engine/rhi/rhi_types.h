@@ -91,6 +91,7 @@ namespace RealmEngine
         TextureWrap   wrap            = TextureWrap::ClampToEdge;
         bool          is_renderbuffer = false; // depth/stencil only
         bool          gen_mips        = false;
+        bool          is_cubemap      = false; // color attachment is cubemap (for IBL)
     };
 
     struct FramebufferDesc

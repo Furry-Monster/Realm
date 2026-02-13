@@ -14,7 +14,6 @@ namespace RealmEngine
     class RHIDevice;
     class RHITexture;
 
-    // IBL legacy classes (still GL-specific internally for this phase)
     class EquirectangularCubemap;
     class DiffuseIrradianceMap;
     class SpecularMap;
@@ -64,13 +63,12 @@ namespace RealmEngine
         BloomPass*       m_bloom_pass {nullptr};
         PostProcessPass* m_postprocess_pass {nullptr};
 
-        // IBL (GL-specific precomputed resources, wrapped as RHI textures)
         std::unique_ptr<EquirectangularCubemap> m_ibl_equirect;
         std::unique_ptr<DiffuseIrradianceMap>   m_ibl_diffuse;
         std::unique_ptr<SpecularMap>            m_ibl_specular;
-        std::unique_ptr<RHITexture>             m_ibl_diffuse_tex;
-        std::unique_ptr<RHITexture>             m_ibl_prefiltered_tex;
-        std::unique_ptr<RHITexture>             m_ibl_brdf_tex;
+        RHITexture*                             m_ibl_diffuse_tex {nullptr};
+        RHITexture*                             m_ibl_prefiltered_tex {nullptr};
+        RHITexture*                             m_ibl_brdf_tex {nullptr};
 
         // Skybox + fullscreen quad (still use GL internally for this phase)
         std::unique_ptr<Skybox>         m_skybox;

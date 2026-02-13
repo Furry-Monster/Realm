@@ -21,7 +21,7 @@ namespace RealmEngine
         RenderPass("shadow"), m_shader_path(shader_path), m_resolution(resolution)
     {}
 
-    void ShadowPass::initialize(RHIDevice& device)
+    void ShadowPass::init(RHIDevice& device)
     {
         m_shader = device.createShader(m_shader_path + "/shadow.vert", m_shader_path + "/shadow.frag");
 
@@ -81,11 +81,11 @@ namespace RealmEngine
         m_light_space_matrix = light_proj * light_view;
         m_shadow_enabled     = true;
 
-        for (auto& ro : ctx.scene->m_render_objects)
+        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
         {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), ro->getPosition());
-            model *= glm::toMat4(ro->getOrientation());
-            model = glm::scale(model, ro->getScale());
+            auto&     ro    = ctx.scene->m_render_objects[i];
+            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
+                                                                                glm::mat4(1.0f);
 
             m_shader->setMat4("lightSpaceMatrix", m_light_space_matrix);
             m_shader->setMat4("model", model);

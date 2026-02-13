@@ -16,8 +16,8 @@ namespace RealmEngine
 
         PropertiesWidget(const PropertiesWidget&)            = delete;
         PropertiesWidget& operator=(const PropertiesWidget&) = delete;
-        PropertiesWidget(PropertiesWidget&&)                 = default;
-        PropertiesWidget& operator=(PropertiesWidget&&)      = default;
+        PropertiesWidget(PropertiesWidget&&)                 = delete;
+        PropertiesWidget& operator=(PropertiesWidget&&)       = delete;
 
         void render() override;
 

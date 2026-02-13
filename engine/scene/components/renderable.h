@@ -5,6 +5,7 @@
 
 namespace RealmEngine
 {
+    class AssetManager;
     class RenderObject;
     class RHIDevice;
 
@@ -14,8 +15,8 @@ namespace RealmEngine
         std::string                   model_path;
         bool                          flip_textures = false;
 
-        // Load model from model_path (requires an initialized RHI device)
         void loadModel(RHIDevice& device);
+        void loadModel(RHIDevice& device, AssetManager& asset_mgr);
     };
 
 } // namespace RealmEngine

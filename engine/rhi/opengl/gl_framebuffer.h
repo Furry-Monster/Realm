@@ -27,12 +27,14 @@ namespace RealmEngine
         RHITexture* getDepthAttachment() override;
 
         void setMipLevel(int level) override;
+        void setCubeFace(int face) override;
 
         uint32_t getNativeHandle() const { return m_fbo; }
 
     private:
         void create();
         void destroy();
+        void updateColorAttachments();
 
         uint32_t                                m_fbo {0};
         uint32_t                                m_depth_rbo {0}; // only when depth is renderbuffer
@@ -40,6 +42,7 @@ namespace RealmEngine
         std::unique_ptr<GLTexture>              m_depth_texture;
         FramebufferDesc                         m_desc;
         int                                     m_mip_level {0};
+        int                                     m_cube_face {0};
     };
 
 } // namespace RealmEngine

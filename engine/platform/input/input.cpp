@@ -1,5 +1,8 @@
 #include "platform/input/input.h"
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "platform/window/window.h"
@@ -148,7 +151,7 @@ namespace RealmEngine
     void Input::setCursorHidden(bool hidden)
     {
         if (m_window)
-            m_window->setCursorMode(hidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+            m_window->setCursorMode(hidden ? CursorMode::Disabled : CursorMode::Normal);
     }
 
     void Input::bindKey(int glfw_key, BindableCommand command) { m_key_bindings[glfw_key] = command; }

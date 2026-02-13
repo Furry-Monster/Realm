@@ -1,7 +1,9 @@
 #include "renderer/ibl/hdr_texture.h"
 
-#include <glad/gl.h>
 #include "core/log/log_macros.h"
+#include "rhi/rhi_device.h"
+#include "rhi/rhi_texture.h"
+#include "rhi/rhi_types.h"
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #  define STB_IMAGE_IMPLEMENTATION
@@ -10,7 +12,7 @@
 
 namespace RealmEngine
 {
-    HDRTexture::HDRTexture(const std::string& path)
+    HDRTexture::HDRTexture(RHIDevice& device, const std::string& path)
     {
         stbi_set_flip_vertically_on_load(true);
 
@@ -20,22 +22,24 @@ namespace RealmEngine
         if (!data)
         {
             RE_LOG_ERROR("Failed to load HDR texture data: " + path);
-            stbi_image_free(data);
             return;
         }
 
-        glGenTextures(1, &m_id);
-        glBindTexture(GL_TEXTURE_2D, m_id);
+        TextureDesc desc;
+        desc.type       = TextureType::Texture2D;
+        desc.format     = TextureFormat::RGB16F;
+        desc.width      = width;
+        desc.height     = height;
+        desc.min_filter = TextureFilter::Linear;
+        desc.mag_filter = TextureFilter::Linear;
+        desc.wrap_s     = TextureWrap::ClampToEdge;
+        desc.wrap_t     = TextureWrap::ClampToEdge;
+        desc.data       = data;
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+        m_texture = device.createTexture(desc);
         stbi_image_free(data);
-    }
 
-    unsigned int HDRTexture::getId() const { return m_id; }
+        if (!m_texture)
+            RE_LOG_ERROR("Failed to create HDR texture from: " + path);
+    }
 } // namespace RealmEngine

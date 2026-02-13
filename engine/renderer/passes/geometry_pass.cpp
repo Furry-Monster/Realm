@@ -32,7 +32,7 @@ namespace RealmEngine
         m_clear_a(clear_a), m_bloom_brightness_cutoff(bloom_brightness_cutoff)
     {}
 
-    void GeometryPass::initialize(RHIDevice& device)
+    void GeometryPass::init(RHIDevice& device)
     {
         m_shader = device.createShader(m_shader_path + "/pbr.vert", m_shader_path + "/pbr.frag");
         m_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
@@ -119,11 +119,11 @@ namespace RealmEngine
         }
 
         // Draw objects
-        for (auto& ro : ctx.scene->m_render_objects)
+        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
         {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), ro->getPosition());
-            model *= glm::toMat4(ro->getOrientation());
-            model = glm::scale(model, ro->getScale());
+            auto&     ro    = ctx.scene->m_render_objects[i];
+            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
+                                                                                glm::mat4(1.0f);
 
             m_shader->setMVP(model, view, projection);
             ctx.device->setDepthWrite(true);

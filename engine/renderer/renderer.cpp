@@ -15,9 +15,9 @@
 #include "renderer/passes/skybox_pass.h"
 #include "renderer/skybox.h"
 #include "resource/config_manager.h"
-#include "rhi/opengl/gl_texture.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
+#include "rhi/rhi_texture.h"
 
 namespace RealmEngine
 {
@@ -65,25 +65,23 @@ namespace RealmEngine
         std::string root_path = config.getRootFolder().generic_string();
         std::string hdri_path = (config.getAssetFolder() / config.getRendererConfig().hdri_path).generic_string();
 
-        m_ibl_equirect = std::make_unique<EquirectangularCubemap>(root_path, hdri_path);
-        m_ibl_equirect->compute();
+        m_ibl_equirect = std::make_unique<EquirectangularCubemap>(*m_device, root_path, hdri_path);
+        m_ibl_equirect->compute(*m_device);
 
-        m_ibl_diffuse = std::make_unique<DiffuseIrradianceMap>(root_path, m_ibl_equirect->getCubemapId());
-        m_ibl_diffuse->compute();
+        m_ibl_diffuse =
+            std::make_unique<DiffuseIrradianceMap>(*m_device, root_path, m_ibl_equirect->getCubemapTexture());
+        m_ibl_diffuse->compute(*m_device);
 
-        m_ibl_specular = std::make_unique<SpecularMap>(root_path, m_ibl_equirect->getCubemapId());
-        m_ibl_specular->computePrefilteredEnvMap();
-        m_ibl_specular->computeBrdfConvolutionMap();
+        m_ibl_specular = std::make_unique<SpecularMap>(*m_device, root_path, m_ibl_equirect->getCubemapTexture());
+        m_ibl_specular->computePrefilteredEnvMap(*m_device);
+        m_ibl_specular->computeBrdfConvolutionMap(*m_device);
 
-        m_skybox = std::make_unique<Skybox>(m_ibl_equirect->getCubemapId());
+        RHITexture* env_cubemap = m_ibl_equirect->getCubemapTexture();
+        m_skybox                = std::make_unique<Skybox>(env_cubemap ? env_cubemap->getNativeHandle() : 0);
 
-        // Wrap native GL handles as RHITexture (non-owning adopt)
-        m_ibl_diffuse_tex = std::make_unique<GLTexture>(
-            m_ibl_diffuse->getCubemapId(), TextureType::TextureCube, TextureFormat::RGB16F, 32, 32);
-        m_ibl_prefiltered_tex = std::make_unique<GLTexture>(
-            m_ibl_specular->getPrefilteredEnvMapId(), TextureType::TextureCube, TextureFormat::RGB16F, 128, 128);
-        m_ibl_brdf_tex = std::make_unique<GLTexture>(
-            m_ibl_specular->getBrdfConvolutionMapId(), TextureType::Texture2D, TextureFormat::RG16F, 512, 512);
+        m_ibl_diffuse_tex     = m_ibl_diffuse->getCubemapTexture();
+        m_ibl_prefiltered_tex = m_ibl_specular->getPrefilteredEnvMapTexture();
+        m_ibl_brdf_tex        = m_ibl_specular->getBrdfConvolutionTexture();
     }
 
     void Renderer::buildPipeline(ConfigManager& config)
@@ -124,9 +122,8 @@ namespace RealmEngine
         // Initialize all passes (compile shaders, create pass-owned resources)
         m_pipeline.initialize(*m_device);
 
-        // Wire cross-pass dependencies
         m_geometry_pass->setShadowPass(m_shadow_pass);
-        m_geometry_pass->setIBLTextures(m_ibl_diffuse_tex.get(), m_ibl_prefiltered_tex.get(), m_ibl_brdf_tex.get());
+        m_geometry_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
         // Create PBR framebuffer for geometry pass
         {
@@ -273,11 +270,14 @@ namespace RealmEngine
         m_pipeline.dispose();
 
         if (m_render_scene)
+        {
             m_render_scene->m_render_objects.clear();
+            m_render_scene->m_render_model_matrices.clear();
+        }
 
-        m_ibl_diffuse_tex.reset();
-        m_ibl_prefiltered_tex.reset();
-        m_ibl_brdf_tex.reset();
+        m_ibl_diffuse_tex     = nullptr;
+        m_ibl_prefiltered_tex = nullptr;
+        m_ibl_brdf_tex        = nullptr;
 
         m_ibl_equirect.reset();
         m_ibl_diffuse.reset();

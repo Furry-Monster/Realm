@@ -3,7 +3,9 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+
 #include "core/log/log_macros.h"
+#include "resource/asset_manager.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
 #include "scene/components/lighting/point.h"
@@ -43,7 +45,10 @@ namespace RealmEngine
             std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";
             auto&       renderable1 = helmet_entity.emplace<Renderable>();
             renderable1.model_path  = helmet_path;
-            renderable1.loadModel(device);
+            if (m_asset_mgr)
+                renderable1.loadModel(device, *m_asset_mgr);
+            else
+                renderable1.loadModel(device);
 
             scene->getRoot()->addChild(helmet_node);
         }
@@ -63,7 +68,10 @@ namespace RealmEngine
             std::string sphere_path = asset_path + "/sphere/sphere.gltf";
             auto&       renderable2 = sphere_entity.emplace<Renderable>();
             renderable2.model_path  = sphere_path;
-            renderable2.loadModel(device);
+            if (m_asset_mgr)
+                renderable2.loadModel(device, *m_asset_mgr);
+            else
+                renderable2.loadModel(device);
 
             scene->getRoot()->addChild(sphere_node);
         }
@@ -157,7 +165,7 @@ namespace RealmEngine
 
     std::shared_ptr<Scene> SceneManager::loadScene(const std::string& filepath, RHIDevice& device)
     {
-        auto scene = SceneSerializer::loadFromFile(filepath, device);
+        auto scene = SceneSerializer::loadFromFile(filepath, device, m_asset_mgr);
         if (scene)
         {
             std::string name = std::filesystem::path(filepath).stem().string();

@@ -1,7 +1,12 @@
 #include "scene/scene.h"
 
 #include "scene/components/camera_controller.h"
+#include "scene/components/lighting/area.h"
+#include "scene/components/lighting/directional.h"
+#include "scene/components/lighting/point.h"
+#include "scene/components/lighting/spot.h"
 #include "scene/components/name_tag.h"
+#include "scene/components/renderable.h"
 #include "scene/systems/hierarchy_system.h"
 #include "scene/systems/transform_system.h"
 
@@ -11,6 +16,17 @@ namespace RealmEngine
     {
         m_root              = std::make_shared<SceneNode>("Root");
         m_camera_controller = std::make_shared<CameraController>();
+
+        m_registry.on_construct<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_construct<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_construct<SpotLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_construct<AreaLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_construct<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<SpotLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<AreaLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
     }
 
     void Scene::tick(float delta_time)
@@ -33,6 +49,7 @@ namespace RealmEngine
         auto handle = m_registry.create();
         m_registry.emplace<NameTag>(handle, NameTag {name});
         m_name_index[name] = handle;
+        incrementGeneration();
         return Entity(handle, &m_registry);
     }
 
@@ -44,6 +61,7 @@ namespace RealmEngine
             m_name_index.erase(tag->name);
 
         m_registry.destroy(entity);
+        incrementGeneration();
     }
 
     Entity Scene::findEntity(const std::string& name) const
@@ -55,6 +73,8 @@ namespace RealmEngine
     }
 
     bool Scene::valid(entt::entity entity) const { return m_registry.valid(entity); }
+
+    void Scene::onRenderStructureChanged(entt::registry&, entt::entity) { incrementGeneration(); }
 
     std::shared_ptr<SceneNode> Scene::createNode(const std::string& name) { return std::make_shared<SceneNode>(name); }
 

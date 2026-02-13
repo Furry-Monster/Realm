@@ -9,9 +9,6 @@
 #include "rhi/rhi_device.h"
 #include "scene/scene_manager.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include <imgui.h>
 #include <filesystem>
 
@@ -97,7 +94,7 @@ namespace RealmEngine
 
             if (ImGui::MenuItem("Exit"))
             {
-                glfwSetWindowShouldClose(m_engine.getWindow().getGLFWWindow(), GLFW_TRUE);
+                m_engine.getWindow().requestClose();
             }
 
             ImGui::EndMenu();

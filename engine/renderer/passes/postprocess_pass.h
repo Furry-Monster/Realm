@@ -18,7 +18,7 @@ namespace RealmEngine
         PostProcessPass(const std::string& shader_path, bool tonemapping, float gamma);
         ~PostProcessPass() override;
 
-        void initialize(RHIDevice& device) override;
+        void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 
