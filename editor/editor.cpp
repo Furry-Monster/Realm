@@ -22,7 +22,6 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
-
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -56,7 +55,7 @@ namespace RealmEngine
             m_engine->boot();
         }
 
-        ImGui_ImplGlfw_InitForOpenGL(m_engine->getWindow().getGLFWWindow(), true);
+        ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(m_engine->getWindow().getNativeHandle()), true);
         ImGui_ImplOpenGL3_Init("#version 330");
 
         m_context = std::make_shared<EditorContext>();
@@ -232,10 +231,10 @@ namespace RealmEngine
         ImGuiIO& io = ImGui::GetIO();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
-            GLFWwindow* backup_current_context = glfwGetCurrentContext();
+            void* backup = Window::getCurrentContext();
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup_current_context);
+            Window::setCurrentContext(backup);
         }
     }
 

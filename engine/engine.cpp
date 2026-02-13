@@ -1,7 +1,5 @@
 #include "engine.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -63,7 +61,7 @@ namespace RealmEngine
         const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
         m_max_delta_time                      = gameplay_config.max_delta_time;
 
-        m_last_frame_time = glfwGetTime();
+        m_last_frame_time = m_window->getTime();
 
         PlatformInfo::logPlatformInfo();
 
@@ -155,7 +153,7 @@ namespace RealmEngine
 
     void Engine::tick()
     {
-        double current_time = glfwGetTime();
+        double current_time = m_window->getTime();
         m_delta_time        = current_time - m_last_frame_time;
         m_last_frame_time   = current_time;
         if (m_delta_time > m_max_delta_time)
