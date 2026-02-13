@@ -8,8 +8,8 @@
 
 namespace RealmEngine
 {
-    void RenderCamera::initialize() { info("Main Render Camera initialized."); }
-    void RenderCamera::disposal() { info("Main Render Camera disposed all resources."); }
+    void RenderCamera::initialize() { RE_LOG_INFO("Main Render Camera initialized."); }
+    void RenderCamera::disposal() { RE_LOG_INFO("Main Render Camera disposed all resources."); }
 
     void RenderCamera::setPosition(const glm::vec3& pos)
     {
@@ -158,7 +158,7 @@ namespace RealmEngine
                     glm::ortho(m_ortho_left, m_ortho_right, m_ortho_bottom, m_ortho_top, m_near_plane, m_far_plane);
                 break;
             default:
-                err("Unknown projection type.");
+                RE_LOG_ERROR("Unknown projection type.");
                 break;
         }
     }

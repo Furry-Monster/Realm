@@ -50,7 +50,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to load helmet model: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to load helmet model: " + std::string(e.what()));
         }
 
         try
@@ -70,7 +70,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to load sphere model: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to load sphere model: " + std::string(e.what()));
         }
 
         // Point light 1 - main white light from above

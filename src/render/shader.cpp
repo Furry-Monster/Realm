@@ -38,7 +38,7 @@ namespace RealmEngine
         }
         catch (std::ifstream::failure& e)
         {
-            err("Error: failed to read shader file: " + vertexPath + " or " + fragmentPath);
+            RE_LOG_ERROR("Error: failed to read shader file: " + vertexPath + " or " + fragmentPath);
             m_id = 0;
             return;
         }
@@ -60,8 +60,8 @@ namespace RealmEngine
         if (!success)
         {
             glGetShaderInfoLog(vertex, 512, nullptr, info_log);
-            err("Error: vertex shader compilation failed for: " + vertexPath);
-            err(std::string(info_log));
+            RE_LOG_ERROR("Error: vertex shader compilation failed for: " + vertexPath);
+            RE_LOG_ERROR(std::string(info_log));
             m_id = 0;
             return;
         }
@@ -75,8 +75,8 @@ namespace RealmEngine
         if (!success)
         {
             glGetShaderInfoLog(fragment, 512, nullptr, info_log);
-            err("Error: fragment shader compilation failed for: " + fragmentPath);
-            err(std::string(info_log));
+            RE_LOG_ERROR("Error: fragment shader compilation failed for: " + fragmentPath);
+            RE_LOG_ERROR(std::string(info_log));
             glDeleteShader(vertex);
             m_id = 0;
             return;
@@ -93,10 +93,10 @@ namespace RealmEngine
         if (!success)
         {
             glGetProgramInfoLog(m_id, 512, nullptr, info_log);
-            err("Error: shader program linking failed");
-            err(vertexPath);
-            err(fragmentPath);
-            err(std::string(info_log));
+            RE_LOG_ERROR("Error: shader program linking failed");
+            RE_LOG_ERROR(vertexPath);
+            RE_LOG_ERROR(fragmentPath);
+            RE_LOG_ERROR(std::string(info_log));
             glDeleteShader(vertex);
             glDeleteShader(fragment);
             m_id = 0;
@@ -143,7 +143,7 @@ namespace RealmEngine
         }
         catch (std::ifstream::failure& e)
         {
-            err("Error: failed to read shader file: " + vertexPath + ", " + geometryPath + " or " + fragmentPath);
+            RE_LOG_ERROR("Error: failed to read shader file: " + vertexPath + ", " + geometryPath + " or " + fragmentPath);
             m_id = 0;
             return;
         }
@@ -166,8 +166,8 @@ namespace RealmEngine
         if (!success)
         {
             glGetShaderInfoLog(vertex, 512, nullptr, info_log);
-            err("Error: vertex shader compilation failed for: " + vertexPath);
-            err(std::string(info_log));
+            RE_LOG_ERROR("Error: vertex shader compilation failed for: " + vertexPath);
+            RE_LOG_ERROR(std::string(info_log));
             m_id = 0;
             return;
         }
@@ -181,8 +181,8 @@ namespace RealmEngine
         if (!success)
         {
             glGetShaderInfoLog(geometry, 512, nullptr, info_log);
-            err("Error: geometry shader compilation failed for: " + geometryPath);
-            err(std::string(info_log));
+            RE_LOG_ERROR("Error: geometry shader compilation failed for: " + geometryPath);
+            RE_LOG_ERROR(std::string(info_log));
             glDeleteShader(vertex);
             m_id = 0;
             return;
@@ -197,8 +197,8 @@ namespace RealmEngine
         if (!success)
         {
             glGetShaderInfoLog(fragment, 512, nullptr, info_log);
-            err("Error: fragment shader compilation failed for: " + fragmentPath);
-            err(std::string(info_log));
+            RE_LOG_ERROR("Error: fragment shader compilation failed for: " + fragmentPath);
+            RE_LOG_ERROR(std::string(info_log));
             glDeleteShader(vertex);
             glDeleteShader(geometry);
             m_id = 0;
@@ -217,11 +217,11 @@ namespace RealmEngine
         if (!success)
         {
             glGetProgramInfoLog(m_id, 512, nullptr, info_log);
-            err("Error: shader program linking failed");
-            err(vertexPath);
-            err(geometryPath);
-            err(fragmentPath);
-            err(std::string(info_log));
+            RE_LOG_ERROR("Error: shader program linking failed");
+            RE_LOG_ERROR(vertexPath);
+            RE_LOG_ERROR(geometryPath);
+            RE_LOG_ERROR(fragmentPath);
+            RE_LOG_ERROR(std::string(info_log));
             glDeleteShader(vertex);
             glDeleteShader(geometry);
             glDeleteShader(fragment);

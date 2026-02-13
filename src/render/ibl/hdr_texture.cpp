@@ -19,7 +19,7 @@ namespace RealmEngine
 
         if (!data)
         {
-            err("Failed to load HDR texture data: " + path);
+            RE_LOG_ERROR("Failed to load HDR texture data: " + path);
             stbi_image_free(data);
             return;
         }

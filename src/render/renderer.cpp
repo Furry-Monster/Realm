@@ -76,7 +76,7 @@ namespace RealmEngine
 
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
 
-        info("Renderer initialized.");
+        RE_LOG_INFO("Renderer initialized.");
     }
 
     void Renderer::disposal()
@@ -102,7 +102,7 @@ namespace RealmEngine
         m_render_scene.reset();
         m_window.reset();
 
-        info("Renderer shutdown.");
+        RE_LOG_INFO("Renderer shutdown.");
     }
 
     void Renderer::compileShaders()
@@ -161,7 +161,7 @@ namespace RealmEngine
     {
         if (!m_render_scene)
         {
-            err("Render scene not set.");
+            RE_LOG_ERROR("Render scene not set.");
             return;
         }
 

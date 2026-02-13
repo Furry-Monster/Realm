@@ -72,7 +72,7 @@ namespace RealmEngine
         glReadBuffer(GL_NONE);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            fatal("Error initializing shadow framebuffer: framebuffer not complete");
+            RE_LOG_FATAL("Error initializing shadow framebuffer: framebuffer not complete");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }

@@ -18,7 +18,7 @@ namespace RealmEngine
 
         if (!glfwInit())
         {
-            fatal("Failed to initialize glfw");
+            RE_LOG_FATAL("Failed to initialize glfw");
             return;
         }
 
@@ -36,7 +36,7 @@ namespace RealmEngine
         if (!raw_window_ptr)
         {
             glfwTerminate();
-            fatal("Failed to create window in glfw");
+            RE_LOG_FATAL("Failed to create window in glfw");
             return;
         }
         m_window.reset(raw_window_ptr);
@@ -46,7 +46,7 @@ namespace RealmEngine
         {
             m_window.reset();
             glfwTerminate();
-            fatal("Failed to initialize GLAD");
+            RE_LOG_FATAL("Failed to initialize GLAD");
             return;
         }
 
@@ -68,7 +68,7 @@ namespace RealmEngine
         if (m_msaa_samples > 0)
             glEnable(GL_MULTISAMPLE);
 
-        info("GLFW window initialized.");
+        RE_LOG_INFO("GLFW window initialized.");
     }
 
     void Window::disposal()
@@ -76,7 +76,7 @@ namespace RealmEngine
         m_window.reset();
         glfwTerminate();
 
-        info("GLFW window destroyed.");
+        RE_LOG_INFO("GLFW window destroyed.");
     }
 
     bool Window::shouldClose() const { return glfwWindowShouldClose(m_window.get()); }

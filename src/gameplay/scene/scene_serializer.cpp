@@ -60,7 +60,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to deserialize scene: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to deserialize scene: " + std::string(e.what()));
             return nullptr;
         }
     }
@@ -88,7 +88,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to save scene file: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to save scene file: " + std::string(e.what()));
             return false;
         }
     }
@@ -118,7 +118,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to load scene file: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to load scene file: " + std::string(e.what()));
             return nullptr;
         }
     }

@@ -51,7 +51,7 @@ namespace RealmEngine
         glDrawBuffers(2, color_attachments);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            fatal("Error initializing framebuffer: framebuffer not complete");
+            RE_LOG_FATAL("Error initializing framebuffer: framebuffer not complete");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }

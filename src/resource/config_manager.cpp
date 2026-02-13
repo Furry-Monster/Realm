@@ -17,28 +17,28 @@ namespace RealmEngine
         m_general_config.shader_folder = m_general_config.root_folder / "shaders";
 
         if (!std::filesystem::exists(m_general_config.asset_folder))
-            fatal("Assets folder not found: " + m_general_config.asset_folder.string());
+            RE_LOG_FATAL("Assets folder not found: " + m_general_config.asset_folder.string());
         if (!std::filesystem::exists(m_general_config.shader_folder))
-            fatal("Shaders folder not found: " + m_general_config.shader_folder.string());
+            RE_LOG_FATAL("Shaders folder not found: " + m_general_config.shader_folder.string());
 
         std::filesystem::path config_file = m_general_config.root_folder / "config.json";
         if (ConfigSerializer::loadFromFile(*this, config_file.string()))
-            info("Config loaded from: " + config_file.string());
+            RE_LOG_INFO("Config loaded from: " + config_file.string());
         else
-            info("Using default config.");
+            RE_LOG_INFO("Using default config.");
 
-        info("Config manager initialized.");
+        RE_LOG_INFO("Config manager initialized.");
     }
 
     void ConfigManager::disposal() const
     {
         std::filesystem::path config_file = m_general_config.root_folder / "config.json";
         if (ConfigSerializer::saveToFile(*this, config_file.string()))
-            info("Config saved to: " + config_file.string());
+            RE_LOG_INFO("Config saved to: " + config_file.string());
         else
-            err("Failed to save config file.");
+            RE_LOG_ERROR("Failed to save config file.");
 
-        info("Config manager disposed all resources.");
+        RE_LOG_INFO("Config manager disposed all resources.");
     }
 
     const GeneralConfig& ConfigManager::getGeneralConfig() const { return m_general_config; }

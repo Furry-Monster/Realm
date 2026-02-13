@@ -28,7 +28,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to deserialize config: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to deserialize config: " + std::string(e.what()));
             return false;
         }
     }
@@ -49,7 +49,7 @@ namespace RealmEngine
             std::ofstream file(filepath);
             if (!file.is_open())
             {
-                err("Failed to open config file for writing: " + filepath);
+                RE_LOG_ERROR("Failed to open config file for writing: " + filepath);
                 return false;
             }
 
@@ -59,7 +59,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to save config to file: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to save config to file: " + std::string(e.what()));
             return false;
         }
     }
@@ -71,7 +71,7 @@ namespace RealmEngine
             std::ifstream file(filepath);
             if (!file.is_open())
             {
-                warn("Config file not found: " + filepath + ", using default config.");
+                RE_LOG_WARN("Config file not found: " + filepath + ", using default config.");
                 return false;
             }
 
@@ -92,7 +92,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to load config from file: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to load config from file: " + std::string(e.what()));
             return false;
         }
     }

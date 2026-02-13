@@ -3,7 +3,7 @@ AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
-AlignEscapedNewlines: DontAlign
+AlignEscapedNewlines: Right
 AlignOperands: Align
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
@@ -58,6 +58,10 @@ ForEachMacros:
   - foreach
   - Q_FOREACH
   - BOOST_FOREACH
+AttributeMacros:
+  - __capability
+  - __unused
+  - __used
 IncludeBlocks: Preserve
 IncludeCategories:
   - Priority: 1
@@ -68,15 +72,16 @@ IncludeCategories:
     Regex: ^".*"
 IndentCaseLabels: true
 IndentExternBlock: AfterExternBlock
-IndentPPDirectives: None
+IndentPPDirectives: AfterHash
+PPIndentWidth: 2
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 JavaScriptQuotes: Leave
 JavaScriptWrapImports: true
 KeepEmptyLinesAtTheStartOfBlocks: true
 Language: Cpp
-MacroBlockBegin: ''
-MacroBlockEnd: ''
+MacroBlockBegin: '^RE_BEGIN_'
+MacroBlockEnd: '^RE_END_'
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 ObjCBlockIndentWidth: 2
@@ -114,6 +119,11 @@ SpacesInContainerLiterals: true
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard: c++17
-StatementMacros: []
+StatementMacros:
+  - RE_LOG_DEBUG
+  - RE_LOG_INFO
+  - RE_LOG_WARN
+  - RE_LOG_ERROR
+  - RE_LOG_FATAL
 TabWidth: 4
 UseTab: Never
