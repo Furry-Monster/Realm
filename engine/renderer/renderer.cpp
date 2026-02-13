@@ -270,7 +270,10 @@ namespace RealmEngine
         m_pipeline.dispose();
 
         if (m_render_scene)
+        {
             m_render_scene->m_render_objects.clear();
+            m_render_scene->m_render_model_matrices.clear();
+        }
 
         m_ibl_diffuse_tex     = nullptr;
         m_ibl_prefiltered_tex = nullptr;

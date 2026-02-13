@@ -122,7 +122,8 @@ namespace RealmEngine
 
         if (ImGui::CollapsingHeader("Point Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::Checkbox("Enabled", &pl->enabled);
+            if (ImGui::Checkbox("Enabled", &pl->enabled))
+                scene->markDirty();
             ImGui::ColorEdit3("Color", &pl->color.x);
             ImGui::DragFloat("Intensity", &pl->intensity, 0.1f, 0.0f, 100.0f);
             ImGui::DragFloat("Range", &pl->range, 1.0f, 0.0f, 1000.0f);
@@ -149,7 +150,8 @@ namespace RealmEngine
 
         if (ImGui::CollapsingHeader("Spot Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::Checkbox("Enabled", &sl->enabled);
+            if (ImGui::Checkbox("Enabled", &sl->enabled))
+                scene->markDirty();
             ImGui::ColorEdit3("Color", &sl->color.x);
             ImGui::DragFloat("Intensity", &sl->intensity, 0.1f, 0.0f, 100.0f);
             ImGui::DragFloat("Range", &sl->range, 1.0f, 0.0f, 1000.0f);
@@ -178,7 +180,8 @@ namespace RealmEngine
 
         if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::Checkbox("Enabled", &dl->enabled);
+            if (ImGui::Checkbox("Enabled", &dl->enabled))
+                scene->markDirty();
             ImGui::ColorEdit3("Color", &dl->color.x);
             ImGui::DragFloat("Intensity", &dl->intensity, 0.1f, 0.0f, 100.0f);
         }
@@ -196,7 +199,8 @@ namespace RealmEngine
 
         if (ImGui::CollapsingHeader("Area Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::Checkbox("Enabled", &al->enabled);
+            if (ImGui::Checkbox("Enabled", &al->enabled))
+                scene->markDirty();
             ImGui::ColorEdit3("Color", &al->color.x);
             ImGui::DragFloat("Intensity", &al->intensity, 0.1f, 0.0f, 100.0f);
             ImGui::DragFloat("Width", &al->width, 0.1f, 0.0f, 100.0f);

@@ -1,11 +1,16 @@
 #include "renderer/render_scene.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
 #include "scene/components/lighting/point.h"
 #include "scene/components/lighting/spot.h"
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
+#include "scene/components/world_transform.h"
 #include "scene/scene.h"
 #include "scene/scene_node.h"
 
@@ -31,9 +36,43 @@ namespace RealmEngine
         }
     }
 
+    namespace
+    {
+        glm::mat4 getModelMatrix(Scene& scene, entt::entity entity)
+        {
+            if (auto* wt = scene.tryGet<WorldTransform>(entity))
+                return wt->matrix;
+            Transform tf;
+            if (auto* t = scene.tryGet<Transform>(entity))
+                tf = *t;
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), tf.position);
+            model *= glm::toMat4(tf.rotation);
+            return glm::scale(model, tf.scale);
+        }
+
+        glm::vec3 getWorldPosition(Scene& scene, entt::entity entity)
+        {
+            if (auto* wt = scene.tryGet<WorldTransform>(entity))
+                return glm::vec3(wt->matrix[3]);
+            if (auto* t = scene.tryGet<Transform>(entity))
+                return t->position;
+            return glm::vec3(0.0f);
+        }
+
+        glm::vec3 getWorldForward(Scene& scene, entt::entity entity)
+        {
+            if (auto* wt = scene.tryGet<WorldTransform>(entity))
+                return -glm::vec3(wt->matrix[0][2], wt->matrix[1][2], wt->matrix[2][2]);
+            if (auto* t = scene.tryGet<Transform>(entity))
+                return t->getForward();
+            return glm::vec3(0.0f, 0.0f, -1.0f);
+        }
+    }
+
     void RenderScene::fullSync(Scene& scene)
     {
         m_render_objects.clear();
+        m_render_model_matrices.clear();
         m_lights.clear();
         m_render_entities.clear();
         m_light_entities.clear();
@@ -57,18 +96,12 @@ namespace RealmEngine
                 return;
             }
 
-            Transform tf;
-            if (auto* t = scene.tryGet<Transform>(entity))
-                tf = *t;
-
             if (auto* r = scene.tryGet<Renderable>(entity))
             {
                 if (r->render_object)
                 {
-                    r->render_object->setPosition(tf.position);
-                    r->render_object->setOrientation(tf.rotation);
-                    r->render_object->setScale(tf.scale);
                     m_render_objects.push_back(r->render_object);
+                    m_render_model_matrices.push_back(getModelMatrix(scene, entity));
                     m_render_entities.push_back(entity);
                 }
             }
@@ -79,7 +112,7 @@ namespace RealmEngine
                 {
                     Light light {};
                     light.type             = LightType::Point;
-                    light.position         = tf.position;
+                    light.position         = getWorldPosition(scene, entity);
                     light.direction        = glm::vec3(0.0f);
                     light.color            = pl->color;
                     light.intensity        = pl->intensity;
@@ -102,8 +135,8 @@ namespace RealmEngine
                 {
                     Light light {};
                     light.type             = LightType::Spot;
-                    light.position         = tf.position;
-                    light.direction        = -tf.getForward();
+                    light.position         = getWorldPosition(scene, entity);
+                    light.direction        = -getWorldForward(scene, entity);
                     light.color            = sl->color;
                     light.intensity        = sl->intensity;
                     light.constant         = sl->constant;
@@ -125,8 +158,8 @@ namespace RealmEngine
                 {
                     Light light {};
                     light.type             = LightType::Area;
-                    light.position         = tf.position;
-                    light.direction        = -tf.getForward();
+                    light.position         = getWorldPosition(scene, entity);
+                    light.direction        = -getWorldForward(scene, entity);
                     light.color            = al->color;
                     light.intensity        = al->intensity;
                     light.constant         = 0.0f;
@@ -147,9 +180,9 @@ namespace RealmEngine
                 if (dl->enabled)
                 {
                     Light light {};
-                    light.type             = LightType::Directional;
-                    light.position         = glm::vec3(0.0f);
-                    light.direction        = -tf.getForward();
+                    light.type      = LightType::Directional;
+                    light.position  = glm::vec3(0.0f);
+                    light.direction = -getWorldForward(scene, entity);
                     light.color            = dl->color;
                     light.intensity        = dl->intensity;
                     light.constant         = 0.0f;
@@ -174,16 +207,10 @@ namespace RealmEngine
         for (size_t i = 0; i < m_render_entities.size(); ++i)
         {
             entt::entity entity = m_render_entities[i];
-            if (!scene.valid(entity) || i >= m_render_objects.size())
+            if (!scene.valid(entity) || i >= m_render_objects.size() || i >= m_render_model_matrices.size())
                 continue;
 
-            Transform tf;
-            if (auto* t = scene.tryGet<Transform>(entity))
-                tf = *t;
-
-            m_render_objects[i]->setPosition(tf.position);
-            m_render_objects[i]->setOrientation(tf.rotation);
-            m_render_objects[i]->setScale(tf.scale);
+            m_render_model_matrices[i] = getModelMatrix(scene, entity);
         }
 
         for (size_t i = 0; i < m_light_entities.size(); ++i)
@@ -192,61 +219,45 @@ namespace RealmEngine
             if (!scene.valid(entity) || i >= m_lights.size())
                 continue;
 
-            Transform tf;
-            if (auto* t = scene.tryGet<Transform>(entity))
-                tf = *t;
-
             Light& light = m_lights[i];
 
             if (auto* pl = scene.tryGet<PointLight>(entity))
             {
-                if (pl->enabled)
-                {
-                    light.position  = tf.position;
-                    light.color     = pl->color;
-                    light.intensity = pl->intensity;
-                    light.constant  = pl->constant;
-                    light.linear    = pl->linear;
-                    light.quadratic = pl->quadratic;
-                    light.range     = pl->range;
-                }
+                light.position  = getWorldPosition(scene, entity);
+                light.color     = pl->color;
+                light.intensity = pl->enabled ? pl->intensity : 0.0f;
+                light.constant  = pl->constant;
+                light.linear    = pl->linear;
+                light.quadratic = pl->quadratic;
+                light.range     = pl->range;
             }
             else if (auto* sl = scene.tryGet<SpotLight>(entity))
             {
-                if (sl->enabled)
-                {
-                    light.position         = tf.position;
-                    light.direction        = -tf.getForward();
-                    light.color            = sl->color;
-                    light.intensity        = sl->intensity;
-                    light.constant         = sl->constant;
-                    light.linear           = sl->linear;
-                    light.quadratic        = sl->quadratic;
-                    light.range            = sl->range;
-                    light.inner_cone_angle = sl->inner_cone_angle;
-                    light.outer_cone_angle = sl->outer_cone_angle;
-                }
+                light.position         = getWorldPosition(scene, entity);
+                light.direction        = -getWorldForward(scene, entity);
+                light.color            = sl->color;
+                light.intensity        = sl->enabled ? sl->intensity : 0.0f;
+                light.constant         = sl->constant;
+                light.linear           = sl->linear;
+                light.quadratic        = sl->quadratic;
+                light.range            = sl->range;
+                light.inner_cone_angle = sl->inner_cone_angle;
+                light.outer_cone_angle = sl->outer_cone_angle;
             }
             else if (auto* al = scene.tryGet<AreaLight>(entity))
             {
-                if (al->enabled)
-                {
-                    light.position  = tf.position;
-                    light.direction = -tf.getForward();
-                    light.color     = al->color;
-                    light.intensity = al->intensity;
-                    light.width     = al->width;
-                    light.height    = al->height;
-                }
+                light.position  = getWorldPosition(scene, entity);
+                light.direction = -getWorldForward(scene, entity);
+                light.color     = al->color;
+                light.intensity = al->enabled ? al->intensity : 0.0f;
+                light.width     = al->width;
+                light.height    = al->height;
             }
             else if (auto* dl = scene.tryGet<DirectionalLight>(entity))
             {
-                if (dl->enabled)
-                {
-                    light.direction = -tf.getForward();
-                    light.color     = dl->color;
-                    light.intensity = dl->intensity;
-                }
+                light.direction = -getWorldForward(scene, entity);
+                light.color     = dl->color;
+                light.intensity = dl->enabled ? dl->intensity : 0.0f;
             }
         }
     }
