@@ -9,17 +9,18 @@ __author__ = "RealmEngine Team"
 from .build_config import (
     BuildConfig,
     BuildType,
-    Platform,
     Colors,
     Logger,
-    get_build_config
+    Platform,
+    get_build_config,
 )
+
 
 __all__ = [
     "BuildConfig",
     "BuildType",
-    "Platform",
     "Colors",
     "Logger",
+    "Platform",
     "get_build_config",
 ]

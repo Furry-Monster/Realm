@@ -4,18 +4,19 @@ RealmEngine Build Configuration
 Cross-platform build configuration and utilities
 """
 
+from enum import Enum
 import os
+from pathlib import Path
 import platform
 import shutil
 import subprocess
 import sys
-from enum import Enum
-from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
 
 class BuildType(Enum):
     """Build configuration types"""
+
     DEBUG = "Debug"
     RELEASE = "Release"
     RELWITHDEBINFO = "RelWithDebInfo"
@@ -24,6 +25,7 @@ class BuildType(Enum):
 
 class Platform(Enum):
     """Supported platforms"""
+
     WINDOWS = "Windows"
     LINUX = "Linux"
     MACOS = "Darwin"
@@ -32,14 +34,15 @@ class Platform(Enum):
 
 class Colors:
     """Terminal color codes"""
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    MAGENTA = '\033[0;35m'
-    CYAN = '\033[0;36m'
-    NC = '\033[0m'  # No Color
-    
+
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    MAGENTA = "\033[0;35m"
+    CYAN = "\033[0;36m"
+    NC = "\033[0m"  # No Color
+
     @staticmethod
     def is_terminal_supports_color():
         """Check if terminal supports colors"""
@@ -51,32 +54,32 @@ class Colors:
 
 class Logger:
     """Logging utilities with colored output"""
-    
+
     def __init__(self, use_colors: bool = True):
         self.use_colors = use_colors and Colors.is_terminal_supports_color()
-    
+
     def _colorize(self, msg: str, color: str) -> str:
         """Add color to message if colors are enabled"""
         if self.use_colors:
             return f"{color}{msg}{Colors.NC}"
         return msg
-    
+
     def info(self, msg: str):
         """Print info message"""
         print(f"{self._colorize('[INFO]', Colors.BLUE)} {msg}")
-    
+
     def success(self, msg: str):
         """Print success message"""
         print(f"{self._colorize('[SUCCESS]', Colors.GREEN)} {msg}")
-    
+
     def warning(self, msg: str):
         """Print warning message"""
         print(f"{self._colorize('[WARNING]', Colors.YELLOW)} {msg}")
-    
+
     def error(self, msg: str):
         """Print error message"""
         print(f"{self._colorize('[ERROR]', Colors.RED)} {msg}")
-    
+
     def debug(self, msg: str):
         """Print debug message"""
         print(f"{self._colorize('[DEBUG]', Colors.MAGENTA)} {msg}")
@@ -84,7 +87,7 @@ class Logger:
 
 class BuildConfig:
     """Build configuration management"""
-    
+
     def __init__(self):
         self.platform = self._detect_platform()
         self.logger = Logger()
@@ -93,7 +96,7 @@ class BuildConfig:
         self.bin_dir = self.project_root / "bin"
         self.src_dir = self.project_root / "src"
         self.scripts_dir = self.project_root / "scripts"
-    
+
     @staticmethod
     def _detect_platform() -> Platform:
         """Detect current platform"""
@@ -102,31 +105,31 @@ class BuildConfig:
             return Platform(system)
         except ValueError:
             return Platform.UNKNOWN
-    
+
     @staticmethod
     def _find_project_root() -> Path:
         """Find project root directory"""
         # Start from script location
         current = Path(__file__).resolve().parent.parent
-        
+
         # Look for CMakeLists.txt
         if (current / "CMakeLists.txt").exists():
             return current
-        
+
         # Fallback to current working directory
         return Path.cwd()
-    
+
     def get_cpu_count(self) -> int:
         """Get number of CPU cores"""
         try:
             return os.cpu_count() or 4
         except:
             return 4
-    
+
     def find_program(self, name: str) -> Optional[str]:
         """Find a program in PATH"""
         return shutil.which(name)
-    
+
     def get_cmake_generator(self) -> str:
         """Get appropriate CMake generator for platform"""
         if self.platform == Platform.WINDOWS:
@@ -138,19 +141,14 @@ class BuildConfig:
             ]
             # Use default VS generator
             return vs_generators[0] if self.find_program("cmake") else "Ninja"
-        
-        elif self.platform == Platform.LINUX:
+
+        elif self.platform in (Platform.LINUX, Platform.MACOS):
             if self.find_program("ninja"):
                 return "Ninja"
             return "Unix Makefiles"
-        
-        elif self.platform == Platform.MACOS:
-            if self.find_program("ninja"):
-                return "Ninja"
-            return "Unix Makefiles"
-        
+
         return "Unix Makefiles"
-    
+
     def get_build_command(self, generator: str) -> List[str]:
         """Get build command for given generator"""
         if generator == "Ninja":
@@ -159,52 +157,52 @@ class BuildConfig:
             return ["cmake", "--build", "."]
         else:
             return ["make"]
-    
+
     def get_executable_name(self) -> str:
         """Get executable name for platform"""
         if self.platform == Platform.WINDOWS:
             return "RealmEngine.exe"
         return "RealmEngine"
-    
+
     def get_executable_path(self, build_type: BuildType) -> Path:
         """Get path to built executable"""
         exe_name = self.get_executable_name()
-        
+
         if self.platform == Platform.WINDOWS:
             # Visual Studio puts executables in build_type subdirectory
             return self.bin_dir / exe_name
-        
+
         return self.bin_dir / exe_name
-    
+
     def get_encoding(self) -> str:
         """Get system encoding"""
         try:
             import locale
-            return locale.getpreferredencoding(False) or 'utf-8'
+
+            return locale.getpreferredencoding(False) or "utf-8"
         except:
-            return 'utf-8'
-    
+            return "utf-8"
+
     def run_command(
         self,
         cmd: List[str],
         cwd: Optional[Path] = None,
         check: bool = True,
         capture_output: bool = False,
-        shell: bool = False
+        shell: bool = False,
     ) -> subprocess.CompletedProcess:
         """Run a command with proper error handling"""
         try:
-            result = subprocess.run(
+            return subprocess.run(
                 cmd,
                 cwd=cwd,
                 check=check,
                 capture_output=capture_output,
                 text=True,
                 encoding=self.get_encoding(),
-                errors='replace',
-                shell=shell
+                errors="replace",
+                shell=shell,
             )
-            return result
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Command failed: {' '.join(cmd)}")
             if e.stdout:
@@ -219,35 +217,31 @@ class BuildConfig:
             if check:
                 sys.exit(1)
             raise
-    
+
     def check_cmake(self) -> bool:
         """Check if CMake is available"""
         if not self.find_program("cmake"):
             self.logger.error("CMake not found. Please install CMake.")
             self.logger.info("Visit: https://cmake.org/download/")
             return False
-        
+
         # Check CMake version
         try:
-            result = self.run_command(
-                ["cmake", "--version"],
-                capture_output=True,
-                check=False
-            )
+            result = self.run_command(["cmake", "--version"], capture_output=True, check=False)
             if result.returncode == 0:
                 version_line = result.stdout.splitlines()[0]
                 self.logger.info(f"Found {version_line}")
             return True
         except:
             return False
-    
+
     def check_build_tools(self) -> Tuple[bool, List[str]]:
         """Check if required build tools are available"""
         missing = []
-        
+
         if not self.find_program("cmake"):
             missing.append("cmake")
-        
+
         if self.platform == Platform.WINDOWS:
             # Check for MSVC or MinGW
             if not self.find_program("cl") and not self.find_program("g++"):
@@ -256,9 +250,9 @@ class BuildConfig:
             # Check for GCC or Clang
             if not self.find_program("g++") and not self.find_program("clang++"):
                 missing.append("g++ or clang++")
-        
+
         return len(missing) == 0, missing
-    
+
     def print_config(self, build_type: BuildType, generator: str, jobs: int):
         """Print build configuration"""
         self.logger.info("=" * 60)
