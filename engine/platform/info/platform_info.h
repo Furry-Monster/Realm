@@ -4,8 +4,6 @@
 
 namespace RealmEngine
 {
-    // Queries for OS, CPU, GPU, memory, and display information.
-    // GPU queries require an active GL context; display queries require GLFW init.
     class PlatformInfo
     {
     public:

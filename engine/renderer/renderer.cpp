@@ -272,6 +272,9 @@ namespace RealmEngine
     {
         m_pipeline.dispose();
 
+        if (m_render_scene)
+            m_render_scene->m_render_objects.clear();
+
         m_ibl_diffuse_tex.reset();
         m_ibl_prefiltered_tex.reset();
         m_ibl_brdf_tex.reset();

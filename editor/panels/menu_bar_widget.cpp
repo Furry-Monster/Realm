@@ -4,7 +4,9 @@
 #include "engine.h"
 #include "panels/file_dialog_widget.h"
 #include "platform/window/window.h"
+#include "renderer/renderer.h"
 #include "resource/config_manager.h"
+#include "rhi/rhi_device.h"
 #include "scene/scene_manager.h"
 
 #define GLFW_INCLUDE_NONE
@@ -38,7 +40,7 @@ namespace RealmEngine
 
             if (ImGui::MenuItem("New Scene"))
             {
-                auto new_scene = scene_mgr.createDefaultScene();
+                auto new_scene = scene_mgr.createDefaultScene(m_engine.getRenderer().getDevice());
                 if (new_scene)
                 {
                     scene_mgr.setCurrentScene(new_scene);

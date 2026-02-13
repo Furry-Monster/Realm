@@ -32,7 +32,7 @@ namespace RealmEngine
         return json.dump(2);
     }
 
-    std::shared_ptr<Scene> SceneSerializer::deserialize(const std::string& json)
+    std::shared_ptr<Scene> SceneSerializer::deserialize(const std::string& json, RHIDevice& device)
     {
         if (json.empty())
             return nullptr;
@@ -45,7 +45,7 @@ namespace RealmEngine
 
             if (json_obj.contains("root"))
             {
-                auto root = deserializeNode(json_obj["root"], *scene);
+                auto root = deserializeNode(json_obj["root"], *scene, device);
                 if (root)
                 {
                     scene->getRoot()->clearChildren();
@@ -93,7 +93,7 @@ namespace RealmEngine
         }
     }
 
-    std::shared_ptr<Scene> SceneSerializer::loadFromFile(const std::string& filepath, bool encrypted)
+    std::shared_ptr<Scene> SceneSerializer::loadFromFile(const std::string& filepath, RHIDevice& device, bool encrypted)
     {
         try
         {
@@ -114,7 +114,7 @@ namespace RealmEngine
                 json_str            = xorDecrypt(decoded, DEFAULT_ENCRYPTION_KEY);
             }
 
-            return deserialize(json_str);
+            return deserialize(json_str, device);
         }
         catch (const std::exception& e)
         {
@@ -234,7 +234,8 @@ namespace RealmEngine
         json["components"] = components_json;
     }
 
-    std::shared_ptr<SceneNode> SceneSerializer::deserializeNode(const nlohmann::json& json, Scene& scene)
+    std::shared_ptr<SceneNode>
+    SceneSerializer::deserializeNode(const nlohmann::json& json, Scene& scene, RHIDevice& device)
     {
         if (!json.contains("name"))
             return nullptr;
@@ -244,7 +245,7 @@ namespace RealmEngine
 
         if (json.contains("entity"))
         {
-            deserializeEntity(json["entity"], scene, name);
+            deserializeEntity(json["entity"], scene, name, device);
             auto entity = scene.findEntity(name);
             if (entity)
                 node->setEntity(entity.handle());
@@ -254,7 +255,7 @@ namespace RealmEngine
         {
             for (const auto& child_json : json["children"])
             {
-                auto child = deserializeNode(child_json, scene);
+                auto child = deserializeNode(child_json, scene, device);
                 if (child)
                     node->addChild(child);
             }
@@ -263,7 +264,10 @@ namespace RealmEngine
         return node;
     }
 
-    void SceneSerializer::deserializeEntity(const nlohmann::json& json, Scene& scene, const std::string& name)
+    void SceneSerializer::deserializeEntity(const nlohmann::json& json,
+                                            Scene&                scene,
+                                            const std::string&    name,
+                                            RHIDevice&            device)
     {
         if (!json.contains("id") || !json.contains("components"))
             return;
@@ -304,7 +308,7 @@ namespace RealmEngine
                 if (comp_json.contains("flip_textures") && comp_json["flip_textures"].is_boolean())
                     r.flip_textures = comp_json["flip_textures"];
 
-                r.loadModel();
+                r.loadModel(device);
             }
             else if (type == "Point")
             {

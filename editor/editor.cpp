@@ -14,6 +14,7 @@
 #include "platform/window/window.h"
 #include "renderer/renderer.h"
 #include "resource/config_manager.h"
+#include "rhi/rhi_device.h"
 #include "scene/components/camera_controller.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
@@ -66,9 +67,10 @@ namespace RealmEngine
         auto file_dialog = std::make_shared<FileDialogWidget>();
         file_dialog->setOnFileSelected([file_dialog, engine](const std::filesystem::path& path) {
             SceneManager& scene_mgr = engine->getSceneManager();
+            RHIDevice&    device    = engine->getRenderer().getDevice();
             if (file_dialog->getMode() == FileDialogWidget::Mode::Open)
             {
-                auto loaded = scene_mgr.loadScene(path.string());
+                auto loaded = scene_mgr.loadScene(path.string(), device);
                 if (loaded)
                 {
                     scene_mgr.setCurrentScene(loaded);
@@ -116,6 +118,7 @@ namespace RealmEngine
         // Auto-load scene or create default
         ConfigManager& config    = m_engine->getConfig();
         SceneManager&  scene_mgr = m_engine->getSceneManager();
+        RHIDevice&     device    = m_engine->getRenderer().getDevice();
 
         std::filesystem::path scene_file = config.getRootFolder() / config.getGamePlayConfig().scene_file;
 
@@ -123,7 +126,7 @@ namespace RealmEngine
         if (std::filesystem::exists(scene_file))
         {
             RE_LOG_INFO("Auto-loading scene from: " + scene_file.string());
-            scene = scene_mgr.loadScene(scene_file.string());
+            scene = scene_mgr.loadScene(scene_file.string(), device);
             if (scene)
             {
                 scene_mgr.setCurrentScene(scene);
@@ -132,14 +135,14 @@ namespace RealmEngine
             else
             {
                 RE_LOG_WARN("Failed to load scene, creating default scene instead.");
-                scene = scene_mgr.createDefaultScene();
+                scene = scene_mgr.createDefaultScene(device);
                 scene_mgr.setCurrentScene(scene);
             }
         }
         else
         {
             RE_LOG_INFO("No scene file found, creating default scene.");
-            scene = scene_mgr.createDefaultScene();
+            scene = scene_mgr.createDefaultScene(device);
             scene_mgr.setCurrentScene(scene);
         }
 
