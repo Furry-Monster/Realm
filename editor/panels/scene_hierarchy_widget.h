@@ -18,8 +18,8 @@ namespace RealmEngine
 
         SceneHierarchyWidget(const SceneHierarchyWidget&)            = delete;
         SceneHierarchyWidget& operator=(const SceneHierarchyWidget&) = delete;
-        SceneHierarchyWidget(SceneHierarchyWidget&&)                 = default;
-        SceneHierarchyWidget& operator=(SceneHierarchyWidget&&)      = default;
+        SceneHierarchyWidget(SceneHierarchyWidget&&)                 = delete;
+        SceneHierarchyWidget& operator=(SceneHierarchyWidget&&)       = delete;
 
         void render() override;
 
