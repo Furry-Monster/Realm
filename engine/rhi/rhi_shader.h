@@ -12,12 +12,9 @@ namespace RealmEngine
     public:
         virtual ~RHIShader() = default;
 
-        // Returns true if the shader compiled and linked successfully.
         virtual bool isValid() const = 0;
+        virtual void use()           = 0;
 
-        virtual void use() = 0;
-
-        // Uniform setters
         virtual void setBool(const std::string& name, bool value)             = 0;
         virtual void setInt(const std::string& name, int value)               = 0;
         virtual void setFloat(const std::string& name, float value)           = 0;
@@ -31,8 +28,6 @@ namespace RealmEngine
         virtual void setFloatArray(const std::string& name, const std::vector<float>& values)    = 0;
         virtual void setIntArray(const std::string& name, const std::vector<int>& values)        = 0;
 
-        // Convenience: set model / view / projection in one call (default uniform names).
-        // Override if your shader uses different names.
         virtual void setMVP(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection)
         {
             setMat4("model", model);
@@ -40,7 +35,6 @@ namespace RealmEngine
             setMat4("projection", projection);
         }
 
-        // Uniform block binding
         virtual void bindUniformBlock(const std::string& name, uint32_t binding_point) = 0;
     };
 

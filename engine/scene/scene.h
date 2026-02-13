@@ -43,13 +43,11 @@ namespace RealmEngine
 
         template<typename T>
         T& get(entt::entity entity);
-
         template<typename T>
         const T& get(entt::entity entity) const;
 
         template<typename T>
         T* tryGet(entt::entity entity);
-
         template<typename T>
         const T* tryGet(entt::entity entity) const;
 
