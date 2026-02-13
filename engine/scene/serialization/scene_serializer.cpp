@@ -6,6 +6,7 @@
 
 #include "core/base/utils.h"
 #include "core/log/log_macros.h"
+#include "resource/asset_manager.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
 #include "scene/components/lighting/point.h"
@@ -32,7 +33,8 @@ namespace RealmEngine
         return json.dump(2);
     }
 
-    std::shared_ptr<Scene> SceneSerializer::deserialize(const std::string& json, RHIDevice& device)
+    std::shared_ptr<Scene>
+    SceneSerializer::deserialize(const std::string& json, RHIDevice& device, AssetManager* asset_mgr)
     {
         if (json.empty())
             return nullptr;
@@ -45,7 +47,7 @@ namespace RealmEngine
 
             if (json_obj.contains("root"))
             {
-                auto root = deserializeNode(json_obj["root"], *scene, device);
+                auto root = deserializeNode(json_obj["root"], *scene, device, asset_mgr);
                 if (root)
                 {
                     scene->getRoot()->clearChildren();
@@ -93,7 +95,10 @@ namespace RealmEngine
         }
     }
 
-    std::shared_ptr<Scene> SceneSerializer::loadFromFile(const std::string& filepath, RHIDevice& device, bool encrypted)
+    std::shared_ptr<Scene> SceneSerializer::loadFromFile(const std::string& filepath,
+                                                         RHIDevice&         device,
+                                                         AssetManager*      asset_mgr,
+                                                         bool               encrypted)
     {
         try
         {
@@ -114,7 +119,7 @@ namespace RealmEngine
                 json_str            = xorDecrypt(decoded, DEFAULT_ENCRYPTION_KEY);
             }
 
-            return deserialize(json_str, device);
+            return deserialize(json_str, device, asset_mgr);
         }
         catch (const std::exception& e)
         {
@@ -234,8 +239,10 @@ namespace RealmEngine
         json["components"] = components_json;
     }
 
-    std::shared_ptr<SceneNode>
-    SceneSerializer::deserializeNode(const nlohmann::json& json, Scene& scene, RHIDevice& device)
+    std::shared_ptr<SceneNode> SceneSerializer::deserializeNode(const nlohmann::json& json,
+                                                                Scene&                scene,
+                                                                RHIDevice&            device,
+                                                                AssetManager*         asset_mgr)
     {
         if (!json.contains("name"))
             return nullptr;
@@ -245,7 +252,7 @@ namespace RealmEngine
 
         if (json.contains("entity"))
         {
-            deserializeEntity(json["entity"], scene, name, device);
+            deserializeEntity(json["entity"], scene, name, device, asset_mgr);
             auto entity = scene.findEntity(name);
             if (entity)
                 node->setEntity(entity.handle());
@@ -255,7 +262,7 @@ namespace RealmEngine
         {
             for (const auto& child_json : json["children"])
             {
-                auto child = deserializeNode(child_json, scene, device);
+                auto child = deserializeNode(child_json, scene, device, asset_mgr);
                 if (child)
                     node->addChild(child);
             }
@@ -267,7 +274,8 @@ namespace RealmEngine
     void SceneSerializer::deserializeEntity(const nlohmann::json& json,
                                             Scene&                scene,
                                             const std::string&    name,
-                                            RHIDevice&            device)
+                                            RHIDevice&            device,
+                                            AssetManager*         asset_mgr)
     {
         if (!json.contains("id") || !json.contains("components"))
             return;
@@ -308,7 +316,10 @@ namespace RealmEngine
                 if (comp_json.contains("flip_textures") && comp_json["flip_textures"].is_boolean())
                     r.flip_textures = comp_json["flip_textures"];
 
-                r.loadModel(device);
+                if (asset_mgr)
+                    r.loadModel(device, *asset_mgr);
+                else
+                    r.loadModel(device);
             }
             else if (type == "Point")
             {

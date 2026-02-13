@@ -4,6 +4,7 @@
 #include <stb/stb_image.h>
 
 #include "core/log/log_macros.h"
+#include "resource/asset_manager.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_texture.h"
 
@@ -12,6 +13,14 @@ namespace RealmEngine
     RenderObject::RenderObject(std::string path, RHIDevice& device) { loadModel(path, true, device); }
 
     RenderObject::RenderObject(std::string path, bool flip_textures_vertically, RHIDevice& device)
+    {
+        loadModel(path, flip_textures_vertically, device);
+    }
+
+    RenderObject::RenderObject(std::string   path,
+                               bool          flip_textures_vertically,
+                               RHIDevice&    device,
+                               AssetManager* asset_mgr) : m_asset_mgr(asset_mgr)
     {
         loadModel(path, flip_textures_vertically, device);
     }
@@ -188,7 +197,17 @@ namespace RealmEngine
         if (iterator != m_textures_loaded.end())
             return iterator->second;
 
-        auto texture = textureFromFile(path.C_Str(), m_directory, type, device);
+        std::shared_ptr<RHITexture> texture;
+        if (m_asset_mgr)
+        {
+            bool is_srgb = (type == aiTextureType_DIFFUSE || type == aiTextureType_BASE_COLOR);
+            texture      = m_asset_mgr->getOrLoadTexture(path.C_Str(), m_directory, is_srgb, device);
+        }
+        else
+        {
+            texture = textureFromFile(path.C_Str(), m_directory, type, device);
+        }
+
         if (texture)
             m_textures_loaded.insert({std::string(path.C_Str()), texture});
 

@@ -16,6 +16,7 @@
 
 namespace RealmEngine
 {
+    class AssetManager;
     class RHIDevice;
     class RHITexture;
 
@@ -26,6 +27,9 @@ namespace RealmEngine
     public:
         RenderObject(std::string path, RHIDevice& device);
         RenderObject(std::string path, bool flip_textures_vertically, RHIDevice& device);
+        RenderObject(std::string path, bool flip_textures_vertically, RHIDevice& device, AssetManager* asset_mgr);
+
+        bool isEmpty() const { return m_meshes.empty(); }
 
         void      setPosition(glm::vec3 position);
         glm::vec3 getPosition() const;
@@ -45,6 +49,7 @@ namespace RealmEngine
         std::shared_ptr<RHITexture>
         textureFromFile(const char* file_name, std::string directory, aiTextureType type, RHIDevice& device);
 
+        AssetManager*           m_asset_mgr {nullptr};
         glm::vec3               m_position {glm::vec3(0.0)};
         glm::vec3               m_scale {glm::vec3(1.0, 1.0, 1.0)};
         glm::quat               m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};

@@ -9,6 +9,7 @@
 
 namespace RealmEngine
 {
+    class AssetManager;
     class RHIDevice;
 
     class SceneManager
@@ -27,6 +28,7 @@ namespace RealmEngine
         SceneManager& operator=(SceneManager&&) noexcept = default;
 
         void initialize(const std::filesystem::path& asset_folder);
+        void setAssetManager(AssetManager* asset_mgr) { m_asset_mgr = asset_mgr; }
 
         std::shared_ptr<Scene> createScene(const std::string& name);
         std::shared_ptr<Scene> createDefaultScene(RHIDevice& device);
@@ -46,6 +48,7 @@ namespace RealmEngine
 
     private:
         std::filesystem::path  m_asset_folder;
+        AssetManager*          m_asset_mgr {nullptr};
         SceneTable             m_scenes;
         std::shared_ptr<Scene> m_current_scene {nullptr};
         SceneChangeCallback    m_on_scene_changed;
