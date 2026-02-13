@@ -32,7 +32,7 @@ namespace RealmEngine
         m_clear_a(clear_a), m_bloom_brightness_cutoff(bloom_brightness_cutoff)
     {}
 
-    void GeometryPass::initialize(RHIDevice& device)
+    void GeometryPass::init(RHIDevice& device)
     {
         m_shader = device.createShader(m_shader_path + "/pbr.vert", m_shader_path + "/pbr.frag");
         m_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);

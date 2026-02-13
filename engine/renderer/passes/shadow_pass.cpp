@@ -21,7 +21,7 @@ namespace RealmEngine
         RenderPass("shadow"), m_shader_path(shader_path), m_resolution(resolution)
     {}
 
-    void ShadowPass::initialize(RHIDevice& device)
+    void ShadowPass::init(RHIDevice& device)
     {
         m_shader = device.createShader(m_shader_path + "/shadow.vert", m_shader_path + "/shadow.frag");
 

@@ -15,7 +15,7 @@ namespace RealmEngine
         RenderPass("skybox"), m_shader_path(shader_path), m_bloom_brightness_cutoff(bloom_brightness_cutoff)
     {}
 
-    void SkyboxPass::initialize(RHIDevice& device)
+    void SkyboxPass::init(RHIDevice& device)
     {
         m_shader = device.createShader(m_shader_path + "/skybox.vert", m_shader_path + "/skybox.frag");
     }

@@ -19,7 +19,7 @@ namespace RealmEngine
         SkyboxPass(const std::string& shader_path, float bloom_brightness_cutoff);
         ~SkyboxPass() override;
 
-        void initialize(RHIDevice& device) override;
+        void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 

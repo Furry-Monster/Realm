@@ -14,7 +14,7 @@ namespace RealmEngine
     class RHIDevice;
     class RHITexture;
 
-    // IBL legacy classes (still GL-specific internally for this phase)
+    // TODO: IBL legacy classes (still GL-specific internally for this phase)
     class EquirectangularCubemap;
     class DiffuseIrradianceMap;
     class SpecularMap;

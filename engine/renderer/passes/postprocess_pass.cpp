@@ -16,7 +16,7 @@ namespace RealmEngine
         RenderPass("postprocess"), m_shader_path(shader_path), m_tonemapping(tonemapping), m_gamma(gamma)
     {}
 
-    void PostProcessPass::initialize(RHIDevice& device)
+    void PostProcessPass::init(RHIDevice& device)
     {
         m_shader = device.createShader(m_shader_path + "/post.vert", m_shader_path + "/post.frag");
     }

@@ -22,7 +22,7 @@ namespace RealmEngine
         m_iterations(iterations), m_direction(direction)
     {}
 
-    void BloomPass::initialize(RHIDevice& device)
+    void BloomPass::init(RHIDevice& device)
     {
         m_shader = device.createShader(m_shader_path + "/bloom.vert", m_shader_path + "/bloom.frag");
     }

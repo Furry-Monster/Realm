@@ -26,7 +26,7 @@ namespace RealmEngine
                      float              bloom_brightness_cutoff);
         ~GeometryPass() override;
 
-        void initialize(RHIDevice& device) override;
+        void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 

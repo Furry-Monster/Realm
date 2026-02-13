@@ -15,7 +15,7 @@ namespace RealmEngine
     void RenderPipeline::initialize(RHIDevice& device)
     {
         for (auto& pass : m_passes)
-            pass->initialize(device);
+            pass->init(device);
     }
 
     void RenderPipeline::execute(const RenderContext& ctx)
