@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cstdint>
-#include "glm/ext/matrix_float4x4.hpp"
-#include "glm/ext/quaternion_float.hpp"
-#include "glm/ext/vector_float3.hpp"
-#include "glm/ext/vector_float4.hpp"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include "math.h"
+
 namespace RealmEngine
 {
     struct Frustum
@@ -69,8 +70,8 @@ namespace RealmEngine
         void disposal();
 
         void setPosition(const glm::vec3& pos);
-        void setRotation(const glm::quat& rotat);
-        void setRotation(const glm::vec3& eular_angle);
+        void setRotation(const glm::quat& rotation);
+        void setRotation(const glm::vec3& euler_angles);
         void lookAt(const glm::vec3& target, const glm::vec3& up = glm::vec3(0, 1, 0));
 
         const glm::vec3& getPosition() const;
@@ -80,7 +81,7 @@ namespace RealmEngine
         glm::vec3        getLocalUp() const;
 
         void setPerspective(float fov, float aspect_ratio, float near_plane, float far_plane);
-        void serOrthographic(float left, float right, float bottom, float top, float near_plane, float far_plane);
+        void setOrthographic(float left, float right, float bottom, float top, float near_plane, float far_plane);
 
         void  setFov(float fov);
         void  setAspectRatio(float aspect_ratio);

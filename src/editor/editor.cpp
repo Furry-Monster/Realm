@@ -1,4 +1,6 @@
 #include "editor/editor.h"
+
+#include <filesystem>
 #include <memory>
 
 #include "editor/editor_context.h"
@@ -9,6 +11,7 @@
 #include "engine.h"
 #include "gameplay/scene/scene_manager.h"
 #include "global_context.h"
+#include "resource/config_manager.h"
 #include "utils.h"
 #include "window.h"
 
@@ -62,11 +65,11 @@ namespace RealmEngine
                 if (loaded)
                 {
                     g_context.m_scene->setCurrentScene(loaded);
-                    info("Scene loaded from: " + path.string());
+                    RE_LOG_INFO("Scene loaded from: " + path.string());
                 }
                 else
                 {
-                    err("Failed to load scene from: " + path.string());
+                    RE_LOG_ERROR("Failed to load scene from: " + path.string());
                 }
             }
             else // Save
@@ -75,11 +78,11 @@ namespace RealmEngine
                 {
                     if (g_context.m_scene->saveCurrentScene(path.string()))
                     {
-                        info("Scene saved to: " + path.string());
+                        RE_LOG_INFO("Scene saved to: " + path.string());
                     }
                     else
                     {
-                        err("Failed to save scene to: " + path.string());
+                        RE_LOG_ERROR("Failed to save scene to: " + path.string());
                     }
                 }
             }
@@ -96,6 +99,33 @@ namespace RealmEngine
         {
             menu_bar->setWidgets(widgets_shared);
             menu_bar->setFileDialog(file_dialog);
+        }
+
+        // Auto-load scene.json if it exists
+        std::filesystem::path scene_file =
+            g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+        
+        if (std::filesystem::exists(scene_file))
+        {
+            RE_LOG_INFO("Auto-loading scene from: " + scene_file.string());
+            auto loaded = g_context.m_scene->loadScene(scene_file.string());
+            if (loaded)
+            {
+                g_context.m_scene->setCurrentScene(loaded);
+                RE_LOG_INFO("Scene loaded successfully.");
+            }
+            else
+            {
+                RE_LOG_WARN("Failed to load scene, creating default scene instead.");
+                auto default_scene = g_context.m_scene->createDefaultScene();
+                g_context.m_scene->setCurrentScene(default_scene);
+            }
+        }
+        else
+        {
+            RE_LOG_INFO("No scene file found, creating default scene.");
+            auto default_scene = g_context.m_scene->createDefaultScene();
+            g_context.m_scene->setCurrentScene(default_scene);
         }
 
         m_initialized = true;
@@ -123,7 +153,7 @@ namespace RealmEngine
 
     void Editor::run()
     {
-        info("<<< Run in Editor-Mode. >>>");
+        RE_LOG_INFO("<<< Run in Editor-Mode. >>>");
 
         while (!g_context.m_window->shouldClose())
             tick();

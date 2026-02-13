@@ -1,0 +1,98 @@
+# ref docs: https://docs.astral.sh/ruff/
+
+target-version = "py38"
+
+line-length = 100
+
+indent-width = 4
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "DTZ",  # flake8-datetimez
+    "T10",  # flake8-debugger
+    "EM",   # flake8-errmsg
+    "ISC",  # flake8-implicit-str-concat
+    "ICN",  # flake8-import-conventions
+    "PIE",  # flake8-pie
+    "PT",   # flake8-pytest-style
+    "Q",    # flake8-quotes
+    "RSE",  # flake8-raise
+    "RET",  # flake8-return
+    "SIM",  # flake8-simplify
+    "TID",  # flake8-tidy-imports
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "PL",   # pylint
+    "TRY",  # tryceratops
+    "FLY",  # flynt
+    "PERF", # perflint
+    "RUF",  # ruff-specific rules
+]
+
+ignore = [
+    "E501",    # 行过长 (由 line-length 控制)
+    "PLR0913", # 函数参数过多
+    "PLR2004", # 魔数比较
+    "TRY003",  # 异常消息过长
+    "EM101",   # 异常消息使用字符串字面量
+    "EM102",   # 异常消息使用 f-string
+    "PLR0912", # 分支过多
+    "PLR0915", # 语句过多
+    "PTH123",  # 使用 Path.open() 而不是 open()
+    "C901",    # 复杂度过高
+]
+
+fixable = ["ALL"]
+unfixable = []
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+]
+
+[lint.per-file-ignores]
+# __init__.py import but not used
+"__init__.py" = ["F401"]
+
+[lint.isort]
+# isort config
+known-first-party = ["build_config"]
+force-single-line = false
+lines-after-imports = 2
+force-sort-within-sections = true
+
+[lint.mccabe]
+# McCabe complexity
+max-complexity = 15
+
+[lint.pylint]
+# Pylint specific
+max-args = 8
+max-branches = 15
+max-returns = 8
+max-statements = 60
+
+[lint.pydocstyle]
+convention = "google"
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+docstring-code-format = true
+docstring-code-line-length = 80

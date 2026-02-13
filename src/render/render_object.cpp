@@ -41,7 +41,7 @@ namespace RealmEngine
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            err("Error loading model: " + std::string(importer.GetErrorString()));
+            RE_LOG_ERROR("Error loading model: " + std::string(importer.GetErrorString()));
             return;
         }
 
@@ -51,14 +51,14 @@ namespace RealmEngine
         else
             m_directory = ".";
 
-        info("Loading model from: " + path);
-        info("Model directory: " + m_directory);
-        info("Scene has " + std::to_string(scene->mNumMeshes) + " meshes, " + std::to_string(scene->mNumMaterials) +
+        RE_LOG_INFO("Loading model from: " + path);
+        RE_LOG_INFO("Model directory: " + m_directory);
+        RE_LOG_INFO("Scene has " + std::to_string(scene->mNumMeshes) + " meshes, " + std::to_string(scene->mNumMaterials) +
              " materials");
 
         processNode(scene->mRootNode, scene);
 
-        info("Loaded " + std::to_string(m_meshes.size()) + " meshes from model");
+        RE_LOG_INFO("Loaded " + std::to_string(m_meshes.size()) + " meshes from model");
 
         stbi_set_flip_vertically_on_load(true);
     }
@@ -158,7 +158,7 @@ namespace RealmEngine
         }
 
         // material
-        if (mesh->mMaterialIndex >= 0)
+        if (mesh->mMaterialIndex < scene->mNumMaterials)
         {
             aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
 
@@ -259,13 +259,13 @@ namespace RealmEngine
         else
             path = directory + '/' + relative_path;
 
-        debug("Loading texture: " + path);
+        RE_LOG_DEBUG("Loading texture: " + path);
 
         unsigned char* data = stbi_load(path.c_str(), &width, &height, &num_channels, 0);
 
         if (!data)
         {
-            err("Failed to load texture data: " + path);
+            RE_LOG_ERROR("Failed to load texture data: " + path);
             return 0;
         }
 
@@ -283,7 +283,7 @@ namespace RealmEngine
                 format = GL_RGBA;
                 break;
             default:
-                err("Unsupported texture format with " + std::to_string(num_channels) + " channels");
+                RE_LOG_ERROR("Unsupported texture format with " + std::to_string(num_channels) + " channels");
                 stbi_image_free(data);
                 return 0;
         }

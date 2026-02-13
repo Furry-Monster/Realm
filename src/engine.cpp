@@ -28,7 +28,7 @@ namespace RealmEngine
 
         m_last_frame_time = glfwGetTime();
 
-        info("<<< Boot Engine Done. >>>");
+        RE_LOG_INFO("<<< Boot Engine Done. >>>");
     }
 
     void Engine::debug()
@@ -39,13 +39,13 @@ namespace RealmEngine
         std::shared_ptr<Scene> loaded;
         if (std::filesystem::exists(scene_file))
         {
-            info("Loading scene from: " + scene_file.string());
+            RE_LOG_INFO("Loading scene from: " + scene_file.string());
             loaded = g_context.m_scene->loadScene(scene_file.string());
         }
 
         if (!loaded)
         {
-            info("Loading failed, create default scene instead.");
+            RE_LOG_INFO("Loading failed, create default scene instead.");
             loaded = g_context.m_scene->createDefaultScene();
         }
 
@@ -54,7 +54,7 @@ namespace RealmEngine
         g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
-        info("<<< Run in Debug-Mode. >>>");
+        RE_LOG_INFO("<<< Run in Debug-Mode. >>>");
 
         while (!g_context.m_window->shouldClose())
         {
@@ -67,17 +67,17 @@ namespace RealmEngine
             std::filesystem::path scene_file =
                 g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
 
-            info("Saving scene to: " + scene_file.string());
+            RE_LOG_INFO("Saving scene to: " + scene_file.string());
             if (g_context.m_scene->saveCurrentScene(scene_file.string()))
-                info("Scene saved successfully.");
+                RE_LOG_INFO("Scene saved successfully.");
             else
-                err("Failed to save scene file.");
+                RE_LOG_ERROR("Failed to save scene file.");
         }
     }
 
     void Engine::terminate()
     {
-        info("<<< Now Terminating Engine. >>>");
+        RE_LOG_INFO("<<< Now Terminating Engine. >>>");
 
         m_delta_time = 0.0f;
         g_context.destroy();
@@ -86,7 +86,7 @@ namespace RealmEngine
     void Engine::tick()
     {
         double current_time = glfwGetTime();
-        m_delta_time        = static_cast<float>(current_time - m_last_frame_time);
+        m_delta_time        = current_time - m_last_frame_time;
         m_last_frame_time   = current_time;
         if (m_delta_time > m_max_delta_time)
             m_delta_time = m_max_delta_time;

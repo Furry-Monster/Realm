@@ -60,6 +60,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
+            RE_LOG_ERROR("Failed to deserialize scene: " + std::string(e.what()));
             return nullptr;
         }
     }
@@ -73,8 +74,7 @@ namespace RealmEngine
 
             if (encrypt)
             {
-                std::string key       = "Elysia";
-                std::string encrypted = xorEncrypt(json_str, key);
+                std::string encrypted = xorEncrypt(json_str, DEFAULT_ENCRYPTION_KEY);
                 output                = base64Encode(encrypted);
             }
 
@@ -86,8 +86,9 @@ namespace RealmEngine
             file.close();
             return true;
         }
-        catch (...)
+        catch (const std::exception& e)
         {
+            RE_LOG_ERROR("Failed to save scene file: " + std::string(e.what()));
             return false;
         }
     }
@@ -109,15 +110,15 @@ namespace RealmEngine
 
             if (encrypted)
             {
-                std::string key     = "Elysia";
                 std::string decoded = base64Decode(content);
-                json_str            = xorDecrypt(decoded, key);
+                json_str            = xorDecrypt(decoded, DEFAULT_ENCRYPTION_KEY);
             }
 
             return deserialize(json_str);
         }
-        catch (...)
+        catch (const std::exception& e)
         {
+            RE_LOG_ERROR("Failed to load scene file: " + std::string(e.what()));
             return nullptr;
         }
     }

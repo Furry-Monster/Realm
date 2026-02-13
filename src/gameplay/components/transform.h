@@ -1,8 +1,9 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include "gameplay/component.h"
-#include "glm/ext/quaternion_float.hpp"
-#include "glm/ext/vector_float3.hpp"
 
 namespace RealmEngine
 {

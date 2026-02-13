@@ -55,7 +55,7 @@ namespace RealmEngine
             light_data[i].spot_area   = glm::vec4(light.outer_cone_angle, light.width, light.height, 0.0f);
         }
 
-        // fill left with 0
+        // Zero-fill remaining slots
         for (size_t i = light_count; i < MAX_LIGHTS; ++i)
             light_data[i] = LightData {};
 

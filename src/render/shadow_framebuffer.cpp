@@ -67,14 +67,12 @@ namespace RealmEngine
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depth_texture, 0);
 
-        // NOTE:
-        // don't draw to color buffer, read and write are not needed
-        // we simply banned them here.
+        // Disable color buffer: shadow pass only needs depth
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            fatal("Error initializing shadow framebuffer: framebuffer not complete");
+            RE_LOG_FATAL("Error initializing shadow framebuffer: framebuffer not complete");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }

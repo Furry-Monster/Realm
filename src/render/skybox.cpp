@@ -44,7 +44,7 @@ namespace RealmEngine
 
             if (!data)
             {
-                warn("Cubemap texture data failed to load for path: " + path);
+                RE_LOG_WARN("Cubemap texture data failed to load for path: " + path);
                 continue;
             }
 

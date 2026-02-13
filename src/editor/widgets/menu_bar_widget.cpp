@@ -39,7 +39,7 @@ namespace RealmEngine
                 if (new_scene)
                 {
                     g_context.m_scene->setCurrentScene(new_scene);
-                    info("New scene created");
+                    RE_LOG_INFO("New scene created");
                 }
             }
 
@@ -61,16 +61,16 @@ namespace RealmEngine
 
                     if (g_context.m_scene->saveCurrentScene(scene_file.string()))
                     {
-                        info("Scene saved to: " + scene_file.string());
+                        RE_LOG_INFO("Scene saved to: " + scene_file.string());
                     }
                     else
                     {
-                        err("Failed to save scene to: " + scene_file.string());
+                        RE_LOG_ERROR("Failed to save scene to: " + scene_file.string());
                     }
                 }
                 else
                 {
-                    info("No scene to save");
+                    RE_LOG_INFO("No scene to save");
                 }
             }
 
@@ -84,16 +84,16 @@ namespace RealmEngine
 
                     if (g_context.m_scene->saveCurrentScene(scene_file.string()))
                     {
-                        info("Scene saved to: " + scene_file.string());
+                        RE_LOG_INFO("Scene saved to: " + scene_file.string());
                     }
                     else
                     {
-                        err("Failed to save scene to: " + scene_file.string());
+                        RE_LOG_ERROR("Failed to save scene to: " + scene_file.string());
                     }
                 }
                 else
                 {
-                    info("No scene to save");
+                    RE_LOG_INFO("No scene to save");
                 }
             }
 

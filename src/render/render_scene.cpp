@@ -44,7 +44,7 @@ namespace RealmEngine
 
             if (entity)
             {
-                // everything must have Transform component
+                // Every entity must have a Transform component
                 auto transform = entity->getComponent<Transform>();
                 if (!transform)
                     transform = std::make_shared<Transform>();
@@ -56,13 +56,9 @@ namespace RealmEngine
                     auto render_obj = renderable->getRenderObject();
                     if (render_obj)
                     {
-                        auto transform = entity->getComponent<Transform>();
-                        if (transform)
-                        {
-                            render_obj->setPosition(transform->getPosition());
-                            render_obj->setOrientation(transform->getRotation());
-                            render_obj->setScale(transform->getScale());
-                        }
+                        render_obj->setPosition(transform->getPosition());
+                        render_obj->setOrientation(transform->getRotation());
+                        render_obj->setScale(transform->getScale());
 
                         m_render_objects.push_back(render_obj);
                     }

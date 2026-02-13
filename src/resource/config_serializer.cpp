@@ -28,7 +28,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to deserialize config: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to deserialize config: " + std::string(e.what()));
             return false;
         }
     }
@@ -42,15 +42,14 @@ namespace RealmEngine
 
             if (encrypt)
             {
-                std::string key       = "Elysia";
-                std::string encrypted = xorEncrypt(json_str, key);
+                std::string encrypted = xorEncrypt(json_str, DEFAULT_ENCRYPTION_KEY);
                 output                = base64Encode(encrypted);
             }
 
             std::ofstream file(filepath);
             if (!file.is_open())
             {
-                err("Failed to open config file for writing: " + filepath);
+                RE_LOG_ERROR("Failed to open config file for writing: " + filepath);
                 return false;
             }
 
@@ -60,7 +59,7 @@ namespace RealmEngine
         }
         catch (const std::exception& e)
         {
-            err("Failed to save config to file: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to save config to file: " + std::string(e.what()));
             return false;
         }
     }
@@ -72,7 +71,7 @@ namespace RealmEngine
             std::ifstream file(filepath);
             if (!file.is_open())
             {
-                warn("Config file not found: " + filepath + ", using default config.");
+                RE_LOG_WARN("Config file not found: " + filepath + ", using default config.");
                 return false;
             }
 
@@ -85,16 +84,15 @@ namespace RealmEngine
 
             if (encrypted)
             {
-                std::string key     = "Elysia";
                 std::string decoded = base64Decode(content);
-                json_str            = xorDecrypt(decoded, key);
+                json_str            = xorDecrypt(decoded, DEFAULT_ENCRYPTION_KEY);
             }
 
             return deserialize(config, json_str);
         }
         catch (const std::exception& e)
         {
-            err("Failed to load config from file: " + std::string(e.what()));
+            RE_LOG_ERROR("Failed to load config from file: " + std::string(e.what()));
             return false;
         }
     }
