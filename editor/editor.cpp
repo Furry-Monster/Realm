@@ -6,14 +6,15 @@
 #include "core/log/log_macros.h"
 #include "editor_context.h"
 #include "engine.h"
-#include "platform/input/input.h"
-#include "renderer/renderer.h"
 #include "panels/file_dialog_widget.h"
 #include "panels/menu_bar_widget.h"
 #include "panels/properties_widget.h"
 #include "panels/scene_hierarchy_widget.h"
+#include "platform/input/input.h"
 #include "platform/window/window.h"
+#include "renderer/renderer.h"
 #include "resource/config_manager.h"
+#include "scene/components/camera_controller.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
 
@@ -74,9 +75,11 @@ namespace RealmEngine
 
                     // Wire up camera controller for the loaded scene
                     const GamePlayConfig& gp = engine->getConfig().getGamePlayConfig();
-                    loaded->getCameraController()->initialize(
-                        engine->getRenderer().getCamera(), engine->getInput(),
-                        gp.camera_mouse_sensitivity, gp.camera_move_speed, gp.camera_sprint_multiplier);
+                    loaded->getCameraController()->initialize(engine->getRenderer().getCamera(),
+                                                              engine->getInput(),
+                                                              gp.camera_mouse_sensitivity,
+                                                              gp.camera_move_speed,
+                                                              gp.camera_sprint_multiplier);
 
                     RE_LOG_INFO("Scene loaded from: " + path.string());
                 }
@@ -99,7 +102,7 @@ namespace RealmEngine
 
         m_panels.push_back(std::make_shared<MenuBarWidget>(*engine));
         m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context, engine->getSceneManager()));
-        m_panels.push_back(std::make_shared<PropertiesWidget>(m_context));
+        m_panels.push_back(std::make_shared<PropertiesWidget>(m_context, engine->getSceneManager()));
         m_panels.push_back(file_dialog);
 
         auto widgets_shared = std::make_shared<std::vector<std::shared_ptr<Widget>>>(m_panels);
@@ -114,8 +117,7 @@ namespace RealmEngine
         ConfigManager& config    = m_engine->getConfig();
         SceneManager&  scene_mgr = m_engine->getSceneManager();
 
-        std::filesystem::path scene_file =
-            config.getRootFolder() / config.getGamePlayConfig().scene_file;
+        std::filesystem::path scene_file = config.getRootFolder() / config.getGamePlayConfig().scene_file;
 
         std::shared_ptr<Scene> scene;
         if (std::filesystem::exists(scene_file))
@@ -143,9 +145,11 @@ namespace RealmEngine
 
         // Initialize scene camera controller
         const GamePlayConfig& gp = config.getGamePlayConfig();
-        scene->getCameraController()->initialize(
-            m_engine->getRenderer().getCamera(), m_engine->getInput(),
-            gp.camera_mouse_sensitivity, gp.camera_move_speed, gp.camera_sprint_multiplier);
+        scene->getCameraController()->initialize(m_engine->getRenderer().getCamera(),
+                                                 m_engine->getInput(),
+                                                 gp.camera_mouse_sensitivity,
+                                                 gp.camera_move_speed,
+                                                 gp.camera_sprint_multiplier);
 
         m_initialized = true;
     }

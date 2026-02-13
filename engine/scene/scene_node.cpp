@@ -4,22 +4,22 @@
 
 namespace RealmEngine
 {
-    SceneNode::SceneNode() : m_name("SceneNode"), m_entity_id(0) {}
-    SceneNode::SceneNode(const std::string& name) : m_name(name), m_entity_id(0) {}
+    SceneNode::SceneNode() : m_name("SceneNode") {}
+    SceneNode::SceneNode(const std::string& name) : m_name(name) {}
 
     void               SceneNode::setName(const std::string& name) { m_name = name; }
     const std::string& SceneNode::getName() const { return m_name; }
 
-    void   SceneNode::setEntityId(size_t entity_id) { m_entity_id = entity_id; }
-    size_t SceneNode::getEntityId() const { return m_entity_id; }
-    bool   SceneNode::hasEntity() const { return m_entity_id != 0; }
+    void         SceneNode::setEntity(entt::entity entity) { m_entity = entity; }
+    entt::entity SceneNode::getEntity() const { return m_entity; }
+    bool         SceneNode::hasEntity() const { return m_entity != entt::null; }
 
     void SceneNode::addChild(std::shared_ptr<SceneNode> child)
     {
         if (!child)
             return;
 
-        auto old_parent = child->m_parent.lock();
+        auto old_parent = m_parent.lock();
         if (old_parent)
             old_parent->removeChild(child);
 

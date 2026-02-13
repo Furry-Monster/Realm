@@ -1,6 +1,7 @@
 #include "panels/scene_hierarchy_widget.h"
 
 #include "editor_context.h"
+#include "scene/scene.h"
 #include "scene/scene_manager.h"
 #include "scene/scene_node.h"
 
@@ -27,12 +28,12 @@ namespace RealmEngine
 
         auto root = current_scene->getRoot();
         if (root)
-            renderNode(root);
+            renderNode(root, *current_scene);
 
         ImGui::End();
     }
 
-    void SceneHierarchyWidget::renderNode(std::shared_ptr<SceneNode> node)
+    void SceneHierarchyWidget::renderNode(std::shared_ptr<SceneNode> node, Scene& scene)
     {
         if (!node)
             return;
@@ -57,19 +58,10 @@ namespace RealmEngine
             if (m_context)
             {
                 m_context->setSelectedNode(node);
-                if (node->hasEntity())
-                {
-                    auto current_scene = m_scene_mgr.getCurrentScene();
-                    if (current_scene)
-                    {
-                        auto entity = current_scene->getEntity(node->getEntityId());
-                        m_context->setSelectedEntity(entity);
-                    }
-                }
+                if (node->hasEntity() && scene.valid(node->getEntity()))
+                    m_context->setSelectedEntity(node->getEntity());
                 else
-                {
                     m_context->clearSelectedEntity();
-                }
             }
         }
 
@@ -79,7 +71,7 @@ namespace RealmEngine
             {
                 auto child = node->getChild(i);
                 if (child)
-                    renderNode(child);
+                    renderNode(child, scene);
             }
             ImGui::TreePop();
         }

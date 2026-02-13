@@ -7,6 +7,8 @@
 #include "scene/components/lighting/spot.h"
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
+#include "scene/scene.h"
+#include "scene/scene_manager.h"
 
 #include <imgui.h>
 #include <glm/glm.hpp>
@@ -14,45 +16,41 @@
 
 namespace RealmEngine
 {
-    PropertiesWidget::PropertiesWidget(std::shared_ptr<EditorContext> context) :
-        Widget("Properties"), m_context(context)
+    PropertiesWidget::PropertiesWidget(std::shared_ptr<EditorContext> context, SceneManager& scene_mgr) :
+        Widget("Properties"), m_context(context), m_scene_mgr(scene_mgr)
     {}
 
     void PropertiesWidget::render()
     {
         ImGui::Begin(m_name.c_str(), &m_open);
 
-        if (!m_context || !m_context->hasSelectedEntity())
+        auto scene = m_scene_mgr.getCurrentScene();
+        if (!m_context || !m_context->hasSelectedEntity() || !scene)
         {
             ImGui::Text("No entity selected");
             ImGui::End();
             return;
         }
 
-        auto entity = m_context->getSelectedEntity();
-        if (!entity)
+        entt::entity entity = m_context->getSelectedEntity();
+        if (!scene->valid(entity))
         {
             ImGui::Text("Invalid entity");
             ImGui::End();
             return;
         }
 
-        if (entity->hasComponent<Transform>())
+        if (scene->has<Transform>(entity))
             renderTransform();
-
-        if (entity->hasComponent<Renderable>())
+        if (scene->has<Renderable>(entity))
             renderRenderable();
-
-        if (entity->hasComponent<Point>())
+        if (scene->has<PointLight>(entity))
             renderPointLight();
-
-        if (entity->hasComponent<Spot>())
+        if (scene->has<SpotLight>(entity))
             renderSpotLight();
-
-        if (entity->hasComponent<Directional>())
+        if (scene->has<DirectionalLight>(entity))
             renderDirectionalLight();
-
-        if (entity->hasComponent<Area>())
+        if (scene->has<AreaLight>(entity))
             renderAreaLight();
 
         ImGui::End();
@@ -60,117 +58,80 @@ namespace RealmEngine
 
     void PropertiesWidget::renderTransform()
     {
-        if (!m_context || !m_context->hasSelectedEntity())
+        auto scene = m_scene_mgr.getCurrentScene();
+        if (!scene || !m_context->hasSelectedEntity())
             return;
 
-        auto entity    = m_context->getSelectedEntity();
-        auto transform = entity->getComponent<Transform>();
-        if (!transform)
+        auto* tf = scene->tryGet<Transform>(m_context->getSelectedEntity());
+        if (!tf)
             return;
 
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // Position
-            glm::vec3 position = transform->getPosition();
-            if (ImGui::DragFloat3("Position", &position.x, 0.1f))
+            if (ImGui::DragFloat3("Position", &tf->position.x, 0.1f))
             {
-                transform->setPosition(position);
             }
 
-            // Rotation (Euler angles)
-            glm::vec3 euler         = transform->getEulerAngles();
-            glm::vec3 euler_degrees = glm::degrees(euler);
+            glm::vec3 euler_degrees = glm::degrees(tf->getEulerAngles());
             if (ImGui::DragFloat3("Rotation", &euler_degrees.x, 1.0f))
-            {
-                transform->setRotation(glm::radians(euler_degrees));
-            }
+                tf->rotation = glm::quat(glm::radians(euler_degrees));
 
-            // Scale
-            glm::vec3 scale = transform->getScale();
-            if (ImGui::DragFloat3("Scale", &scale.x, 0.1f))
+            if (ImGui::DragFloat3("Scale", &tf->scale.x, 0.1f))
             {
-                transform->setScale(scale);
             }
         }
     }
 
     void PropertiesWidget::renderRenderable()
     {
-        if (!m_context || !m_context->hasSelectedEntity())
+        auto scene = m_scene_mgr.getCurrentScene();
+        if (!scene || !m_context->hasSelectedEntity())
             return;
 
-        auto entity     = m_context->getSelectedEntity();
-        auto renderable = entity->getComponent<Renderable>();
-        if (!renderable)
+        auto* r = scene->tryGet<Renderable>(m_context->getSelectedEntity());
+        if (!r)
             return;
 
         if (ImGui::CollapsingHeader("Renderable", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            if (renderable->hasModelPath())
+            if (!r->model_path.empty())
             {
-                std::string model_path = renderable->getModelPath();
-                char        buffer[256];
-                strncpy(buffer, model_path.c_str(), sizeof(buffer) - 1);
+                char buffer[256];
+                strncpy(buffer, r->model_path.c_str(), sizeof(buffer) - 1);
                 buffer[sizeof(buffer) - 1] = '\0';
-
-                if (ImGui::InputText("Model Path", buffer, sizeof(buffer), ImGuiInputTextFlags_ReadOnly))
-                {
-                    // Read-only for now
-                }
+                ImGui::InputText("Model Path", buffer, sizeof(buffer), ImGuiInputTextFlags_ReadOnly);
             }
             else
             {
                 ImGui::Text("No model path");
             }
 
-            if (renderable->hasRenderObject())
-                ImGui::Text("Render Object: Loaded");
-            else
-                ImGui::Text("Render Object: Not loaded");
+            ImGui::Text(r->render_object ? "Render Object: Loaded" : "Render Object: Not loaded");
         }
     }
 
     void PropertiesWidget::renderPointLight()
     {
-        if (!m_context || !m_context->hasSelectedEntity())
+        auto scene = m_scene_mgr.getCurrentScene();
+        if (!scene || !m_context->hasSelectedEntity())
             return;
 
-        auto entity      = m_context->getSelectedEntity();
-        auto point_light = entity->getComponent<Point>();
-        if (!point_light)
+        auto* pl = scene->tryGet<PointLight>(m_context->getSelectedEntity());
+        if (!pl)
             return;
 
         if (ImGui::CollapsingHeader("Point Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            bool enabled = point_light->isEnabled();
-            if (ImGui::Checkbox("Enabled", &enabled))
-                point_light->setEnabled(enabled);
-
-            glm::vec3 color = point_light->getColor();
-            if (ImGui::ColorEdit3("Color", &color.x))
-                point_light->setColor(color);
-
-            float intensity = point_light->getIntensity();
-            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
-                point_light->setIntensity(intensity);
-
-            float range = point_light->getRange();
-            if (ImGui::DragFloat("Range", &range, 1.0f, 0.0f, 1000.0f))
-                point_light->setRange(range);
+            ImGui::Checkbox("Enabled", &pl->enabled);
+            ImGui::ColorEdit3("Color", &pl->color.x);
+            ImGui::DragFloat("Intensity", &pl->intensity, 0.1f, 0.0f, 100.0f);
+            ImGui::DragFloat("Range", &pl->range, 1.0f, 0.0f, 1000.0f);
 
             if (ImGui::TreeNode("Attenuation"))
             {
-                float constant  = point_light->getConstantAttenuation();
-                float linear    = point_light->getLinearAttenuation();
-                float quadratic = point_light->getQuadraticAttenuation();
-
-                if (ImGui::DragFloat("Constant", &constant, 0.01f, 0.0f, 10.0f))
-                    point_light->setConstantAttenuation(constant);
-                if (ImGui::DragFloat("Linear", &linear, 0.001f, 0.0f, 1.0f))
-                    point_light->setLinearAttenuation(linear);
-                if (ImGui::DragFloat("Quadratic", &quadratic, 0.0001f, 0.0f, 1.0f))
-                    point_light->setQuadraticAttenuation(quadratic);
-
+                ImGui::DragFloat("Constant", &pl->constant, 0.01f, 0.0f, 10.0f);
+                ImGui::DragFloat("Linear", &pl->linear, 0.001f, 0.0f, 1.0f);
+                ImGui::DragFloat("Quadratic", &pl->quadratic, 0.0001f, 0.0f, 1.0f);
                 ImGui::TreePop();
             }
         }
@@ -178,53 +139,28 @@ namespace RealmEngine
 
     void PropertiesWidget::renderSpotLight()
     {
-        if (!m_context || !m_context->hasSelectedEntity())
+        auto scene = m_scene_mgr.getCurrentScene();
+        if (!scene || !m_context->hasSelectedEntity())
             return;
 
-        auto entity     = m_context->getSelectedEntity();
-        auto spot_light = entity->getComponent<Spot>();
-        if (!spot_light)
+        auto* sl = scene->tryGet<SpotLight>(m_context->getSelectedEntity());
+        if (!sl)
             return;
 
         if (ImGui::CollapsingHeader("Spot Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            bool enabled = spot_light->isEnabled();
-            if (ImGui::Checkbox("Enabled", &enabled))
-                spot_light->setEnabled(enabled);
-
-            glm::vec3 color = spot_light->getColor();
-            if (ImGui::ColorEdit3("Color", &color.x))
-                spot_light->setColor(color);
-
-            float intensity = spot_light->getIntensity();
-            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
-                spot_light->setIntensity(intensity);
-
-            float range = spot_light->getRange();
-            if (ImGui::DragFloat("Range", &range, 1.0f, 0.0f, 1000.0f))
-                spot_light->setRange(range);
-
-            float inner_angle = spot_light->getInnerConeAngle();
-            if (ImGui::DragFloat("Inner Cone Angle", &inner_angle, 1.0f, 0.0f, 180.0f))
-                spot_light->setInnerConeAngle(inner_angle);
-
-            float outer_angle = spot_light->getOuterConeAngle();
-            if (ImGui::DragFloat("Outer Cone Angle", &outer_angle, 1.0f, 0.0f, 180.0f))
-                spot_light->setOuterConeAngle(outer_angle);
+            ImGui::Checkbox("Enabled", &sl->enabled);
+            ImGui::ColorEdit3("Color", &sl->color.x);
+            ImGui::DragFloat("Intensity", &sl->intensity, 0.1f, 0.0f, 100.0f);
+            ImGui::DragFloat("Range", &sl->range, 1.0f, 0.0f, 1000.0f);
+            ImGui::DragFloat("Inner Cone Angle", &sl->inner_cone_angle, 1.0f, 0.0f, 180.0f);
+            ImGui::DragFloat("Outer Cone Angle", &sl->outer_cone_angle, 1.0f, 0.0f, 180.0f);
 
             if (ImGui::TreeNode("Attenuation"))
             {
-                float constant  = spot_light->getConstantAttenuation();
-                float linear    = spot_light->getLinearAttenuation();
-                float quadratic = spot_light->getQuadraticAttenuation();
-
-                if (ImGui::DragFloat("Constant", &constant, 0.01f, 0.0f, 10.0f))
-                    spot_light->setConstantAttenuation(constant);
-                if (ImGui::DragFloat("Linear", &linear, 0.001f, 0.0f, 1.0f))
-                    spot_light->setLinearAttenuation(linear);
-                if (ImGui::DragFloat("Quadratic", &quadratic, 0.0001f, 0.0f, 1.0f))
-                    spot_light->setQuadraticAttenuation(quadratic);
-
+                ImGui::DragFloat("Constant", &sl->constant, 0.01f, 0.0f, 10.0f);
+                ImGui::DragFloat("Linear", &sl->linear, 0.001f, 0.0f, 1.0f);
+                ImGui::DragFloat("Quadratic", &sl->quadratic, 0.0001f, 0.0f, 1.0f);
                 ImGui::TreePop();
             }
         }
@@ -232,61 +168,39 @@ namespace RealmEngine
 
     void PropertiesWidget::renderDirectionalLight()
     {
-        if (!m_context || !m_context->hasSelectedEntity())
+        auto scene = m_scene_mgr.getCurrentScene();
+        if (!scene || !m_context->hasSelectedEntity())
             return;
 
-        auto entity            = m_context->getSelectedEntity();
-        auto directional_light = entity->getComponent<Directional>();
-        if (!directional_light)
+        auto* dl = scene->tryGet<DirectionalLight>(m_context->getSelectedEntity());
+        if (!dl)
             return;
 
         if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            bool enabled = directional_light->isEnabled();
-            if (ImGui::Checkbox("Enabled", &enabled))
-                directional_light->setEnabled(enabled);
-
-            glm::vec3 color = directional_light->getColor();
-            if (ImGui::ColorEdit3("Color", &color.x))
-                directional_light->setColor(color);
-
-            float intensity = directional_light->getIntensity();
-            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
-                directional_light->setIntensity(intensity);
+            ImGui::Checkbox("Enabled", &dl->enabled);
+            ImGui::ColorEdit3("Color", &dl->color.x);
+            ImGui::DragFloat("Intensity", &dl->intensity, 0.1f, 0.0f, 100.0f);
         }
     }
 
     void PropertiesWidget::renderAreaLight()
     {
-        if (!m_context || !m_context->hasSelectedEntity())
+        auto scene = m_scene_mgr.getCurrentScene();
+        if (!scene || !m_context->hasSelectedEntity())
             return;
 
-        auto entity     = m_context->getSelectedEntity();
-        auto area_light = entity->getComponent<Area>();
-        if (!area_light)
+        auto* al = scene->tryGet<AreaLight>(m_context->getSelectedEntity());
+        if (!al)
             return;
 
         if (ImGui::CollapsingHeader("Area Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            bool enabled = area_light->isEnabled();
-            if (ImGui::Checkbox("Enabled", &enabled))
-                area_light->setEnabled(enabled);
-
-            glm::vec3 color = area_light->getColor();
-            if (ImGui::ColorEdit3("Color", &color.x))
-                area_light->setColor(color);
-
-            float intensity = area_light->getIntensity();
-            if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
-                area_light->setIntensity(intensity);
-
-            float width = area_light->getWidth();
-            if (ImGui::DragFloat("Width", &width, 0.1f, 0.0f, 100.0f))
-                area_light->setWidth(width);
-
-            float height = area_light->getHeight();
-            if (ImGui::DragFloat("Height", &height, 0.1f, 0.0f, 100.0f))
-                area_light->setHeight(height);
+            ImGui::Checkbox("Enabled", &al->enabled);
+            ImGui::ColorEdit3("Color", &al->color.x);
+            ImGui::DragFloat("Intensity", &al->intensity, 0.1f, 0.0f, 100.0f);
+            ImGui::DragFloat("Width", &al->width, 0.1f, 0.0f, 100.0f);
+            ImGui::DragFloat("Height", &al->height, 0.1f, 0.0f, 100.0f);
         }
     }
 

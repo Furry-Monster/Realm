@@ -1,7 +1,6 @@
 #include "scene/serialization/scene_serializer.h"
 
 #include <fstream>
-#include <iostream>
 #include <json.hpp>
 #include <sstream>
 
@@ -13,7 +12,7 @@
 #include "scene/components/lighting/spot.h"
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
-#include "scene/entity.h"
+#include "scene/scene.h"
 #include "scene/scene_node.h"
 
 namespace RealmEngine
@@ -27,7 +26,7 @@ namespace RealmEngine
         json["version"] = 1;
 
         nlohmann::json root_json;
-        serializeNode(root_json, scene->getRoot(), scene);
+        serializeNode(root_json, scene->getRoot(), *scene);
         json["root"] = root_json;
 
         return json.dump(2);
@@ -46,7 +45,7 @@ namespace RealmEngine
 
             if (json_obj.contains("root"))
             {
-                auto root = deserializeNode(json_obj["root"], scene);
+                auto root = deserializeNode(json_obj["root"], *scene);
                 if (root)
                 {
                     scene->getRoot()->clearChildren();
@@ -124,8 +123,7 @@ namespace RealmEngine
         }
     }
 
-    void
-    SceneSerializer::serializeNode(nlohmann::json& json, std::shared_ptr<SceneNode> node, std::shared_ptr<Scene> scene)
+    void SceneSerializer::serializeNode(nlohmann::json& json, std::shared_ptr<SceneNode> node, Scene& scene)
     {
         if (!node)
             return;
@@ -134,12 +132,11 @@ namespace RealmEngine
 
         if (node->hasEntity())
         {
-            size_t entity_id = node->getEntityId();
-            auto   entity    = scene->getEntity(entity_id);
-            if (entity)
+            entt::entity entity = node->getEntity();
+            if (scene.valid(entity))
             {
                 nlohmann::json entity_json;
-                serializeEntity(entity_json, entity);
+                serializeEntity(entity_json, entity, scene);
                 json["entity"] = entity_json;
             }
         }
@@ -147,7 +144,7 @@ namespace RealmEngine
         if (node->getChildCount() > 0)
         {
             nlohmann::json children_json = nlohmann::json::array();
-            node->forEachChild([&children_json, scene](const std::shared_ptr<SceneNode>& child) {
+            node->forEachChild([&children_json, &scene](const std::shared_ptr<SceneNode>& child) {
                 nlohmann::json child_json;
                 serializeNode(child_json, child, scene);
                 children_json.push_back(child_json);
@@ -156,156 +153,88 @@ namespace RealmEngine
         }
     }
 
-    void SceneSerializer::serializeEntity(nlohmann::json& json, std::shared_ptr<Entity> entity)
+    void SceneSerializer::serializeEntity(nlohmann::json& json, entt::entity entity, Scene& scene)
     {
-        if (!entity)
-            return;
-
-        json["id"] = entity->getId();
+        json["id"] = static_cast<uint32_t>(entity);
 
         nlohmann::json components_json = nlohmann::json::array();
 
-        auto transform = entity->getComponent<Transform>();
-        if (transform)
+        if (auto* tf = scene.tryGet<Transform>(entity))
         {
-            nlohmann::json comp_json;
-            serializeComponent(comp_json, transform);
-            components_json.push_back(comp_json);
+            nlohmann::json c;
+            c["type"]     = "Transform";
+            auto euler    = tf->getEulerAngles();
+            c["position"] = nlohmann::json::array({tf->position.x, tf->position.y, tf->position.z});
+            c["rotation"] = nlohmann::json::array({euler.x, euler.y, euler.z});
+            c["scale"]    = nlohmann::json::array({tf->scale.x, tf->scale.y, tf->scale.z});
+            components_json.push_back(c);
         }
 
-        auto renderable = entity->getComponent<Renderable>();
-        if (renderable)
+        if (auto* r = scene.tryGet<Renderable>(entity))
         {
-            nlohmann::json comp_json;
-            serializeComponent(comp_json, renderable);
-            components_json.push_back(comp_json);
+            nlohmann::json c;
+            c["type"]          = "Renderable";
+            c["model_path"]    = r->model_path.empty() ? "" : r->model_path;
+            c["flip_textures"] = r->flip_textures;
+            components_json.push_back(c);
         }
 
-        auto point_light = entity->getComponent<Point>();
-        if (point_light)
+        if (auto* pl = scene.tryGet<PointLight>(entity))
         {
-            nlohmann::json comp_json;
-            serializeComponent(comp_json, point_light);
-            components_json.push_back(comp_json);
+            nlohmann::json c;
+            c["type"]      = "Point";
+            c["color"]     = nlohmann::json::array({pl->color.x, pl->color.y, pl->color.z});
+            c["intensity"] = pl->intensity;
+            c["enabled"]   = pl->enabled;
+            c["range"]     = pl->range;
+            c["constant"]  = pl->constant;
+            c["linear"]    = pl->linear;
+            c["quadratic"] = pl->quadratic;
+            components_json.push_back(c);
         }
 
-        auto spot_light = entity->getComponent<Spot>();
-        if (spot_light)
+        if (auto* sl = scene.tryGet<SpotLight>(entity))
         {
-            nlohmann::json comp_json;
-            serializeComponent(comp_json, spot_light);
-            components_json.push_back(comp_json);
+            nlohmann::json c;
+            c["type"]             = "Spot";
+            c["color"]            = nlohmann::json::array({sl->color.x, sl->color.y, sl->color.z});
+            c["intensity"]        = sl->intensity;
+            c["enabled"]          = sl->enabled;
+            c["range"]            = sl->range;
+            c["constant"]         = sl->constant;
+            c["linear"]           = sl->linear;
+            c["quadratic"]        = sl->quadratic;
+            c["inner_cone_angle"] = sl->inner_cone_angle;
+            c["outer_cone_angle"] = sl->outer_cone_angle;
+            components_json.push_back(c);
         }
 
-        auto directional_light = entity->getComponent<Directional>();
-        if (directional_light)
+        if (auto* dl = scene.tryGet<DirectionalLight>(entity))
         {
-            nlohmann::json comp_json;
-            serializeComponent(comp_json, directional_light);
-            components_json.push_back(comp_json);
+            nlohmann::json c;
+            c["type"]      = "Directional";
+            c["color"]     = nlohmann::json::array({dl->color.x, dl->color.y, dl->color.z});
+            c["intensity"] = dl->intensity;
+            c["enabled"]   = dl->enabled;
+            components_json.push_back(c);
         }
 
-        auto area_light = entity->getComponent<Area>();
-        if (area_light)
+        if (auto* al = scene.tryGet<AreaLight>(entity))
         {
-            nlohmann::json comp_json;
-            serializeComponent(comp_json, area_light);
-            components_json.push_back(comp_json);
+            nlohmann::json c;
+            c["type"]      = "Area";
+            c["color"]     = nlohmann::json::array({al->color.x, al->color.y, al->color.z});
+            c["intensity"] = al->intensity;
+            c["enabled"]   = al->enabled;
+            c["width"]     = al->width;
+            c["height"]    = al->height;
+            components_json.push_back(c);
         }
 
         json["components"] = components_json;
     }
 
-    void SceneSerializer::serializeComponent(nlohmann::json& json, std::shared_ptr<Component> component)
-    {
-        if (!component)
-            return;
-
-        auto transform = std::dynamic_pointer_cast<Transform>(component);
-        if (transform)
-        {
-            json["type"] = "Transform";
-            auto pos     = transform->getPosition();
-            auto rot     = transform->getEulerAngles();
-            auto scale   = transform->getScale();
-
-            json["position"] = nlohmann::json::array({pos.x, pos.y, pos.z});
-            json["rotation"] = nlohmann::json::array({rot.x, rot.y, rot.z});
-            json["scale"]    = nlohmann::json::array({scale.x, scale.y, scale.z});
-            return;
-        }
-
-        auto renderable = std::dynamic_pointer_cast<Renderable>(component);
-        if (renderable)
-        {
-            json["type"] = "Renderable";
-            if (renderable->hasModelPath())
-                json["model_path"] = renderable->getModelPath();
-            else
-                json["model_path"] = "";
-            json["flip_textures"] = false;
-            return;
-        }
-
-        auto point_light = std::dynamic_pointer_cast<Point>(component);
-        if (point_light)
-        {
-            json["type"]      = "Point";
-            auto color        = point_light->getColor();
-            json["color"]     = nlohmann::json::array({color.x, color.y, color.z});
-            json["intensity"] = point_light->getIntensity();
-            json["enabled"]   = point_light->isEnabled();
-            json["range"]     = point_light->getRange();
-            json["constant"]  = point_light->getConstantAttenuation();
-            json["linear"]    = point_light->getLinearAttenuation();
-            json["quadratic"] = point_light->getQuadraticAttenuation();
-            return;
-        }
-
-        auto spot_light = std::dynamic_pointer_cast<Spot>(component);
-        if (spot_light)
-        {
-            json["type"]             = "Spot";
-            auto color               = spot_light->getColor();
-            json["color"]            = nlohmann::json::array({color.x, color.y, color.z});
-            json["intensity"]        = spot_light->getIntensity();
-            json["enabled"]          = spot_light->isEnabled();
-            json["range"]            = spot_light->getRange();
-            json["constant"]         = spot_light->getConstantAttenuation();
-            json["linear"]           = spot_light->getLinearAttenuation();
-            json["quadratic"]        = spot_light->getQuadraticAttenuation();
-            json["inner_cone_angle"] = spot_light->getInnerConeAngle();
-            json["outer_cone_angle"] = spot_light->getOuterConeAngle();
-            return;
-        }
-
-        auto directional_light = std::dynamic_pointer_cast<Directional>(component);
-        if (directional_light)
-        {
-            json["type"]      = "Directional";
-            auto color        = directional_light->getColor();
-            json["color"]     = nlohmann::json::array({color.x, color.y, color.z});
-            json["intensity"] = directional_light->getIntensity();
-            json["enabled"]   = directional_light->isEnabled();
-            return;
-        }
-
-        auto area_light = std::dynamic_pointer_cast<Area>(component);
-        if (area_light)
-        {
-            json["type"]      = "Area";
-            auto color        = area_light->getColor();
-            json["color"]     = nlohmann::json::array({color.x, color.y, color.z});
-            json["intensity"] = area_light->getIntensity();
-            json["enabled"]   = area_light->isEnabled();
-            json["width"]     = area_light->getWidth();
-            json["height"]    = area_light->getHeight();
-            return;
-        }
-    }
-
-    std::shared_ptr<SceneNode> SceneSerializer::deserializeNode(const nlohmann::json&  json,
-                                                                std::shared_ptr<Scene> scene)
+    std::shared_ptr<SceneNode> SceneSerializer::deserializeNode(const nlohmann::json& json, Scene& scene)
     {
         if (!json.contains("name"))
             return nullptr;
@@ -316,11 +245,9 @@ namespace RealmEngine
         if (json.contains("entity"))
         {
             deserializeEntity(json["entity"], scene, name);
-            if (scene->hasEntity(name))
-            {
-                size_t entity_id = Scene::hashName(name);
-                node->setEntityId(entity_id);
-            }
+            entt::entity entity = scene.findEntity(name);
+            if (entity != entt::null)
+                node->setEntity(entity);
         }
 
         if (json.contains("children") && json["children"].is_array())
@@ -336,176 +263,118 @@ namespace RealmEngine
         return node;
     }
 
-    void SceneSerializer::deserializeEntity(const nlohmann::json&  json,
-                                            std::shared_ptr<Scene> scene,
-                                            const std::string&     name)
+    void SceneSerializer::deserializeEntity(const nlohmann::json& json, Scene& scene, const std::string& name)
     {
         if (!json.contains("id") || !json.contains("components"))
             return;
 
-        auto entity = scene->createEntity(name);
+        auto entity = scene.createEntity(name);
 
         for (const auto& comp_json : json["components"])
         {
-            auto component = deserializeComponent(comp_json);
-            if (component)
-                entity->addComponent(component);
-        }
-    }
+            if (!comp_json.contains("type"))
+                continue;
 
-    std::shared_ptr<Component> SceneSerializer::deserializeComponent(const nlohmann::json& json)
-    {
-        if (!json.contains("type"))
-            return nullptr;
+            std::string type = comp_json["type"];
 
-        std::string type = json["type"];
-
-        if (type == "Transform")
-        {
-            auto transform = std::make_shared<Transform>();
-
-            if (json.contains("position") && json["position"].is_array() && json["position"].size() == 3)
-                transform->setPosition(glm::vec3(json["position"][0], json["position"][1], json["position"][2]));
-
-            if (json.contains("rotation") && json["rotation"].is_array() && json["rotation"].size() == 3)
-                transform->setRotation(glm::vec3(json["rotation"][0], json["rotation"][1], json["rotation"][2]));
-
-            if (json.contains("scale") && json["scale"].is_array() && json["scale"].size() == 3)
-                transform->setScale(glm::vec3(json["scale"][0], json["scale"][1], json["scale"][2]));
-
-            return transform;
-        }
-
-        if (type == "Point")
-        {
-            auto point_light = std::make_shared<Point>();
-
-            if (json.contains("color") && json["color"].is_array() && json["color"].size() == 3)
+            if (type == "Transform")
             {
-                glm::vec3 color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
-                point_light->setColor(color);
+                auto& tf = scene.emplace<Transform>(entity);
+
+                if (comp_json.contains("position") && comp_json["position"].is_array() &&
+                    comp_json["position"].size() == 3)
+                    tf.position =
+                        glm::vec3(comp_json["position"][0], comp_json["position"][1], comp_json["position"][2]);
+
+                if (comp_json.contains("rotation") && comp_json["rotation"].is_array() &&
+                    comp_json["rotation"].size() == 3)
+                    tf.rotation = glm::quat(
+                        glm::vec3(comp_json["rotation"][0], comp_json["rotation"][1], comp_json["rotation"][2]));
+
+                if (comp_json.contains("scale") && comp_json["scale"].is_array() && comp_json["scale"].size() == 3)
+                    tf.scale = glm::vec3(comp_json["scale"][0], comp_json["scale"][1], comp_json["scale"][2]);
             }
-
-            if (json.contains("intensity") && json["intensity"].is_number())
-                point_light->setIntensity(json["intensity"]);
-
-            if (json.contains("enabled") && json["enabled"].is_boolean())
-                point_light->setEnabled(json["enabled"]);
-
-            if (json.contains("range") && json["range"].is_number())
-                point_light->setRange(json["range"]);
-
-            if (json.contains("constant") && json["constant"].is_number())
-                point_light->setConstantAttenuation(json["constant"]);
-
-            if (json.contains("linear") && json["linear"].is_number())
-                point_light->setLinearAttenuation(json["linear"]);
-
-            if (json.contains("quadratic") && json["quadratic"].is_number())
-                point_light->setQuadraticAttenuation(json["quadratic"]);
-
-            return point_light;
-        }
-
-        if (type == "Spot")
-        {
-            auto spot_light = std::make_shared<Spot>();
-
-            if (json.contains("color") && json["color"].is_array() && json["color"].size() == 3)
+            else if (type == "Renderable")
             {
-                glm::vec3 color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
-                spot_light->setColor(color);
+                auto& r = scene.emplace<Renderable>(entity);
+
+                if (comp_json.contains("model_path") && comp_json["model_path"].is_string())
+                    r.model_path = comp_json["model_path"];
+
+                if (comp_json.contains("flip_textures") && comp_json["flip_textures"].is_boolean())
+                    r.flip_textures = comp_json["flip_textures"];
+
+                r.loadModel();
             }
-
-            if (json.contains("intensity") && json["intensity"].is_number())
-                spot_light->setIntensity(json["intensity"]);
-
-            if (json.contains("enabled") && json["enabled"].is_boolean())
-                spot_light->setEnabled(json["enabled"]);
-
-            if (json.contains("range") && json["range"].is_number())
-                spot_light->setRange(json["range"]);
-
-            if (json.contains("constant") && json["constant"].is_number())
-                spot_light->setConstantAttenuation(json["constant"]);
-
-            if (json.contains("linear") && json["linear"].is_number())
-                spot_light->setLinearAttenuation(json["linear"]);
-
-            if (json.contains("quadratic") && json["quadratic"].is_number())
-                spot_light->setQuadraticAttenuation(json["quadratic"]);
-
-            if (json.contains("inner_cone_angle") && json["inner_cone_angle"].is_number())
-                spot_light->setInnerConeAngle(json["inner_cone_angle"]);
-
-            if (json.contains("outer_cone_angle") && json["outer_cone_angle"].is_number())
-                spot_light->setOuterConeAngle(json["outer_cone_angle"]);
-
-            return spot_light;
-        }
-
-        if (type == "Directional")
-        {
-            auto directional_light = std::make_shared<Directional>();
-
-            if (json.contains("color") && json["color"].is_array() && json["color"].size() == 3)
+            else if (type == "Point")
             {
-                glm::vec3 color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
-                directional_light->setColor(color);
+                auto& pl = scene.emplace<PointLight>(entity);
+
+                if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
+                    pl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
+                if (comp_json.contains("intensity") && comp_json["intensity"].is_number())
+                    pl.intensity = comp_json["intensity"];
+                if (comp_json.contains("enabled") && comp_json["enabled"].is_boolean())
+                    pl.enabled = comp_json["enabled"];
+                if (comp_json.contains("range") && comp_json["range"].is_number())
+                    pl.range = comp_json["range"];
+                if (comp_json.contains("constant") && comp_json["constant"].is_number())
+                    pl.constant = comp_json["constant"];
+                if (comp_json.contains("linear") && comp_json["linear"].is_number())
+                    pl.linear = comp_json["linear"];
+                if (comp_json.contains("quadratic") && comp_json["quadratic"].is_number())
+                    pl.quadratic = comp_json["quadratic"];
             }
-
-            if (json.contains("intensity") && json["intensity"].is_number())
-                directional_light->setIntensity(json["intensity"]);
-
-            if (json.contains("enabled") && json["enabled"].is_boolean())
-                directional_light->setEnabled(json["enabled"]);
-
-            return directional_light;
-        }
-
-        if (type == "Area")
-        {
-            auto area_light = std::make_shared<Area>();
-
-            if (json.contains("color") && json["color"].is_array() && json["color"].size() == 3)
+            else if (type == "Spot")
             {
-                glm::vec3 color = glm::vec3(json["color"][0], json["color"][1], json["color"][2]);
-                area_light->setColor(color);
+                auto& sl = scene.emplace<SpotLight>(entity);
+
+                if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
+                    sl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
+                if (comp_json.contains("intensity") && comp_json["intensity"].is_number())
+                    sl.intensity = comp_json["intensity"];
+                if (comp_json.contains("enabled") && comp_json["enabled"].is_boolean())
+                    sl.enabled = comp_json["enabled"];
+                if (comp_json.contains("range") && comp_json["range"].is_number())
+                    sl.range = comp_json["range"];
+                if (comp_json.contains("constant") && comp_json["constant"].is_number())
+                    sl.constant = comp_json["constant"];
+                if (comp_json.contains("linear") && comp_json["linear"].is_number())
+                    sl.linear = comp_json["linear"];
+                if (comp_json.contains("quadratic") && comp_json["quadratic"].is_number())
+                    sl.quadratic = comp_json["quadratic"];
+                if (comp_json.contains("inner_cone_angle") && comp_json["inner_cone_angle"].is_number())
+                    sl.inner_cone_angle = comp_json["inner_cone_angle"];
+                if (comp_json.contains("outer_cone_angle") && comp_json["outer_cone_angle"].is_number())
+                    sl.outer_cone_angle = comp_json["outer_cone_angle"];
             }
+            else if (type == "Directional")
+            {
+                auto& dl = scene.emplace<DirectionalLight>(entity);
 
-            if (json.contains("intensity") && json["intensity"].is_number())
-                area_light->setIntensity(json["intensity"]);
+                if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
+                    dl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
+                if (comp_json.contains("intensity") && comp_json["intensity"].is_number())
+                    dl.intensity = comp_json["intensity"];
+                if (comp_json.contains("enabled") && comp_json["enabled"].is_boolean())
+                    dl.enabled = comp_json["enabled"];
+            }
+            else if (type == "Area")
+            {
+                auto& al = scene.emplace<AreaLight>(entity);
 
-            if (json.contains("enabled") && json["enabled"].is_boolean())
-                area_light->setEnabled(json["enabled"]);
-
-            if (json.contains("width") && json["width"].is_number())
-                area_light->setWidth(json["width"]);
-
-            if (json.contains("height") && json["height"].is_number())
-                area_light->setHeight(json["height"]);
-
-            return area_light;
+                if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
+                    al.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
+                if (comp_json.contains("intensity") && comp_json["intensity"].is_number())
+                    al.intensity = comp_json["intensity"];
+                if (comp_json.contains("enabled") && comp_json["enabled"].is_boolean())
+                    al.enabled = comp_json["enabled"];
+                if (comp_json.contains("width") && comp_json["width"].is_number())
+                    al.width = comp_json["width"];
+                if (comp_json.contains("height") && comp_json["height"].is_number())
+                    al.height = comp_json["height"];
+            }
         }
-
-        if (type == "Renderable")
-        {
-            std::string model_path;
-            bool        flip_textures = false;
-
-            if (json.contains("model_path") && json["model_path"].is_string())
-                model_path = json["model_path"];
-
-            if (json.contains("flip_textures") && json["flip_textures"].is_boolean())
-                flip_textures = json["flip_textures"];
-
-            if (!model_path.empty())
-                return std::make_shared<Renderable>(model_path, flip_textures);
-            else
-                return std::make_shared<Renderable>();
-        }
-
-        return nullptr;
     }
 
 } // namespace RealmEngine

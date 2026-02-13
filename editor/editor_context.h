@@ -1,7 +1,7 @@
 #pragma once
 
+#include <entt/entity/entity.hpp>
 #include <memory>
-#include "scene/entity.h"
 #include "scene/scene_node.h"
 
 namespace RealmEngine
@@ -17,18 +17,18 @@ namespace RealmEngine
         EditorContext(EditorContext&&)                 = default;
         EditorContext& operator=(EditorContext&&)      = default;
 
-        void                    setSelectedEntity(std::shared_ptr<Entity> entity);
-        std::shared_ptr<Entity> getSelectedEntity() const;
-        bool                    hasSelectedEntity() const;
-        void                    clearSelectedEntity();
+        void         setSelectedEntity(entt::entity entity) { m_selected_entity = entity; }
+        entt::entity getSelectedEntity() const { return m_selected_entity; }
+        bool         hasSelectedEntity() const { return m_selected_entity != entt::null; }
+        void         clearSelectedEntity() { m_selected_entity = entt::null; }
 
-        void                       setSelectedNode(std::shared_ptr<SceneNode> node);
-        std::shared_ptr<SceneNode> getSelectedNode() const;
-        bool                       hasSelectedNode() const;
-        void                       clearSelectedNode();
+        void                       setSelectedNode(std::shared_ptr<SceneNode> node) { m_selected_node = node; }
+        std::shared_ptr<SceneNode> getSelectedNode() const { return m_selected_node; }
+        bool                       hasSelectedNode() const { return m_selected_node != nullptr; }
+        void                       clearSelectedNode() { m_selected_node.reset(); }
 
     private:
-        std::shared_ptr<Entity>    m_selected_entity {nullptr};
+        entt::entity               m_selected_entity {entt::null};
         std::shared_ptr<SceneNode> m_selected_node {nullptr};
     };
 

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <entt/entity/entity.hpp>
 #include <functional>
-#include <glm/glm.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -23,9 +23,9 @@ namespace RealmEngine
         void               setName(const std::string& name);
         const std::string& getName() const;
 
-        void   setEntityId(size_t entity_id);
-        size_t getEntityId() const;
-        bool   hasEntity() const;
+        void         setEntity(entt::entity entity);
+        entt::entity getEntity() const;
+        bool         hasEntity() const;
 
         void                       addChild(std::shared_ptr<SceneNode> child);
         void                       removeChild(std::shared_ptr<SceneNode> child);
@@ -42,7 +42,7 @@ namespace RealmEngine
 
     private:
         std::string                             m_name;
-        size_t                                  m_entity_id;
+        entt::entity                            m_entity {entt::null};
         std::weak_ptr<SceneNode>                m_parent;
         std::vector<std::shared_ptr<SceneNode>> m_children;
 

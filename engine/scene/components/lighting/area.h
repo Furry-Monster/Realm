@@ -1,25 +1,16 @@
 #pragma once
 
-#include "scene/components/lighting/light_component.h"
+#include <glm/glm.hpp>
 
 namespace RealmEngine
 {
-    class Area : public LightComponent
+    struct AreaLight
     {
-    public:
-        Area();
-        ~Area() noexcept override = default;
-
-        size_t getTypeId() const override;
-
-        void  setWidth(float width);
-        void  setHeight(float height);
-        float getWidth() const { return m_width; }
-        float getHeight() const { return m_height; }
-
-    private:
-        float m_width;
-        float m_height;
+        glm::vec3 color {1.0f};
+        float     intensity = 1.0f;
+        bool      enabled   = true;
+        float     width     = 1.0f;
+        float     height    = 1.0f;
     };
 
 } // namespace RealmEngine

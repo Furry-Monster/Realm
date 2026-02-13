@@ -71,8 +71,13 @@ if(NOT TARGET nlohmann)
     target_include_directories(nlohmann INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann)
 endif()
 
+if(NOT TARGET EnTT::EnTT)
+    add_library(entt INTERFACE)
+    target_include_directories(entt INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entt/src)
+endif()
+
 add_library(reflibs INTERFACE)
-target_link_libraries(reflibs INTERFACE glad glfw glm imgui assimp spdlog nlohmann)
+target_link_libraries(reflibs INTERFACE glad glfw glm imgui assimp spdlog nlohmann entt)
 
 # Link OpenGL library
 if(UNIX AND NOT APPLE)

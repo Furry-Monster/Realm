@@ -1,14 +1,15 @@
 #pragma once
 
+#include <entt/entity/registry.hpp>
 #include <memory>
+#include <string>
 #include <unordered_map>
-#include "scene/components/camera_controller.h"
-#include "scene/entity.h"
+
 #include "scene/scene_node.h"
 
 namespace RealmEngine
 {
-    class RenderCamera;
+    class CameraController;
 
     class Scene
     {
@@ -23,26 +24,95 @@ namespace RealmEngine
 
         void tick(float delta_time);
 
+        // Entity management
+        entt::entity createEntity(const std::string& name);
+        void         destroyEntity(entt::entity entity);
+        entt::entity findEntity(const std::string& name) const;
+        bool         valid(entt::entity entity) const;
+
+        // Component access (thin wrappers around entt::registry)
+        template<typename T, typename... Args>
+        T& emplace(entt::entity entity, Args&&... args);
+
+        template<typename T>
+        T& get(entt::entity entity);
+
+        template<typename T>
+        const T& get(entt::entity entity) const;
+
+        template<typename T>
+        T* tryGet(entt::entity entity);
+
+        template<typename T>
+        const T* tryGet(entt::entity entity) const;
+
+        template<typename T>
+        bool has(entt::entity entity) const;
+
+        template<typename T>
+        void remove(entt::entity entity);
+
+        // Registry access for views/groups
+        entt::registry&       getRegistry() { return m_registry; }
+        const entt::registry& getRegistry() const { return m_registry; }
+
+        // Scene hierarchy
         std::shared_ptr<SceneNode> getRoot() const { return m_root; }
 
-        std::shared_ptr<Entity> createEntity(const std::string& name);
-        std::shared_ptr<Entity> getEntity(const std::string& name) const;
-        std::shared_ptr<Entity> getEntity(size_t id) const;
-        bool                    hasEntity(const std::string& name) const;
-        bool                    hasEntity(size_t id) const;
-        void                    removeEntity(const std::string& name);
-        void                    removeEntity(size_t id);
-
-        std::shared_ptr<SceneNode> createNode(const std::string& name, size_t entity_id = 0);
+        std::shared_ptr<SceneNode> createNode(const std::string& name);
         std::shared_ptr<SceneNode> createNodeWithEntity(const std::string& name);
 
         std::shared_ptr<CameraController> getCameraController() const { return m_camera_controller; }
 
-        static size_t hashName(const std::string& name);
-
     private:
-        std::shared_ptr<SceneNode>                          m_root;
-        std::unordered_map<size_t, std::shared_ptr<Entity>> m_entities;
-        std::shared_ptr<CameraController>                   m_camera_controller;
+        entt::registry                                m_registry;
+        std::unordered_map<std::string, entt::entity> m_name_index;
+        std::shared_ptr<SceneNode>                    m_root;
+        std::shared_ptr<CameraController>             m_camera_controller;
     };
+
+    // Template implementations
+
+    template<typename T, typename... Args>
+    T& Scene::emplace(entt::entity entity, Args&&... args)
+    {
+        return m_registry.emplace<T>(entity, std::forward<Args>(args)...);
+    }
+
+    template<typename T>
+    T& Scene::get(entt::entity entity)
+    {
+        return m_registry.get<T>(entity);
+    }
+
+    template<typename T>
+    const T& Scene::get(entt::entity entity) const
+    {
+        return m_registry.get<T>(entity);
+    }
+
+    template<typename T>
+    T* Scene::tryGet(entt::entity entity)
+    {
+        return m_registry.try_get<T>(entity);
+    }
+
+    template<typename T>
+    const T* Scene::tryGet(entt::entity entity) const
+    {
+        return m_registry.try_get<T>(entity);
+    }
+
+    template<typename T>
+    bool Scene::has(entt::entity entity) const
+    {
+        return m_registry.all_of<T>(entity);
+    }
+
+    template<typename T>
+    void Scene::remove(entt::entity entity)
+    {
+        m_registry.remove<T>(entity);
+    }
+
 } // namespace RealmEngine

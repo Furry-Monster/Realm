@@ -1,12 +1,15 @@
 #pragma once
 
+#include <entt/entity/entity.hpp>
 #include <json.hpp>
 #include <memory>
 #include <string>
-#include "scene/scene.h"
 
 namespace RealmEngine
 {
+    class Scene;
+    class SceneNode;
+
     class SceneSerializer
     {
     public:
@@ -25,14 +28,11 @@ namespace RealmEngine
         static std::shared_ptr<Scene> loadFromFile(const std::string& filepath, bool encrypted = false);
 
     private:
-        static void serializeNode(nlohmann::json& json, std::shared_ptr<SceneNode> node, std::shared_ptr<Scene> scene);
-        static void serializeEntity(nlohmann::json& json, std::shared_ptr<Entity> entity);
-        static void serializeComponent(nlohmann::json& json, std::shared_ptr<Component> component);
+        static void serializeNode(nlohmann::json& json, std::shared_ptr<SceneNode> node, Scene& scene);
+        static void serializeEntity(nlohmann::json& json, entt::entity entity, Scene& scene);
 
-        static std::shared_ptr<SceneNode> deserializeNode(const nlohmann::json& json, std::shared_ptr<Scene> scene);
-        static void
-        deserializeEntity(const nlohmann::json& json, std::shared_ptr<Scene> scene, const std::string& name);
-        static std::shared_ptr<Component> deserializeComponent(const nlohmann::json& json);
+        static std::shared_ptr<SceneNode> deserializeNode(const nlohmann::json& json, Scene& scene);
+        static void deserializeEntity(const nlohmann::json& json, Scene& scene, const std::string& name);
     };
 
 } // namespace RealmEngine
