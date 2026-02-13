@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "renderer/render_material.h"
-#include "renderer/shader.h"
+#include "rhi/rhi_shader.h"
 
 namespace RealmEngine
 {
@@ -35,7 +35,7 @@ namespace RealmEngine
         RenderMesh(RenderMesh&& other) noexcept;
         RenderMesh& operator=(RenderMesh&& other) noexcept;
 
-        void draw(Shader& shader);
+        void draw(RHIShader& shader);
 
         std::vector<RenderVertex> m_vertices;
         std::vector<unsigned int> m_indices;

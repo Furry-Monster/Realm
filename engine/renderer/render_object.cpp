@@ -28,7 +28,7 @@ namespace RealmEngine
 
     glm::quat RenderObject::getOrientation() const { return m_orientation; }
 
-    void RenderObject::draw(Shader& shader)
+    void RenderObject::draw(RHIShader& shader)
     {
         for (auto& mesh : m_meshes)
             mesh.draw(shader);

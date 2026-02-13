@@ -34,7 +34,7 @@ namespace RealmEngine
         void      setOrientation(glm::quat orientation);
         glm::quat getOrientation() const;
 
-        void draw(Shader& shader);
+        void draw(RHIShader& shader);
 
     private:
         void loadModel(std::string path, bool flip_textures_vertically, RHIDevice& device);

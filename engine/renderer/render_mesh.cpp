@@ -58,7 +58,7 @@ namespace RealmEngine
         return *this;
     }
 
-    void RenderMesh::draw(Shader& shader)
+    void RenderMesh::draw(RHIShader& shader)
     {
         // Bind PBR material textures
         shader.setBool("material.useTextureAlbedo", m_material.use_texture_albedo);
