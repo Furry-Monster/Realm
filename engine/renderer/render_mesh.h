@@ -12,6 +12,12 @@ namespace RealmEngine
     {
     public:
         RenderMesh(std::vector<RenderVertex> vertices, std::vector<unsigned int> indices, RenderMaterial material);
+        ~RenderMesh();
+
+        RenderMesh(const RenderMesh&)            = delete;
+        RenderMesh& operator=(const RenderMesh&) = delete;
+        RenderMesh(RenderMesh&& other) noexcept;
+        RenderMesh& operator=(RenderMesh&& other) noexcept;
 
         void draw(Shader& shader);
 

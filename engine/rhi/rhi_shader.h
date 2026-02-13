@@ -12,6 +12,9 @@ namespace RealmEngine
     public:
         virtual ~RHIShader() = default;
 
+        // Returns true if the shader compiled and linked successfully.
+        virtual bool isValid() const = 0;
+
         virtual void use() = 0;
 
         // Uniform setters

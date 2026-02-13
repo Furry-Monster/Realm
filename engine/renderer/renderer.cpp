@@ -177,6 +177,7 @@ namespace RealmEngine
         }
 
         m_skybox_pass->setSkybox(m_skybox.get());
+        m_skybox_pass->setGeometryPass(m_geometry_pass);
         m_bloom_pass->setGeometryPass(m_geometry_pass);
         m_bloom_pass->setFullscreenQuad(m_fullscreen_quad.get());
         m_postprocess_pass->setGeometryPass(m_geometry_pass);
@@ -200,6 +201,71 @@ namespace RealmEngine
         ctx.viewport_height = m_window->getHeight();
 
         m_pipeline.execute(ctx);
+    }
+
+    void Renderer::onResize(int width, int height)
+    {
+        if (width <= 0 || height <= 0)
+            return;
+
+        m_device->setViewport(0, 0, width, height);
+
+        // Update camera aspect ratio
+        if (m_camera)
+            m_camera->setPerspective(m_camera->getFov(),
+                                     static_cast<float>(width) / static_cast<float>(height),
+                                     m_camera->getNearPlane(),
+                                     m_camera->getFarPlane());
+
+        // Recreate geometry pass framebuffer at new resolution
+        if (m_geometry_pass)
+        {
+            FramebufferDesc desc;
+            desc.width  = width;
+            desc.height = height;
+
+            FramebufferAttachment color0;
+            color0.format     = TextureFormat::RGBA16F;
+            color0.min_filter = TextureFilter::Linear;
+            color0.mag_filter = TextureFilter::Linear;
+            color0.wrap       = TextureWrap::ClampToEdge;
+
+            FramebufferAttachment bloom_color;
+            bloom_color.format     = TextureFormat::RGBA16F;
+            bloom_color.min_filter = TextureFilter::LinearMipmapLinear;
+            bloom_color.mag_filter = TextureFilter::Linear;
+            bloom_color.wrap       = TextureWrap::ClampToEdge;
+            bloom_color.gen_mips   = true;
+
+            desc.color_attachments                = {color0, bloom_color};
+            desc.has_depth                        = true;
+            desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
+            desc.depth_attachment.is_renderbuffer = true;
+
+            m_geometry_pass->setFramebuffer(m_device->createFramebuffer(desc));
+        }
+
+        // Recreate bloom framebuffers at new resolution
+        if (m_bloom_pass)
+        {
+            auto makeFb = [&]() {
+                FramebufferDesc desc;
+                desc.width  = width;
+                desc.height = height;
+
+                FramebufferAttachment color;
+                color.format           = TextureFormat::RGBA16F;
+                color.min_filter       = TextureFilter::LinearMipmapLinear;
+                color.mag_filter       = TextureFilter::Linear;
+                color.wrap             = TextureWrap::ClampToEdge;
+                color.gen_mips         = true;
+                desc.color_attachments = {color};
+
+                return m_device->createFramebuffer(desc);
+            };
+
+            m_bloom_pass->setFramebuffers(makeFb(), makeFb());
+        }
     }
 
     void Renderer::disposal()

@@ -28,14 +28,20 @@ namespace RealmEngine
 
     std::unique_ptr<RHIShader> GLDevice::createShader(const std::string& vertex_path, const std::string& fragment_path)
     {
-        return std::make_unique<GLShader>(vertex_path, fragment_path);
+        auto shader = std::make_unique<GLShader>(vertex_path, fragment_path);
+        if (!shader->isValid())
+            return nullptr;
+        return shader;
     }
 
     std::unique_ptr<RHIShader> GLDevice::createShader(const std::string& vertex_path,
                                                       const std::string& geometry_path,
                                                       const std::string& fragment_path)
     {
-        return std::make_unique<GLShader>(vertex_path, geometry_path, fragment_path);
+        auto shader = std::make_unique<GLShader>(vertex_path, geometry_path, fragment_path);
+        if (!shader->isValid())
+            return nullptr;
+        return shader;
     }
 
     std::unique_ptr<RHIFramebuffer> GLDevice::createFramebuffer(const FramebufferDesc& desc)
@@ -141,12 +147,6 @@ namespace RealmEngine
     // ----- Texture helpers -----------------------------------------------
 
     void GLDevice::bindTexture(uint32_t unit, RHITexture& texture) { texture.bind(unit); }
-
-    void GLDevice::bindCubemap(uint32_t unit, uint32_t native_handle)
-    {
-        glActiveTexture(GL_TEXTURE0 + unit);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, native_handle);
-    }
 
     // ----- Misc ----------------------------------------------------------
 

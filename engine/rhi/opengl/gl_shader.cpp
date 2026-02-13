@@ -141,35 +141,57 @@ namespace RealmEngine
 
     // ----- interface ------------------------------------------------------
 
+#ifndef NDEBUG
+    // Debug helper: verify this shader program is currently active before setting uniforms.
+    // glUniform* operates on the *currently bound* program, not the one queried for location.
+    static void assertProgramActive([[maybe_unused]] uint32_t expected_id)
+    {
+        GLint current = 0;
+        glGetIntegerv(GL_CURRENT_PROGRAM, &current);
+        if (static_cast<uint32_t>(current) != expected_id)
+            RE_LOG_WARN("Setting uniform on shader " + std::to_string(expected_id) +
+                        " but active program is " + std::to_string(current) + ". Call use() first.");
+    }
+#   define RE_ASSERT_SHADER_ACTIVE() assertProgramActive(m_id)
+#else
+#   define RE_ASSERT_SHADER_ACTIVE() ((void) 0)
+#endif
+
     void GLShader::use() { glUseProgram(m_id); }
 
     void GLShader::setBool(const std::string& name, bool value)
     {
+        RE_ASSERT_SHADER_ACTIVE();
         glUniform1i(glGetUniformLocation(m_id, name.c_str()), static_cast<int>(value));
     }
 
     void GLShader::setInt(const std::string& name, int value)
     {
+        RE_ASSERT_SHADER_ACTIVE();
         glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
     }
 
     void GLShader::setFloat(const std::string& name, float value)
     {
+        RE_ASSERT_SHADER_ACTIVE();
         glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
     }
 
     void GLShader::setVec2(const std::string& name, const glm::vec2& value)
     {
+        RE_ASSERT_SHADER_ACTIVE();
         glUniform2f(glGetUniformLocation(m_id, name.c_str()), value.x, value.y);
     }
 
     void GLShader::setVec3(const std::string& name, const glm::vec3& value)
     {
+        RE_ASSERT_SHADER_ACTIVE();
         glUniform3f(glGetUniformLocation(m_id, name.c_str()), value.x, value.y, value.z);
     }
 
     void GLShader::setMat4(const std::string& name, const glm::mat4& value)
     {
+        RE_ASSERT_SHADER_ACTIVE();
         glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &value[0][0]);
     }
 

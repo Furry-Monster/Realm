@@ -24,6 +24,14 @@ namespace RealmEngine
         glBindVertexArray(0);
     }
 
+    Cube::~Cube()
+    {
+        if (m_vao != 0)
+            glDeleteVertexArrays(1, &m_vao);
+        if (m_vbo != 0)
+            glDeleteBuffers(1, &m_vbo);
+    }
+
     void Cube::draw()
     {
         glBindVertexArray(m_vao);

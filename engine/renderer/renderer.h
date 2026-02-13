@@ -41,6 +41,7 @@ namespace RealmEngine
         void initialize(ConfigManager& config, Window& window);
         void disposal();
         void render();
+        void onResize(int width, int height);
 
         std::shared_ptr<RenderCamera> getCamera() const { return m_camera; }
         std::shared_ptr<RenderScene>  getRenderScene() const { return m_render_scene; }

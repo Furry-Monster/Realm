@@ -42,7 +42,6 @@ namespace RealmEngine
 
         // Texture helpers
         void bindTexture(uint32_t unit, RHITexture& texture) override;
-        void bindCubemap(uint32_t unit, uint32_t native_handle) override;
 
         // Misc
         void enableSeamlessCubemap() override;

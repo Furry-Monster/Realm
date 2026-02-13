@@ -17,6 +17,8 @@ namespace RealmEngine
         GLShader(const GLShader&)            = delete;
         GLShader& operator=(const GLShader&) = delete;
 
+        bool isValid() const override { return m_id != 0; }
+
         void use() override;
 
         void setBool(const std::string& name, bool value) override;

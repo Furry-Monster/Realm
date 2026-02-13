@@ -56,8 +56,7 @@ namespace RealmEngine
 
         // ----- Texture helpers (bind texture to unit) ---------------------
 
-        virtual void bindTexture(uint32_t unit, RHITexture& texture)    = 0;
-        virtual void bindCubemap(uint32_t unit, uint32_t native_handle) = 0;
+        virtual void bindTexture(uint32_t unit, RHITexture& texture) = 0;
 
         // ----- Misc -------------------------------------------------------
 

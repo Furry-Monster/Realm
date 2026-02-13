@@ -56,6 +56,50 @@ namespace RealmEngine
         glBindVertexArray(0);
     }
 
+    RenderMesh::~RenderMesh()
+    {
+        if (m_vao != 0)
+            glDeleteVertexArrays(1, &m_vao);
+        if (m_vbo != 0)
+            glDeleteBuffers(1, &m_vbo);
+        if (m_ebo != 0)
+            glDeleteBuffers(1, &m_ebo);
+    }
+
+    RenderMesh::RenderMesh(RenderMesh&& other) noexcept :
+        m_vertices(std::move(other.m_vertices)), m_indices(std::move(other.m_indices)),
+        m_material(std::move(other.m_material)), m_vao(other.m_vao), m_vbo(other.m_vbo), m_ebo(other.m_ebo)
+    {
+        other.m_vao = 0;
+        other.m_vbo = 0;
+        other.m_ebo = 0;
+    }
+
+    RenderMesh& RenderMesh::operator=(RenderMesh&& other) noexcept
+    {
+        if (this != &other)
+        {
+            if (m_vao != 0)
+                glDeleteVertexArrays(1, &m_vao);
+            if (m_vbo != 0)
+                glDeleteBuffers(1, &m_vbo);
+            if (m_ebo != 0)
+                glDeleteBuffers(1, &m_ebo);
+
+            m_vertices = std::move(other.m_vertices);
+            m_indices  = std::move(other.m_indices);
+            m_material = std::move(other.m_material);
+            m_vao      = other.m_vao;
+            m_vbo      = other.m_vbo;
+            m_ebo      = other.m_ebo;
+
+            other.m_vao = 0;
+            other.m_vbo = 0;
+            other.m_ebo = 0;
+        }
+        return *this;
+    }
+
     void RenderMesh::draw(Shader& shader)
     {
         shader.setBool("material.useTextureAlbedo", m_material.use_texture_albedo);

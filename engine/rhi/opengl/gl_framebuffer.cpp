@@ -181,14 +181,14 @@ namespace RealmEngine
     {
         m_mip_level = level;
 
-        // Re-attach color textures at this mip level
+        // Re-attach color textures at this mip level.
+        // Note: leaves this FBO bound -- callers typically call bind() afterwards anyway.
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         for (uint32_t i = 0; i < m_color_textures.size(); ++i)
         {
             glFramebufferTexture2D(
                 GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, m_color_textures[i]->getNativeHandle(), level);
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
 } // namespace RealmEngine

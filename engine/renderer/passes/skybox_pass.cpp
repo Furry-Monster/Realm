@@ -1,8 +1,10 @@
 #include "renderer/passes/skybox_pass.h"
 
+#include "renderer/passes/geometry_pass.h"
 #include "renderer/render_camera.h"
 #include "renderer/skybox.h"
 #include "rhi/rhi_device.h"
+#include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
 
 namespace RealmEngine
@@ -23,7 +25,12 @@ namespace RealmEngine
         if (!m_skybox)
             return;
 
+        // Explicitly bind geometry framebuffer (skybox renders into the same FBO)
+        if (m_geometry_pass && m_geometry_pass->getFramebuffer())
+            m_geometry_pass->getFramebuffer()->bind();
+
         ctx.device->setDepthFunc(DepthFunc::LessEqual);
+        ctx.device->setDepthWrite(false);
 
         m_shader->use();
         glm::mat4 skybox_model = glm::mat4(1.0f);
@@ -36,6 +43,7 @@ namespace RealmEngine
 
         m_skybox->draw();
 
+        ctx.device->setDepthWrite(true);
         ctx.device->setDepthFunc(DepthFunc::Less);
     }
 

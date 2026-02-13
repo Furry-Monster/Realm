@@ -8,6 +8,11 @@ namespace RealmEngine
     {
     public:
         Cube();
+        ~Cube();
+
+        Cube(const Cube&)            = delete;
+        Cube& operator=(const Cube&) = delete;
+
         void draw();
 
     private:
