@@ -143,7 +143,8 @@ namespace RealmEngine
         }
         catch (std::ifstream::failure& e)
         {
-            RE_LOG_ERROR("Error: failed to read shader file: " + vertexPath + ", " + geometryPath + " or " + fragmentPath);
+            RE_LOG_ERROR("Error: failed to read shader file: " + vertexPath + ", " + geometryPath + " or " +
+                         fragmentPath);
             m_id = 0;
             return;
         }

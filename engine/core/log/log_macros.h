@@ -35,10 +35,9 @@
         if constexpr ((level_value) >= RE_MIN_LOG_LEVEL)                                                               \
         {                                                                                                              \
             if (RealmEngine::g_logger)                                                                                 \
-                RealmEngine::g_logger->log(                                                                            \
-                    level_enum,                                                                                        \
-                    "[" + std::string(RealmEngine::extractClassFunction(RE_PRETTY_FUNCTION)) + RE_LOG_SOURCE_LOC +     \
-                        "] " + (msg));                                                                                 \
+                RealmEngine::g_logger->log(level_enum,                                                                 \
+                                           "[" + std::string(RealmEngine::extractClassFunction(RE_PRETTY_FUNCTION)) +  \
+                                               RE_LOG_SOURCE_LOC + "] " + (msg));                                      \
         }                                                                                                              \
     } while (0)
 

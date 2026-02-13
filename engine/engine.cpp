@@ -22,7 +22,7 @@
 
 namespace RealmEngine
 {
-    Engine::Engine()  = default;
+    Engine::Engine()           = default;
     Engine::~Engine() noexcept = default;
 
     void Engine::boot()
@@ -93,8 +93,7 @@ namespace RealmEngine
 
     void Engine::debug()
     {
-        std::filesystem::path scene_file =
-            m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
+        std::filesystem::path scene_file = m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
 
         std::shared_ptr<Scene> loaded;
         if (std::filesystem::exists(scene_file))
@@ -113,9 +112,11 @@ namespace RealmEngine
 
         // Initialize scene camera controller
         const GamePlayConfig& gp = m_config->getGamePlayConfig();
-        loaded->getCameraController()->initialize(
-            m_renderer->getCamera(), *m_input, gp.camera_mouse_sensitivity, gp.camera_move_speed,
-            gp.camera_sprint_multiplier);
+        loaded->getCameraController()->initialize(m_renderer->getCamera(),
+                                                  *m_input,
+                                                  gp.camera_mouse_sensitivity,
+                                                  gp.camera_move_speed,
+                                                  gp.camera_sprint_multiplier);
 
         m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
         m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -130,8 +131,7 @@ namespace RealmEngine
 
         if (m_scene->getCurrentScene())
         {
-            std::filesystem::path save_path =
-                m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
+            std::filesystem::path save_path = m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
 
             RE_LOG_INFO("Saving scene to: " + save_path.string());
             if (m_scene->saveCurrentScene(save_path.string()))
@@ -167,13 +167,13 @@ namespace RealmEngine
     }
 
     // Subsystem accessors
-    EventBus&      Engine::getEventBus()      { return *m_event_bus; }
-    Logger&        Engine::getLogger()        { return *m_logger; }
-    ConfigManager& Engine::getConfig()        { return *m_config; }
-    AssetManager&  Engine::getAssets()        { return *m_assets; }
-    SceneManager&  Engine::getSceneManager()  { return *m_scene; }
-    Window&        Engine::getWindow()        { return *m_window; }
-    Renderer&      Engine::getRenderer()      { return *m_renderer; }
-    Input&         Engine::getInput()         { return *m_input; }
+    EventBus&      Engine::getEventBus() { return *m_event_bus; }
+    Logger&        Engine::getLogger() { return *m_logger; }
+    ConfigManager& Engine::getConfig() { return *m_config; }
+    AssetManager&  Engine::getAssets() { return *m_assets; }
+    SceneManager&  Engine::getSceneManager() { return *m_scene; }
+    Window&        Engine::getWindow() { return *m_window; }
+    Renderer&      Engine::getRenderer() { return *m_renderer; }
+    Input&         Engine::getInput() { return *m_input; }
 
 } // namespace RealmEngine

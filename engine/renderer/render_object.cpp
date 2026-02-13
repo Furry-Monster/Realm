@@ -53,8 +53,8 @@ namespace RealmEngine
 
         RE_LOG_INFO("Loading model from: " + path);
         RE_LOG_INFO("Model directory: " + m_directory);
-        RE_LOG_INFO("Scene has " + std::to_string(scene->mNumMeshes) + " meshes, " + std::to_string(scene->mNumMaterials) +
-             " materials");
+        RE_LOG_INFO("Scene has " + std::to_string(scene->mNumMeshes) + " meshes, " +
+                    std::to_string(scene->mNumMaterials) + " materials");
 
         processNode(scene->mRootNode, scene);
 

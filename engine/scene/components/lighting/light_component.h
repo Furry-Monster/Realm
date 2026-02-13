@@ -1,8 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "scene/component.h"
 #include "renderer/light.h"
+#include "scene/component.h"
 
 namespace RealmEngine
 {

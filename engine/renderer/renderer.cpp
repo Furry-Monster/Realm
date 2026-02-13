@@ -3,10 +3,10 @@
 #include <memory>
 #include <optional>
 
-#include "renderer/render_scene.h"
-#include "resource/config_manager.h"
 #include "core/log/log_macros.h"
 #include "platform/window/window.h"
+#include "renderer/render_scene.h"
+#include "resource/config_manager.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glad/gl.h>

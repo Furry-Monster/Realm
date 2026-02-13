@@ -2,8 +2,8 @@
 
 #include <glad/gl.h>
 #include <stb/stb_image.h>
-#include "renderer/cube.h"
 #include "core/log/log_macros.h"
+#include "renderer/cube.h"
 
 namespace RealmEngine
 {

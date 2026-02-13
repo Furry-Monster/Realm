@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "scene/component.h"
 #include "renderer/render_object.h"
+#include "scene/component.h"
 
 namespace RealmEngine
 {

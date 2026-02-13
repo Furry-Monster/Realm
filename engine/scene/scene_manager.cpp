@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include "core/log/log_macros.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
 #include "scene/components/lighting/point.h"
@@ -10,7 +11,6 @@
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
 #include "scene/serialization/scene_serializer.h"
-#include "core/log/log_macros.h"
 
 namespace RealmEngine
 {
