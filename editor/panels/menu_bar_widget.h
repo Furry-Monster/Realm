@@ -6,13 +6,14 @@
 
 namespace RealmEngine
 {
+    class Engine;
     class Widget;
     class FileDialogWidget;
 
     class MenuBarWidget : public Widget
     {
     public:
-        MenuBarWidget();
+        explicit MenuBarWidget(Engine& engine);
         ~MenuBarWidget() override = default;
 
         MenuBarWidget(const MenuBarWidget&)            = delete;
@@ -29,6 +30,8 @@ namespace RealmEngine
         void renderFileMenu();
         void renderEditMenu();
         void renderViewMenu();
+
+        Engine& m_engine;
 
         std::shared_ptr<std::vector<std::shared_ptr<Widget>>> m_widgets;
         std::shared_ptr<FileDialogWidget>                     m_file_dialog;

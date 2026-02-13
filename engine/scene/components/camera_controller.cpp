@@ -2,31 +2,29 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <memory>
-#include "global_context.h"
 #include "platform/input/input.h"
-#include "renderer/renderer.h"
-#include "resource/config_manager.h"
 
 namespace RealmEngine
 {
-    CameraController::CameraController()
+    void CameraController::initialize(std::shared_ptr<RenderCamera> camera,
+                                      Input&                        input,
+                                      float                         mouse_sensitivity,
+                                      float                         move_speed,
+                                      float                         sprint_multiplier)
     {
-        m_camera = g_context.m_renderer->getCamera();
-
-        const GamePlayConfig& gameplay_config = g_context.m_config->getGamePlayConfig();
-        m_mouse_sensitivity                   = gameplay_config.camera_mouse_sensitivity;
-        m_move_speed                          = gameplay_config.camera_move_speed;
-        m_sprint_multiplier                   = gameplay_config.camera_sprint_multiplier;
+        m_camera            = camera;
+        m_input             = &input;
+        m_mouse_sensitivity = mouse_sensitivity;
+        m_move_speed        = move_speed;
+        m_sprint_multiplier = sprint_multiplier;
     }
 
     void CameraController::update(float delta_time)
     {
-        if (!m_camera)
+        if (!m_camera || !m_input)
             return;
 
-        std::shared_ptr<Input> input = g_context.m_input;
-        Command                cmd   = input->getCurrentCommand();
+        Command cmd = m_input->getCurrentCommand();
 
         // Calculate movement speed
         float move_speed = m_move_speed;
@@ -56,8 +54,8 @@ namespace RealmEngine
         // Mouse rotation control (when FOCUS is active)
         if (cmd & static_cast<Command>(BindableCommand::FOCUS))
         {
-            float yaw_delta   = static_cast<float>(input->m_cursor_delta_x) * m_mouse_sensitivity;
-            float pitch_delta = static_cast<float>(input->m_cursor_delta_y) * m_mouse_sensitivity;
+            float yaw_delta   = static_cast<float>(m_input->m_cursor_delta_x) * m_mouse_sensitivity;
+            float pitch_delta = static_cast<float>(m_input->m_cursor_delta_y) * m_mouse_sensitivity;
 
             glm::quat current_rotation = m_camera->getRotation();
 

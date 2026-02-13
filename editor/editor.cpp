@@ -6,13 +6,15 @@
 #include "core/log/log_macros.h"
 #include "editor_context.h"
 #include "engine.h"
-#include "global_context.h"
+#include "platform/input/input.h"
+#include "renderer/renderer.h"
 #include "panels/file_dialog_widget.h"
 #include "panels/menu_bar_widget.h"
 #include "panels/properties_widget.h"
 #include "panels/scene_hierarchy_widget.h"
 #include "platform/window/window.h"
 #include "resource/config_manager.h"
+#include "scene/scene.h"
 #include "scene/scene_manager.h"
 
 #define GLFW_INCLUDE_NONE
@@ -52,19 +54,30 @@ namespace RealmEngine
             m_engine->boot();
         }
 
-        ImGui_ImplGlfw_InitForOpenGL(g_context.m_window->getGLFWWindow(), true);
+        ImGui_ImplGlfw_InitForOpenGL(m_engine->getWindow().getGLFWWindow(), true);
         ImGui_ImplOpenGL3_Init("#version 330");
 
         m_context = std::make_shared<EditorContext>();
 
+        // Capture raw pointer for lambdas (Engine outlives file_dialog)
+        Engine* engine = m_engine.get();
+
         auto file_dialog = std::make_shared<FileDialogWidget>();
-        file_dialog->setOnFileSelected([file_dialog](const std::filesystem::path& path) {
+        file_dialog->setOnFileSelected([file_dialog, engine](const std::filesystem::path& path) {
+            SceneManager& scene_mgr = engine->getSceneManager();
             if (file_dialog->getMode() == FileDialogWidget::Mode::Open)
             {
-                auto loaded = g_context.m_scene->loadScene(path.string());
+                auto loaded = scene_mgr.loadScene(path.string());
                 if (loaded)
                 {
-                    g_context.m_scene->setCurrentScene(loaded);
+                    scene_mgr.setCurrentScene(loaded);
+
+                    // Wire up camera controller for the loaded scene
+                    const GamePlayConfig& gp = engine->getConfig().getGamePlayConfig();
+                    loaded->getCameraController()->initialize(
+                        engine->getRenderer().getCamera(), engine->getInput(),
+                        gp.camera_mouse_sensitivity, gp.camera_move_speed, gp.camera_sprint_multiplier);
+
                     RE_LOG_INFO("Scene loaded from: " + path.string());
                 }
                 else
@@ -74,22 +87,18 @@ namespace RealmEngine
             }
             else // Save
             {
-                if (g_context.m_scene->getCurrentScene())
+                if (scene_mgr.getCurrentScene())
                 {
-                    if (g_context.m_scene->saveCurrentScene(path.string()))
-                    {
+                    if (scene_mgr.saveCurrentScene(path.string()))
                         RE_LOG_INFO("Scene saved to: " + path.string());
-                    }
                     else
-                    {
                         RE_LOG_ERROR("Failed to save scene to: " + path.string());
-                    }
                 }
             }
         });
 
-        m_panels.push_back(std::make_shared<MenuBarWidget>());
-        m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context));
+        m_panels.push_back(std::make_shared<MenuBarWidget>(*engine));
+        m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context, engine->getSceneManager()));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context));
         m_panels.push_back(file_dialog);
 
@@ -101,32 +110,42 @@ namespace RealmEngine
             menu_bar->setFileDialog(file_dialog);
         }
 
-        // Auto-load scene.json if it exists
-        std::filesystem::path scene_file =
-            g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+        // Auto-load scene or create default
+        ConfigManager& config    = m_engine->getConfig();
+        SceneManager&  scene_mgr = m_engine->getSceneManager();
 
+        std::filesystem::path scene_file =
+            config.getRootFolder() / config.getGamePlayConfig().scene_file;
+
+        std::shared_ptr<Scene> scene;
         if (std::filesystem::exists(scene_file))
         {
             RE_LOG_INFO("Auto-loading scene from: " + scene_file.string());
-            auto loaded = g_context.m_scene->loadScene(scene_file.string());
-            if (loaded)
+            scene = scene_mgr.loadScene(scene_file.string());
+            if (scene)
             {
-                g_context.m_scene->setCurrentScene(loaded);
+                scene_mgr.setCurrentScene(scene);
                 RE_LOG_INFO("Scene loaded successfully.");
             }
             else
             {
                 RE_LOG_WARN("Failed to load scene, creating default scene instead.");
-                auto default_scene = g_context.m_scene->createDefaultScene();
-                g_context.m_scene->setCurrentScene(default_scene);
+                scene = scene_mgr.createDefaultScene();
+                scene_mgr.setCurrentScene(scene);
             }
         }
         else
         {
             RE_LOG_INFO("No scene file found, creating default scene.");
-            auto default_scene = g_context.m_scene->createDefaultScene();
-            g_context.m_scene->setCurrentScene(default_scene);
+            scene = scene_mgr.createDefaultScene();
+            scene_mgr.setCurrentScene(scene);
         }
+
+        // Initialize scene camera controller
+        const GamePlayConfig& gp = config.getGamePlayConfig();
+        scene->getCameraController()->initialize(
+            m_engine->getRenderer().getCamera(), m_engine->getInput(),
+            gp.camera_mouse_sensitivity, gp.camera_move_speed, gp.camera_sprint_multiplier);
 
         m_initialized = true;
     }
@@ -144,7 +163,7 @@ namespace RealmEngine
 
         if (m_engine)
         {
-            m_engine->terminate();
+            m_engine->shutdown();
             m_engine.reset();
         }
 
@@ -155,7 +174,7 @@ namespace RealmEngine
     {
         RE_LOG_INFO("<<< Run in Editor-Mode. >>>");
 
-        while (!g_context.m_window->shouldClose())
+        while (!m_engine->getWindow().shouldClose())
             tick();
     }
 
@@ -167,7 +186,7 @@ namespace RealmEngine
         render();
         endFrame();
 
-        g_context.m_window->swapBuffer();
+        m_engine->getWindow().swapBuffer();
     }
 
     void Editor::beginFrame() const

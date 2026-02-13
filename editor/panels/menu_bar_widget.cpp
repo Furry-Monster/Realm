@@ -1,7 +1,7 @@
 #include "panels/menu_bar_widget.h"
 
 #include "core/log/log_macros.h"
-#include "global_context.h"
+#include "engine.h"
 #include "panels/file_dialog_widget.h"
 #include "platform/window/window.h"
 #include "resource/config_manager.h"
@@ -15,7 +15,7 @@
 
 namespace RealmEngine
 {
-    MenuBarWidget::MenuBarWidget() : Widget("MenuBar") {}
+    MenuBarWidget::MenuBarWidget(Engine& engine) : Widget("MenuBar"), m_engine(engine) {}
 
     void MenuBarWidget::render()
     {
@@ -33,12 +33,15 @@ namespace RealmEngine
     {
         if (ImGui::BeginMenu("File"))
         {
+            SceneManager&  scene_mgr = m_engine.getSceneManager();
+            ConfigManager& config    = m_engine.getConfig();
+
             if (ImGui::MenuItem("New Scene"))
             {
-                auto new_scene = g_context.m_scene->createDefaultScene();
+                auto new_scene = scene_mgr.createDefaultScene();
                 if (new_scene)
                 {
-                    g_context.m_scene->setCurrentScene(new_scene);
+                    scene_mgr.setCurrentScene(new_scene);
                     RE_LOG_INFO("New scene created");
                 }
             }
@@ -47,26 +50,22 @@ namespace RealmEngine
             {
                 if (m_file_dialog)
                 {
-                    std::filesystem::path initial_path = g_context.m_config->getRootFolder();
+                    std::filesystem::path initial_path = config.getRootFolder();
                     m_file_dialog->open(FileDialogWidget::Mode::Open, "Open Scene", ".json", initial_path);
                 }
             }
 
             if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
             {
-                if (g_context.m_scene->getCurrentScene())
+                if (scene_mgr.getCurrentScene())
                 {
                     std::filesystem::path scene_file =
-                        g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+                        config.getRootFolder() / config.getGamePlayConfig().scene_file;
 
-                    if (g_context.m_scene->saveCurrentScene(scene_file.string()))
-                    {
+                    if (scene_mgr.saveCurrentScene(scene_file.string()))
                         RE_LOG_INFO("Scene saved to: " + scene_file.string());
-                    }
                     else
-                    {
                         RE_LOG_ERROR("Failed to save scene to: " + scene_file.string());
-                    }
                 }
                 else
                 {
@@ -76,20 +75,15 @@ namespace RealmEngine
 
             if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
             {
-                // Use default path for now (file dialog can be added later)
-                if (g_context.m_scene->getCurrentScene())
+                if (scene_mgr.getCurrentScene())
                 {
                     std::filesystem::path scene_file =
-                        g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+                        config.getRootFolder() / config.getGamePlayConfig().scene_file;
 
-                    if (g_context.m_scene->saveCurrentScene(scene_file.string()))
-                    {
+                    if (scene_mgr.saveCurrentScene(scene_file.string()))
                         RE_LOG_INFO("Scene saved to: " + scene_file.string());
-                    }
                     else
-                    {
                         RE_LOG_ERROR("Failed to save scene to: " + scene_file.string());
-                    }
                 }
                 else
                 {
@@ -101,7 +95,7 @@ namespace RealmEngine
 
             if (ImGui::MenuItem("Exit"))
             {
-                glfwSetWindowShouldClose(g_context.m_window->getGLFWWindow(), GLFW_TRUE);
+                glfwSetWindowShouldClose(m_engine.getWindow().getGLFWWindow(), GLFW_TRUE);
             }
 
             ImGui::EndMenu();

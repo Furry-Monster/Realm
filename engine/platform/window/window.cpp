@@ -3,7 +3,6 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/log_macros.h"
-#include "global_context.h"
 #include "resource/config_manager.h"
 
 #include <string>
@@ -12,11 +11,9 @@
 namespace RealmEngine
 {
 
-    void Window::initialize()
+    void Window::initialize(EventBus& event_bus, const WindowConfig& window_config)
     {
-        m_event_bus = g_context.m_event_bus;
-
-        const WindowConfig& window_config = g_context.m_config->getWindowConfig();
+        m_event_bus = &event_bus;
 
         m_width        = window_config.width;
         m_height       = window_config.height;
@@ -81,7 +78,7 @@ namespace RealmEngine
 
     void Window::disposal()
     {
-        m_event_bus.reset();
+        m_event_bus = nullptr;
         m_window.reset();
         glfwTerminate();
 

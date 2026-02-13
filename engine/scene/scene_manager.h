@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <string>
@@ -23,6 +24,8 @@ namespace RealmEngine
         SceneManager(SceneManager&&) noexcept            = default;
         SceneManager& operator=(SceneManager&&) noexcept = default;
 
+        void initialize(const std::filesystem::path& asset_folder);
+
         std::shared_ptr<Scene> createScene(const std::string& name);
         std::shared_ptr<Scene> createDefaultScene();
         std::shared_ptr<Scene> loadScene(const std::string& filepath);
@@ -40,6 +43,7 @@ namespace RealmEngine
         void setOnSceneChanged(SceneChangeCallback callback);
 
     private:
+        std::filesystem::path  m_asset_folder;
         SceneTable             m_scenes;
         std::shared_ptr<Scene> m_current_scene {nullptr};
         SceneChangeCallback    m_on_scene_changed;

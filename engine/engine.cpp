@@ -9,21 +9,50 @@
 #include <memory>
 #include <string>
 
+#include "core/event/event_bus.h"
 #include "core/log/log_macros.h"
-#include "global_context.h"
+#include "core/log/logger.h"
 #include "platform/input/input.h"
 #include "platform/window/window.h"
 #include "renderer/renderer.h"
+#include "resource/asset_manager.h"
 #include "resource/config_manager.h"
+#include "scene/scene.h"
 #include "scene/scene_manager.h"
 
 namespace RealmEngine
 {
+    Engine::Engine()  = default;
+    Engine::~Engine() noexcept = default;
+
     void Engine::boot()
     {
-        g_context.create();
+        // EventBus first (other subsystems publish/subscribe)
+        m_event_bus = std::make_unique<EventBus>();
 
-        const GamePlayConfig& gameplay_config = g_context.m_config->getGamePlayConfig();
+        m_logger = std::make_unique<Logger>();
+        m_logger->initialize();
+        g_logger = m_logger.get();
+
+        m_config = std::make_unique<ConfigManager>();
+        m_config->initialize();
+
+        m_assets = std::make_unique<AssetManager>();
+        m_assets->initialize();
+
+        m_scene = std::make_unique<SceneManager>();
+        m_scene->initialize(m_config->getAssetFolder());
+
+        m_window = std::make_unique<Window>();
+        m_window->initialize(*m_event_bus, m_config->getWindowConfig());
+
+        m_renderer = std::make_unique<Renderer>();
+        m_renderer->initialize(*m_config, *m_window);
+
+        m_input = std::make_unique<Input>();
+        m_input->initialize(*m_event_bus, *m_window);
+
+        const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
         m_max_delta_time                      = gameplay_config.max_delta_time;
 
         m_last_frame_time = glfwGetTime();
@@ -31,56 +60,85 @@ namespace RealmEngine
         RE_LOG_INFO("<<< Boot Engine Done. >>>");
     }
 
+    void Engine::shutdown()
+    {
+        RE_LOG_INFO("<<< Now Terminating Engine. >>>");
+
+        m_delta_time = 0.0;
+
+        m_input->disposal(*m_event_bus);
+        m_input.reset();
+
+        m_renderer->disposal();
+        m_renderer.reset();
+
+        m_window->disposal();
+        m_window.reset();
+
+        m_scene.reset();
+
+        m_assets->disposal();
+        m_assets.reset();
+
+        m_config->disposal();
+        m_config.reset();
+
+        m_logger->disposal();
+        g_logger = nullptr;
+        m_logger.reset();
+
+        // EventBus last
+        m_event_bus.reset();
+    }
+
     void Engine::debug()
     {
         std::filesystem::path scene_file =
-            g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+            m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
 
         std::shared_ptr<Scene> loaded;
         if (std::filesystem::exists(scene_file))
         {
             RE_LOG_INFO("Loading scene from: " + scene_file.string());
-            loaded = g_context.m_scene->loadScene(scene_file.string());
+            loaded = m_scene->loadScene(scene_file.string());
         }
 
         if (!loaded)
         {
             RE_LOG_INFO("Loading failed, create default scene instead.");
-            loaded = g_context.m_scene->createDefaultScene();
+            loaded = m_scene->createDefaultScene();
         }
 
-        g_context.m_scene->setCurrentScene(loaded);
+        m_scene->setCurrentScene(loaded);
 
-        g_context.m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
-        g_context.m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+        // Initialize scene camera controller
+        const GamePlayConfig& gp = m_config->getGamePlayConfig();
+        loaded->getCameraController()->initialize(
+            m_renderer->getCamera(), *m_input, gp.camera_mouse_sensitivity, gp.camera_move_speed,
+            gp.camera_sprint_multiplier);
+
+        m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
+        m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 
         RE_LOG_INFO("<<< Run in Debug-Mode. >>>");
 
-        while (!g_context.m_window->shouldClose())
+        while (!m_window->shouldClose())
         {
             tick();
-            g_context.m_window->swapBuffer();
+            m_window->swapBuffer();
         }
 
-        if (g_context.m_scene && g_context.m_scene->getCurrentScene())
+        if (m_scene->getCurrentScene())
         {
-            std::filesystem::path scene_file =
-                g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
+            std::filesystem::path save_path =
+                m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
 
-            RE_LOG_INFO("Saving scene to: " + scene_file.string());
-            if (g_context.m_scene->saveCurrentScene(scene_file.string()))
+            RE_LOG_INFO("Saving scene to: " + save_path.string());
+            if (m_scene->saveCurrentScene(save_path.string()))
                 RE_LOG_INFO("Scene saved successfully.");
             else
                 RE_LOG_ERROR("Failed to save scene file.");
         }
-    }
-
-    void Engine::terminate()
-    {
-        RE_LOG_INFO("<<< Now Terminating Engine. >>>");
-
-        m_delta_time = 0.0f;
-        g_context.destroy();
     }
 
     void Engine::tick()
@@ -95,17 +153,27 @@ namespace RealmEngine
         renderTick();
     }
 
-    void Engine::logicalTick() const
+    void Engine::logicalTick()
     {
-        g_context.m_input->tick();
-        g_context.m_window->pollEvents();
-        g_context.m_scene->getCurrentOrNewScene()->tick(m_delta_time);
+        m_input->tick();
+        m_window->pollEvents();
+        m_scene->getCurrentOrNewScene()->tick(m_delta_time);
     }
 
-    void Engine::renderTick() const
+    void Engine::renderTick()
     {
-        g_context.m_renderer->getRenderScene()->syncFromCurrentScene();
-        g_context.m_renderer->render();
+        m_renderer->getRenderScene()->syncFromScene(m_scene->getCurrentScene());
+        m_renderer->render();
     }
+
+    // Subsystem accessors
+    EventBus&      Engine::getEventBus()      { return *m_event_bus; }
+    Logger&        Engine::getLogger()        { return *m_logger; }
+    ConfigManager& Engine::getConfig()        { return *m_config; }
+    AssetManager&  Engine::getAssets()        { return *m_assets; }
+    SceneManager&  Engine::getSceneManager()  { return *m_scene; }
+    Window&        Engine::getWindow()        { return *m_window; }
+    Renderer&      Engine::getRenderer()      { return *m_renderer; }
+    Input&         Engine::getInput()         { return *m_input; }
 
 } // namespace RealmEngine

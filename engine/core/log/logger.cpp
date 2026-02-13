@@ -13,6 +13,8 @@
 
 namespace RealmEngine
 {
+    Logger* g_logger = nullptr;
+
     namespace
     {
         inline std::string formatLogTag(const char* pretty_function)

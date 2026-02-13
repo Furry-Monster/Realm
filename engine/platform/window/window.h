@@ -10,6 +10,7 @@
 namespace RealmEngine
 {
     class EventBus;
+    struct WindowConfig;
 
     struct GLFWwindowDeleter
     {
@@ -31,7 +32,7 @@ namespace RealmEngine
         Window& operator=(const Window& that) = delete;
         Window& operator=(Window&& that)      = delete;
 
-        void initialize();
+        void initialize(EventBus& event_bus, const WindowConfig& config);
         void disposal();
 
         bool shouldClose() const;
@@ -64,7 +65,7 @@ namespace RealmEngine
         static void windowCloseCallback(GLFWwindow* window);
 
         std::unique_ptr<GLFWwindow, GLFWwindowDeleter> m_window;
-        std::shared_ptr<EventBus>                      m_event_bus;
+        EventBus*                                      m_event_bus {nullptr};
         std::string                                    m_title {"RealmEngine"};
         int                                            m_width {0};
         int                                            m_height {0};

@@ -23,7 +23,6 @@ namespace RealmEngine
         RenderScene& operator=(RenderScene&&) noexcept = default;
 
         void syncFromScene(std::shared_ptr<Scene> scene);
-        void syncFromCurrentScene();
 
         std::vector<std::shared_ptr<RenderObject>> m_render_objects;
         std::vector<Light>                         m_lights;

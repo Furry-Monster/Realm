@@ -18,11 +18,12 @@
 namespace RealmEngine
 {
     class Window;
+    class ConfigManager;
 
     class Renderer
     {
     public:
-        Renderer();
+        Renderer()           = default;
         ~Renderer() noexcept = default;
 
         Renderer(const Renderer&)            = delete;
@@ -30,7 +31,7 @@ namespace RealmEngine
         Renderer(Renderer&&)                 = delete;
         Renderer& operator=(Renderer&&)      = delete;
 
-        void initialize();
+        void initialize(ConfigManager& config, Window& window);
         void disposal();
         void render();
 
@@ -68,10 +69,16 @@ namespace RealmEngine
         float                             m_gamma_correction_factor = 2.2f;
         float                             m_bloom_brightness_cutoff = 1.0f;
         std::unique_ptr<BloomFramebuffer> m_bloom_framebuffers[2];
-        unsigned int                      m_bloom_result_id;
+        unsigned int                      m_bloom_result_id = 0;
+
+        // clear color (from config)
+        float m_clear_color_r = 0.0f;
+        float m_clear_color_g = 0.0f;
+        float m_clear_color_b = 0.0f;
+        float m_clear_color_a = 1.0f;
 
         // misc
-        std::shared_ptr<Window>       m_window;
+        Window*                       m_window {nullptr};
         std::shared_ptr<RenderScene>  m_render_scene;
         std::shared_ptr<RenderCamera> m_camera;
 

@@ -3,22 +3,21 @@
 #include "editor_context.h"
 #include "scene/scene_manager.h"
 #include "scene/scene_node.h"
-#include "global_context.h"
 
 #include <imgui.h>
 #include <string>
 
 namespace RealmEngine
 {
-    SceneHierarchyWidget::SceneHierarchyWidget(std::shared_ptr<EditorContext> context) :
-        Widget("Scene Hierarchy"), m_context(context)
+    SceneHierarchyWidget::SceneHierarchyWidget(std::shared_ptr<EditorContext> context, SceneManager& scene_mgr) :
+        Widget("Scene Hierarchy"), m_context(context), m_scene_mgr(scene_mgr)
     {}
 
     void SceneHierarchyWidget::render()
     {
         ImGui::Begin(m_name.c_str(), &m_open);
 
-        auto current_scene = g_context.m_scene->getCurrentScene();
+        auto current_scene = m_scene_mgr.getCurrentScene();
         if (!current_scene)
         {
             ImGui::Text("No scene loaded");
@@ -60,8 +59,12 @@ namespace RealmEngine
                 m_context->setSelectedNode(node);
                 if (node->hasEntity())
                 {
-                    auto entity = g_context.m_scene->getCurrentScene()->getEntity(node->getEntityId());
-                    m_context->setSelectedEntity(entity);
+                    auto current_scene = m_scene_mgr.getCurrentScene();
+                    if (current_scene)
+                    {
+                        auto entity = current_scene->getEntity(node->getEntityId());
+                        m_context->setSelectedEntity(entity);
+                    }
                 }
                 else
                 {

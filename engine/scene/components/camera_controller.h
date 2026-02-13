@@ -5,16 +5,24 @@
 
 namespace RealmEngine
 {
+    class Input;
+
     class CameraController
     {
     public:
-        CameraController();
+        CameraController()           = default;
         ~CameraController() noexcept = default;
 
         CameraController(const CameraController&)                = delete;
         CameraController& operator=(const CameraController&)     = delete;
         CameraController(CameraController&&) noexcept            = default;
         CameraController& operator=(CameraController&&) noexcept = default;
+
+        void initialize(std::shared_ptr<RenderCamera> camera,
+                        Input&                        input,
+                        float                         mouse_sensitivity,
+                        float                         move_speed,
+                        float                         sprint_multiplier);
 
         void update(float delta_time);
 
@@ -28,6 +36,7 @@ namespace RealmEngine
 
     private:
         std::shared_ptr<RenderCamera> m_camera {nullptr};
+        Input*                        m_input {nullptr};
 
         float m_move_speed {5.0f};
         float m_sprint_multiplier {2.0f};

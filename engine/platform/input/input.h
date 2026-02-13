@@ -1,13 +1,14 @@
 #pragma once
 
 #include <cstdint>
-#include <memory>
 #include <vector>
 
 #include "core/event/event_bus.h"
 
 namespace RealmEngine
 {
+    class Window;
+
     using Command = unsigned int;
 
     enum class BindableCommand : uint32_t
@@ -26,9 +27,9 @@ namespace RealmEngine
     class Input
     {
     public:
-        void initialize();
+        void initialize(EventBus& event_bus, Window& window);
         void tick();
-        void disposal();
+        void disposal(EventBus& event_bus);
 
         void    resetCommand();
         Command getCurrentCommand() const;
@@ -48,6 +49,8 @@ namespace RealmEngine
 
         double m_last_cursor_x {0.0};
         double m_last_cursor_y {0.0};
+
+        Window* m_window {nullptr};
 
         // EventBus subscription handles
         std::vector<EventBus::HandlerId> m_subscriptions;

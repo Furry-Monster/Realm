@@ -3,7 +3,6 @@
 #include <memory>
 #include <optional>
 
-#include "global_context.h"
 #include "renderer/render_scene.h"
 #include "resource/config_manager.h"
 #include "core/log/log_macros.h"
@@ -17,29 +16,24 @@
 
 namespace RealmEngine
 {
-    Renderer::Renderer()
+    void Renderer::initialize(ConfigManager& config, Window& window)
     {
-        m_root_path   = g_context.m_config->getRootFolder();
-        m_shader_path = g_context.m_config->getShaderFolder();
-        m_asset_path  = g_context.m_config->getAssetFolder();
+        m_window = &window;
+
+        m_root_path   = config.getRootFolder();
+        m_shader_path = config.getShaderFolder();
+        m_asset_path  = config.getAssetFolder();
 
         m_camera       = std::make_shared<RenderCamera>();
         m_render_scene = std::make_shared<RenderScene>();
-
-        m_light_ubo = std::make_unique<LightUBO>();
+        m_light_ubo    = std::make_unique<LightUBO>();
 
         compileShaders();
-    }
-
-    void Renderer::initialize()
-    {
-        // NOTE: renderer must be initialized after window
-        m_window = g_context.m_window;
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-        const RendererConfig& render_config = g_context.m_config->getRendererConfig();
+        const RendererConfig& render_config = config.getRendererConfig();
 
         m_camera->initialize();
         m_camera->setPerspective(render_config.camera_fov,
@@ -60,13 +54,33 @@ namespace RealmEngine
         m_tonemapping_enabled     = render_config.tonemapping_enabled;
         m_gamma_correction_factor = render_config.gamma_correction_factor;
 
+        m_clear_color_r = render_config.clear_color_r;
+        m_clear_color_g = render_config.clear_color_g;
+        m_clear_color_b = render_config.clear_color_b;
+        m_clear_color_a = render_config.clear_color_a;
+
         m_shadow_framebuffer = std::make_unique<ShadowFramebuffer>(SHADOW_WIDTH, SHADOW_HEIGHT);
         m_shadow_framebuffer->init();
 
         m_pbr_framebuffer = std::make_unique<PBRFramebuffer>(m_window->getWidth(), m_window->getHeight());
         m_pbr_framebuffer->init();
 
-        precomputeIBL();
+        // IBL precomputation uses hdri_path from config
+        std::string root_path = m_root_path.generic_string();
+        std::string hdri_path = (m_asset_path / render_config.hdri_path).generic_string();
+
+        m_ibl_equirectangular_cubemap = std::make_unique<EquirectangularCubemap>(root_path, hdri_path);
+        m_ibl_equirectangular_cubemap->compute();
+
+        m_ibl_diffuse_irradiance_map =
+            std::make_unique<DiffuseIrradianceMap>(root_path, m_ibl_equirectangular_cubemap->getCubemapId());
+        m_ibl_diffuse_irradiance_map->compute();
+
+        m_ibl_specular_map = std::make_unique<SpecularMap>(root_path, m_ibl_equirectangular_cubemap->getCubemapId());
+        m_ibl_specular_map->computePrefilteredEnvMap();
+        m_ibl_specular_map->computeBrdfConvolutionMap();
+
+        m_ibl_skybox = std::make_unique<Skybox>(m_ibl_equirectangular_cubemap->getCubemapId());
 
         m_fullscreen_quad       = std::make_unique<FullscreenQuad>();
         m_bloom_framebuffers[0] = std::make_unique<BloomFramebuffer>(m_window->getWidth(), m_window->getHeight());
@@ -100,7 +114,7 @@ namespace RealmEngine
         m_camera->disposal();
         m_camera.reset();
         m_render_scene.reset();
-        m_window.reset();
+        m_window = nullptr;
 
         RE_LOG_INFO("Renderer shutdown.");
     }
@@ -133,30 +147,6 @@ namespace RealmEngine
         m_shadow_shader = std::make_unique<Shader>(vertex_path.generic_string(), fragment_path.generic_string());
     }
 
-    void Renderer::precomputeIBL()
-    {
-        std::string           root_path     = m_root_path.generic_string();
-        const RendererConfig& render_config = g_context.m_config->getRendererConfig();
-        std::string           hdri_path     = (m_asset_path / render_config.hdri_path).generic_string();
-
-        // Pre-compute IBL stuff
-        m_ibl_equirectangular_cubemap = std::make_unique<EquirectangularCubemap>(root_path, hdri_path);
-        m_ibl_equirectangular_cubemap->compute();
-
-        // diffuse term
-        m_ibl_diffuse_irradiance_map =
-            std::make_unique<DiffuseIrradianceMap>(root_path, m_ibl_equirectangular_cubemap->getCubemapId());
-        m_ibl_diffuse_irradiance_map->compute();
-
-        // specular term
-        m_ibl_specular_map = std::make_unique<SpecularMap>(root_path, m_ibl_equirectangular_cubemap->getCubemapId());
-        m_ibl_specular_map->computePrefilteredEnvMap();
-        m_ibl_specular_map->computeBrdfConvolutionMap();
-
-        // Create skybox from the equirectangular cubemap
-        m_ibl_skybox = std::make_unique<Skybox>(m_ibl_equirectangular_cubemap->getCubemapId());
-    }
-
     void Renderer::render()
     {
         if (!m_render_scene)
@@ -174,11 +164,7 @@ namespace RealmEngine
         // set basic opengl states
         glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
 
-        const RendererConfig& render_config = g_context.m_config->getRendererConfig();
-        glClearColor(render_config.clear_color_r,
-                     render_config.clear_color_g,
-                     render_config.clear_color_b,
-                     render_config.clear_color_a);
+        glClearColor(m_clear_color_r, m_clear_color_g, m_clear_color_b, m_clear_color_a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnable(GL_DEPTH_TEST);

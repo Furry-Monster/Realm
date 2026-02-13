@@ -4,7 +4,6 @@
 
 #include "core/base/macros.h"
 #include "core/log/logger.h"
-#include "global_context.h"
 
 // Logging convenience macros.
 //
@@ -35,10 +34,11 @@
     {                                                                                                                  \
         if constexpr ((level_value) >= RE_MIN_LOG_LEVEL)                                                               \
         {                                                                                                              \
-            RealmEngine::g_context.m_logger->log(                                                                      \
-                level_enum,                                                                                            \
-                "[" + std::string(RealmEngine::extractClassFunction(RE_PRETTY_FUNCTION)) + RE_LOG_SOURCE_LOC + "] " +  \
-                    (msg));                                                                                            \
+            if (RealmEngine::g_logger)                                                                                 \
+                RealmEngine::g_logger->log(                                                                            \
+                    level_enum,                                                                                        \
+                    "[" + std::string(RealmEngine::extractClassFunction(RE_PRETTY_FUNCTION)) + RE_LOG_SOURCE_LOC +     \
+                        "] " + (msg));                                                                                 \
         }                                                                                                              \
     } while (0)
 

@@ -10,12 +10,12 @@
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
 #include "scene/serialization/scene_serializer.h"
-#include "global_context.h"
-#include "resource/config_manager.h"
 #include "core/log/log_macros.h"
 
 namespace RealmEngine
 {
+    void SceneManager::initialize(const std::filesystem::path& asset_folder) { m_asset_folder = asset_folder; }
+
     std::shared_ptr<Scene> SceneManager::createScene(const std::string& name)
     {
         if (m_scenes.find(name) != m_scenes.end())
@@ -30,7 +30,7 @@ namespace RealmEngine
     {
         // Creates a default scene with sample models and lights for testing
         auto scene      = std::make_shared<Scene>();
-        auto asset_path = g_context.m_config->getAssetFolder().generic_string();
+        auto asset_path = m_asset_folder.generic_string();
 
         try
         {
