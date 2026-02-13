@@ -5,6 +5,7 @@
 
 namespace RealmEngine
 {
+    class Scene;
     class SceneNode;
     class EditorContext;
     class SceneManager;
@@ -23,7 +24,7 @@ namespace RealmEngine
         void render() override;
 
     private:
-        void renderNode(std::shared_ptr<SceneNode> node);
+        void renderNode(std::shared_ptr<SceneNode> node, Scene& scene);
 
         std::shared_ptr<EditorContext> m_context;
         SceneManager&                  m_scene_mgr;

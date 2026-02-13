@@ -5,11 +5,11 @@
 #include <vector>
 #include "renderer/light.h"
 #include "renderer/render_object.h"
-#include "scene/scene_node.h"
 
 namespace RealmEngine
 {
     class Scene;
+    class SceneNode;
 
     class RenderScene
     {
@@ -28,6 +28,6 @@ namespace RealmEngine
         std::vector<Light>                         m_lights;
 
     private:
-        void syncNode(std::shared_ptr<Scene> scene, std::shared_ptr<SceneNode> node);
+        void syncNode(Scene& scene, std::shared_ptr<SceneNode> node);
     };
 } // namespace RealmEngine

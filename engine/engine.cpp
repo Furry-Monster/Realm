@@ -18,6 +18,7 @@
 #include "renderer/renderer.h"
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
+#include "scene/components/camera_controller.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
 

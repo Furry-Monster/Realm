@@ -1,16 +1,14 @@
 #pragma once
 
-#include "scene/components/lighting/light_component.h"
+#include <glm/glm.hpp>
 
 namespace RealmEngine
 {
-    class Directional : public LightComponent
+    struct DirectionalLight
     {
-    public:
-        Directional();
-        ~Directional() noexcept override = default;
-
-        size_t getTypeId() const override;
+        glm::vec3 color {1.0f};
+        float     intensity = 1.0f;
+        bool      enabled   = true;
     };
 
 } // namespace RealmEngine

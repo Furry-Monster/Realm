@@ -21,114 +21,120 @@ namespace RealmEngine
 
         auto root = scene->getRoot();
         if (root)
-            syncNode(scene, root);
+            syncNode(*scene, root);
     }
 
-    void RenderScene::syncNode(std::shared_ptr<Scene> scene, std::shared_ptr<SceneNode> node)
+    void RenderScene::syncNode(Scene& scene, std::shared_ptr<SceneNode> node)
     {
-        if (!node || !scene)
+        if (!node)
             return;
 
         if (node->hasEntity())
         {
-            size_t entity_id = node->getEntityId();
-            auto   entity    = scene->getEntity(entity_id);
-
-            if (entity)
+            entt::entity entity = node->getEntity();
+            if (!scene.valid(entity))
             {
-                // Every entity must have a Transform component
-                auto transform = entity->getComponent<Transform>();
-                if (!transform)
-                    transform = std::make_shared<Transform>();
+                node->forEachChild([this, &scene](std::shared_ptr<SceneNode> child) { syncNode(scene, child); });
+                return;
+            }
 
-                // Renderable
-                auto renderable = entity->getComponent<Renderable>();
-                if (renderable && renderable->hasRenderObject())
+            // Default transform if none
+            Transform tf;
+            if (auto* t = scene.tryGet<Transform>(entity))
+                tf = *t;
+
+            // Renderable
+            if (auto* r = scene.tryGet<Renderable>(entity))
+            {
+                if (r->render_object)
                 {
-                    auto render_obj = renderable->getRenderObject();
-                    if (render_obj)
-                    {
-                        render_obj->setPosition(transform->getPosition());
-                        render_obj->setOrientation(transform->getRotation());
-                        render_obj->setScale(transform->getScale());
-
-                        m_render_objects.push_back(render_obj);
-                    }
+                    r->render_object->setPosition(tf.position);
+                    r->render_object->setOrientation(tf.rotation);
+                    r->render_object->setScale(tf.scale);
+                    m_render_objects.push_back(r->render_object);
                 }
+            }
 
-                // Point Light
-                auto point_light = entity->getComponent<Point>();
-                if (point_light && point_light->isEnabled())
+            // Point light
+            if (auto* pl = scene.tryGet<PointLight>(entity))
+            {
+                if (pl->enabled)
                 {
                     Light light {};
                     light.type             = LightType::Point;
-                    light.position         = transform->getPosition();
+                    light.position         = tf.position;
                     light.direction        = glm::vec3(0.0f);
-                    light.color            = point_light->getColor();
-                    light.intensity        = point_light->getIntensity();
-                    light.constant         = point_light->getConstantAttenuation();
-                    light.linear           = point_light->getLinearAttenuation();
-                    light.quadratic        = point_light->getQuadraticAttenuation();
-                    light.range            = point_light->getRange();
+                    light.color            = pl->color;
+                    light.intensity        = pl->intensity;
+                    light.constant         = pl->constant;
+                    light.linear           = pl->linear;
+                    light.quadratic        = pl->quadratic;
+                    light.range            = pl->range;
                     light.inner_cone_angle = 0.0f;
                     light.outer_cone_angle = 0.0f;
                     light.width            = 0.0f;
                     light.height           = 0.0f;
                     m_lights.push_back(light);
                 }
+            }
 
-                // Spot Light
-                auto spot_light = entity->getComponent<Spot>();
-                if (spot_light && spot_light->isEnabled())
+            // Spot light
+            if (auto* sl = scene.tryGet<SpotLight>(entity))
+            {
+                if (sl->enabled)
                 {
                     Light light {};
                     light.type             = LightType::Spot;
-                    light.position         = transform->getPosition();
-                    light.direction        = -transform->getForward();
-                    light.color            = spot_light->getColor();
-                    light.intensity        = spot_light->getIntensity();
-                    light.constant         = spot_light->getConstantAttenuation();
-                    light.linear           = spot_light->getLinearAttenuation();
-                    light.quadratic        = spot_light->getQuadraticAttenuation();
-                    light.range            = spot_light->getRange();
-                    light.inner_cone_angle = spot_light->getInnerConeAngle();
-                    light.outer_cone_angle = spot_light->getOuterConeAngle();
+                    light.position         = tf.position;
+                    light.direction        = -tf.getForward();
+                    light.color            = sl->color;
+                    light.intensity        = sl->intensity;
+                    light.constant         = sl->constant;
+                    light.linear           = sl->linear;
+                    light.quadratic        = sl->quadratic;
+                    light.range            = sl->range;
+                    light.inner_cone_angle = sl->inner_cone_angle;
+                    light.outer_cone_angle = sl->outer_cone_angle;
                     light.width            = 0.0f;
                     light.height           = 0.0f;
                     m_lights.push_back(light);
                 }
+            }
 
-                // Area Light
-                auto area_light = entity->getComponent<Area>();
-                if (area_light && area_light->isEnabled())
+            // Area light
+            if (auto* al = scene.tryGet<AreaLight>(entity))
+            {
+                if (al->enabled)
                 {
                     Light light {};
                     light.type             = LightType::Area;
-                    light.position         = transform->getPosition();
-                    light.direction        = -transform->getForward();
-                    light.color            = area_light->getColor();
-                    light.intensity        = area_light->getIntensity();
+                    light.position         = tf.position;
+                    light.direction        = -tf.getForward();
+                    light.color            = al->color;
+                    light.intensity        = al->intensity;
                     light.constant         = 0.0f;
                     light.linear           = 0.0f;
                     light.quadratic        = 0.0f;
                     light.range            = 0.0f;
                     light.inner_cone_angle = 0.0f;
                     light.outer_cone_angle = 0.0f;
-                    light.width            = area_light->getWidth();
-                    light.height           = area_light->getHeight();
+                    light.width            = al->width;
+                    light.height           = al->height;
                     m_lights.push_back(light);
                 }
+            }
 
-                // Directional Light
-                auto directional_light = entity->getComponent<Directional>();
-                if (directional_light && directional_light->isEnabled())
+            // Directional light
+            if (auto* dl = scene.tryGet<DirectionalLight>(entity))
+            {
+                if (dl->enabled)
                 {
                     Light light {};
                     light.type             = LightType::Directional;
                     light.position         = glm::vec3(0.0f);
-                    light.direction        = -transform->getForward();
-                    light.color            = directional_light->getColor();
-                    light.intensity        = directional_light->getIntensity();
+                    light.direction        = -tf.getForward();
+                    light.color            = dl->color;
+                    light.intensity        = dl->intensity;
                     light.constant         = 0.0f;
                     light.linear           = 0.0f;
                     light.quadratic        = 0.0f;
@@ -142,7 +148,7 @@ namespace RealmEngine
             }
         }
 
-        node->forEachChild([this, scene](std::shared_ptr<SceneNode> child) { syncNode(scene, child); });
+        node->forEachChild([this, &scene](std::shared_ptr<SceneNode> child) { syncNode(scene, child); });
     }
 
 } // namespace RealmEngine

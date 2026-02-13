@@ -1,8 +1,7 @@
 #include "scene/scene.h"
 
-#include <functional>
-#include <memory>
-#include "scene/entity.h"
+#include "scene/components/camera_controller.h"
+#include "scene/components/name_tag.h"
 
 namespace RealmEngine
 {
@@ -18,65 +17,45 @@ namespace RealmEngine
             m_camera_controller->update(delta_time);
     }
 
-    size_t Scene::hashName(const std::string& name) { return std::hash<std::string> {}(name); }
-
-    std::shared_ptr<Entity> Scene::createEntity(const std::string& name)
+    entt::entity Scene::createEntity(const std::string& name)
     {
-        size_t id = hashName(name);
-        if (m_entities.find(id) != m_entities.end())
-            return m_entities[id];
+        // Return existing entity if name already taken
+        auto it = m_name_index.find(name);
+        if (it != m_name_index.end())
+            return it->second;
 
-        auto entity    = std::make_shared<Entity>(id);
-        m_entities[id] = entity;
+        auto entity = m_registry.create();
+        m_registry.emplace<NameTag>(entity, NameTag {name});
+        m_name_index[name] = entity;
         return entity;
     }
 
-    std::shared_ptr<Entity> Scene::getEntity(const std::string& name) const
+    void Scene::destroyEntity(entt::entity entity)
     {
-        size_t id = hashName(name);
-        return getEntity(id);
+        // Remove from name index
+        auto* tag = m_registry.try_get<NameTag>(entity);
+        if (tag)
+            m_name_index.erase(tag->name);
+
+        m_registry.destroy(entity);
     }
 
-    std::shared_ptr<Entity> Scene::getEntity(size_t id) const
+    entt::entity Scene::findEntity(const std::string& name) const
     {
-        auto it = m_entities.find(id);
-        return (it != m_entities.end()) ? it->second : nullptr;
+        auto it = m_name_index.find(name);
+        return (it != m_name_index.end()) ? it->second : entt::null;
     }
 
-    bool Scene::hasEntity(const std::string& name) const
-    {
-        size_t id = hashName(name);
-        return hasEntity(id);
-    }
+    bool Scene::valid(entt::entity entity) const { return m_registry.valid(entity); }
 
-    bool Scene::hasEntity(size_t id) const { return m_entities.find(id) != m_entities.end(); }
-
-    void Scene::removeEntity(const std::string& name)
-    {
-        size_t id = hashName(name);
-        removeEntity(id);
-    }
-
-    void Scene::removeEntity(size_t id)
-    {
-        auto it = m_entities.find(id);
-        if (it != m_entities.end())
-            m_entities.erase(it);
-    }
-
-    std::shared_ptr<SceneNode> Scene::createNode(const std::string& name, size_t entity_id)
-    {
-        auto node = std::make_shared<SceneNode>(name);
-        if (entity_id != 0)
-            node->setEntityId(entity_id);
-        return node;
-    }
+    std::shared_ptr<SceneNode> Scene::createNode(const std::string& name) { return std::make_shared<SceneNode>(name); }
 
     std::shared_ptr<SceneNode> Scene::createNodeWithEntity(const std::string& name)
     {
         auto entity = createEntity(name);
         auto node   = std::make_shared<SceneNode>(name);
-        node->setEntityId(entity->getId());
+        node->setEntity(entity);
         return node;
     }
+
 } // namespace RealmEngine
