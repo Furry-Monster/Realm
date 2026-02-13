@@ -5,10 +5,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "renderer/cube.h"
 #include "renderer/fullscreen_quad.h"
-#include "renderer/shader.h"
+#include "rhi/opengl/gl_shader.h"
 
 namespace RealmEngine
 {
+    SpecularMap::~SpecularMap() = default;
+
     SpecularMap::SpecularMap(const std::string& engineRoot, const unsigned int environmentCubemapId) :
         m_environment_cubemap_id(environmentCubemapId)
     {
@@ -16,8 +18,8 @@ namespace RealmEngine
         std::string prefiltered_env_map_vertex_shader_path   = engineRoot + "/shaders/ibl/specularenv.vert";
         std::string prefiltered_env_map_fragment_shader_path = engineRoot + "/shaders/ibl/specularenv.frag";
 
-        m_prefiltered_env_map_shader =
-            std::make_unique<Shader>(prefiltered_env_map_vertex_shader_path, prefiltered_env_map_fragment_shader_path);
+        m_prefiltered_env_map_shader = std::make_unique<GLShader>(prefiltered_env_map_vertex_shader_path,
+                                                                  prefiltered_env_map_fragment_shader_path);
         m_prefiltered_env_map_framebuffer =
             std::make_unique<MipmapCubemapFramebuffer>(m_prefiltered_env_map_width, m_prefiltered_env_map_height);
 
@@ -26,7 +28,7 @@ namespace RealmEngine
         std::string brdf_convolution_fragment_shader_path = engineRoot + "/shaders/ibl/brdfconvolution.frag";
 
         m_brdf_convolution_shader =
-            std::make_unique<Shader>(brdf_convolution_vertex_shader_path, brdf_convolution_fragment_shader_path);
+            std::make_unique<GLShader>(brdf_convolution_vertex_shader_path, brdf_convolution_fragment_shader_path);
         m_brdf_convolution_framebuffer =
             std::make_unique<BrdfConvolutionFramebuffer>(m_brdf_convolution_map_width, m_brdf_convolution_map_height);
     }
@@ -69,7 +71,7 @@ namespace RealmEngine
             // render to each side of the cubemap
             for (auto i = 0; i < 6; i++)
             {
-                m_prefiltered_env_map_shader->setModelViewProjectionMatrices(model, camera_angles[i], projection);
+                m_prefiltered_env_map_shader->setMVP(model, camera_angles[i], projection);
                 m_prefiltered_env_map_framebuffer->setCubeFace(i);
 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

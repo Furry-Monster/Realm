@@ -4,8 +4,6 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include <glad/gl.h>
-
 namespace RealmEngine
 {
     enum class LightType : uint8_t
@@ -48,27 +46,8 @@ namespace RealmEngine
         glm::vec4 spot_area;   // x = outer_cone_angle, y = width, z = height, w = padding
     };
 
-    static constexpr size_t MAX_LIGHTS              = 16;
-    static constexpr size_t BUFFER_SIZE             = 16 + MAX_LIGHTS * sizeof(LightData);
-    static constexpr GLuint LIGHT_UBO_BINDING_POINT = 0;
-
-    class LightUBO
-    {
-    public:
-        LightUBO();
-        ~LightUBO() noexcept;
-
-        LightUBO(const LightUBO&)            = delete;
-        LightUBO& operator=(const LightUBO&) = delete;
-        LightUBO(LightUBO&&) noexcept;
-        LightUBO& operator=(LightUBO&&) noexcept;
-
-        void         updateLights(const std::vector<Light>& lights) const;
-        void         bind(unsigned int binding_point) const;
-        unsigned int getId() const { return m_ubo_id; }
-
-    private:
-        unsigned int m_ubo_id;
-    };
+    static constexpr size_t   MAX_LIGHTS              = 16;
+    static constexpr size_t   BUFFER_SIZE             = 16 + MAX_LIGHTS * sizeof(LightData);
+    static constexpr uint32_t LIGHT_UBO_BINDING_POINT = 0;
 
 } // namespace RealmEngine

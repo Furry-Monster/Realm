@@ -3,16 +3,18 @@
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "renderer/shader.h"
+#include "rhi/opengl/gl_shader.h"
 
 namespace RealmEngine
 {
+    EquirectangularCubemap::~EquirectangularCubemap() = default;
+
     EquirectangularCubemap::EquirectangularCubemap(const std::string& engineRoot, const std::string& hdriPath)
     {
         std::string hdri_vertex_shader_path   = engineRoot + "/shaders/ibl/hdricube.vert";
         std::string hdri_fragment_shader_path = engineRoot + "/shaders/ibl/hdricube.frag";
 
-        m_hdri_shader = std::make_unique<Shader>(hdri_vertex_shader_path, hdri_fragment_shader_path);
+        m_hdri_shader = std::make_unique<GLShader>(hdri_vertex_shader_path, hdri_fragment_shader_path);
         m_hdri_cube   = std::make_unique<HDRICube>(hdriPath);
         m_framebuffer = std::make_unique<CubemapFramebuffer>(m_cubemap_width, m_cubemap_height);
     }
@@ -45,7 +47,7 @@ namespace RealmEngine
         // render to each side of the cubemap
         for (auto i = 0; i < 6; i++)
         {
-            m_hdri_shader->setModelViewProjectionMatrices(model, camera_angles[i], projection);
+            m_hdri_shader->setMVP(model, camera_angles[i], projection);
             m_framebuffer->setCubeFace(i);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

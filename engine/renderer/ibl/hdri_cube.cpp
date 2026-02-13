@@ -1,7 +1,7 @@
 #include "renderer/ibl/hdri_cube.h"
 
 #include <glad/gl.h>
-#include "renderer/shader.h"
+#include "rhi/rhi_shader.h"
 
 namespace RealmEngine
 {
@@ -10,7 +10,7 @@ namespace RealmEngine
         m_cube = std::make_unique<Cube>();
     }
 
-    void HDRICube::draw(Shader& shader)
+    void HDRICube::draw(RHIShader& shader)
     {
         shader.setInt("hdri", 0);
 
