@@ -33,7 +33,7 @@ namespace RealmEngine
         glm::vec3               m_position {glm::vec3(0.0)};
         glm::vec3               m_scale {glm::vec3(1.0, 1.0, 1.0)};
         glm::quat               m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
-        std::vector<RenderMesh>  m_meshes;
+        std::vector<RenderMesh> m_meshes;
     };
 
 } // namespace RealmEngine

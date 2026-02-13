@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <entt/entity/registry.hpp>
 #include <memory>
 #include <string>
@@ -69,11 +70,18 @@ namespace RealmEngine
 
         std::shared_ptr<CameraController> getCameraController() const { return m_camera_controller; }
 
+        uint64_t getGeneration() const { return m_generation; }
+        void     markDirty() { incrementGeneration(); }
+
     private:
+        void incrementGeneration() { ++m_generation; }
+        void onRenderStructureChanged(entt::registry&, entt::entity);
+
         entt::registry                                m_registry;
         std::unordered_map<std::string, entt::entity> m_name_index;
         std::shared_ptr<SceneNode>                    m_root;
         std::shared_ptr<CameraController>             m_camera_controller;
+        uint64_t                                      m_generation {0};
     };
 
     // Template implementations
@@ -124,6 +132,7 @@ namespace RealmEngine
     void Scene::remove(entt::entity entity)
     {
         m_registry.remove<T>(entity);
+        incrementGeneration();
     }
 
 } // namespace RealmEngine
