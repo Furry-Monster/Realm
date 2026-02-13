@@ -58,6 +58,7 @@ namespace RealmEngine
         }
 
         m_framebuffer->bind();
+        ctx.device->setViewport(0, 0, m_resolution, m_resolution);
         ctx.device->clear(ClearFlags::Depth);
         ctx.device->setCullFace(CullFace::Front);
 
@@ -82,9 +83,9 @@ namespace RealmEngine
 
         for (auto& ro : ctx.scene->m_render_objects)
         {
-            glm::mat4 model = glm::toMat4(ro->getOrientation());
-            model           = glm::translate(model, ro->getPosition());
-            model           = glm::scale(model, ro->getScale());
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), ro->getPosition());
+            model *= glm::toMat4(ro->getOrientation());
+            model = glm::scale(model, ro->getScale());
 
             m_shader->setMat4("lightSpaceMatrix", m_light_space_matrix);
             m_shader->setMat4("model", model);

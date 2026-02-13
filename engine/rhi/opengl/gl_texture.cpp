@@ -214,7 +214,18 @@ namespace RealmEngine
         GLenum pixel_type   = toGLPixelType(m_format);
 
         glBindTexture(m_target, m_id);
-        glTexImage2D(GL_TEXTURE_2D, 0, internal_fmt, width, height, 0, pixel_fmt, pixel_type, nullptr);
+
+        if (m_type == TextureType::TextureCube)
+        {
+            for (int face = 0; face < 6; ++face)
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face,
+                             0, internal_fmt, width, height, 0, pixel_fmt, pixel_type, nullptr);
+        }
+        else
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, internal_fmt, width, height, 0, pixel_fmt, pixel_type, nullptr);
+        }
+
         glBindTexture(m_target, 0);
     }
 

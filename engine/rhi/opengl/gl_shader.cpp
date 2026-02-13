@@ -175,6 +175,8 @@ namespace RealmEngine
 
     void GLShader::setVec3Array(const std::string& name, const std::vector<glm::vec3>& values)
     {
+        if (values.empty())
+            return;
         glUniform3fv(glGetUniformLocation(m_id, name.c_str()), static_cast<GLsizei>(values.size()), &values[0][0]);
     }
 

@@ -1,5 +1,7 @@
 #include "renderer/passes/bloom_pass.h"
 
+#include <algorithm>
+
 #include "renderer/fullscreen_quad.h"
 #include "renderer/passes/geometry_pass.h"
 #include "rhi/rhi_device.h"
@@ -57,35 +59,48 @@ namespace RealmEngine
         bloom_tex->generateMipmaps();
 
         m_shader->use();
+        ctx.device->setDepthTest(false);
+
+        int base_w = m_framebuffers[0]->getWidth();
+        int base_h = m_framebuffers[0]->getHeight();
 
         static constexpr int BLOOM_MAX_MIP = 5;
         for (int mip = 0; mip <= BLOOM_MAX_MIP; ++mip)
         {
+            int mip_w = std::max(1, base_w >> mip);
+            int mip_h = std::max(1, base_h >> mip);
+
             m_framebuffers[0]->setMipLevel(mip);
             m_framebuffers[1]->setMipLevel(mip);
 
-            // First iteration samples from main PBR bloom buffer
+            // First pass: sample from the PBR bloom buffer at the current mip level -> fb[0]
             m_framebuffers[0]->bind();
+            ctx.device->setViewport(0, 0, mip_w, mip_h);
             ctx.device->bindTexture(0, *bloom_tex);
             m_shader->setInt("sampleMipLevel", mip);
             m_shader->setVec2("blurDirection", blur_direction_x);
             m_quad->draw();
 
-            // Ping-pong
-            uint32_t dst = 1;
-            uint32_t src = 0;
+            // Ping-pong blur iterations
+            uint32_t last_written = 0;
             for (int i = 1; i < m_iterations; ++i)
             {
-                src = (dst == 1) ? 0 : 1;
+                uint32_t src = last_written;
+                uint32_t dst = 1 - src;
+
                 m_framebuffers[dst]->bind();
-                auto blur_dir = (dst == 1) ? blur_direction_y : blur_direction_x;
-                m_shader->setVec2("blurDirection", blur_dir);
+                ctx.device->setViewport(0, 0, mip_w, mip_h);
+                m_shader->setVec2("blurDirection", (i % 2 == 0) ? blur_direction_x : blur_direction_y);
+                m_shader->setInt("sampleMipLevel", 0); // ping-pong buffers: always sample mip 0
                 ctx.device->bindTexture(0, *m_framebuffers[src]->getColorAttachment(0));
                 m_quad->draw();
-                dst = src;
+
+                last_written = dst;
             }
-            m_result_idx = dst;
+            m_result_idx = last_written;
         }
+
+        ctx.device->setDepthTest(true);
     }
 
     void BloomPass::dispose()

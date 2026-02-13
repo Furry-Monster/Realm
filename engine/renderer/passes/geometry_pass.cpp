@@ -121,9 +121,9 @@ namespace RealmEngine
         // Draw objects
         for (auto& ro : ctx.scene->m_render_objects)
         {
-            glm::mat4 model = glm::toMat4(ro->getOrientation());
-            model           = glm::translate(model, ro->getPosition());
-            model           = glm::scale(model, ro->getScale());
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), ro->getPosition());
+            model *= glm::toMat4(ro->getOrientation());
+            model = glm::scale(model, ro->getScale());
 
             m_shader->setMVP(model, view, projection);
             ctx.device->setDepthWrite(true);
