@@ -38,7 +38,7 @@ namespace RealmEngine
             auto& att = m_desc.color_attachments[i];
 
             TextureDesc td;
-            td.type       = TextureType::Texture2D;
+            td.type       = att.is_cubemap ? TextureType::TextureCube : TextureType::Texture2D;
             td.format     = att.format;
             td.width      = m_width;
             td.height     = m_height;
@@ -46,10 +46,14 @@ namespace RealmEngine
             td.mag_filter = att.mag_filter;
             td.wrap_s     = att.wrap;
             td.wrap_t     = att.wrap;
+            td.wrap_r     = att.wrap;
             td.gen_mips   = att.gen_mips;
 
-            auto tex = std::make_unique<GLTexture>(td);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex->getNativeHandle(), 0);
+            auto   tex = std::make_unique<GLTexture>(td);
+            GLenum attach_target =
+                att.is_cubemap ? static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + m_cube_face) : GL_TEXTURE_2D;
+            glFramebufferTexture2D(
+                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attach_target, tex->getNativeHandle(), m_mip_level);
             m_color_textures.push_back(std::move(tex));
             draw_buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
         }
@@ -150,13 +154,36 @@ namespace RealmEngine
     {
         m_mip_level = level;
 
-        // Re-attach color textures at this mip level.
-        // Note: leaves this FBO bound -- callers typically call bind() afterwards anyway.
+        // Resize depth renderbuffer when mip level changes (for cubemap mip-chain rendering)
+        if (m_desc.has_depth && m_desc.depth_attachment.is_renderbuffer && m_depth_rbo != 0)
+        {
+            int    w            = std::max(1, m_width >> m_mip_level);
+            int    h            = std::max(1, m_height >> m_mip_level);
+            GLenum internal_fmt = toGLInternalFormat(m_desc.depth_attachment.format);
+            glBindRenderbuffer(GL_RENDERBUFFER, m_depth_rbo);
+            glRenderbufferStorage(GL_RENDERBUFFER, internal_fmt, w, h);
+            glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        }
+
+        updateColorAttachments();
+    }
+
+    void GLFramebuffer::setCubeFace(int face)
+    {
+        m_cube_face = face;
+        updateColorAttachments();
+    }
+
+    void GLFramebuffer::updateColorAttachments()
+    {
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         for (uint32_t i = 0; i < m_color_textures.size(); ++i)
         {
+            bool   is_cubemap = (i < m_desc.color_attachments.size()) && m_desc.color_attachments[i].is_cubemap;
+            GLenum target =
+                is_cubemap ? static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + m_cube_face) : GL_TEXTURE_2D;
             glFramebufferTexture2D(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, m_color_textures[i]->getNativeHandle(), level);
+                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, m_color_textures[i]->getNativeHandle(), m_mip_level);
         }
     }
 

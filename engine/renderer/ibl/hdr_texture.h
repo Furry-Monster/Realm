@@ -1,16 +1,23 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
 namespace RealmEngine
 {
+    class RHIDevice;
+    class RHITexture;
+
+    // Loads HDR equirectangular texture via RHI (no direct OpenGL).
     class HDRTexture
     {
     public:
-        explicit HDRTexture(const std::string& path);
-        unsigned int getId() const;
+        HDRTexture(RHIDevice& device, const std::string& path);
+
+        RHITexture&       getTexture() { return *m_texture; }
+        const RHITexture& getTexture() const { return *m_texture; }
 
     private:
-        unsigned int m_id;
+        std::unique_ptr<RHITexture> m_texture;
     };
 } // namespace RealmEngine

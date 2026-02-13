@@ -1,26 +1,50 @@
 #include "renderer/ibl/equirectangular_cubemap.h"
 
-#include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "rhi/opengl/gl_shader.h"
+
+#include "renderer/ibl/hdri_cube.h"
+#include "rhi/rhi_device.h"
+#include "rhi/rhi_framebuffer.h"
+#include "rhi/rhi_shader.h"
+#include "rhi/rhi_texture.h"
+#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {
-    EquirectangularCubemap::~EquirectangularCubemap() = default;
-
-    EquirectangularCubemap::EquirectangularCubemap(const std::string& engineRoot, const std::string& hdriPath)
+    EquirectangularCubemap::EquirectangularCubemap(RHIDevice&         device,
+                                                   const std::string& engine_root,
+                                                   const std::string& hdri_path)
     {
-        std::string hdri_vertex_shader_path   = engineRoot + "/shaders/ibl/hdricube.vert";
-        std::string hdri_fragment_shader_path = engineRoot + "/shaders/ibl/hdricube.frag";
+        std::string vert_path = engine_root + "/shaders/ibl/hdricube.vert";
+        std::string frag_path = engine_root + "/shaders/ibl/hdricube.frag";
 
-        m_hdri_shader = std::make_unique<GLShader>(hdri_vertex_shader_path, hdri_fragment_shader_path);
-        m_hdri_cube   = std::make_unique<HDRICube>(hdriPath);
-        m_framebuffer = std::make_unique<CubemapFramebuffer>(m_cubemap_width, m_cubemap_height);
+        m_hdri_shader = device.createShader(vert_path, frag_path);
+        if (!m_hdri_shader || !m_hdri_shader->isValid())
+            return;
+
+        m_hdri_cube = std::make_unique<HDRICube>(device, hdri_path);
+
+        FramebufferDesc desc;
+        desc.width  = m_cubemap_width;
+        desc.height = m_cubemap_height;
+        FramebufferAttachment color;
+        color.format                          = TextureFormat::RGB16F;
+        color.is_cubemap                      = true;
+        color.gen_mips                        = true;
+        desc.color_attachments                = {color};
+        desc.has_depth                        = true;
+        desc.depth_attachment.format          = TextureFormat::Depth24;
+        desc.depth_attachment.is_renderbuffer = true;
+
+        m_framebuffer = device.createFramebuffer(desc);
     }
 
-    void EquirectangularCubemap::compute()
+    void EquirectangularCubemap::compute(RHIDevice& device)
     {
+        if (!m_hdri_shader || !m_hdri_shader->isValid() || !m_framebuffer)
+            return;
+
         glm::mat4 model = glm::mat4(1.0f);
         glm::vec3 origin(0.0f, 0.0f, 0.0f);
         glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
@@ -33,31 +57,30 @@ namespace RealmEngine
                                      glm::lookAt(origin, -unit_y, -unit_z),
                                      glm::lookAt(origin, unit_z, -unit_y),
                                      glm::lookAt(origin, -unit_z, -unit_y)};
-        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), // 90 degrees to cover one face
-                                                1.0f,
-                                                0.1f,
-                                                2.0f);
+        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
 
-        glViewport(0, 0, m_cubemap_width, m_cubemap_height);
-
-        // render the equirectangular HDR texture to a cubemap
+        device.setViewport(0, 0, m_cubemap_width, m_cubemap_height);
         m_framebuffer->bind();
         m_hdri_shader->use();
 
-        // render to each side of the cubemap
-        for (auto i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
             m_hdri_shader->setMVP(model, camera_angles[i], projection);
             m_framebuffer->setCubeFace(i);
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            m_hdri_cube->draw(*m_hdri_shader);
+            device.clear(ClearFlags::Color | ClearFlags::Depth);
+            m_hdri_cube->draw(device, *m_hdri_shader);
         }
 
-        m_framebuffer->generateMipmap();
+        RHITexture* color_tex = m_framebuffer->getColorAttachment(0);
+        if (color_tex)
+            color_tex->generateMipmaps();
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        device.bindDefaultFramebuffer();
     }
 
-    unsigned int EquirectangularCubemap::getCubemapId() const { return m_framebuffer->getCubemapTextureId(); }
+    RHITexture* EquirectangularCubemap::getCubemapTexture() const
+    {
+        return m_framebuffer ? m_framebuffer->getColorAttachment(0) : nullptr;
+    }
+
 } // namespace RealmEngine
