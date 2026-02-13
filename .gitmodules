@@ -17,3 +17,6 @@
 	path = libs/stb
 	url = https://github.com/nothings/stb.git
 
+[submodule "libs/entt"]
+	path = libs/entt
+	url = https://github.com/skypjack/entt.git
