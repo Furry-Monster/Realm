@@ -1,5 +1,7 @@
 #include "panels/scene_hierarchy_widget.h"
 
+#include "core/event/event.h"
+#include "core/event/event_bus.h"
 #include "editor_context.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
@@ -10,8 +12,13 @@
 
 namespace RealmEngine
 {
-    SceneHierarchyWidget::SceneHierarchyWidget(std::shared_ptr<EditorContext> context, SceneManager& scene_mgr) :
-        Widget("Scene Hierarchy"), m_context(context), m_scene_mgr(scene_mgr)
+    SceneHierarchyWidget::SceneHierarchyWidget(std::shared_ptr<EditorContext> context,
+                                               SceneManager&                 scene_mgr,
+                                               EventBus&                     event_bus) :
+        Widget("Scene Hierarchy"),
+        m_context(context),
+        m_scene_mgr(scene_mgr),
+        m_event_bus(event_bus)
     {}
 
     void SceneHierarchyWidget::render()
@@ -58,10 +65,15 @@ namespace RealmEngine
             if (m_context)
             {
                 m_context->setSelectedNode(node);
+                entt::entity entity = entt::null;
                 if (node->hasEntity() && scene.valid(node->getEntity()))
-                    m_context->setSelectedEntity(node->getEntity());
+                {
+                    entity = node->getEntity();
+                    m_context->setSelectedEntity(entity);
+                }
                 else
                     m_context->clearSelectedEntity();
+                m_event_bus.publish(EntitySelectedEvent{entity, node.get()});
             }
         }
 

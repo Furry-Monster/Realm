@@ -45,6 +45,9 @@ namespace RealmEngine
         m_scene = std::make_unique<SceneManager>();
         m_scene->initialize(m_config->getAssetFolder());
         m_scene->setAssetManager(m_assets.get());
+        m_scene->setOnSceneChanged([this](std::shared_ptr<Scene> old_scene, std::shared_ptr<Scene> new_scene) {
+            m_event_bus->publish(SceneChangedEvent {old_scene.get(), new_scene.get()});
+        });
 
         m_window = std::make_unique<Window>();
         m_window->initialize(*m_event_bus, m_config->getWindowConfig());

@@ -102,7 +102,8 @@ namespace RealmEngine
         });
 
         m_panels.push_back(std::make_shared<MenuBarWidget>(*engine));
-        m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context, engine->getSceneManager()));
+        m_panels.push_back(std::make_shared<SceneHierarchyWidget>(
+            m_context, engine->getSceneManager(), engine->getEventBus()));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context, engine->getSceneManager()));
         m_panels.push_back(file_dialog);
 

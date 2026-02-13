@@ -69,7 +69,7 @@ namespace RealmEngine
                 return t->getForward();
             return glm::vec3(0.0f, 0.0f, -1.0f);
         }
-    }
+    } // namespace
 
     void RenderScene::fullSync(Scene& scene)
     {
@@ -182,9 +182,9 @@ namespace RealmEngine
                 if (dl->enabled)
                 {
                     Light light {};
-                    light.type      = LightType::Directional;
-                    light.position  = glm::vec3(0.0f);
-                    light.direction = -getWorldForward(scene, entity);
+                    light.type             = LightType::Directional;
+                    light.position         = glm::vec3(0.0f);
+                    light.direction        = -getWorldForward(scene, entity);
                     light.color            = dl->color;
                     light.intensity        = dl->intensity;
                     light.constant         = 0.0f;

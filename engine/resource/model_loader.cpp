@@ -52,9 +52,8 @@ namespace RealmEngine
     {
         Assimp::Importer importer;
         stbi_set_flip_vertically_on_load(flip_textures);
-        const aiScene* scene = importer.ReadFile(path,
-                                                 aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals |
-                                                     aiProcess_CalcTangentSpace);
+        const aiScene* scene = importer.ReadFile(
+            path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
@@ -120,9 +119,9 @@ namespace RealmEngine
                 RenderVertex vertex;
 
                 vertex.m_position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-                vertex.m_normal   = mesh->mNormals
-                                        ? glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z)
-                                        : glm::vec3(0.0f, 1.0f, 0.0f);
+                vertex.m_normal   = mesh->mNormals ?
+                                        glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z) :
+                                        glm::vec3(0.0f, 1.0f, 0.0f);
 
                 if (mesh->mTextureCoords[0])
                     vertex.m_texture_coordinates =

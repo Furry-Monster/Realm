@@ -37,7 +37,7 @@ namespace RealmEngine
     template<typename T>
     T* RenderPipeline::getPass(const std::string& name) const
     {
-        for (auto& pass : m_passes)
+        for (const auto& pass : m_passes)
         {
             if (pass->getName() == name)
                 return dynamic_cast<T*>(pass.get());
