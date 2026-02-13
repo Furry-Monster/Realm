@@ -154,8 +154,8 @@ def check_project_structure():
     config = get_build_config()
     logger = config.logger
 
-    required_dirs = ["src", "libs", "assets", "shaders", "scripts"]
-    required_files = ["CMakeLists.txt", "build.py"]
+    required_dirs = ["engine", "editor", "runtime", "libs", "assets", "shaders", "scripts"]
+    required_files = ["CMakeLists.txt", "scripts/build.py"]
 
     missing_dirs = []
     missing_files = []
@@ -188,15 +188,15 @@ def print_next_steps():
     logger.info("Next Steps:")
     logger.info("=" * 60)
     logger.info("1. Build the project:")
-    logger.info("   python build.py")
+    logger.info("   python3 scripts/build.py")
     logger.info("")
     logger.info("2. Build and run:")
-    logger.info("   python build.py -r")
+    logger.info("   python3 scripts/build.py -r")
     logger.info("")
     logger.info("3. Release build:")
-    logger.info("   python build.py -t Release")
+    logger.info("   python3 scripts/build.py -t Release")
     logger.info("")
-    logger.info("For more options, run: python build.py --help")
+    logger.info("For more options, run: python3 scripts/build.py --help")
     logger.info("Documentation: scripts/README.md")
     logger.info("=" * 60)
 

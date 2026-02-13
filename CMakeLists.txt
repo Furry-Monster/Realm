@@ -49,4 +49,6 @@ add_custom_command(TARGET copy_resources POST_BUILD
 )
 
 add_subdirectory(libs)
-add_subdirectory(src)
+add_subdirectory(engine)
+add_subdirectory(editor)
+add_subdirectory(runtime)

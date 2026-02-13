@@ -113,13 +113,13 @@ def main():
 Examples:
   python lint.py                      # Lint all source files
   python lint.py --fix                # Lint and auto-fix issues
-  python lint.py -d src/core          # Lint specific directory
+  python lint.py -d engine/core        # Lint specific directory
   python lint.py -v                   # Verbose output
   python lint.py -c "modernize-*"     # Use specific checks
         """,
     )
 
-    parser.add_argument("-d", "--directory", type=str, help="Directory to lint (default: src)")
+    parser.add_argument("-d", "--directory", type=str, help="Directory to lint (default: engine)")
 
     parser.add_argument(
         "-b",
