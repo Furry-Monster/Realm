@@ -94,7 +94,9 @@ class BuildConfig:
         self.project_root = self._find_project_root()
         self.build_dir = self.project_root / "build"
         self.bin_dir = self.project_root / "bin"
-        self.src_dir = self.project_root / "src"
+        self.src_dir = self.project_root / "engine"
+        self.editor_dir = self.project_root / "editor"
+        self.runtime_dir = self.project_root / "runtime"
         self.scripts_dir = self.project_root / "scripts"
 
     @staticmethod
@@ -158,15 +160,15 @@ class BuildConfig:
         else:
             return ["make"]
 
-    def get_executable_name(self) -> str:
+    def get_executable_name(self, target: str = "RealmEditor") -> str:
         """Get executable name for platform"""
         if self.platform == Platform.WINDOWS:
-            return "RealmEngine.exe"
-        return "RealmEngine"
+            return f"{target}.exe"
+        return target
 
-    def get_executable_path(self, build_type: BuildType) -> Path:
+    def get_executable_path(self, build_type: BuildType, target: str = "RealmEditor") -> Path:
         """Get path to built executable"""
-        exe_name = self.get_executable_name()
+        exe_name = self.get_executable_name(target)
 
         if self.platform == Platform.WINDOWS:
             # Visual Studio puts executables in build_type subdirectory

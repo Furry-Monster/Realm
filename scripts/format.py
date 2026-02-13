@@ -99,12 +99,12 @@ def main():
 Examples:
   python format.py                  # Format all source files
   python format.py --check          # Check formatting without modifying
-  python format.py -d src/core      # Format specific directory
+  python format.py -d engine/core    # Format specific directory
   python format.py -v               # Verbose output
         """,
     )
 
-    parser.add_argument("-d", "--directory", type=str, help="Directory to format (default: src)")
+    parser.add_argument("-d", "--directory", type=str, help="Directory to format (default: engine)")
 
     parser.add_argument(
         "-c",
