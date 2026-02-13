@@ -5,14 +5,66 @@
 #include <chrono>
 #include <fstream>
 
+#ifdef __linux__
+#  include <limits.h>
+#  include <unistd.h>
+#elif defined(_WIN32)
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  include <windows.h>
+#elif defined(__APPLE__)
+#  include <limits.h>
+#  include <mach-o/dyld.h>
+#endif
+
 namespace RealmEngine
 {
+    // platform-specific executable path
+
+    std::filesystem::path FileSystem::getExecutablePath() noexcept
+    {
+#ifdef __linux__
+        char    buffer[PATH_MAX];
+        ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+        if (len != -1)
+        {
+            buffer[len] = '\0';
+            return std::filesystem::path(buffer);
+        }
+#elif defined(_WIN32)
+        wchar_t buffer[MAX_PATH];
+        DWORD   len = GetModuleFileNameW(NULL, buffer, MAX_PATH);
+        if (len > 0 && len < MAX_PATH)
+            return std::filesystem::path(buffer);
+#elif defined(__APPLE__)
+        char     buffer[PATH_MAX];
+        uint32_t size = sizeof(buffer);
+        if (_NSGetExecutablePath(buffer, &size) == 0)
+        {
+            // _NSGetExecutablePath may return a path with symlinks; resolve them
+            std::error_code ec;
+            auto            resolved = std::filesystem::canonical(buffer, ec);
+            return ec ? std::filesystem::path(buffer) : resolved;
+        }
+#endif
+        return std::filesystem::current_path() / "RealmEngine";
+    }
+
+    std::filesystem::path FileSystem::getExecutableDir() noexcept { return getExecutablePath().parent_path(); }
+
+    // file read
+
     std::optional<std::string> FileSystem::readTextFile(const std::filesystem::path& path)
     {
-        std::ifstream file(path, std::ios::in);
+        // binary mode avoids platform-specific line-ending conversion (Windows CRLF)
+        std::ifstream file(path, std::ios::in | std::ios::binary);
         if (!file.is_open())
         {
-            RE_LOG_ERROR("Failed to open text file for reading: " + path.string());
+            RE_LOG_ERROR("Failed to open text file: " + path.string());
             return std::nullopt;
         }
 
@@ -25,7 +77,7 @@ namespace RealmEngine
         std::ifstream file(path, std::ios::in | std::ios::binary | std::ios::ate);
         if (!file.is_open())
         {
-            RE_LOG_ERROR("Failed to open binary file for reading: " + path.string());
+            RE_LOG_ERROR("Failed to open binary file: " + path.string());
             return std::nullopt;
         }
 
@@ -33,7 +85,7 @@ namespace RealmEngine
         file.seekg(0, std::ios::beg);
 
         std::vector<uint8_t> data(static_cast<size_t>(size));
-        if (!file.read(reinterpret_cast<char*>(data.data()), size))
+        if (size > 0 && !file.read(reinterpret_cast<char*>(data.data()), size))
         {
             RE_LOG_ERROR("Failed to read binary file: " + path.string());
             return std::nullopt;
@@ -41,15 +93,18 @@ namespace RealmEngine
         return data;
     }
 
+    // file write
+
     bool FileSystem::writeTextFile(const std::filesystem::path& path, const std::string& content)
     {
         if (path.has_parent_path())
             createDirectories(path.parent_path());
 
-        std::ofstream file(path, std::ios::out | std::ios::trunc);
+        // binary mode keeps LF line endings on all platforms
+        std::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
         if (!file.is_open())
         {
-            RE_LOG_ERROR("Failed to open text file for writing: " + path.string());
+            RE_LOG_ERROR("Failed to write text file: " + path.string());
             return false;
         }
 
@@ -65,13 +120,15 @@ namespace RealmEngine
         std::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
         if (!file.is_open())
         {
-            RE_LOG_ERROR("Failed to open binary file for writing: " + path.string());
+            RE_LOG_ERROR("Failed to write binary file: " + path.string());
             return false;
         }
 
         file.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
         return file.good();
     }
+
+    // file queries
 
     std::uintmax_t FileSystem::getFileSize(const std::filesystem::path& path)
     {
@@ -122,6 +179,8 @@ namespace RealmEngine
         return results;
     }
 
+    // file operations
+
     bool FileSystem::createDirectories(const std::filesystem::path& path)
     {
         std::error_code ec;
@@ -138,7 +197,7 @@ namespace RealmEngine
         std::filesystem::copy_file(source, destination, std::filesystem::copy_options::overwrite_existing, ec);
         if (ec)
         {
-            RE_LOG_ERROR("Failed to copy file: " + source.string() + " -> " + destination.string());
+            RE_LOG_ERROR("Failed to copy: " + source.string() + " -> " + destination.string());
             return false;
         }
         return true;

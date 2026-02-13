@@ -1,7 +1,7 @@
 #include "resource/config_manager.h"
 
 #include "core/log/log_macros.h"
-#include "platform/filesystem/platform.h"
+#include "platform/filesystem/filesystem.h"
 #include "resource/config_serializer.h"
 
 #include <filesystem>
@@ -10,7 +10,7 @@ namespace RealmEngine
 {
     void ConfigManager::initialize()
     {
-        std::filesystem::path exe_path = Platform::getExecutablePath();
+        std::filesystem::path exe_path = FileSystem::getExecutablePath();
         m_general_config.root_folder   = exe_path.parent_path();
 
         m_general_config.asset_folder  = m_general_config.root_folder / "assets";

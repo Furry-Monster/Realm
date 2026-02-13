@@ -6,8 +6,6 @@
 
 namespace RealmEngine
 {
-    // --- Private helpers ---
-
     void Input::setupDefaultBindings()
     {
         m_key_bindings.clear();
@@ -43,17 +41,13 @@ namespace RealmEngine
         }
     }
 
-    // --- Callbacks ---
-
     void Input::onKey(int key, int /*scancode*/, int action, int /*mods*/)
     {
-        // Update raw key state
         if (action == GLFW_PRESS)
             m_key_states[key] = true;
         else if (action == GLFW_RELEASE)
             m_key_states[key] = false;
 
-        // Look up command binding
         auto it = m_key_bindings.find(key);
         if (it == m_key_bindings.end())
             return;
@@ -78,13 +72,11 @@ namespace RealmEngine
 
     void Input::onMouseButton(int button, int action, int /*mods*/)
     {
-        // Update raw button state
         if (action == GLFW_PRESS)
             m_mouse_button_states[button] = true;
         else if (action == GLFW_RELEASE)
             m_mouse_button_states[button] = false;
 
-        // Look up command binding for mouse buttons
         auto it = m_mouse_bindings.find(button);
         if (it == m_mouse_bindings.end())
             return;
@@ -94,8 +86,6 @@ namespace RealmEngine
         else if (action == GLFW_RELEASE)
             applyCommandRelease(it->second);
     }
-
-    // --- Lifecycle ---
 
     void Input::initialize(EventBus& event_bus, Window& window)
     {
@@ -138,8 +128,6 @@ namespace RealmEngine
         m_cursor_delta_y = 0.0;
     }
 
-    // --- Command system ---
-
     void    Input::resetCommand() { m_curr_command = 0; }
     Command Input::getCurrentCommand() const { return m_curr_command; }
 
@@ -148,18 +136,20 @@ namespace RealmEngine
         return (m_curr_command & static_cast<Command>(command)) != 0;
     }
 
-    // --- Cursor delta ---
-
     double Input::getCursorDeltaX() const { return m_cursor_delta_x; }
     double Input::getCursorDeltaY() const { return m_cursor_delta_y; }
+
+    void Input::getCursorPosition(double& x, double& y) const
+    {
+        x = m_last_cursor_x;
+        y = m_last_cursor_y;
+    }
 
     void Input::setCursorHidden(bool hidden)
     {
         if (m_window)
             m_window->setCursorMode(hidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
     }
-
-    // --- Key binding management ---
 
     void Input::bindKey(int glfw_key, BindableCommand command) { m_key_bindings[glfw_key] = command; }
 
@@ -185,8 +175,6 @@ namespace RealmEngine
 
     const std::unordered_map<int, BindableCommand>& Input::getMouseBindings() const { return m_mouse_bindings; }
 
-    // --- Raw input state queries ---
-
     bool Input::isKeyPressed(int glfw_key) const
     {
         auto it = m_key_states.find(glfw_key);
@@ -197,12 +185,6 @@ namespace RealmEngine
     {
         auto it = m_mouse_button_states.find(glfw_button);
         return it != m_mouse_button_states.end() && it->second;
-    }
-
-    void Input::getCursorPosition(double& x, double& y) const
-    {
-        x = m_last_cursor_x;
-        y = m_last_cursor_y;
     }
 
 } // namespace RealmEngine

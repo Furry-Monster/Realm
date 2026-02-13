@@ -14,6 +14,12 @@
 #  include <sys/utsname.h>
 #  include <fstream>
 #elif defined(_WIN32)
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
 #  include <windows.h>
 #elif defined(__APPLE__)
 #  include <mach/mach.h>
@@ -24,7 +30,7 @@
 
 namespace RealmEngine
 {
-    // --- Operating System ---
+    // OS
 
     std::string PlatformInfo::getOSName()
     {
@@ -47,7 +53,6 @@ namespace RealmEngine
             return std::string(info.release);
         return "Unknown";
 #elif defined(_WIN32)
-        // Read from Windows NT registry for accurate version info
         HKEY  hKey;
         DWORD size;
         char  buffer[256];
@@ -87,7 +92,7 @@ namespace RealmEngine
 #endif
     }
 
-    // --- CPU ---
+    // CPU
 
     std::string PlatformInfo::getCPUName()
     {
@@ -130,7 +135,12 @@ namespace RealmEngine
 #elif defined(__APPLE__)
         char   str[256];
         size_t len = sizeof(str);
+        // works on both Intel ("Intel Core i7-...") and Apple Silicon ("Apple M1/M2/...")
         if (sysctlbyname("machdep.cpu.brand_string", str, &len, nullptr, 0) == 0)
+            return std::string(str);
+        // fallback: returns model identifier like "MacBookPro18,1"
+        len = sizeof(str);
+        if (sysctlbyname("hw.model", str, &len, nullptr, 0) == 0)
             return std::string(str);
         return "Unknown";
 #else
@@ -144,14 +154,17 @@ namespace RealmEngine
         return (count > 0) ? count : 1;
     }
 
-    // --- Memory ---
+    // memory
 
     int PlatformInfo::getTotalMemoryMB()
     {
 #ifdef __linux__
         struct sysinfo info;
         if (sysinfo(&info) == 0)
-            return static_cast<int>(info.totalram * info.mem_unit / (1024 * 1024));
+        {
+            // cast to 64-bit before multiplication to prevent overflow on 32-bit systems
+            return static_cast<int>(static_cast<uint64_t>(info.totalram) * info.mem_unit / (1024 * 1024));
+        }
         return 0;
 #elif defined(_WIN32)
         MEMORYSTATUSEX mem_info {};
@@ -175,7 +188,10 @@ namespace RealmEngine
 #ifdef __linux__
         struct sysinfo info;
         if (sysinfo(&info) == 0)
-            return static_cast<int>((info.freeram + info.bufferram) * info.mem_unit / (1024 * 1024));
+        {
+            uint64_t available = (static_cast<uint64_t>(info.freeram) + info.bufferram) * info.mem_unit;
+            return static_cast<int>(available / (1024 * 1024));
+        }
         return 0;
 #elif defined(_WIN32)
         MEMORYSTATUSEX mem_info {};
@@ -190,8 +206,10 @@ namespace RealmEngine
 
         if (host_statistics64(host, HOST_VM_INFO64, reinterpret_cast<host_info64_t>(&vm_stats), &count) == KERN_SUCCESS)
         {
-            long page_size = sysconf(_SC_PAGESIZE);
-            return static_cast<int>((vm_stats.free_count + vm_stats.inactive_count) * page_size / (1024 * 1024));
+            // page counts are 32-bit natural_t; widen before multiply to prevent overflow
+            int64_t page_size       = sysconf(_SC_PAGESIZE);
+            int64_t available_pages = static_cast<int64_t>(vm_stats.free_count) + vm_stats.inactive_count;
+            return static_cast<int>(available_pages * page_size / (1024 * 1024));
         }
         return 0;
 #else
@@ -199,7 +217,7 @@ namespace RealmEngine
 #endif
     }
 
-    // --- GPU (requires active OpenGL context) ---
+    // GPU (requires GL context)
 
     std::string PlatformInfo::getGPUVendor()
     {
@@ -225,7 +243,7 @@ namespace RealmEngine
         return version ? std::string(version) : "Unknown";
     }
 
-    // --- Display (requires GLFW initialization) ---
+    // display (requires GLFW)
 
     int PlatformInfo::getMonitorCount()
     {
@@ -275,8 +293,6 @@ namespace RealmEngine
         return "Unknown";
     }
 
-    // --- Summary ---
-
     void PlatformInfo::logPlatformInfo()
     {
         RE_LOG_INFO("=== Platform Information ===");
@@ -302,6 +318,7 @@ namespace RealmEngine
         getPrimaryMonitorPhysicalSize(phys_w, phys_h);
         if (phys_w > 0 && phys_h > 0)
         {
+            // DPI = pixels / (mm / 25.4)
             float dpi_x = static_cast<float>(mon_w) / (static_cast<float>(phys_w) / 25.4f);
             float dpi_y = static_cast<float>(mon_h) / (static_cast<float>(phys_h) / 25.4f);
             RE_LOG_INFO("Estimated DPI: " + std::to_string(static_cast<int>(dpi_x)) + "x" +
