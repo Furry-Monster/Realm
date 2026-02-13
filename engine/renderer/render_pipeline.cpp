@@ -4,7 +4,11 @@
 
 namespace RealmEngine
 {
-    RenderPipeline::~RenderPipeline() { dispose(); }
+    RenderPipeline::~RenderPipeline()
+    {
+        if (!m_passes.empty())
+            dispose();
+    }
 
     void RenderPipeline::addPass(std::unique_ptr<RenderPass> pass) { m_passes.push_back(std::move(pass)); }
 

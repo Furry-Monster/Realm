@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "core/log/log_macros.h"
+#include "rhi/opengl/gl_format_utils.h"
 #include "rhi/opengl/gl_texture.h"
 
 namespace RealmEngine
@@ -13,38 +14,6 @@ namespace RealmEngine
         GLenum depthAttachmentType(TextureFormat fmt)
         {
             return (fmt == TextureFormat::Depth24Stencil8) ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
-        }
-
-        GLenum toGLInternalFormat(TextureFormat fmt)
-        {
-            switch (fmt)
-            {
-                case TextureFormat::R8:
-                    return GL_R8;
-                case TextureFormat::RG8:
-                    return GL_RG8;
-                case TextureFormat::RGB8:
-                    return GL_RGB8;
-                case TextureFormat::RGBA8:
-                    return GL_RGBA8;
-                case TextureFormat::R16F:
-                    return GL_R16F;
-                case TextureFormat::RG16F:
-                    return GL_RG16F;
-                case TextureFormat::RGB16F:
-                    return GL_RGB16F;
-                case TextureFormat::RGBA16F:
-                    return GL_RGBA16F;
-                case TextureFormat::Depth16:
-                    return GL_DEPTH_COMPONENT16;
-                case TextureFormat::Depth24:
-                    return GL_DEPTH_COMPONENT24;
-                case TextureFormat::Depth32F:
-                    return GL_DEPTH_COMPONENT32F;
-                case TextureFormat::Depth24Stencil8:
-                    return GL_DEPTH24_STENCIL8;
-            }
-            return GL_RGBA8;
         }
     } // namespace
 

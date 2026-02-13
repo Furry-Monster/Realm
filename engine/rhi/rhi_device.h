@@ -50,6 +50,23 @@ namespace RealmEngine
 
         virtual void setCullFace(CullFace face) = 0;
 
+        // ----- Blend / Stencil / Scissor / Polygon -----------------------
+
+        virtual void setBlend(bool enabled) = 0;
+        virtual void
+        setBlendFunc(BlendFactor src_rgb, BlendFactor dst_rgb, BlendFactor src_alpha, BlendFactor dst_alpha) = 0;
+        virtual void setBlendOp(BlendOp op_rgb, BlendOp op_alpha)                                            = 0;
+
+        virtual void setStencilTest(bool enabled)                                                     = 0;
+        virtual void setStencilFunc(StencilFunc func, int ref, uint32_t mask)                         = 0;
+        virtual void setStencilOp(StencilOp stencil_fail, StencilOp depth_fail, StencilOp depth_pass) = 0;
+        virtual void setStencilMask(uint32_t mask)                                                    = 0;
+
+        virtual void setScissorTest(bool enabled)               = 0;
+        virtual void setScissorRect(int x, int y, int w, int h) = 0;
+
+        virtual void setPolygonMode(PolygonMode mode) = 0;
+
         // ----- Framebuffer binding ----------------------------------------
 
         virtual void bindDefaultFramebuffer() = 0;

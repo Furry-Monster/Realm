@@ -17,8 +17,14 @@ namespace RealmEngine
         virtual void unbind() = 0;
 
         // Draw the bound geometry
-        virtual void draw(PrimitiveType primitive, uint32_t count)              = 0;
-        virtual void drawIndexed(PrimitiveType primitive, uint32_t index_count) = 0;
+        virtual void draw(PrimitiveType primitive, uint32_t count) = 0;
+        virtual void
+        drawIndexed(PrimitiveType primitive, uint32_t index_count, IndexType idx_type = IndexType::UInt32) = 0;
+        virtual void drawInstanced(PrimitiveType primitive, uint32_t count, uint32_t instance_count)       = 0;
+        virtual void drawIndexedInstanced(PrimitiveType primitive,
+                                          uint32_t      index_count,
+                                          uint32_t      instance_count,
+                                          IndexType     idx_type = IndexType::UInt32)                          = 0;
     };
 
 } // namespace RealmEngine

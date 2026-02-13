@@ -2,126 +2,10 @@
 
 #include <glad/gl.h>
 
+#include "rhi/opengl/gl_format_utils.h"
+
 namespace RealmEngine
 {
-    namespace
-    {
-        GLenum toGLTarget(TextureType type)
-        {
-            return (type == TextureType::TextureCube) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
-        }
-
-        GLenum toGLInternalFormat(TextureFormat fmt)
-        {
-            switch (fmt)
-            {
-                case TextureFormat::R8:
-                    return GL_R8;
-                case TextureFormat::RG8:
-                    return GL_RG8;
-                case TextureFormat::RGB8:
-                    return GL_RGB8;
-                case TextureFormat::RGBA8:
-                    return GL_RGBA8;
-                case TextureFormat::R16F:
-                    return GL_R16F;
-                case TextureFormat::RG16F:
-                    return GL_RG16F;
-                case TextureFormat::RGB16F:
-                    return GL_RGB16F;
-                case TextureFormat::RGBA16F:
-                    return GL_RGBA16F;
-                case TextureFormat::Depth16:
-                    return GL_DEPTH_COMPONENT16;
-                case TextureFormat::Depth24:
-                    return GL_DEPTH_COMPONENT24;
-                case TextureFormat::Depth32F:
-                    return GL_DEPTH_COMPONENT32F;
-                case TextureFormat::Depth24Stencil8:
-                    return GL_DEPTH24_STENCIL8;
-            }
-            return GL_RGBA8;
-        }
-
-        GLenum toGLPixelFormat(TextureFormat fmt)
-        {
-            switch (fmt)
-            {
-                case TextureFormat::R8:
-                case TextureFormat::R16F:
-                    return GL_RED;
-                case TextureFormat::RG8:
-                case TextureFormat::RG16F:
-                    return GL_RG;
-                case TextureFormat::RGB8:
-                case TextureFormat::RGB16F:
-                    return GL_RGB;
-                case TextureFormat::RGBA8:
-                case TextureFormat::RGBA16F:
-                    return GL_RGBA;
-                case TextureFormat::Depth16:
-                case TextureFormat::Depth24:
-                case TextureFormat::Depth32F:
-                    return GL_DEPTH_COMPONENT;
-                case TextureFormat::Depth24Stencil8:
-                    return GL_DEPTH_STENCIL;
-            }
-            return GL_RGBA;
-        }
-
-        GLenum toGLPixelType(TextureFormat fmt)
-        {
-            switch (fmt)
-            {
-                case TextureFormat::R16F:
-                case TextureFormat::RG16F:
-                case TextureFormat::RGB16F:
-                case TextureFormat::RGBA16F:
-                case TextureFormat::Depth32F:
-                    return GL_FLOAT;
-                case TextureFormat::Depth24Stencil8:
-                    return GL_UNSIGNED_INT_24_8;
-                default:
-                    return GL_UNSIGNED_BYTE;
-            }
-        }
-
-        GLint toGLFilter(TextureFilter f)
-        {
-            switch (f)
-            {
-                case TextureFilter::Nearest:
-                    return GL_NEAREST;
-                case TextureFilter::Linear:
-                    return GL_LINEAR;
-                case TextureFilter::NearestMipmapNearest:
-                    return GL_NEAREST_MIPMAP_NEAREST;
-                case TextureFilter::LinearMipmapNearest:
-                    return GL_LINEAR_MIPMAP_NEAREST;
-                case TextureFilter::NearestMipmapLinear:
-                    return GL_NEAREST_MIPMAP_LINEAR;
-                case TextureFilter::LinearMipmapLinear:
-                    return GL_LINEAR_MIPMAP_LINEAR;
-            }
-            return GL_LINEAR;
-        }
-
-        GLint toGLWrap(TextureWrap w)
-        {
-            switch (w)
-            {
-                case TextureWrap::Repeat:
-                    return GL_REPEAT;
-                case TextureWrap::ClampToEdge:
-                    return GL_CLAMP_TO_EDGE;
-                case TextureWrap::ClampToBorder:
-                    return GL_CLAMP_TO_BORDER;
-                case TextureWrap::MirroredRepeat:
-                    return GL_MIRRORED_REPEAT;
-            }
-            return GL_CLAMP_TO_EDGE;
-        }
-    } // namespace
 
     GLTexture::GLTexture(const TextureDesc& desc)
     {
@@ -219,7 +103,14 @@ namespace RealmEngine
         {
             for (int face = 0; face < 6; ++face)
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face,
-                             0, internal_fmt, width, height, 0, pixel_fmt, pixel_type, nullptr);
+                             0,
+                             internal_fmt,
+                             width,
+                             height,
+                             0,
+                             pixel_fmt,
+                             pixel_type,
+                             nullptr);
         }
         else
         {

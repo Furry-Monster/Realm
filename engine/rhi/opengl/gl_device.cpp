@@ -1,7 +1,9 @@
 #include "rhi/opengl/gl_device.h"
 
 #include <glad/gl.h>
+#include <string>
 
+#include "core/log/log_macros.h"
 #include "rhi/opengl/gl_buffer.h"
 #include "rhi/opengl/gl_framebuffer.h"
 #include "rhi/opengl/gl_shader.h"
@@ -10,9 +12,107 @@
 
 namespace RealmEngine
 {
+    // ----- GL debug callback (enabled in Debug builds, requires KHR_debug / GL 4.3+) ---
+
+#if !defined(NDEBUG) && defined(GL_DEBUG_OUTPUT)
+    static void GLAPIENTRY glDebugCallback(GLenum                       source,
+                                           GLenum                       type,
+                                           GLuint                       id,
+                                           GLenum                       severity,
+                                           [[maybe_unused]] GLsizei     length,
+                                           const GLchar*                message,
+                                           [[maybe_unused]] const void* user_param)
+    {
+        if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+            return;
+
+        std::string src_str;
+        switch (source)
+        {
+            case GL_DEBUG_SOURCE_API:
+                src_str = "API";
+                break;
+            case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+                src_str = "Window";
+                break;
+            case GL_DEBUG_SOURCE_SHADER_COMPILER:
+                src_str = "Shader";
+                break;
+            case GL_DEBUG_SOURCE_THIRD_PARTY:
+                src_str = "3rdParty";
+                break;
+            case GL_DEBUG_SOURCE_APPLICATION:
+                src_str = "App";
+                break;
+            default:
+                src_str = "Other";
+                break;
+        }
+
+        std::string type_str;
+        switch (type)
+        {
+            case GL_DEBUG_TYPE_ERROR:
+                type_str = "Error";
+                break;
+            case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+                type_str = "Deprecated";
+                break;
+            case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+                type_str = "UB";
+                break;
+            case GL_DEBUG_TYPE_PORTABILITY:
+                type_str = "Portability";
+                break;
+            case GL_DEBUG_TYPE_PERFORMANCE:
+                type_str = "Performance";
+                break;
+            default:
+                type_str = "Other";
+                break;
+        }
+
+        std::string msg = "[GL " + src_str + "/" + type_str + " #" + std::to_string(id) + "] " + message;
+
+        if (type == GL_DEBUG_TYPE_ERROR)
+            RE_LOG_ERROR(msg);
+        else
+            RE_LOG_WARN(msg);
+    }
+
+    static void enableGLDebugOutput()
+    {
+        // glDebugMessageCallback requires KHR_debug or GL 4.3+. Check runtime availability.
+        if (!glDebugMessageCallback)
+        {
+            RE_LOG_INFO("GL debug output not available (driver does not expose KHR_debug).");
+            return;
+        }
+
+        GLint flags = 0;
+        glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+        if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+        {
+            glEnable(GL_DEBUG_OUTPUT);
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+            glDebugMessageCallback(glDebugCallback, nullptr);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+            RE_LOG_INFO("GL debug output enabled.");
+        }
+    }
+#endif
+
     // ----- RHIDevice factory (static) ------------------------------------
 
-    std::unique_ptr<RHIDevice> RHIDevice::create() { return std::make_unique<GLDevice>(); }
+    std::unique_ptr<RHIDevice> RHIDevice::create()
+    {
+        auto device = std::make_unique<GLDevice>();
+#if !defined(NDEBUG) && defined(GL_DEBUG_OUTPUT)
+        enableGLDebugOutput();
+#endif
+        return device;
+    }
 
     // ----- Resource creation ---------------------------------------------
 
@@ -136,6 +236,176 @@ namespace RealmEngine
                 glCullFace(GL_FRONT_AND_BACK);
                 break;
             default:
+                break;
+        }
+    }
+
+    // ----- Blend ---------------------------------------------------------
+
+    void GLDevice::setBlend(bool enabled)
+    {
+        if (enabled)
+            glEnable(GL_BLEND);
+        else
+            glDisable(GL_BLEND);
+    }
+
+    namespace
+    {
+        GLenum toGLBlendFactor(BlendFactor f)
+        {
+            switch (f)
+            {
+                case BlendFactor::Zero:
+                    return GL_ZERO;
+                case BlendFactor::One:
+                    return GL_ONE;
+                case BlendFactor::SrcAlpha:
+                    return GL_SRC_ALPHA;
+                case BlendFactor::OneMinusSrcAlpha:
+                    return GL_ONE_MINUS_SRC_ALPHA;
+                case BlendFactor::DstAlpha:
+                    return GL_DST_ALPHA;
+                case BlendFactor::OneMinusDstAlpha:
+                    return GL_ONE_MINUS_DST_ALPHA;
+                case BlendFactor::SrcColor:
+                    return GL_SRC_COLOR;
+                case BlendFactor::OneMinusSrcColor:
+                    return GL_ONE_MINUS_SRC_COLOR;
+                case BlendFactor::DstColor:
+                    return GL_DST_COLOR;
+                case BlendFactor::OneMinusDstColor:
+                    return GL_ONE_MINUS_DST_COLOR;
+            }
+            return GL_ONE;
+        }
+
+        GLenum toGLBlendOp(BlendOp op)
+        {
+            switch (op)
+            {
+                case BlendOp::Add:
+                    return GL_FUNC_ADD;
+                case BlendOp::Subtract:
+                    return GL_FUNC_SUBTRACT;
+                case BlendOp::ReverseSubtract:
+                    return GL_FUNC_REVERSE_SUBTRACT;
+                case BlendOp::Min:
+                    return GL_MIN;
+                case BlendOp::Max:
+                    return GL_MAX;
+            }
+            return GL_FUNC_ADD;
+        }
+
+        GLenum toGLStencilOp(StencilOp op)
+        {
+            switch (op)
+            {
+                case StencilOp::Keep:
+                    return GL_KEEP;
+                case StencilOp::Zero:
+                    return GL_ZERO;
+                case StencilOp::Replace:
+                    return GL_REPLACE;
+                case StencilOp::Increment:
+                    return GL_INCR;
+                case StencilOp::IncrementWrap:
+                    return GL_INCR_WRAP;
+                case StencilOp::Decrement:
+                    return GL_DECR;
+                case StencilOp::DecrementWrap:
+                    return GL_DECR_WRAP;
+                case StencilOp::Invert:
+                    return GL_INVERT;
+            }
+            return GL_KEEP;
+        }
+
+        GLenum toGLStencilFunc(StencilFunc f)
+        {
+            switch (f)
+            {
+                case StencilFunc::Never:
+                    return GL_NEVER;
+                case StencilFunc::Less:
+                    return GL_LESS;
+                case StencilFunc::LessEqual:
+                    return GL_LEQUAL;
+                case StencilFunc::Greater:
+                    return GL_GREATER;
+                case StencilFunc::GreaterEqual:
+                    return GL_GEQUAL;
+                case StencilFunc::Equal:
+                    return GL_EQUAL;
+                case StencilFunc::NotEqual:
+                    return GL_NOTEQUAL;
+                case StencilFunc::Always:
+                    return GL_ALWAYS;
+            }
+            return GL_ALWAYS;
+        }
+    } // namespace
+
+    void GLDevice::setBlendFunc(BlendFactor src_rgb, BlendFactor dst_rgb, BlendFactor src_alpha, BlendFactor dst_alpha)
+    {
+        glBlendFuncSeparate(
+            toGLBlendFactor(src_rgb), toGLBlendFactor(dst_rgb), toGLBlendFactor(src_alpha), toGLBlendFactor(dst_alpha));
+    }
+
+    void GLDevice::setBlendOp(BlendOp op_rgb, BlendOp op_alpha)
+    {
+        glBlendEquationSeparate(toGLBlendOp(op_rgb), toGLBlendOp(op_alpha));
+    }
+
+    // ----- Stencil -------------------------------------------------------
+
+    void GLDevice::setStencilTest(bool enabled)
+    {
+        if (enabled)
+            glEnable(GL_STENCIL_TEST);
+        else
+            glDisable(GL_STENCIL_TEST);
+    }
+
+    void GLDevice::setStencilFunc(StencilFunc func, int ref, uint32_t mask)
+    {
+        glStencilFunc(toGLStencilFunc(func), ref, mask);
+    }
+
+    void GLDevice::setStencilOp(StencilOp stencil_fail, StencilOp depth_fail, StencilOp depth_pass)
+    {
+        glStencilOp(toGLStencilOp(stencil_fail), toGLStencilOp(depth_fail), toGLStencilOp(depth_pass));
+    }
+
+    void GLDevice::setStencilMask(uint32_t mask) { glStencilMask(mask); }
+
+    // ----- Scissor -------------------------------------------------------
+
+    void GLDevice::setScissorTest(bool enabled)
+    {
+        if (enabled)
+            glEnable(GL_SCISSOR_TEST);
+        else
+            glDisable(GL_SCISSOR_TEST);
+    }
+
+    void GLDevice::setScissorRect(int x, int y, int w, int h) { glScissor(x, y, w, h); }
+
+    // ----- Polygon mode --------------------------------------------------
+
+    void GLDevice::setPolygonMode(PolygonMode mode)
+    {
+        switch (mode)
+        {
+            case PolygonMode::Fill:
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                break;
+            case PolygonMode::Line:
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                break;
+            case PolygonMode::Point:
+                glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
                 break;
         }
     }

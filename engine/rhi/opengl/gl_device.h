@@ -37,6 +37,22 @@ namespace RealmEngine
         void setDepthWrite(bool enabled) override;
         void setCullFace(CullFace face) override;
 
+        // Blend / Stencil / Scissor / Polygon
+        void setBlend(bool enabled) override;
+        void
+        setBlendFunc(BlendFactor src_rgb, BlendFactor dst_rgb, BlendFactor src_alpha, BlendFactor dst_alpha) override;
+        void setBlendOp(BlendOp op_rgb, BlendOp op_alpha) override;
+
+        void setStencilTest(bool enabled) override;
+        void setStencilFunc(StencilFunc func, int ref, uint32_t mask) override;
+        void setStencilOp(StencilOp stencil_fail, StencilOp depth_fail, StencilOp depth_pass) override;
+        void setStencilMask(uint32_t mask) override;
+
+        void setScissorTest(bool enabled) override;
+        void setScissorRect(int x, int y, int w, int h) override;
+
+        void setPolygonMode(PolygonMode mode) override;
+
         // Framebuffer
         void bindDefaultFramebuffer() override;
 

@@ -149,12 +149,12 @@ namespace RealmEngine
         GLint current = 0;
         glGetIntegerv(GL_CURRENT_PROGRAM, &current);
         if (static_cast<uint32_t>(current) != expected_id)
-            RE_LOG_WARN("Setting uniform on shader " + std::to_string(expected_id) +
-                        " but active program is " + std::to_string(current) + ". Call use() first.");
+            RE_LOG_WARN("Setting uniform on shader " + std::to_string(expected_id) + " but active program is " +
+                        std::to_string(current) + ". Call use() first.");
     }
-#   define RE_ASSERT_SHADER_ACTIVE() assertProgramActive(m_id)
+#  define RE_ASSERT_SHADER_ACTIVE() assertProgramActive(m_id)
 #else
-#   define RE_ASSERT_SHADER_ACTIVE() ((void) 0)
+#  define RE_ASSERT_SHADER_ACTIVE() ((void)0)
 #endif
 
     void GLShader::use() { glUseProgram(m_id); }
@@ -189,6 +189,18 @@ namespace RealmEngine
         glUniform3f(glGetUniformLocation(m_id, name.c_str()), value.x, value.y, value.z);
     }
 
+    void GLShader::setVec4(const std::string& name, const glm::vec4& value)
+    {
+        RE_ASSERT_SHADER_ACTIVE();
+        glUniform4f(glGetUniformLocation(m_id, name.c_str()), value.x, value.y, value.z, value.w);
+    }
+
+    void GLShader::setMat3(const std::string& name, const glm::mat3& value)
+    {
+        RE_ASSERT_SHADER_ACTIVE();
+        glUniformMatrix3fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &value[0][0]);
+    }
+
     void GLShader::setMat4(const std::string& name, const glm::mat4& value)
     {
         RE_ASSERT_SHADER_ACTIVE();
@@ -210,13 +222,6 @@ namespace RealmEngine
     void GLShader::setIntArray(const std::string& name, const std::vector<int>& values)
     {
         glUniform1iv(glGetUniformLocation(m_id, name.c_str()), static_cast<GLsizei>(values.size()), values.data());
-    }
-
-    void GLShader::setMVP(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection)
-    {
-        setMat4("model", model);
-        setMat4("view", view);
-        setMat4("projection", projection);
     }
 
     void GLShader::bindUniformBlock(const std::string& name, uint32_t binding_point)

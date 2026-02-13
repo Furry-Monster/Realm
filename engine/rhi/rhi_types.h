@@ -30,6 +30,8 @@ namespace RealmEngine
         RG8,
         RGB8,
         RGBA8,
+        SRGB8,
+        SRGBA8,
         R16F,
         RG16F,
         RGB16F,
@@ -102,12 +104,30 @@ namespace RealmEngine
 
     // ---- Vertex input ----------------------------------------------------
 
+    enum class AttributeType : uint8_t
+    {
+        Float,
+        Int,
+        UnsignedInt,
+        Short,
+        UnsignedShort,
+        Byte,
+        UnsignedByte
+    };
+
     struct VertexAttribute
     {
-        uint32_t location;
-        uint32_t component_count; // 1-4
-        size_t   offset;
-        bool     normalized = false;
+        uint32_t      location;
+        uint32_t      component_count; // 1-4
+        AttributeType type = AttributeType::Float;
+        size_t        offset;
+        bool          normalized = false;
+    };
+
+    enum class IndexType : uint8_t
+    {
+        UInt16,
+        UInt32
     };
 
     struct VertexLayout
@@ -163,13 +183,64 @@ namespace RealmEngine
         return (static_cast<uint32_t>(a) & static_cast<uint32_t>(b)) != 0;
     }
 
-    // ---- Bloom direction (used by BloomPass) ------------------------------
+    // ---- Blend state -----------------------------------------------------
 
-    enum class BloomDirection : uint8_t
+    enum class BlendFactor : uint8_t
     {
-        BOTH       = 0,
-        HORIZONTAL = 1,
-        VERTICAL   = 2
+        Zero,
+        One,
+        SrcAlpha,
+        OneMinusSrcAlpha,
+        DstAlpha,
+        OneMinusDstAlpha,
+        SrcColor,
+        OneMinusSrcColor,
+        DstColor,
+        OneMinusDstColor
+    };
+
+    enum class BlendOp : uint8_t
+    {
+        Add,
+        Subtract,
+        ReverseSubtract,
+        Min,
+        Max
+    };
+
+    // ---- Stencil ---------------------------------------------------------
+
+    enum class StencilOp : uint8_t
+    {
+        Keep,
+        Zero,
+        Replace,
+        Increment,
+        IncrementWrap,
+        Decrement,
+        DecrementWrap,
+        Invert
+    };
+
+    enum class StencilFunc : uint8_t
+    {
+        Never,
+        Less,
+        LessEqual,
+        Greater,
+        GreaterEqual,
+        Equal,
+        NotEqual,
+        Always
+    };
+
+    // ---- Polygon mode ----------------------------------------------------
+
+    enum class PolygonMode : uint8_t
+    {
+        Fill,
+        Line,
+        Point
     };
 
 } // namespace RealmEngine

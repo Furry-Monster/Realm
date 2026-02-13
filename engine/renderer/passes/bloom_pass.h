@@ -4,10 +4,16 @@
 #include <string>
 
 #include "renderer/render_pass.h"
-#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {
+    // Bloom blur direction -- renderer-layer concept, not part of RHI.
+    enum class BloomDirection : uint8_t
+    {
+        BOTH       = 0,
+        HORIZONTAL = 1,
+        VERTICAL   = 2
+    };
     class RHIShader;
     class RHIFramebuffer;
     class RHITexture;

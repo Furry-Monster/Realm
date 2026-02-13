@@ -21,7 +21,13 @@ namespace RealmEngine
         void unbind() override;
 
         void draw(PrimitiveType primitive, uint32_t count) override;
-        void drawIndexed(PrimitiveType primitive, uint32_t index_count) override;
+        void
+        drawIndexed(PrimitiveType primitive, uint32_t index_count, IndexType idx_type = IndexType::UInt32) override;
+        void drawInstanced(PrimitiveType primitive, uint32_t count, uint32_t instance_count) override;
+        void drawIndexedInstanced(PrimitiveType primitive,
+                                  uint32_t      index_count,
+                                  uint32_t      instance_count,
+                                  IndexType     idx_type = IndexType::UInt32) override;
 
     private:
         uint32_t m_vao {0};

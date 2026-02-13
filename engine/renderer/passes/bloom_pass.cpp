@@ -8,7 +8,6 @@
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
 #include "rhi/rhi_texture.h"
-#include "rhi/rhi_types.h" // for BloomDirection enum
 
 namespace RealmEngine
 {

@@ -26,13 +26,13 @@ namespace RealmEngine
         void setFloat(const std::string& name, float value) override;
         void setVec2(const std::string& name, const glm::vec2& value) override;
         void setVec3(const std::string& name, const glm::vec3& value) override;
+        void setVec4(const std::string& name, const glm::vec4& value) override;
+        void setMat3(const std::string& name, const glm::mat3& value) override;
         void setMat4(const std::string& name, const glm::mat4& value) override;
 
         void setVec3Array(const std::string& name, const std::vector<glm::vec3>& values) override;
         void setFloatArray(const std::string& name, const std::vector<float>& values) override;
         void setIntArray(const std::string& name, const std::vector<int>& values) override;
-
-        void setMVP(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection) override;
 
         void bindUniformBlock(const std::string& name, uint32_t binding_point) override;
 
