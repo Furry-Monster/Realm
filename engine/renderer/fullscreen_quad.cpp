@@ -27,12 +27,18 @@ namespace RealmEngine
         glBindVertexArray(0);
     }
 
+    FullscreenQuad::~FullscreenQuad()
+    {
+        if (m_vao != 0)
+            glDeleteVertexArrays(1, &m_vao);
+        if (m_vbo != 0)
+            glDeleteBuffers(1, &m_vbo);
+    }
+
     void FullscreenQuad::draw() const
     {
-        glDisable(GL_DEPTH_TEST);
         glBindVertexArray(m_vao);
         glDrawArrays(GL_TRIANGLES, 0, QUAD_NUM_TRIANGLES);
-        glEnable(GL_DEPTH_TEST);
         glBindVertexArray(0);
     }
 } // namespace RealmEngine

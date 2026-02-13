@@ -36,12 +36,12 @@ namespace RealmEngine
             auto helmet_node   = scene->createNodeWithEntity("Helmet");
             auto helmet_entity = scene->findEntity("Helmet");
 
-            auto& transform1    = scene->emplace<Transform>(helmet_entity);
+            auto& transform1    = helmet_entity.emplace<Transform>();
             transform1.position = glm::vec3(0.0f, 0.0f, 0.0f);
             transform1.rotation = glm::angleAxis(glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
 
             std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";
-            auto&       renderable1 = scene->emplace<Renderable>(helmet_entity);
+            auto&       renderable1 = helmet_entity.emplace<Renderable>();
             renderable1.model_path  = helmet_path;
             renderable1.loadModel();
 
@@ -57,11 +57,11 @@ namespace RealmEngine
             auto sphere_node   = scene->createNodeWithEntity("Sphere");
             auto sphere_entity = scene->findEntity("Sphere");
 
-            auto& transform2    = scene->emplace<Transform>(sphere_entity);
+            auto& transform2    = sphere_entity.emplace<Transform>();
             transform2.position = glm::vec3(1.0f, 2.0f, 0.0f);
 
             std::string sphere_path = asset_path + "/sphere/sphere.gltf";
-            auto&       renderable2 = scene->emplace<Renderable>(sphere_entity);
+            auto&       renderable2 = sphere_entity.emplace<Renderable>();
             renderable2.model_path  = sphere_path;
             renderable2.loadModel();
 
@@ -76,9 +76,9 @@ namespace RealmEngine
         {
             auto  light1_node   = scene->createNodeWithEntity("PointLight1");
             auto  light1_entity = scene->findEntity("PointLight1");
-            auto& t             = scene->emplace<Transform>(light1_entity);
+            auto& t             = light1_entity.emplace<Transform>();
             t.position          = glm::vec3(0.0f, 10.0f, 0.0f);
-            auto& pl            = scene->emplace<PointLight>(light1_entity);
+            auto& pl            = light1_entity.emplace<PointLight>();
             pl.color            = glm::vec3(200.0f, 200.0f, 200.0f);
             pl.intensity        = 1.0f;
             pl.range            = 50.0f;
@@ -89,9 +89,9 @@ namespace RealmEngine
         {
             auto  light2_node   = scene->createNodeWithEntity("PointLight2");
             auto  light2_entity = scene->findEntity("PointLight2");
-            auto& t             = scene->emplace<Transform>(light2_entity);
+            auto& t             = light2_entity.emplace<Transform>();
             t.position          = glm::vec3(-5.0f, 3.0f, 0.0f);
-            auto& pl            = scene->emplace<PointLight>(light2_entity);
+            auto& pl            = light2_entity.emplace<PointLight>();
             pl.color            = glm::vec3(200.0f, 50.0f, 50.0f);
             pl.intensity        = 0.8f;
             pl.range            = 30.0f;
@@ -102,9 +102,9 @@ namespace RealmEngine
         {
             auto  light3_node   = scene->createNodeWithEntity("PointLight3");
             auto  light3_entity = scene->findEntity("PointLight3");
-            auto& t             = scene->emplace<Transform>(light3_entity);
+            auto& t             = light3_entity.emplace<Transform>();
             t.position          = glm::vec3(5.0f, 3.0f, 0.0f);
-            auto& pl            = scene->emplace<PointLight>(light3_entity);
+            auto& pl            = light3_entity.emplace<PointLight>();
             pl.color            = glm::vec3(50.0f, 50.0f, 200.0f);
             pl.intensity        = 0.8f;
             pl.range            = 30.0f;
@@ -115,7 +115,7 @@ namespace RealmEngine
         {
             auto  dir_node            = scene->createNodeWithEntity("DirectionalLight");
             auto  dir_entity          = scene->findEntity("DirectionalLight");
-            auto& t                   = scene->emplace<Transform>(dir_entity);
+            auto& t                   = dir_entity.emplace<Transform>();
             t.position                = glm::vec3(0.0f, 0.0f, 0.0f);
             glm::vec3 dir_forward     = glm::normalize(glm::vec3(-1.0f, -1.0f, 0.0f));
             glm::vec3 default_forward = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -123,7 +123,7 @@ namespace RealmEngine
             float     angle           = glm::acos(glm::dot(default_forward, dir_forward));
             if (glm::length(axis) > 0.001f)
                 t.rotation = glm::angleAxis(angle, glm::normalize(axis));
-            auto& dl     = scene->emplace<DirectionalLight>(dir_entity);
+            auto& dl     = dir_entity.emplace<DirectionalLight>();
             dl.color     = glm::vec3(255.0f, 250.0f, 200.0f);
             dl.intensity = 0.5f;
             scene->getRoot()->addChild(dir_node);
@@ -133,7 +133,7 @@ namespace RealmEngine
         {
             auto      spot_node       = scene->createNodeWithEntity("SpotLight");
             auto      spot_entity     = scene->findEntity("SpotLight");
-            auto&     t               = scene->emplace<Transform>(spot_entity);
+            auto&     t               = spot_entity.emplace<Transform>();
             glm::vec3 spot_position   = glm::vec3(0.0f, 5.0f, 8.0f);
             t.position                = spot_position;
             glm::vec3 default_forward = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -143,7 +143,7 @@ namespace RealmEngine
             float     spot_angle      = glm::acos(glm::dot(default_forward, spot_forward));
             if (glm::length(spot_axis) > 0.001f)
                 t.rotation = glm::angleAxis(spot_angle, glm::normalize(spot_axis));
-            auto& sl            = scene->emplace<SpotLight>(spot_entity);
+            auto& sl            = spot_entity.emplace<SpotLight>();
             sl.color            = glm::vec3(200.0f, 200.0f, 150.0f);
             sl.intensity        = 1.2f;
             sl.range            = 20.0f;

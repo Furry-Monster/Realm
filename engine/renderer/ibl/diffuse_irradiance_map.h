@@ -6,12 +6,13 @@
 
 namespace RealmEngine
 {
-    class Shader;
+    class GLShader;
 
     class DiffuseIrradianceMap
     {
     public:
         DiffuseIrradianceMap(const std::string& engineRoot, unsigned int environmentCubemapId);
+        ~DiffuseIrradianceMap();
 
         void compute();
 
@@ -23,7 +24,7 @@ namespace RealmEngine
 
         const unsigned int m_environment_cubemap_id;
 
-        std::unique_ptr<Shader>             m_diffuse_irradiance_shader;
+        std::unique_ptr<GLShader>           m_diffuse_irradiance_shader;
         std::unique_ptr<CubemapFramebuffer> m_diffuse_irradiance_framebuffer;
     };
 } // namespace RealmEngine

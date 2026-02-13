@@ -56,57 +56,97 @@ namespace RealmEngine
         glBindVertexArray(0);
     }
 
+    RenderMesh::~RenderMesh()
+    {
+        if (m_vao != 0)
+            glDeleteVertexArrays(1, &m_vao);
+        if (m_vbo != 0)
+            glDeleteBuffers(1, &m_vbo);
+        if (m_ebo != 0)
+            glDeleteBuffers(1, &m_ebo);
+    }
+
+    RenderMesh::RenderMesh(RenderMesh&& other) noexcept :
+        m_vertices(std::move(other.m_vertices)), m_indices(std::move(other.m_indices)),
+        m_material(std::move(other.m_material)), m_vao(other.m_vao), m_vbo(other.m_vbo), m_ebo(other.m_ebo)
+    {
+        other.m_vao = 0;
+        other.m_vbo = 0;
+        other.m_ebo = 0;
+    }
+
+    RenderMesh& RenderMesh::operator=(RenderMesh&& other) noexcept
+    {
+        if (this != &other)
+        {
+            if (m_vao != 0)
+                glDeleteVertexArrays(1, &m_vao);
+            if (m_vbo != 0)
+                glDeleteBuffers(1, &m_vbo);
+            if (m_ebo != 0)
+                glDeleteBuffers(1, &m_ebo);
+
+            m_vertices = std::move(other.m_vertices);
+            m_indices  = std::move(other.m_indices);
+            m_material = std::move(other.m_material);
+            m_vao      = other.m_vao;
+            m_vbo      = other.m_vbo;
+            m_ebo      = other.m_ebo;
+
+            other.m_vao = 0;
+            other.m_vbo = 0;
+            other.m_ebo = 0;
+        }
+        return *this;
+    }
+
     void RenderMesh::draw(Shader& shader)
     {
+        // Material uniforms + texture binding via Texture::bind() to avoid scattered raw GL calls.
+        // TODO: Migrate fully to RHI once Texture system is refactored.
+
         shader.setBool("material.useTextureAlbedo", m_material.use_texture_albedo);
         shader.setVec3("material.albedo", m_material.albedo);
-        if (m_material.use_texture_albedo)
+        if (m_material.use_texture_albedo && m_material.texture_albedo)
         {
-            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_ALBEDO);
+            m_material.texture_albedo->bind(TEXTURE_UNIT_ALBEDO);
             shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
-            glBindTexture(GL_TEXTURE_2D, m_material.texture_albedo->m_id);
         }
 
         shader.setBool("material.useTextureMetallicRoughness", m_material.use_texture_metallic_roughness);
         shader.setFloat("material.metallic", m_material.metallic);
         shader.setFloat("material.roughness", m_material.roughness);
-        if (m_material.use_texture_metallic_roughness)
+        if (m_material.use_texture_metallic_roughness && m_material.texture_metallic_roughness)
         {
-            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_METALLIC_ROUGHNESS);
+            m_material.texture_metallic_roughness->bind(TEXTURE_UNIT_METALLIC_ROUGHNESS);
             shader.setInt("material.textureMetallicRoughness", TEXTURE_UNIT_METALLIC_ROUGHNESS);
-            glBindTexture(GL_TEXTURE_2D, m_material.texture_metallic_roughness->m_id);
         }
 
         shader.setBool("material.useTextureNormal", m_material.use_texture_normal);
-        if (m_material.use_texture_normal)
+        if (m_material.use_texture_normal && m_material.texture_normal)
         {
-            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_NORMAL);
+            m_material.texture_normal->bind(TEXTURE_UNIT_NORMAL);
             shader.setInt("material.textureNormal", TEXTURE_UNIT_NORMAL);
-            glBindTexture(GL_TEXTURE_2D, m_material.texture_normal->m_id);
         }
 
         shader.setBool("material.useTextureAmbientOcclusion", m_material.use_texture_ambient_occlusion);
         shader.setFloat("material.ambientOcclusion", m_material.ambient_occlusion);
-        if (m_material.use_texture_ambient_occlusion)
+        if (m_material.use_texture_ambient_occlusion && m_material.texture_ambient_occlusion)
         {
-            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_AMBIENT_OCCLUSION);
+            m_material.texture_ambient_occlusion->bind(TEXTURE_UNIT_AMBIENT_OCCLUSION);
             shader.setInt("material.textureAmbientOcclusion", TEXTURE_UNIT_AMBIENT_OCCLUSION);
-            glBindTexture(GL_TEXTURE_2D, m_material.texture_ambient_occlusion->m_id);
         }
 
         shader.setBool("material.useTextureEmissive", m_material.use_texture_emissive);
         shader.setVec3("material.emissive", m_material.emissive);
-        if (m_material.use_texture_emissive)
+        if (m_material.use_texture_emissive && m_material.texture_emissive)
         {
-            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT_EMISSIVE);
+            m_material.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
             shader.setInt("material.textureEmissive", TEXTURE_UNIT_EMISSIVE);
-            glBindTexture(GL_TEXTURE_2D, m_material.texture_emissive->m_id);
         }
 
-        glActiveTexture(GL_TEXTURE0);
-
         glBindVertexArray(m_vao);
-        glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
     }
 } // namespace RealmEngine

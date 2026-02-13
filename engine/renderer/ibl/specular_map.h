@@ -7,12 +7,13 @@
 
 namespace RealmEngine
 {
-    class Shader;
+    class GLShader;
 
     class SpecularMap
     {
     public:
         SpecularMap(const std::string& engineRoot, unsigned int environmentCubemapId);
+        ~SpecularMap();
 
         void         computePrefilteredEnvMap();
         unsigned int getPrefilteredEnvMapId() const;
@@ -28,7 +29,7 @@ namespace RealmEngine
 
         const unsigned int m_environment_cubemap_id;
 
-        std::unique_ptr<Shader>                   m_prefiltered_env_map_shader;
+        std::unique_ptr<GLShader>                 m_prefiltered_env_map_shader;
         std::unique_ptr<MipmapCubemapFramebuffer> m_prefiltered_env_map_framebuffer;
 
         // brdf convolution
@@ -36,7 +37,7 @@ namespace RealmEngine
         const unsigned int m_brdf_convolution_map_width  = 512;
         const unsigned int m_brdf_convolution_map_height = 512;
 
-        std::unique_ptr<Shader>                     m_brdf_convolution_shader;
+        std::unique_ptr<GLShader>                   m_brdf_convolution_shader;
         std::unique_ptr<BrdfConvolutionFramebuffer> m_brdf_convolution_framebuffer;
     };
 } // namespace RealmEngine

@@ -32,6 +32,12 @@ namespace RealmEngine
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+        // Request debug context in Debug builds for GL error reporting.
+        // Gracefully ignored if the driver doesn't support it.
+#ifndef NDEBUG
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
+
         if (window_config.msaa_samples > 0)
             glfwWindowHint(GLFW_SAMPLES, m_msaa_samples);
 

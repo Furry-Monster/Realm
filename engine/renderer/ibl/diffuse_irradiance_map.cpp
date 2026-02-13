@@ -4,10 +4,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "renderer/cube.h"
-#include "renderer/shader.h"
+#include "rhi/opengl/gl_shader.h"
 
 namespace RealmEngine
 {
+    DiffuseIrradianceMap::~DiffuseIrradianceMap() = default;
+
     DiffuseIrradianceMap::DiffuseIrradianceMap(const std::string& engineRoot, const unsigned int environmentCubemapId) :
         m_environment_cubemap_id(environmentCubemapId)
     {
@@ -15,7 +17,7 @@ namespace RealmEngine
         std::string diffuse_irradiance_fragment_shader_path = engineRoot + "/shaders/ibl/diffuseirradiance.frag";
 
         m_diffuse_irradiance_shader =
-            std::make_unique<Shader>(diffuse_irradiance_vertex_shader_path, diffuse_irradiance_fragment_shader_path);
+            std::make_unique<GLShader>(diffuse_irradiance_vertex_shader_path, diffuse_irradiance_fragment_shader_path);
         m_diffuse_irradiance_framebuffer =
             std::make_unique<CubemapFramebuffer>(m_diffuse_irradiance_map_width, m_diffuse_irradiance_map_height);
     }
@@ -47,7 +49,7 @@ namespace RealmEngine
         // render to each side of the cubemap
         for (auto i = 0; i < 6; i++)
         {
-            m_diffuse_irradiance_shader->setModelViewProjectionMatrices(model, camera_angles[i], projection);
+            m_diffuse_irradiance_shader->setMVP(model, camera_angles[i], projection);
             m_diffuse_irradiance_framebuffer->setCubeFace(i);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

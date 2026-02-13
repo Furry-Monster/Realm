@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/log_macros.h"
 #include "core/log/logger.h"
@@ -50,6 +51,10 @@ namespace RealmEngine
 
         m_renderer = std::make_unique<Renderer>();
         m_renderer->initialize(*m_config, *m_window);
+
+        // Forward framebuffer resize events to the renderer
+        m_event_bus->subscribe<FramebufferResizeEvent>(
+            [this](const FramebufferResizeEvent& e) { m_renderer->onResize(e.width, e.height); });
 
         m_input = std::make_unique<Input>();
         m_input->initialize(*m_event_bus, *m_window);

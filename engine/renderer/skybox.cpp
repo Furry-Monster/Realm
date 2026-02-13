@@ -17,15 +17,11 @@ namespace RealmEngine
 
     void Skybox::draw()
     {
-        // NOTE:
-        // default depth buffer value is 1.0
-        // skybox depth is 1.0 everywhere
-        // need equality to make sure skybox passes depth test in default value places
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
+        // Depth state (LessEqual, no depth write) is managed by SkyboxPass via the RHI.
+        // We only need to bind the cubemap texture and draw the cube geometry.
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture_id);
         m_cube->draw();
-        glDepthFunc(GL_LESS);
     }
 
     void Skybox::loadCubemapTextures(std::string texture_directory_path)

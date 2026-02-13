@@ -7,13 +7,13 @@
 
 namespace RealmEngine
 {
-    class Shader;
+    class RHIShader;
 
     class HDRICube
     {
     public:
         explicit HDRICube(const std::string& hdri_path);
-        void draw(Shader& shader);
+        void draw(RHIShader& shader);
 
     private:
         std::unique_ptr<Cube> m_cube;
