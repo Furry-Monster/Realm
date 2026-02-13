@@ -8,3 +8,19 @@ assets/Voodoo-Dool.fbx
 .cache/
 .vscode/
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+docs/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# Python virtual environments
+venv/
+env/
+.env

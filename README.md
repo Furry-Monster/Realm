@@ -21,11 +21,14 @@
 
 ## 系统要求
 
-- **操作系统**: Linux / macOS ，Windows不支持
-- **编译器**: 支持 C++17 的编译器（GCC 7+, Clang 5+, MSVC暂不支持）
+- **操作系统**: Windows / Linux / macOS（跨平台支持）
+- **编译器**: 支持 C++17 的编译器
+  - Windows: Visual Studio 2017+ 或 MinGW
+  - Linux: GCC 7+ 或 Clang 5+
+  - macOS: Xcode Command Line Tools
 - **CMake**: 3.20 或更高版本
 - **OpenGL**: 3.3 或更高版本
-- **Python**: 3.6+（手动构建也行，不推荐）
+- **Python**: 3.6+（用于构建脚本）
 
 ## 依赖库
 
@@ -60,28 +63,41 @@ git submodule update
 
 ### 使用构建脚本（推荐）
 
-最简单的方式是使用提供的 Python 构建脚本：
+项目提供了跨平台的 Python 构建脚本，支持 Windows、Linux 和 macOS：
 
 ```bash
-# 默认构建
+# 默认构建（Debug 模式）
 python build.py
 
 # Release 模式构建
-python build.py --type Release
+python build.py -t Release
 
-# 构建并运行编辑器
-python build.py --run
+# 清理并构建
+python build.py -c
 
-# 运行调试模式，不启用编辑器
-python build.py --run --debug
+# 构建并运行
+python build.py -r
 
-# 清理并重新构建
-python build.py --clean --run
+# 使用 8 个并行任务构建
+python build.py -j 8
 ```
 
-构建完成后，运行 `bin/RealmEngine` 将启动编辑器模式。如需运行调试模式（无编辑器界面），使用 `bin/RealmEngine debug`。
+**平台特定的便捷脚本：**
 
-windows下暂时不支持MSVC，请使用MinGW工具链手动编译，后面搞懂了再加MSVC的支持。
+```bash
+# Windows
+build.bat
+
+# Linux / macOS
+./build.sh
+```
+
+构建完成后，运行 `bin/RealmEngine`（Windows 下为 `bin/RealmEngine.exe`）将启动编辑器模式。
+
+如需运行调试模式（无编辑器界面），传递参数：
+```bash
+python build.py -r -- --debug
+```
 
 ### 手动构建
 
@@ -103,18 +119,28 @@ cmake --build . -j$(nproc)
 
 ```
 RealmEngine/
-├── assets/          # 资源文件（模型、纹理、HDR 等，这里的文件会自动打包成导出资源）
-├── shaders/         # GLSL 着色器文件（同上，也会打包成导出资源）
+├── build.py         # 主构建脚本入口
+├── build.sh         # Unix 构建脚本（Linux/macOS）
+├── build.bat        # Windows 构建脚本
+├── scripts/         # 构建脚本目录
+│   ├── build.py         # 主构建脚本
+│   ├── build_config.py  # 构建配置模块
+│   ├── format.py        # 代码格式化
+│   ├── lint.py          # 代码检查
+│   ├── clean.py         # 清理脚本
+│   ├── test.py          # 测试运行器
+│   ├── README.md        # 构建脚本完整文档
+│   └── QUICKREF.md      # 快速参考
+├── assets/          # 资源文件（模型、纹理、HDR 等）
+├── shaders/         # GLSL 着色器文件
 ├── src/             # 源代码
-│   ├── main.cpp     # 引擎主循环（支持编辑器模式和调试模式）
+│   ├── main.cpp     # 引擎主循环
 │   ├── editor/      # 编辑器系统
-│   │   ├── widgets/ # 编辑器组件（菜单栏、场景层次、属性面板、文件对话框等）
-│   │   └── ...
 │   ├── render/      # 渲染系统
 │   ├── resource/    # 资源管理
 │   ├── gameplay/    # 游戏逻辑
-│   │   ├── components/  # 组件系统（Transform、Renderable、Lighting、CameraController）
-│   │   └── scene/       # 场景管理（Scene、SceneManager、SceneSerializer）
+│   │   ├── components/  # 组件系统
+│   │   └── scene/       # 场景管理
 │   └── ...
 ├── libs/            # 第三方库
 ├── bin/             # 构建输出目录
@@ -126,50 +152,52 @@ RealmEngine/
 ### 构建类型
 
 - `Debug` - 调试模式（默认）
-- `Release` - 发布模式
+- `Release` - 发布模式（完全优化）
 - `RelWithDebInfo` - 带调试信息的发布模式
 - `MinSizeRel` - 最小体积发布模式
 
 ### 构建脚本选项
 
 ```bash
+# 查看所有选项
+python build.py --help
+
+# 常用选项
 python build.py [选项]
 
-选项：
+主要选项：
   -t, --type TYPE        构建类型 (Debug/Release/RelWithDebInfo/MinSizeRel)
   -d, --dir DIR          构建目录（默认: build）
-  -g, --generator GEN    CMake 生成器（默认: Ninja）
-  -j, --jobs N           并行编译任务数
+  -g, --generator GEN    CMake 生成器（自动检测）
+  -j, --jobs N           并行编译任务数（默认：CPU 核心数）
   -c, --clean            清理构建目录
   -r, --run              构建后运行
   -v, --verbose          详细输出
   --configure            仅配置 CMake
   --build                仅构建（跳过配置）
-  --format              格式化代码
-  --lint                 代码检查
-  --lint-fix             代码检查并自动修复
+  -D VAR=VALUE           传递 CMake 定义
 ```
 
-## 代码质量工具
-
-项目支持使用 clang-format 和 clang-tidy 进行代码格式化和检查：
+### 其他构建工具
 
 ```bash
-# 格式化代码
-python build.py --format
-# 或使用 CMake 目标
-cmake --build build --target format
+# 代码格式化
+python scripts/format.py              # 格式化所有代码
+python scripts/format.py --check      # 检查格式不修改
 
 # 代码检查
-python build.py --lint
-# 或使用 CMake 目标
-cmake --build build --target lint
+python scripts/lint.py                # 运行 clang-tidy
+python scripts/lint.py --fix          # 自动修复问题
 
-# 自动修复代码问题
-python build.py --lint-fix
-# 或使用 CMake 目标
-cmake --build build --target lint-fix
+# 清理构建产物
+python scripts/clean.py               # 清理 build 目录
+python scripts/clean.py --all         # 清理所有生成文件
+
+# 运行测试
+python scripts/test.py
 ```
+
+详细文档请参阅 `scripts/README.md` 和 `scripts/QUICKREF.md`。
 
 ## 编辑器功能
 
