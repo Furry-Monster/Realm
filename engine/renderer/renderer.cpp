@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "core/log/log_macros.h"
+#include "core/math/fullscreen_quad.h"
 #include "platform/window/window.h"
-#include "renderer/fullscreen_quad.h"
 #include "renderer/ibl/diffuse_irradiance_map.h"
 #include "renderer/ibl/equirectangular_cubemap.h"
 #include "renderer/ibl/specular_map.h"

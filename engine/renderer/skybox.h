@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "renderer/cube.h"
+#include "core/math/cube.h"
 
 namespace RealmEngine
 {

@@ -1,6 +1,6 @@
 #include "renderer/passes/postprocess_pass.h"
 
-#include "renderer/fullscreen_quad.h"
+#include "core/math/fullscreen_quad.h"
 #include "renderer/passes/bloom_pass.h"
 #include "renderer/passes/geometry_pass.h"
 #include "rhi/rhi_device.h"

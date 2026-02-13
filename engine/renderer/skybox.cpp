@@ -3,7 +3,7 @@
 #include <glad/gl.h>
 #include <stb/stb_image.h>
 #include "core/log/log_macros.h"
-#include "renderer/cube.h"
+#include "core/math/cube.h"
 
 namespace RealmEngine
 {
