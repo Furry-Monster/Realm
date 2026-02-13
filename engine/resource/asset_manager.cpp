@@ -54,7 +54,7 @@ namespace RealmEngine
                                                                RHIDevice&         device)
     {
         std::string full_path = path;
-        if (path[0] != '/' && (path.length() <= 1 || path[1] != ':'))
+        if (!path.empty() && path[0] != '/' && (path.length() <= 1 || path[1] != ':'))
             full_path = directory + '/' + path;
 
         std::string key = makeTextureCacheKey(full_path, is_srgb);

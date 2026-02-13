@@ -1,9 +1,5 @@
 #include "renderer/render_scene.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
-
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
 #include "scene/components/lighting/point.h"
@@ -19,7 +15,16 @@ namespace RealmEngine
     void RenderScene::syncFromScene(std::shared_ptr<Scene> scene)
     {
         if (!scene)
+        {
+            m_render_objects.clear();
+            m_render_model_matrices.clear();
+            m_lights.clear();
+            m_render_entities.clear();
+            m_light_entities.clear();
+            m_cached_scene.reset();
+            m_cached_generation = 0;
             return;
+        }
 
         const bool scene_changed     = (scene != m_cached_scene);
         const bool structure_changed = scene_changed || (scene->getGeneration() != m_cached_generation);
@@ -42,12 +47,9 @@ namespace RealmEngine
         {
             if (auto* wt = scene.tryGet<WorldTransform>(entity))
                 return wt->matrix;
-            Transform tf;
             if (auto* t = scene.tryGet<Transform>(entity))
-                tf = *t;
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), tf.position);
-            model *= glm::toMat4(tf.rotation);
-            return glm::scale(model, tf.scale);
+                return t->getModelMatrix();
+            return glm::mat4(1.0f);
         }
 
         glm::vec3 getWorldPosition(Scene& scene, entt::entity entity)
