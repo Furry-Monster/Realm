@@ -17,5 +17,6 @@ namespace RealmEngine
     {
     public:
         static std::filesystem::path getExecutablePath() noexcept;
+        static std::filesystem::path getExecutableDir() noexcept;
     };
 } // namespace RealmEngine

@@ -28,4 +28,6 @@ namespace RealmEngine
         return std::filesystem::current_path() / "RealmEngine";
     }
 
+    std::filesystem::path Platform::getExecutableDir() noexcept { return getExecutablePath().parent_path(); }
+
 } // namespace RealmEngine

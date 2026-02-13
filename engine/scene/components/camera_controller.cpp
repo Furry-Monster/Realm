@@ -54,8 +54,8 @@ namespace RealmEngine
         // Mouse rotation control (when FOCUS is active)
         if (cmd & static_cast<Command>(BindableCommand::FOCUS))
         {
-            float yaw_delta   = static_cast<float>(m_input->m_cursor_delta_x) * m_mouse_sensitivity;
-            float pitch_delta = static_cast<float>(m_input->m_cursor_delta_y) * m_mouse_sensitivity;
+            float yaw_delta   = static_cast<float>(m_input->getCursorDeltaX()) * m_mouse_sensitivity;
+            float pitch_delta = static_cast<float>(m_input->getCursorDeltaY()) * m_mouse_sensitivity;
 
             glm::quat current_rotation = m_camera->getRotation();
 

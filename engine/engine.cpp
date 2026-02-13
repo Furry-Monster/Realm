@@ -12,6 +12,7 @@
 #include "core/event/event_bus.h"
 #include "core/log/log_macros.h"
 #include "core/log/logger.h"
+#include "platform/info/platform_info.h"
 #include "platform/input/input.h"
 #include "platform/window/window.h"
 #include "renderer/renderer.h"
@@ -56,6 +57,8 @@ namespace RealmEngine
         m_max_delta_time                      = gameplay_config.max_delta_time;
 
         m_last_frame_time = glfwGetTime();
+
+        PlatformInfo::logPlatformInfo();
 
         RE_LOG_INFO("<<< Boot Engine Done. >>>");
     }
