@@ -16,13 +16,16 @@
 
 namespace RealmEngine
 {
-    using TextureCache = std::unordered_map<std::string, std::shared_ptr<Texture>>;
+    class RHIDevice;
+    class RHITexture;
+
+    using TextureCache = std::unordered_map<std::string, std::shared_ptr<RHITexture>>;
 
     class RenderObject
     {
     public:
-        explicit RenderObject(std::string path);
-        RenderObject(std::string path, bool flipTexturesVertically);
+        RenderObject(std::string path, RHIDevice& device);
+        RenderObject(std::string path, bool flip_textures_vertically, RHIDevice& device);
 
         void      setPosition(glm::vec3 position);
         glm::vec3 getPosition() const;
@@ -31,15 +34,16 @@ namespace RealmEngine
         void      setOrientation(glm::quat orientation);
         glm::quat getOrientation() const;
 
-        void draw(Shader& shader);
+        void draw(RHIShader& shader);
 
     private:
-        void loadModel(std::string path, bool flipTexturesVertically);
+        void loadModel(std::string path, bool flip_textures_vertically, RHIDevice& device);
 
-        void                     processNode(aiNode* node, const aiScene* scene);
-        RenderMesh               processMesh(aiMesh* mesh, const aiScene* scene);
-        std::shared_ptr<Texture> loadMaterialTexture(aiMaterial* material, aiTextureType type);
-        unsigned int             textureFromFile(const char* file_name, std::string directory, aiTextureType type);
+        void                        processNode(aiNode* node, const aiScene* scene, RHIDevice& device);
+        RenderMesh                  processMesh(aiMesh* mesh, const aiScene* scene, RHIDevice& device);
+        std::shared_ptr<RHITexture> loadMaterialTexture(aiMaterial* material, aiTextureType type, RHIDevice& device);
+        std::shared_ptr<RHITexture>
+        textureFromFile(const char* file_name, std::string directory, aiTextureType type, RHIDevice& device);
 
         glm::vec3               m_position {glm::vec3(0.0)};
         glm::vec3               m_scale {glm::vec3(1.0, 1.0, 1.0)};

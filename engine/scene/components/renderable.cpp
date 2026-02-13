@@ -4,10 +4,10 @@
 
 namespace RealmEngine
 {
-    void Renderable::loadModel()
+    void Renderable::loadModel(RHIDevice& device)
     {
         if (!model_path.empty())
-            render_object = std::make_shared<RenderObject>(model_path, flip_textures);
+            render_object = std::make_shared<RenderObject>(model_path, flip_textures, device);
     }
 
 } // namespace RealmEngine

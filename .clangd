@@ -2,3 +2,5 @@
 Diagnostics:
   MissingIncludes: None
   UnusedIncludes: None
+  Suppress:
+    - google-default-arguments

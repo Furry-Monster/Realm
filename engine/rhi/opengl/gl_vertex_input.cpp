@@ -60,7 +60,7 @@ namespace RealmEngine
 
         vertex_buffer.bind(); // GL_ARRAY_BUFFER
 
-        for (auto& attr : layout.attributes)
+        for (const auto& attr : layout.attributes)
         {
             glEnableVertexAttribArray(attr.location);
 

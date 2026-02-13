@@ -3,7 +3,7 @@
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "renderer/cube.h"
+#include "core/math/cube.h"
 #include "rhi/opengl/gl_shader.h"
 
 namespace RealmEngine

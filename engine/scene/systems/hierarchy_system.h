@@ -8,8 +8,11 @@ namespace RealmEngine
     class Scene;
     class SceneNode;
 
-    // Synchronises SceneNode tree → ECS Parent / Children components.
-    // Call once per frame *before* TransformSystem so hierarchy data is fresh.
+    /**
+     * @brief
+     * Synchronises SceneNode tree → ECS Parent / Children components.
+     * Call once per frame *before* TransformSystem so hierarchy data is fresh.
+     */
     class HierarchySystem
     {
     public:

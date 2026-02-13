@@ -1,11 +1,11 @@
-#include "renderer/cube.h"
+#include "core/math/fullscreen_quad.h"
 
 #include <glad/gl.h>
 #include <vector>
 
 namespace RealmEngine
 {
-    Cube::Cube()
+    FullscreenQuad::FullscreenQuad()
     {
         glGenVertexArrays(1, &m_vao);
         glGenBuffers(1, &m_vbo);
@@ -14,17 +14,20 @@ namespace RealmEngine
 
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glBufferData(GL_ARRAY_BUFFER,
-                     mVertices.size() * sizeof(float),
-                     &mVertices[0],
+                     m_vertices.size() * sizeof(float),
+                     &m_vertices[0],
                      GL_STATIC_DRAW); // copy over the vertex data
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(0));
+
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
 
         glBindVertexArray(0);
     }
 
-    Cube::~Cube()
+    FullscreenQuad::~FullscreenQuad()
     {
         if (m_vao != 0)
             glDeleteVertexArrays(1, &m_vao);
@@ -32,10 +35,10 @@ namespace RealmEngine
             glDeleteBuffers(1, &m_vbo);
     }
 
-    void Cube::draw()
+    void FullscreenQuad::draw() const
     {
         glBindVertexArray(m_vao);
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(mVertices.size() / 3));
+        glDrawArrays(GL_TRIANGLES, 0, QUAD_NUM_TRIANGLES);
         glBindVertexArray(0);
     }
 } // namespace RealmEngine

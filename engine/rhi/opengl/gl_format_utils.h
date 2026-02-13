@@ -6,6 +6,7 @@
 
 namespace RealmEngine
 {
+    // -----Utilities-------------------------
     // Shared OpenGL format conversion utilities.
     // Used by both GLTexture and GLFramebuffer.
 

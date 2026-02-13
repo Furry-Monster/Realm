@@ -26,7 +26,7 @@ namespace RealmEngine
         return scene;
     }
 
-    std::shared_ptr<Scene> SceneManager::createDefaultScene()
+    std::shared_ptr<Scene> SceneManager::createDefaultScene(RHIDevice& device)
     {
         auto scene      = std::make_shared<Scene>();
         auto asset_path = m_asset_folder.generic_string();
@@ -43,7 +43,7 @@ namespace RealmEngine
             std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";
             auto&       renderable1 = helmet_entity.emplace<Renderable>();
             renderable1.model_path  = helmet_path;
-            renderable1.loadModel();
+            renderable1.loadModel(device);
 
             scene->getRoot()->addChild(helmet_node);
         }
@@ -63,7 +63,7 @@ namespace RealmEngine
             std::string sphere_path = asset_path + "/sphere/sphere.gltf";
             auto&       renderable2 = sphere_entity.emplace<Renderable>();
             renderable2.model_path  = sphere_path;
-            renderable2.loadModel();
+            renderable2.loadModel(device);
 
             scene->getRoot()->addChild(sphere_node);
         }
@@ -155,9 +155,9 @@ namespace RealmEngine
         return scene;
     }
 
-    std::shared_ptr<Scene> SceneManager::loadScene(const std::string& filepath)
+    std::shared_ptr<Scene> SceneManager::loadScene(const std::string& filepath, RHIDevice& device)
     {
-        auto scene = SceneSerializer::loadFromFile(filepath);
+        auto scene = SceneSerializer::loadFromFile(filepath, device);
         if (scene)
         {
             std::string name = std::filesystem::path(filepath).stem().string();

@@ -1,110 +1,66 @@
 #include "renderer/render_mesh.h"
 
-#include <glad/gl.h>
+#include "rhi/rhi_buffer.h"
+#include "rhi/rhi_device.h"
+#include "rhi/rhi_texture.h"
+#include "rhi/rhi_vertex_input.h"
 
 namespace RealmEngine
 {
+    static VertexLayout buildVertexLayout()
+    {
+        VertexLayout layout;
+        layout.stride     = sizeof(RenderVertex);
+        layout.attributes = {
+            {0, 3, AttributeType::Float, offsetof(RenderVertex, m_position)},
+            {1, 3, AttributeType::Float, offsetof(RenderVertex, m_normal)},
+            {2, 2, AttributeType::Float, offsetof(RenderVertex, m_texture_coordinates)},
+            {3, 3, AttributeType::Float, offsetof(RenderVertex, m_tangent)},
+            {4, 3, AttributeType::Float, offsetof(RenderVertex, m_bitangent)},
+        };
+        return layout;
+    }
+
     RenderMesh::RenderMesh(std::vector<RenderVertex> vertices,
                            std::vector<unsigned int> indices,
-                           RenderMaterial material) : m_vertices(vertices), m_indices(indices), m_material(material)
+                           RenderMaterial            material,
+                           RHIDevice&                device) :
+        m_vertices(std::move(vertices)), m_indices(std::move(indices)), m_material(std::move(material))
     {
-        glGenVertexArrays(1, &m_vao);
-        glGenBuffers(1, &m_vbo);
-        glGenBuffers(1, &m_ebo);
+        m_vertex_buffer = device.createBuffer(
+            BufferType::Vertex, BufferUsage::Static, m_vertices.data(), m_vertices.size() * sizeof(RenderVertex));
 
-        glBindVertexArray(m_vao);
+        m_index_buffer = device.createBuffer(
+            BufferType::Index, BufferUsage::Static, m_indices.data(), m_indices.size() * sizeof(unsigned int));
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER,
-                     m_vertices.size() * sizeof(RenderVertex),
-                     &m_vertices[0],
-                     GL_STATIC_DRAW); // copy over the vertex data
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     m_indices.size() * sizeof(unsigned int),
-                     &m_indices[0],
-                     GL_STATIC_DRAW); // copy over the index data
-
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(0));
-
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(
-            1, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(offsetof(RenderVertex, m_normal)));
-
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              sizeof(RenderVertex),
-                              reinterpret_cast<void*>(offsetof(RenderVertex, m_texture_coordinates)));
-
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(
-            3, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), reinterpret_cast<void*>(offsetof(RenderVertex, m_tangent)));
-
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4,
-                              3,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              sizeof(RenderVertex),
-                              reinterpret_cast<void*>(offsetof(RenderVertex, m_bitangent)));
-
-        glBindVertexArray(0);
+        m_vertex_input = device.createVertexInput(buildVertexLayout(), *m_vertex_buffer, m_index_buffer.get());
     }
 
-    RenderMesh::~RenderMesh()
-    {
-        if (m_vao != 0)
-            glDeleteVertexArrays(1, &m_vao);
-        if (m_vbo != 0)
-            glDeleteBuffers(1, &m_vbo);
-        if (m_ebo != 0)
-            glDeleteBuffers(1, &m_ebo);
-    }
+    RenderMesh::~RenderMesh() = default;
 
     RenderMesh::RenderMesh(RenderMesh&& other) noexcept :
         m_vertices(std::move(other.m_vertices)), m_indices(std::move(other.m_indices)),
-        m_material(std::move(other.m_material)), m_vao(other.m_vao), m_vbo(other.m_vbo), m_ebo(other.m_ebo)
-    {
-        other.m_vao = 0;
-        other.m_vbo = 0;
-        other.m_ebo = 0;
-    }
+        m_material(std::move(other.m_material)), m_vertex_buffer(std::move(other.m_vertex_buffer)),
+        m_index_buffer(std::move(other.m_index_buffer)), m_vertex_input(std::move(other.m_vertex_input))
+    {}
 
     RenderMesh& RenderMesh::operator=(RenderMesh&& other) noexcept
     {
         if (this != &other)
         {
-            if (m_vao != 0)
-                glDeleteVertexArrays(1, &m_vao);
-            if (m_vbo != 0)
-                glDeleteBuffers(1, &m_vbo);
-            if (m_ebo != 0)
-                glDeleteBuffers(1, &m_ebo);
-
-            m_vertices = std::move(other.m_vertices);
-            m_indices  = std::move(other.m_indices);
-            m_material = std::move(other.m_material);
-            m_vao      = other.m_vao;
-            m_vbo      = other.m_vbo;
-            m_ebo      = other.m_ebo;
-
-            other.m_vao = 0;
-            other.m_vbo = 0;
-            other.m_ebo = 0;
+            m_vertices      = std::move(other.m_vertices);
+            m_indices       = std::move(other.m_indices);
+            m_material      = std::move(other.m_material);
+            m_vertex_buffer = std::move(other.m_vertex_buffer);
+            m_index_buffer  = std::move(other.m_index_buffer);
+            m_vertex_input  = std::move(other.m_vertex_input);
         }
         return *this;
     }
 
-    void RenderMesh::draw(Shader& shader)
+    void RenderMesh::draw(RHIShader& shader)
     {
-        // Material uniforms + texture binding via Texture::bind() to avoid scattered raw GL calls.
-        // TODO: Migrate fully to RHI once Texture system is refactored.
-
+        // Bind PBR material textures
         shader.setBool("material.useTextureAlbedo", m_material.use_texture_albedo);
         shader.setVec3("material.albedo", m_material.albedo);
         if (m_material.use_texture_albedo && m_material.texture_albedo)
@@ -145,8 +101,6 @@ namespace RealmEngine
             shader.setInt("material.textureEmissive", TEXTURE_UNIT_EMISSIVE);
         }
 
-        glBindVertexArray(m_vao);
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
-        glBindVertexArray(0);
+        m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
     }
 } // namespace RealmEngine
