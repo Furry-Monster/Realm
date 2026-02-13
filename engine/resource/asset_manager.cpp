@@ -4,6 +4,7 @@
 
 #include "core/log/log_macros.h"
 #include "renderer/render_object.h"
+#include "resource/model_loader.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_texture.h"
 #include "rhi/rhi_types.h"
@@ -36,9 +37,11 @@ namespace RealmEngine
                 return it->second;
         }
 
-        auto obj = std::make_shared<RenderObject>(path, flip_textures, device, this);
-        if (obj->isEmpty())
+        auto meshes = ModelLoader::load(path, flip_textures, device, this);
+        if (meshes.empty())
             return nullptr;
+
+        auto obj = std::make_shared<RenderObject>(std::move(meshes));
 
         std::lock_guard<std::mutex> lock(m_model_mutex);
         m_model_cache[key] = obj;
