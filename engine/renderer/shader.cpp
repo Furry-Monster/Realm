@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include <glad/gl.h>
-#include "core/base/utils.h"
+#include "core/log/log_macros.h"
 
 namespace RealmEngine
 {

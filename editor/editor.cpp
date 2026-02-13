@@ -3,17 +3,17 @@
 #include <filesystem>
 #include <memory>
 
+#include "core/log/log_macros.h"
 #include "editor_context.h"
+#include "engine.h"
+#include "global_context.h"
 #include "panels/file_dialog_widget.h"
 #include "panels/menu_bar_widget.h"
 #include "panels/properties_widget.h"
 #include "panels/scene_hierarchy_widget.h"
-#include "engine.h"
-#include "scene/scene_manager.h"
-#include "global_context.h"
-#include "resource/config_manager.h"
-#include "core/base/utils.h"
 #include "platform/window/window.h"
+#include "resource/config_manager.h"
+#include "scene/scene_manager.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -104,7 +104,7 @@ namespace RealmEngine
         // Auto-load scene.json if it exists
         std::filesystem::path scene_file =
             g_context.m_config->getRootFolder() / g_context.m_config->getGamePlayConfig().scene_file;
-        
+
         if (std::filesystem::exists(scene_file))
         {
             RE_LOG_INFO("Auto-loading scene from: " + scene_file.string());

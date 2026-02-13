@@ -1,8 +1,8 @@
 #include "resource/config_manager.h"
 
+#include "core/log/log_macros.h"
 #include "platform/filesystem/platform.h"
 #include "resource/config_serializer.h"
-#include "core/base/utils.h"
 
 #include <filesystem>
 

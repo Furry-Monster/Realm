@@ -12,7 +12,7 @@
 #include "scene/serialization/scene_serializer.h"
 #include "global_context.h"
 #include "resource/config_manager.h"
-#include "core/base/utils.h"
+#include "core/log/log_macros.h"
 
 namespace RealmEngine
 {

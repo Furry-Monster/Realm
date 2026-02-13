@@ -5,6 +5,8 @@
 #include <json.hpp>
 #include <sstream>
 
+#include "core/base/utils.h"
+#include "core/log/log_macros.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
 #include "scene/components/lighting/point.h"
@@ -13,7 +15,6 @@
 #include "scene/components/transform.h"
 #include "scene/entity.h"
 #include "scene/scene_node.h"
-#include "core/base/utils.h"
 
 namespace RealmEngine
 {

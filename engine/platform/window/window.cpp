@@ -1,13 +1,21 @@
 #include "platform/window/window.h"
+
+#include "core/event/event.h"
+#include "core/event/event_bus.h"
+#include "core/log/log_macros.h"
 #include "global_context.h"
 #include "resource/config_manager.h"
-#include "core/base/utils.h"
+
+#include <string>
+#include <vector>
 
 namespace RealmEngine
 {
 
     void Window::initialize()
     {
+        m_event_bus = g_context.m_event_bus;
+
         const WindowConfig& window_config = g_context.m_config->getWindowConfig();
 
         m_width        = window_config.width;
@@ -73,6 +81,7 @@ namespace RealmEngine
 
     void Window::disposal()
     {
+        m_event_bus.reset();
         m_window.reset();
         glfwTerminate();
 
@@ -96,6 +105,97 @@ namespace RealmEngine
     {
         if (m_window)
             glfwSetInputMode(m_window.get(), GLFW_CURSOR, mode);
+    }
+
+    // GLFW callbacks -- publish events through EventBus
+
+    void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(KeyEvent {key, scancode, action, mods});
+    }
+
+    void Window::charCallback(GLFWwindow* window, unsigned int codepoint)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(CharEvent {codepoint});
+    }
+
+    void Window::charModsCallback(GLFWwindow* window, unsigned int codepoint, int mods)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(CharModsEvent {codepoint, mods});
+    }
+
+    void Window::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(MouseButtonEvent {button, action, mods});
+    }
+
+    void Window::cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(CursorPosEvent {xpos, ypos});
+    }
+
+    void Window::cursorEnterCallback(GLFWwindow* window, int entered)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(CursorEnterEvent {entered != 0});
+    }
+
+    void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(ScrollEvent {xoffset, yoffset});
+    }
+
+    void Window::dropCallback(GLFWwindow* window, int count, const char** paths)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+        {
+            DropEvent event;
+            event.paths.reserve(count);
+            for (int i = 0; i < count; ++i)
+                event.paths.emplace_back(paths[i]);
+            self->m_event_bus->publish(event);
+        }
+    }
+
+    void Window::windowSizeCallback(GLFWwindow* window, int width, int height)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self)
+        {
+            self->m_width  = width;
+            self->m_height = height;
+            if (self->m_event_bus)
+                self->m_event_bus->publish(WindowResizeEvent {width, height});
+        }
+    }
+
+    void Window::framebufferSizeCallback(GLFWwindow* window, int width, int height)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(FramebufferResizeEvent {width, height});
+    }
+
+    void Window::windowCloseCallback(GLFWwindow* window)
+    {
+        auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (self && self->m_event_bus)
+            self->m_event_bus->publish(WindowCloseEvent {});
+        glfwSetWindowShouldClose(window, true);
     }
 
 } // namespace RealmEngine

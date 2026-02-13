@@ -1,10 +1,10 @@
 #include "renderer/ibl/hdr_texture.h"
 
 #include <glad/gl.h>
-#include "core/base/utils.h"
+#include "core/log/log_macros.h"
 
 #ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
+#  define STB_IMAGE_IMPLEMENTATION
 #endif
 #include <stb/stb_image.h>
 

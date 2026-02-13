@@ -9,13 +9,13 @@
 #include <memory>
 #include <string>
 
-#include "scene/scene_manager.h"
+#include "core/log/log_macros.h"
 #include "global_context.h"
 #include "platform/input/input.h"
+#include "platform/window/window.h"
 #include "renderer/renderer.h"
 #include "resource/config_manager.h"
-#include "core/base/utils.h"
-#include "platform/window/window.h"
+#include "scene/scene_manager.h"
 
 namespace RealmEngine
 {

@@ -4,6 +4,7 @@
 
 namespace RealmEngine
 {
+    class EventBus;
     class Logger;
     class ConfigManager;
     class AssetManager;
@@ -26,6 +27,7 @@ namespace RealmEngine
         void create();
         void destroy();
 
+        std::shared_ptr<EventBus>      m_event_bus;
         std::shared_ptr<Logger>        m_logger;
         std::shared_ptr<ConfigManager> m_config;
         std::shared_ptr<AssetManager>  m_assets;

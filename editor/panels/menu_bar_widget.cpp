@@ -1,11 +1,11 @@
 #include "panels/menu_bar_widget.h"
 
-#include "panels/file_dialog_widget.h"
-#include "scene/scene_manager.h"
+#include "core/log/log_macros.h"
 #include "global_context.h"
-#include "resource/config_manager.h"
-#include "core/base/utils.h"
+#include "panels/file_dialog_widget.h"
 #include "platform/window/window.h"
+#include "resource/config_manager.h"
+#include "scene/scene_manager.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

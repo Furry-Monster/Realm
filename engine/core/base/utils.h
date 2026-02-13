@@ -3,14 +3,10 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
-#include <string_view>
-
-#include "global_context.h"
-#include "core/log/logger.h"
 
 namespace RealmEngine
 {
-    // Encryption helpers
+    // XOR encryption key
     static constexpr const char* DEFAULT_ENCRYPTION_KEY = "Elysia";
 
     inline static std::string xorEncrypt(const std::string& data, const std::string& key)
@@ -32,6 +28,7 @@ namespace RealmEngine
         return xorEncrypt(encrypted_data, key);
     }
 
+    // FNV-1a hash constants
     static constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
     static constexpr uint32_t FNV_PRIME        = 16777619u;
 
@@ -132,125 +129,5 @@ namespace RealmEngine
         }
         return result;
     }
-
-    // =====================================================================================
-    // Logger helpers
-    // =====================================================================================
-    //
-    // Log output format:
-    //   Default:  [info] [ConfigManager::disposal] Config saved to: ...
-    //   Verbose:  [info] [ConfigManager::disposal @ config_manager.cpp:37] Config saved to: ...
-    //
-    // Compile-time controls (define before including this header, or via CMakeLists.txt):
-    //   RE_MIN_LOG_LEVEL  - Minimum log level (0=debug, 1=info, 2=warn, 3=error, 4=fatal)
-    //   RE_LOG_VERBOSE    - Include source file and line number in log output
-    //
-    // Example usage in CMakeLists.txt:
-    //   target_compile_definitions(MyTarget PRIVATE RE_MIN_LOG_LEVEL=2)    # Only WARN and above
-    //   target_compile_definitions(MyTarget PRIVATE RE_LOG_VERBOSE)        # Enable verbose logging
-
-    // -------------------------------------------------------------------------------------
-    // Cross-platform pretty function macro
-    // -------------------------------------------------------------------------------------
-#if defined(__GNUC__) || defined(__clang__)
-#  define RE_PRETTY_FUNCTION __PRETTY_FUNCTION__
-#elif defined(_MSC_VER)
-#  define RE_PRETTY_FUNCTION __FUNCSIG__
-#else
-#  define RE_PRETTY_FUNCTION __func__
-#endif
-
-    // -------------------------------------------------------------------------------------
-    // Helper: extract "ClassName::functionName" from __PRETTY_FUNCTION__ / __FUNCSIG__
-    //
-    //   Input  (GCC/Clang): "void RealmEngine::ConfigManager::disposal() const"
-    //   Output            : "ConfigManager::disposal"
-    //
-    //   Input  (free func): "void RealmEngine::someFunction(int)"
-    //   Output            : "someFunction"
-    // -------------------------------------------------------------------------------------
-    inline std::string_view extractClassFunction(const char* pretty_function)
-    {
-        std::string_view pf(pretty_function);
-
-        // Find first '(' — marks end of the qualified function name
-        auto paren = pf.find('(');
-        if (paren == std::string_view::npos)
-            paren = pf.size();
-
-        // Find last space before '(' — marks start of the qualified name (skipping return type)
-        auto space = pf.rfind(' ', paren);
-        auto start = (space == std::string_view::npos) ? std::string_view::size_type(0) : space + 1;
-
-        auto qualified = pf.substr(start, paren - start);
-
-        // Extract last two "::"-separated components: "Class::function"
-        auto last_sep = qualified.rfind("::");
-        if (last_sep == std::string_view::npos)
-            return qualified; // Free function — no class
-
-        // Look for the "::" before the last one to locate the class boundary
-        auto before_last = (last_sep >= 2) ? qualified.rfind("::", last_sep - 2) : std::string_view::npos;
-        if (before_last == std::string_view::npos)
-            return qualified; // Already in "Class::function" form
-
-        return qualified.substr(before_last + 2);
-    }
-
-    // -------------------------------------------------------------------------------------
-    // Helper: extract just the filename from a full __FILE__ path
-    //
-    //   Input : "/home/user/project/src/resource/config_manager.cpp"
-    //   Output: "config_manager.cpp"
-    // -------------------------------------------------------------------------------------
-    inline std::string_view extractFileName(const char* path)
-    {
-        std::string_view sv(path);
-        auto             pos = sv.find_last_of("/\\");
-        return (pos != std::string_view::npos) ? sv.substr(pos + 1) : sv;
-    }
-
-    // -------------------------------------------------------------------------------------
-    // Log level gate
-    // -------------------------------------------------------------------------------------
-#ifndef RE_MIN_LOG_LEVEL
-#  if defined(NDEBUG) || defined(_NDEBUG)
-// Release build: exclude DEBUG logs by default
-#    define RE_MIN_LOG_LEVEL 1
-#  else
-// Debug build: include all logs
-#    define RE_MIN_LOG_LEVEL 0
-#  endif
-#endif
-
-    // -------------------------------------------------------------------------------------
-    // Source location suffix (enabled by RE_LOG_VERBOSE)
-    // -------------------------------------------------------------------------------------
-#ifdef RE_LOG_VERBOSE
-#  define RE_LOG_SOURCE_LOC " @ " + std::string(RealmEngine::extractFileName(__FILE__)) + ":" + std::to_string(__LINE__)
-#else
-#  define RE_LOG_SOURCE_LOC ""
-#endif
-
-    // -------------------------------------------------------------------------------------
-    // Core logging macro
-    // -------------------------------------------------------------------------------------
-#define RE_LOG_IMPL(level_value, level_enum, msg)                                                                      \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        if constexpr ((level_value) >= RE_MIN_LOG_LEVEL)                                                               \
-        {                                                                                                              \
-            RealmEngine::g_context.m_logger->log(                                                                      \
-                level_enum,                                                                                            \
-                "[" + std::string(RealmEngine::extractClassFunction(RE_PRETTY_FUNCTION)) + RE_LOG_SOURCE_LOC + "] " +  \
-                    (msg));                                                                                            \
-        }                                                                                                              \
-    } while (0)
-
-#define RE_LOG_DEBUG(msg) RE_LOG_IMPL(0, RealmEngine::Logger::LogLevel::debug, msg)
-#define RE_LOG_INFO(msg) RE_LOG_IMPL(1, RealmEngine::Logger::LogLevel::info, msg)
-#define RE_LOG_WARN(msg) RE_LOG_IMPL(2, RealmEngine::Logger::LogLevel::warn, msg)
-#define RE_LOG_ERROR(msg) RE_LOG_IMPL(3, RealmEngine::Logger::LogLevel::error, msg)
-#define RE_LOG_FATAL(msg) RE_LOG_IMPL(4, RealmEngine::Logger::LogLevel::fatal, msg)
 
 } // namespace RealmEngine

@@ -3,7 +3,7 @@
 #include <assimp/GltfMaterial.h>
 #include <glad/gl.h>
 #include <stb/stb_image.h>
-#include "core/base/utils.h"
+#include "core/log/log_macros.h"
 
 namespace RealmEngine
 {

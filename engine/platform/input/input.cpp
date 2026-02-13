@@ -1,8 +1,7 @@
 #include "platform/input/input.h"
 
-#include <memory>
-#include <utility>
-
+#include "core/event/event.h"
+#include "core/event/event_bus.h"
 #include "global_context.h"
 #include "platform/window/window.h"
 
@@ -68,16 +67,16 @@ namespace RealmEngine
         }
     }
 
-    void Input::onCursorPos(double current_cursor_x, double current_cursor_y)
+    void Input::onCursorPos(double x, double y)
     {
         if (m_focus)
         {
-            m_cursor_delta_x = current_cursor_x - m_last_cursor_x;
-            m_cursor_delta_y = current_cursor_y - m_last_cursor_y;
+            m_cursor_delta_x = x - m_last_cursor_x;
+            m_cursor_delta_y = y - m_last_cursor_y;
         }
 
-        m_last_cursor_x = current_cursor_x;
-        m_last_cursor_y = current_cursor_y;
+        m_last_cursor_x = x;
+        m_last_cursor_y = y;
     }
 
     void Input::onMouseButton(int button, int /*action*/, int /*mods*/)
@@ -97,23 +96,16 @@ namespace RealmEngine
 
     void Input::initialize()
     {
-        std::shared_ptr<Window> window = g_context.m_window;
+        auto bus = g_context.m_event_bus;
 
-        window->registerOnKeyFunc([this](auto&& PH1, auto&& PH2, auto&& PH3, auto&& PH4) {
-            onKey(std::forward<decltype(PH1)>(PH1),
-                  std::forward<decltype(PH2)>(PH2),
-                  std::forward<decltype(PH3)>(PH3),
-                  std::forward<decltype(PH4)>(PH4));
-        });
+        m_subscriptions.push_back(
+            bus->subscribe<KeyEvent>([this](const KeyEvent& e) { onKey(e.key, e.scancode, e.action, e.mods); }));
 
-        window->registerOnCursorPosFunc([this](auto&& PH1, auto&& PH2) {
-            onCursorPos(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
-        });
+        m_subscriptions.push_back(
+            bus->subscribe<CursorPosEvent>([this](const CursorPosEvent& e) { onCursorPos(e.x, e.y); }));
 
-        window->registerOnMouseButtonFunc([this](auto&& PH1, auto&& PH2, auto&& PH3) {
-            onMouseButton(
-                std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
-        });
+        m_subscriptions.push_back(bus->subscribe<MouseButtonEvent>(
+            [this](const MouseButtonEvent& e) { onMouseButton(e.button, e.action, e.mods); }));
     }
 
     void Input::tick()
@@ -127,6 +119,13 @@ namespace RealmEngine
 
     void Input::disposal()
     {
+        if (auto bus = g_context.m_event_bus)
+        {
+            for (auto id : m_subscriptions)
+                bus->unsubscribe(id);
+        }
+        m_subscriptions.clear();
+
         m_cursor_delta_x = 0.0;
         m_cursor_delta_y = 0.0;
     }

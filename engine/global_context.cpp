@@ -1,12 +1,13 @@
 #include "global_context.h"
 
-#include "scene/scene_manager.h"
-#include "platform/input/input.h"
+#include "core/event/event_bus.h"
 #include "core/log/logger.h"
+#include "platform/input/input.h"
+#include "platform/window/window.h"
 #include "renderer/renderer.h"
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
-#include "platform/window/window.h"
+#include "scene/scene_manager.h"
 
 #include <memory>
 
@@ -16,6 +17,9 @@ namespace RealmEngine
 
     void GlobalContext::create()
     {
+        // EventBus must be created first (other subsystems publish/subscribe)
+        m_event_bus = std::make_shared<EventBus>();
+
         m_logger = std::make_shared<Logger>();
         m_logger->initialize();
 
@@ -58,5 +62,8 @@ namespace RealmEngine
 
         m_logger->disposal();
         m_logger.reset();
+
+        // EventBus destroyed last
+        m_event_bus.reset();
     }
 } // namespace RealmEngine

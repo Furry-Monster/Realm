@@ -6,7 +6,7 @@
 #include "global_context.h"
 #include "renderer/render_scene.h"
 #include "resource/config_manager.h"
-#include "core/base/utils.h"
+#include "core/log/log_macros.h"
 #include "platform/window/window.h"
 
 #define GLM_ENABLE_EXPERIMENTAL

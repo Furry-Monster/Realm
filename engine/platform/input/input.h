@@ -1,6 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+#include <vector>
+
+#include "core/event/event_bus.h"
 
 namespace RealmEngine
 {
@@ -22,10 +26,6 @@ namespace RealmEngine
     class Input
     {
     public:
-        void onKey(int key, int scancode, int action, int mods);
-        void onCursorPos(double current_cursor_x, double current_cursor_y);
-        void onMouseButton(int button, int action, int mods);
-
         void initialize();
         void tick();
         void disposal();
@@ -39,10 +39,17 @@ namespace RealmEngine
         double m_cursor_delta_y {0.0};
 
     private:
+        void onKey(int key, int scancode, int action, int mods);
+        void onCursorPos(double x, double y);
+        void onMouseButton(int button, int action, int mods);
+
         bool    m_focus {false};
         Command m_curr_command {0};
 
         double m_last_cursor_x {0.0};
         double m_last_cursor_y {0.0};
+
+        // EventBus subscription handles
+        std::vector<EventBus::HandlerId> m_subscriptions;
     };
 } // namespace RealmEngine
