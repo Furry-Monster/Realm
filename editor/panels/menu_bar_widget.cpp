@@ -18,6 +18,8 @@ namespace RealmEngine
 
     void MenuBarWidget::render()
     {
+        ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
+
         if (ImGui::BeginMainMenuBar())
         {
             renderFileMenu();
