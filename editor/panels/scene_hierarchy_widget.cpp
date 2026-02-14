@@ -1,10 +1,10 @@
 #include "panels/scene_hierarchy_widget.h"
 
+#include "bridge/editor_engine_bridge.h"
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "editor_context.h"
 #include "scene/scene.h"
-#include "scene/scene_manager.h"
 #include "scene/scene_node.h"
 
 #include <imgui.h>
@@ -12,20 +12,15 @@
 
 namespace RealmEngine
 {
-    SceneHierarchyWidget::SceneHierarchyWidget(std::shared_ptr<EditorContext> context,
-                                               SceneManager&                 scene_mgr,
-                                               EventBus&                     event_bus) :
-        Widget("Scene Hierarchy"),
-        m_context(context),
-        m_scene_mgr(scene_mgr),
-        m_event_bus(event_bus)
+    SceneHierarchyWidget::SceneHierarchyWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge) :
+        Widget("Scene Hierarchy"), m_context(context), m_bridge(&bridge)
     {}
 
     void SceneHierarchyWidget::render()
     {
         ImGui::Begin(m_name.c_str(), &m_open);
 
-        auto current_scene = m_scene_mgr.getCurrentScene();
+        auto current_scene = m_bridge->getCurrentScene();
         if (!current_scene)
         {
             ImGui::Text("No scene loaded");
@@ -73,7 +68,7 @@ namespace RealmEngine
                 }
                 else
                     m_context->clearSelectedEntity();
-                m_event_bus.publish(EntitySelectedEvent{entity, node.get()});
+                m_bridge->getEventBus().publish(EntitySelectedEvent {entity, node.get()});
             }
         }
 

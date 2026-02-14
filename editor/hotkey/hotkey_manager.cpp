@@ -1,14 +1,16 @@
-#include "shortcut_system.h"
+#include "hotkey_manager.h"
+
+#include <imgui.h>
 
 namespace RealmEngine
 {
-    void ShortcutSystem::registerShortcut(ImGuiKeyChord chord, Handler handler)
+    void HotkeyManager::registerHotkey(ImGuiKeyChord chord, Handler handler)
     {
         if (handler)
             m_entries.push_back({chord, std::move(handler)});
     }
 
-    void ShortcutSystem::process()
+    void HotkeyManager::process()
     {
         for (const auto& entry : m_entries)
         {

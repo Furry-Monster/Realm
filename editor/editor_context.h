@@ -2,8 +2,9 @@
 
 #include <entt/entity/entity.hpp>
 #include <memory>
+
+#include "hotkey/hotkey_manager.h"
 #include "scene/scene_node.h"
-#include "shortcut_system.h"
 
 namespace RealmEngine
 {
@@ -18,8 +19,8 @@ namespace RealmEngine
         EditorContext(EditorContext&&)                 = delete;
         EditorContext& operator=(EditorContext&&)      = delete;
 
-        ShortcutSystem&       getShortcutSystem() { return m_shortcuts; }
-        const ShortcutSystem& getShortcutSystem() const { return m_shortcuts; }
+        HotkeyManager&       getHotkeyManager() { return m_hotkeys; }
+        const HotkeyManager& getHotkeyManager() const { return m_hotkeys; }
 
         void         setSelectedEntity(entt::entity entity) { m_selected_entity = entity; }
         entt::entity getSelectedEntity() const { return m_selected_entity; }
@@ -32,7 +33,7 @@ namespace RealmEngine
         void                       clearSelectedNode() { m_selected_node.reset(); }
 
     private:
-        ShortcutSystem             m_shortcuts;
+        HotkeyManager              m_hotkeys;
         entt::entity               m_selected_entity {entt::null};
         std::shared_ptr<SceneNode> m_selected_node {nullptr};
     };

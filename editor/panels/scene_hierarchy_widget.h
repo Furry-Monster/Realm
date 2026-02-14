@@ -5,24 +5,21 @@
 
 namespace RealmEngine
 {
+    class EditorEngineBridge;
+    class EditorContext;
     class Scene;
     class SceneNode;
-    class EditorContext;
-    class EventBus;
-    class SceneManager;
 
     class SceneHierarchyWidget : public Widget
     {
     public:
-        SceneHierarchyWidget(std::shared_ptr<EditorContext> context,
-                             SceneManager&                 scene_mgr,
-                             EventBus&                     event_bus);
+        SceneHierarchyWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge);
         ~SceneHierarchyWidget() override = default;
 
         SceneHierarchyWidget(const SceneHierarchyWidget&)            = delete;
         SceneHierarchyWidget& operator=(const SceneHierarchyWidget&) = delete;
         SceneHierarchyWidget(SceneHierarchyWidget&&)                 = delete;
-        SceneHierarchyWidget& operator=(SceneHierarchyWidget&&)       = delete;
+        SceneHierarchyWidget& operator=(SceneHierarchyWidget&&)      = delete;
 
         void render() override;
 
@@ -30,8 +27,7 @@ namespace RealmEngine
         void renderNode(std::shared_ptr<SceneNode> node, Scene& scene);
 
         std::shared_ptr<EditorContext> m_context;
-        SceneManager&                  m_scene_mgr;
-        EventBus&                      m_event_bus;
+        EditorEngineBridge*            m_bridge;
     };
 
 } // namespace RealmEngine

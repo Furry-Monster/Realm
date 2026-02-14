@@ -7,15 +7,12 @@
 
 namespace RealmEngine
 {
-    class ConfigManager;
-    class SceneManager;
-    class AssetManager;
-    class RHIDevice;
+    class EditorEngineBridge;
 
     class AssetBrowserWidget : public Widget
     {
     public:
-        AssetBrowserWidget(ConfigManager& config, SceneManager& scene_mgr, AssetManager& asset_mgr, RHIDevice& device);
+        explicit AssetBrowserWidget(EditorEngineBridge& bridge);
         ~AssetBrowserWidget() override = default;
 
         AssetBrowserWidget(const AssetBrowserWidget&)            = delete;
@@ -33,12 +30,8 @@ namespace RealmEngine
         bool isModelFile(const std::filesystem::path& path) const;
         bool isTextureFile(const std::filesystem::path& path) const;
         bool isHdrFile(const std::filesystem::path& path) const;
-        void addModelToScene(const std::filesystem::path& model_path);
 
-        ConfigManager& m_config;
-        SceneManager&  m_scene_mgr;
-        AssetManager&  m_asset_mgr;
-        RHIDevice&     m_device;
+        EditorEngineBridge* m_bridge;
 
         std::filesystem::path              m_current_path;
         std::vector<std::filesystem::path> m_directory_entries;

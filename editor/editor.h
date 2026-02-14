@@ -3,8 +3,11 @@
 #include <memory>
 #include <vector>
 
+#include "commands/command_executor.h"
+
 namespace RealmEngine
 {
+    class EditorEngineBridge;
     class Engine;
     class Widget;
     class EditorContext;
@@ -33,7 +36,9 @@ namespace RealmEngine
 
         bool                                 m_initialized {false};
         std::unique_ptr<Engine>              m_engine;
+        std::unique_ptr<EditorEngineBridge>  m_bridge;
         std::shared_ptr<EditorContext>       m_context;
+        CommandExecutor                      m_executor;
         std::vector<std::shared_ptr<Widget>> m_panels;
     };
 

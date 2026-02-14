@@ -9,13 +9,12 @@
 namespace RealmEngine
 {
     class EditorContext;
-    class EventBus;
-    class SceneManager;
+    class EditorEngineBridge;
 
     class EntityBrowserWidget : public Widget
     {
     public:
-        EntityBrowserWidget(std::shared_ptr<EditorContext> context, SceneManager& scene_mgr, EventBus& event_bus);
+        EntityBrowserWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge);
         ~EntityBrowserWidget() override = default;
 
         EntityBrowserWidget(const EntityBrowserWidget&)            = delete;
@@ -30,8 +29,7 @@ namespace RealmEngine
         std::string getEntityDisplayName(entt::entity entity) const;
 
         std::shared_ptr<EditorContext> m_context;
-        SceneManager&                  m_scene_mgr;
-        EventBus&                      m_event_bus;
+        EditorEngineBridge*            m_bridge;
 
         int                       m_selected_component_type {0};
         std::vector<entt::entity> m_filtered_entities;

@@ -1,27 +1,16 @@
 #include "panels/asset_browser_widget.h"
 
+#include "bridge/editor_engine_bridge.h"
 #include "core/log/log_macros.h"
-#include "resource/asset_manager.h"
-#include "resource/config_manager.h"
-#include "scene/components/renderable.h"
-#include "scene/components/transform.h"
-#include "scene/scene.h"
-#include "scene/scene_manager.h"
-#include "scene/scene_node.h"
 
 #include <imgui.h>
 #include <algorithm>
-#include <glm/glm.hpp>
 
 namespace RealmEngine
 {
-    AssetBrowserWidget::AssetBrowserWidget(ConfigManager& config,
-                                           SceneManager&  scene_mgr,
-                                           AssetManager&  asset_mgr,
-                                           RHIDevice&     device) :
-        Widget("Asset Browser"), m_config(config), m_scene_mgr(scene_mgr), m_asset_mgr(asset_mgr), m_device(device)
+    AssetBrowserWidget::AssetBrowserWidget(EditorEngineBridge& bridge) : Widget("Asset Browser"), m_bridge(&bridge)
     {
-        m_current_path = m_config.getAssetFolder();
+        m_current_path = m_bridge->getAssetFolder();
         refreshDirectory();
     }
 
@@ -40,8 +29,7 @@ namespace RealmEngine
 
         if (ImGui::BeginChild("AssetTree", ImVec2(tree_width, -1), true))
         {
-            std::filesystem::path asset_root = m_config.getAssetFolder();
-            renderDirectoryTree(asset_root);
+            renderDirectoryTree(m_bridge->getAssetFolder());
         }
         ImGui::EndChild();
 
@@ -176,9 +164,7 @@ namespace RealmEngine
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                     {
                         if (isModelFile(entry))
-                        {
-                            addModelToScene(entry);
-                        }
+                            m_bridge->addModelToScene(entry);
                     }
                 }
             }
@@ -189,9 +175,7 @@ namespace RealmEngine
         {
             ImGui::Separator();
             if (ImGui::Button("Add to Scene"))
-            {
-                addModelToScene(m_selected_path);
-            }
+                m_bridge->addModelToScene(m_selected_path);
         }
     }
 
@@ -257,41 +241,6 @@ namespace RealmEngine
         std::string ext = path.extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         return ext == ".hdr";
-    }
-
-    void AssetBrowserWidget::addModelToScene(const std::filesystem::path& model_path)
-    {
-        auto scene = m_scene_mgr.getCurrentScene();
-        if (!scene)
-        {
-            RE_LOG_WARN("No scene loaded, cannot add model");
-            return;
-        }
-
-        std::string model_path_str = model_path.generic_string();
-        std::string entity_name    = model_path.stem().string();
-
-        try
-        {
-            auto node   = scene->createNodeWithEntity(entity_name);
-            auto entity = scene->findEntity(entity_name);
-
-            auto& transform    = entity.emplace<Transform>();
-            transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
-
-            auto& renderable      = entity.emplace<Renderable>();
-            renderable.model_path = model_path_str;
-            renderable.loadModel(m_device, m_asset_mgr);
-
-            scene->getRoot()->addChild(node);
-            scene->markDirty();
-
-            RE_LOG_INFO("Added model to scene: " + entity_name);
-        }
-        catch (const std::exception& e)
-        {
-            RE_LOG_ERROR("Failed to add model to scene: " + std::string(e.what()));
-        }
     }
 
 } // namespace RealmEngine
