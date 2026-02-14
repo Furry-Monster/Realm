@@ -2,6 +2,9 @@
 
 #include <stb/stb_image.h>
 
+#include <algorithm>
+#include <cmath>
+
 #include "core/log/log_macros.h"
 #include "renderer/render_object.h"
 #include "resource/model_loader.h"
@@ -113,6 +116,67 @@ namespace RealmEngine
         std::lock_guard<std::mutex> lock(m_texture_mutex);
         m_texture_cache[key] = shared_texture;
         return shared_texture;
+    }
+
+    std::shared_ptr<RHITexture> AssetManager::getOrLoadTextureForPreview(const std::string& full_path,
+                                                                         RHIDevice&         device)
+    {
+        std::string ext;
+        if (full_path.size() >= 4)
+        {
+            ext = full_path.substr(full_path.size() - 4);
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        }
+
+        if (ext == ".hdr")
+        {
+            std::string key = "preview_hdr:" + full_path;
+            {
+                std::lock_guard<std::mutex> lock(m_texture_mutex);
+                auto                        it = m_texture_cache.find(key);
+                if (it != m_texture_cache.end())
+                    return it->second;
+            }
+
+            int    width, height, num_channels;
+            float* data = stbi_loadf(full_path.c_str(), &width, &height, &num_channels, 4);
+            if (!data)
+            {
+                RE_LOG_ERROR("Failed to load HDR texture for preview: " + full_path);
+                return nullptr;
+            }
+
+            std::vector<unsigned char> ldr_data(static_cast<size_t>(width) * height * 4);
+            for (int i = 0; i < width * height * 4; ++i)
+            {
+                float v     = data[i];
+                v           = v / (1.0f + v);
+                ldr_data[i] = static_cast<unsigned char>(std::clamp(v * 255.0f, 0.0f, 255.0f));
+            }
+            stbi_image_free(data);
+
+            TextureDesc desc;
+            desc.type       = TextureType::Texture2D;
+            desc.format     = TextureFormat::RGBA8;
+            desc.width      = width;
+            desc.height     = height;
+            desc.min_filter = TextureFilter::Linear;
+            desc.mag_filter = TextureFilter::Linear;
+            desc.wrap_s     = TextureWrap::ClampToEdge;
+            desc.wrap_t     = TextureWrap::ClampToEdge;
+            desc.data       = ldr_data.data();
+
+            auto texture = device.createTexture(desc);
+            if (!texture)
+                return nullptr;
+
+            std::shared_ptr<RHITexture> shared_texture(std::move(texture));
+            std::lock_guard<std::mutex> lock(m_texture_mutex);
+            m_texture_cache[key] = shared_texture;
+            return shared_texture;
+        }
+
+        return getOrLoadTexture(full_path, "", true, device);
     }
 
 } // namespace RealmEngine

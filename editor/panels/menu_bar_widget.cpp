@@ -1,163 +1,111 @@
 #include "panels/menu_bar_widget.h"
 
-#include "core/log/log_macros.h"
-#include "engine.h"
-#include "panels/file_dialog_widget.h"
-#include "platform/window/window.h"
-#include "renderer/renderer.h"
-#include "resource/config_manager.h"
-#include "rhi/rhi_device.h"
-#include "scene/scene_manager.h"
-
 #include <imgui.h>
-#include <filesystem>
 
 namespace RealmEngine
 {
-    MenuBarWidget::MenuBarWidget(Engine& engine) : Widget("MenuBar"), m_engine(engine) {}
+    static void menuItem(const char* label, const char* shortcut, const std::function<void()>& action)
+    {
+        if (ImGui::MenuItem(label, shortcut) && action)
+            action();
+    }
+
+    static void menuItem(const char* label, const char* shortcut, bool enabled, const std::function<void()>& action)
+    {
+        if (ImGui::MenuItem(label, shortcut, false, enabled) && action)
+            action();
+    }
+
+    MenuBarWidget::MenuBarWidget(MenuBarCallbacks callbacks) : Widget("MenuBar"), m_callbacks(std::move(callbacks)) {}
+
+    const char* MenuBarWidget::panelShortcut(size_t one_based_index)
+    {
+        static const char* shortcuts[] = {nullptr, "F1", "F2", "F3", "F4", "F5", "F6"};
+        return (one_based_index >= 1 && one_based_index <= 6) ? shortcuts[one_based_index] : nullptr;
+    }
 
     void MenuBarWidget::render()
     {
+        ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
+
         if (ImGui::BeginMainMenuBar())
         {
             renderFileMenu();
             renderEditMenu();
             renderViewMenu();
-
+            renderSettingsMenu();
             ImGui::EndMainMenuBar();
         }
     }
 
-    void MenuBarWidget::renderFileMenu()
+    void MenuBarWidget::renderFileMenu() const
     {
-        if (ImGui::BeginMenu("File"))
-        {
-            SceneManager&  scene_mgr = m_engine.getSceneManager();
-            ConfigManager& config    = m_engine.getConfig();
+        if (!ImGui::BeginMenu("File"))
+            return;
 
-            if (ImGui::MenuItem("New Scene"))
-            {
-                auto new_scene = scene_mgr.createDefaultScene(m_engine.getRenderer().getDevice());
-                if (new_scene)
-                {
-                    scene_mgr.setCurrentScene(new_scene);
-                    RE_LOG_INFO("New scene created");
-                }
-            }
-
-            if (ImGui::MenuItem("Open Scene..."))
-            {
-                if (m_file_dialog)
-                {
-                    std::filesystem::path initial_path = config.getRootFolder();
-                    m_file_dialog->open(FileDialogWidget::Mode::Open, "Open Scene", ".json", initial_path);
-                }
-            }
-
-            if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-            {
-                if (scene_mgr.getCurrentScene())
-                {
-                    std::filesystem::path scene_file =
-                        config.getRootFolder() / config.getGamePlayConfig().scene_file;
-
-                    if (scene_mgr.saveCurrentScene(scene_file.string()))
-                        RE_LOG_INFO("Scene saved to: " + scene_file.string());
-                    else
-                        RE_LOG_ERROR("Failed to save scene to: " + scene_file.string());
-                }
-                else
-                {
-                    RE_LOG_INFO("No scene to save");
-                }
-            }
-
-            if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-            {
-                if (scene_mgr.getCurrentScene())
-                {
-                    std::filesystem::path scene_file =
-                        config.getRootFolder() / config.getGamePlayConfig().scene_file;
-
-                    if (scene_mgr.saveCurrentScene(scene_file.string()))
-                        RE_LOG_INFO("Scene saved to: " + scene_file.string());
-                    else
-                        RE_LOG_ERROR("Failed to save scene to: " + scene_file.string());
-                }
-                else
-                {
-                    RE_LOG_INFO("No scene to save");
-                }
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Exit"))
-            {
-                m_engine.getWindow().requestClose();
-            }
-
-            ImGui::EndMenu();
-        }
+        menuItem("New Scene", nullptr, m_callbacks.on_new_scene);
+        menuItem("Open Scene...", nullptr, m_callbacks.on_open_scene);
+        menuItem("Reload Scene", nullptr, m_callbacks.on_reload_scene);
+        menuItem("Save Scene", "Ctrl+S", m_callbacks.on_save_scene);
+        menuItem("Save Scene As...", "Ctrl+Shift+S", m_callbacks.on_save_scene_as);
+        ImGui::Separator();
+        menuItem("Exit", nullptr, m_callbacks.on_exit);
+        ImGui::EndMenu();
     }
 
-    void MenuBarWidget::renderEditMenu()
+    void MenuBarWidget::renderEditMenu() const
     {
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Undo", "Ctrl+Z", false, false))
-            {
-                // TODO: Implement undo
-            }
+        if (!ImGui::BeginMenu("Edit"))
+            return;
 
-            if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false))
-            {
-                // TODO: Implement redo
-            }
+        bool undo_enabled      = m_callbacks.can_undo ? m_callbacks.can_undo() : false;
+        bool redo_enabled      = m_callbacks.can_redo ? m_callbacks.can_redo() : false;
+        bool copy_enabled      = m_callbacks.can_copy ? m_callbacks.can_copy() : false;
+        bool paste_enabled     = m_callbacks.can_paste ? m_callbacks.can_paste() : false;
+        bool delete_enabled    = m_callbacks.can_delete ? m_callbacks.can_delete() : false;
+        bool duplicate_enabled = m_callbacks.can_duplicate ? m_callbacks.can_duplicate() : false;
 
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Cut", "Ctrl+X", false, false))
-            {
-                // TODO: Implement cut
-            }
-
-            if (ImGui::MenuItem("Copy", "Ctrl+C", false, false))
-            {
-                // TODO: Implement copy
-            }
-
-            if (ImGui::MenuItem("Paste", "Ctrl+V", false, false))
-            {
-                // TODO: Implement paste
-            }
-
-            ImGui::EndMenu();
-        }
+        menuItem("Undo", "Ctrl+Z", undo_enabled, m_callbacks.on_undo);
+        menuItem("Redo", "Ctrl+Y", redo_enabled, m_callbacks.on_redo);
+        ImGui::Separator();
+        menuItem("Cut", "Ctrl+X", delete_enabled, m_callbacks.on_cut);
+        menuItem("Copy", "Ctrl+C", copy_enabled, m_callbacks.on_copy);
+        menuItem("Paste", "Ctrl+V", paste_enabled, m_callbacks.on_paste);
+        menuItem("Delete", "Del", delete_enabled, m_callbacks.on_delete);
+        menuItem("Duplicate", "Ctrl+D", duplicate_enabled, m_callbacks.on_duplicate);
+        ImGui::EndMenu();
     }
 
-    void MenuBarWidget::renderViewMenu()
+    void MenuBarWidget::renderViewMenu() const
     {
-        if (ImGui::BeginMenu("View"))
-        {
-            if (m_widgets)
-            {
-                for (size_t i = 1; i < m_widgets->size(); ++i) // Skip menu bar itself
-                {
-                    auto widget = m_widgets->at(i);
-                    if (widget)
-                    {
-                        bool is_open = widget->isOpen();
-                        if (ImGui::MenuItem(widget->getName().c_str(), nullptr, &is_open))
-                        {
-                            widget->setOpen(is_open);
-                        }
-                    }
-                }
-            }
+        if (!ImGui::BeginMenu("View"))
+            return;
 
-            ImGui::EndMenu();
+        if (m_callbacks.get_view_panels)
+        {
+            std::vector<Widget*> panels = m_callbacks.get_view_panels();
+            for (size_t i = 0; i < panels.size(); ++i)
+            {
+                Widget* panel = panels[i];
+                if (!panel)
+                    continue;
+
+                bool is_open = panel->isOpen();
+                if (ImGui::MenuItem(panel->getName().c_str(), panelShortcut(i + 1), &is_open))
+                    panel->setOpen(is_open);
+            }
         }
+        ImGui::EndMenu();
+    }
+
+    void MenuBarWidget::renderSettingsMenu() const
+    {
+        if (!ImGui::BeginMenu("Settings"))
+            return;
+
+        menuItem("Project Settings...", nullptr, m_callbacks.on_project_settings);
+        menuItem("Preferences...", nullptr, m_callbacks.on_preferences);
+        ImGui::EndMenu();
     }
 
 } // namespace RealmEngine

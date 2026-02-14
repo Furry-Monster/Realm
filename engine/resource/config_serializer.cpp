@@ -106,6 +106,7 @@ namespace RealmEngine
         serializeWindowConfig(config.getWindowConfig(), json["window"]);
         serializeRendererConfig(config.getRendererConfig(), json["renderer"]);
         serializeGamePlayConfig(config.getGamePlayConfig(), json["gameplay"]);
+        serializePhysicsConfig(config.getPhysicsConfig(), json["physics"]);
     }
 
     void ConfigSerializer::deserializeConfig(ConfigManager& config, const nlohmann::json& json)
@@ -136,6 +137,13 @@ namespace RealmEngine
             GamePlayConfig gameplay = config.getGamePlayConfig();
             deserializeGamePlayConfig(gameplay, json["gameplay"]);
             config.setGamePlayConfig(gameplay);
+        }
+
+        if (json.contains("physics"))
+        {
+            PhysicsConfig physics = config.getPhysicsConfig();
+            deserializePhysicsConfig(physics, json["physics"]);
+            config.setPhysicsConfig(physics);
         }
     }
 
@@ -274,6 +282,26 @@ namespace RealmEngine
             gameplay.scene_file = json["scene_file"].get<std::string>();
         if (json.contains("max_delta_time"))
             gameplay.max_delta_time = json["max_delta_time"].get<float>();
+    }
+
+    void ConfigSerializer::serializePhysicsConfig(const PhysicsConfig& physics, nlohmann::json& json)
+    {
+        json["enabled"]        = physics.enabled;
+        json["gravity"]        = physics.gravity;
+        json["max_substeps"]   = physics.max_substeps;
+        json["fixed_timestep"] = physics.fixed_timestep;
+    }
+
+    void ConfigSerializer::deserializePhysicsConfig(PhysicsConfig& physics, const nlohmann::json& json)
+    {
+        if (json.contains("enabled"))
+            physics.enabled = json["enabled"].get<bool>();
+        if (json.contains("gravity"))
+            physics.gravity = json["gravity"].get<float>();
+        if (json.contains("max_substeps"))
+            physics.max_substeps = json["max_substeps"].get<int>();
+        if (json.contains("fixed_timestep"))
+            physics.fixed_timestep = json["fixed_timestep"].get<float>();
     }
 
 } // namespace RealmEngine

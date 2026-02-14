@@ -18,6 +18,13 @@ namespace RealmEngine
 
     glm::quat RenderObject::getOrientation() const { return m_orientation; }
 
+    int RenderObject::getTriangleCount(size_t mesh_index) const
+    {
+        if (mesh_index >= m_meshes.size())
+            return 0;
+        return m_meshes[mesh_index].getTriangleCount();
+    }
+
     void RenderObject::draw(RHIShader& shader)
     {
         for (auto& mesh : m_meshes)

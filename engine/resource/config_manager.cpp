@@ -63,4 +63,8 @@ namespace RealmEngine
 
     void ConfigManager::setGamePlayConfig(const GamePlayConfig& config) { m_gameplay_config = config; }
 
+    const PhysicsConfig& ConfigManager::getPhysicsConfig() const { return m_physics_config; }
+
+    void ConfigManager::setPhysicsConfig(const PhysicsConfig& config) { m_physics_config = config; }
+
 } // namespace RealmEngine

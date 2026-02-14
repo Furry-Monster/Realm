@@ -1,5 +1,6 @@
 #include "core/log/logger.h"
 #include "core/base/macros.h"
+#include "core/debug/console_sink.h"
 
 #include <memory>
 #include <string>
@@ -15,20 +16,22 @@ namespace RealmEngine
 {
     Logger* g_logger = nullptr;
 
-    namespace
+    static std::string formatLogTag(const char* pretty_function)
     {
-        inline std::string formatLogTag(const char* pretty_function)
-        {
-            return "[" + std::string(extractClassFunction(pretty_function)) + "] ";
-        }
-    } // namespace
+        return "[" + std::string(extractClassFunction(pretty_function)) + "] ";
+    }
 
     void Logger::initialize()
     {
         const auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         console_sink->set_level(spdlog::level::trace);
         console_sink->set_pattern("[%^%l%$] %v");
-        const spdlog::sinks_init_list init_list {console_sink};
+
+        const auto editor_sink = std::make_shared<ConsoleSink>();
+        editor_sink->set_level(spdlog::level::trace);
+        editor_sink->set_pattern("%v");
+
+        const spdlog::sinks_init_list init_list {console_sink, editor_sink};
 
         spdlog::init_thread_pool(8192, 1);
         m_spd_logger = std::make_shared<spdlog::async_logger>("realm_engine",

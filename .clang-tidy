@@ -8,6 +8,10 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.StaticConstantCase
     value: aNy_CasE
+  - key: readability-identifier-naming.ClassConstexprCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ClassConstantCase
+    value: UPPER_CASE
   - key: readability-identifier-naming.MemberCase
     value: lower_case
   - key: readability-identifier-naming.ClassMemberPrefix

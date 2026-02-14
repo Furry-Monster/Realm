@@ -1,5 +1,6 @@
 #include "panels/properties_widget.h"
 
+#include "bridge/editor_engine_bridge.h"
 #include "editor_context.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
@@ -8,7 +9,6 @@
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
 #include "scene/scene.h"
-#include "scene/scene_manager.h"
 
 #include <imgui.h>
 #include <glm/glm.hpp>
@@ -16,15 +16,15 @@
 
 namespace RealmEngine
 {
-    PropertiesWidget::PropertiesWidget(std::shared_ptr<EditorContext> context, SceneManager& scene_mgr) :
-        Widget("Properties"), m_context(context), m_scene_mgr(scene_mgr)
+    PropertiesWidget::PropertiesWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge) :
+        Widget("Properties"), m_context(context), m_bridge(&bridge)
     {}
 
     void PropertiesWidget::render()
     {
         ImGui::Begin(m_name.c_str(), &m_open);
 
-        auto scene = m_scene_mgr.getCurrentScene();
+        auto scene = m_bridge->getCurrentScene();
         if (!m_context || !m_context->hasSelectedEntity() || !scene)
         {
             ImGui::Text("No entity selected");
@@ -58,7 +58,7 @@ namespace RealmEngine
 
     void PropertiesWidget::renderTransform()
     {
-        auto scene = m_scene_mgr.getCurrentScene();
+        auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
 
@@ -84,7 +84,7 @@ namespace RealmEngine
 
     void PropertiesWidget::renderRenderable()
     {
-        auto scene = m_scene_mgr.getCurrentScene();
+        auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
 
@@ -112,7 +112,7 @@ namespace RealmEngine
 
     void PropertiesWidget::renderPointLight()
     {
-        auto scene = m_scene_mgr.getCurrentScene();
+        auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
 
@@ -140,7 +140,7 @@ namespace RealmEngine
 
     void PropertiesWidget::renderSpotLight()
     {
-        auto scene = m_scene_mgr.getCurrentScene();
+        auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
 
@@ -170,7 +170,7 @@ namespace RealmEngine
 
     void PropertiesWidget::renderDirectionalLight()
     {
-        auto scene = m_scene_mgr.getCurrentScene();
+        auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
 
@@ -189,7 +189,7 @@ namespace RealmEngine
 
     void PropertiesWidget::renderAreaLight()
     {
-        auto scene = m_scene_mgr.getCurrentScene();
+        auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
 

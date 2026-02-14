@@ -204,6 +204,31 @@ namespace RealmEngine
         node->forEachChild([this, &scene](std::shared_ptr<SceneNode> child) { syncNode(scene, child); });
     }
 
+    int RenderScene::getDrawCallCount() const
+    {
+        int count = 0;
+        for (const auto& ro : m_render_objects)
+        {
+            if (ro)
+                count += static_cast<int>(ro->getMeshCount());
+        }
+        return count;
+    }
+
+    int RenderScene::getTriangleCount() const
+    {
+        int count = 0;
+        for (const auto& ro : m_render_objects)
+        {
+            if (ro)
+            {
+                for (size_t i = 0; i < ro->getMeshCount(); ++i)
+                    count += ro->getTriangleCount(i);
+            }
+        }
+        return count;
+    }
+
     void RenderScene::updateTransformsOnly(Scene& scene)
     {
         for (size_t i = 0; i < m_render_entities.size(); ++i)

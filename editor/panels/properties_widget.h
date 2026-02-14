@@ -6,18 +6,18 @@
 namespace RealmEngine
 {
     class EditorContext;
-    class SceneManager;
+    class EditorEngineBridge;
 
     class PropertiesWidget : public Widget
     {
     public:
-        PropertiesWidget(std::shared_ptr<EditorContext> context, SceneManager& scene_mgr);
+        PropertiesWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge);
         ~PropertiesWidget() override = default;
 
         PropertiesWidget(const PropertiesWidget&)            = delete;
         PropertiesWidget& operator=(const PropertiesWidget&) = delete;
         PropertiesWidget(PropertiesWidget&&)                 = delete;
-        PropertiesWidget& operator=(PropertiesWidget&&)       = delete;
+        PropertiesWidget& operator=(PropertiesWidget&&)      = delete;
 
         void render() override;
 
@@ -30,7 +30,7 @@ namespace RealmEngine
         void renderAreaLight();
 
         std::shared_ptr<EditorContext> m_context;
-        SceneManager&                  m_scene_mgr;
+        EditorEngineBridge*            m_bridge;
     };
 
 } // namespace RealmEngine

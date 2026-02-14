@@ -1,40 +1,62 @@
 #pragma once
 
-#include <memory>
+#include <functional>
 #include <vector>
+
 #include "widget.h"
 
 namespace RealmEngine
 {
-    class Engine;
     class Widget;
-    class FileDialogWidget;
+
+    struct MenuBarCallbacks
+    {
+        std::function<void()>                 on_new_scene;
+        std::function<void()>                 on_open_scene;
+        std::function<void()>                 on_reload_scene;
+        std::function<void()>                 on_save_scene;
+        std::function<void()>                 on_save_scene_as;
+        std::function<void()>                 on_exit;
+        std::function<void()>                 on_undo;
+        std::function<void()>                 on_redo;
+        std::function<void()>                 on_cut;
+        std::function<void()>                 on_copy;
+        std::function<void()>                 on_paste;
+        std::function<void()>                 on_delete;
+        std::function<void()>                 on_duplicate;
+        std::function<void()>                 on_project_settings;
+        std::function<void()>                 on_preferences;
+        std::function<bool()>                 can_undo;
+        std::function<bool()>                 can_redo;
+        std::function<bool()>                 can_copy;
+        std::function<bool()>                 can_paste;
+        std::function<bool()>                 can_delete;
+        std::function<bool()>                 can_duplicate;
+        std::function<std::vector<Widget*>()> get_view_panels;
+    };
 
     class MenuBarWidget : public Widget
     {
     public:
-        explicit MenuBarWidget(Engine& engine);
+        explicit MenuBarWidget(MenuBarCallbacks callbacks);
         ~MenuBarWidget() override = default;
 
         MenuBarWidget(const MenuBarWidget&)            = delete;
         MenuBarWidget& operator=(const MenuBarWidget&) = delete;
-        MenuBarWidget(MenuBarWidget&&)                = delete;
+        MenuBarWidget(MenuBarWidget&&)                 = delete;
         MenuBarWidget& operator=(MenuBarWidget&&)      = delete;
 
         void render() override;
 
-        void setWidgets(std::shared_ptr<std::vector<std::shared_ptr<Widget>>> widgets) { m_widgets = widgets; }
-        void setFileDialog(std::shared_ptr<FileDialogWidget> file_dialog) { m_file_dialog = file_dialog; }
-
     private:
-        void renderFileMenu();
-        void renderEditMenu();
-        void renderViewMenu();
+        void renderFileMenu() const;
+        void renderEditMenu() const;
+        void renderViewMenu() const;
+        void renderSettingsMenu() const;
 
-        Engine& m_engine;
+        static const char* panelShortcut(size_t one_based_index);
 
-        std::shared_ptr<std::vector<std::shared_ptr<Widget>>> m_widgets;
-        std::shared_ptr<FileDialogWidget>                     m_file_dialog;
+        MenuBarCallbacks m_callbacks;
     };
 
 } // namespace RealmEngine

@@ -104,7 +104,12 @@ Examples:
         """,
     )
 
-    parser.add_argument("-d", "--directory", type=str, help="Directory to format (default: engine)")
+    parser.add_argument(
+        "-d",
+        "--directory",
+        type=str,
+        help="Directory to format (default: engine, editor, runtime)",
+    )
 
     parser.add_argument(
         "-c",
@@ -139,16 +144,21 @@ Examples:
     except:
         pass
 
-    # Determine source directory
-    src_dir = config.project_root / args.directory if args.directory else config.src_dir
+    # Determine source directories
+    if args.directory:
+        src_dirs = [config.project_root / args.directory]
+    else:
+        src_dirs = [config.src_dir, config.editor_dir, config.runtime_dir]
 
-    if not src_dir.exists():
-        logger.error(f"Directory not found: {src_dir}")
-        return 1
+    files = []
+    for src_dir in src_dirs:
+        if not src_dir.exists():
+            logger.warning(f"Directory not found: {src_dir}")
+            continue
+        logger.info(f"Scanning directory: {src_dir.relative_to(config.project_root)}")
+        files.extend(find_source_files(src_dir))
 
-    # Find source files
-    logger.info(f"Scanning directory: {src_dir.relative_to(config.project_root)}")
-    files = find_source_files(src_dir)
+    files = sorted(set(files))
 
     if not files:
         logger.warning("No source files found")

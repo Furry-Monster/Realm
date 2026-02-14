@@ -61,6 +61,14 @@ namespace RealmEngine
         float max_delta_time = 0.1f;
     };
 
+    struct PhysicsConfig
+    {
+        bool  enabled        = false;
+        float gravity        = -9.81f;
+        int   max_substeps   = 4;
+        float fixed_timestep = 1.0f / 60.0f;
+    };
+
     class ConfigManager
     {
     public:
@@ -79,11 +87,13 @@ namespace RealmEngine
         const WindowConfig&   getWindowConfig() const;
         const RendererConfig& getRendererConfig() const;
         const GamePlayConfig& getGamePlayConfig() const;
+        const PhysicsConfig&  getPhysicsConfig() const;
 
         void setGeneralConfig(const GeneralConfig& config);
         void setWindowConfig(const WindowConfig& config);
         void setRendererConfig(const RendererConfig& config);
         void setGamePlayConfig(const GamePlayConfig& config);
+        void setPhysicsConfig(const PhysicsConfig& config);
 
         // Helper
         const std::filesystem::path& getRootFolder() const;
@@ -95,5 +105,6 @@ namespace RealmEngine
         WindowConfig   m_window_config;
         RendererConfig m_renderer_config;
         GamePlayConfig m_gameplay_config;
+        PhysicsConfig  m_physics_config;
     };
 } // namespace RealmEngine

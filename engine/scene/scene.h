@@ -64,6 +64,7 @@ namespace RealmEngine
 
         // Scene hierarchy
         std::shared_ptr<SceneNode> getRoot() const { return m_root; }
+        std::shared_ptr<SceneNode> findNodeByEntity(entt::entity entity) const;
 
         std::shared_ptr<SceneNode> createNode(const std::string& name);
         std::shared_ptr<SceneNode> createNodeWithEntity(const std::string& name);

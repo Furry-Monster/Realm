@@ -20,6 +20,7 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
+#  include <psapi.h>
 #  include <windows.h>
 #elif defined(__APPLE__)
 #  include <mach/mach.h>
@@ -177,6 +178,39 @@ namespace RealmEngine
         size_t  len = sizeof(mem);
         if (sysctlbyname("hw.memsize", &mem, &len, nullptr, 0) == 0)
             return static_cast<int>(mem / (1024 * 1024));
+        return 0;
+#else
+        return 0;
+#endif
+    }
+
+    size_t PlatformInfo::getProcessRSSKB()
+    {
+#ifdef __linux__
+        std::ifstream status("/proc/self/status");
+        std::string   line;
+        while (std::getline(status, line))
+        {
+            if (line.compare(0, 6, "VmRSS:") == 0)
+            {
+                size_t pos = line.find_first_not_of(" \t", 6);
+                if (pos != std::string::npos)
+                    return static_cast<size_t>(std::stoull(line.substr(pos)));
+            }
+        }
+        return 0;
+#elif defined(_WIN32)
+        PROCESS_MEMORY_COUNTERS pmc {};
+        pmc.cb = sizeof(pmc);
+        if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+            return static_cast<size_t>(pmc.WorkingSetSize / 1024);
+        return 0;
+#elif defined(__APPLE__)
+        struct task_basic_info info
+        {};
+        mach_msg_type_number_t count = TASK_BASIC_INFO_COUNT;
+        if (task_info(mach_task_self(), TASK_BASIC_INFO, reinterpret_cast<task_info_t>(&info), &count) == KERN_SUCCESS)
+            return static_cast<size_t>(info.resident_size / 1024);
         return 0;
 #else
         return 0;
