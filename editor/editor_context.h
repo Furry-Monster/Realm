@@ -2,6 +2,7 @@
 
 #include <entt/entity/entity.hpp>
 #include <memory>
+#include <string>
 
 #include "hotkey/hotkey_manager.h"
 #include "scene/scene_node.h"
@@ -32,10 +33,16 @@ namespace RealmEngine
         bool                       hasSelectedNode() const { return m_selected_node != nullptr; }
         void                       clearSelectedNode() { m_selected_node.reset(); }
 
+        void        setEntityClipboard(const std::string& json) { m_entity_clipboard = json; }
+        std::string getEntityClipboard() const { return m_entity_clipboard; }
+        bool        hasEntityClipboard() const { return !m_entity_clipboard.empty(); }
+        void        clearEntityClipboard() { m_entity_clipboard.clear(); }
+
     private:
         HotkeyManager              m_hotkeys;
         entt::entity               m_selected_entity {entt::null};
         std::shared_ptr<SceneNode> m_selected_node {nullptr};
+        std::string                m_entity_clipboard;
     };
 
 } // namespace RealmEngine

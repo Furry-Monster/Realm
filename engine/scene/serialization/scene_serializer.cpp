@@ -3,6 +3,7 @@
 #include <fstream>
 #include <json.hpp>
 #include <sstream>
+#include <unordered_set>
 
 #include "core/base/utils.h"
 #include "core/log/log_macros.h"
@@ -237,6 +238,88 @@ namespace RealmEngine
         }
 
         json["components"] = components_json;
+    }
+
+    std::string SceneSerializer::serializeNodeToJson(std::shared_ptr<SceneNode> node, Scene& scene)
+    {
+        if (!node)
+            return "{}";
+        nlohmann::json j;
+        serializeNode(j, node, scene);
+        return j.dump(2);
+    }
+
+    namespace
+    {
+        std::string findUniqueName(Scene& scene, std::unordered_set<std::string>& used, const std::string& base)
+        {
+            std::string name = base;
+            int         n    = 0;
+            while (scene.findEntity(name) || used.count(name))
+            {
+                name = base + " (" + std::to_string(++n) + ")";
+            }
+            used.insert(name);
+            return name;
+        }
+    } // namespace
+
+    std::shared_ptr<SceneNode> SceneSerializer::deserializeNodeWithUniquify(const nlohmann::json&            node_json,
+                                                                            Scene&                           scene,
+                                                                            RHIDevice&                       device,
+                                                                            AssetManager*                    asset_mgr,
+                                                                            std::unordered_set<std::string>& used)
+    {
+        if (!node_json.contains("name"))
+            return nullptr;
+        std::string base_name = node_json["name"];
+        std::string name      = findUniqueName(scene, used, base_name);
+        auto        node      = std::make_shared<SceneNode>(name);
+
+        if (node_json.contains("entity"))
+        {
+            deserializeEntity(node_json["entity"], scene, name, device, asset_mgr);
+            auto entity = scene.findEntity(name);
+            if (entity)
+                node->setEntity(entity.handle());
+        }
+
+        if (node_json.contains("children") && node_json["children"].is_array())
+        {
+            for (const auto& child_json : node_json["children"])
+            {
+                auto child = deserializeNodeWithUniquify(child_json, scene, device, asset_mgr, used);
+                if (child)
+                    node->addChild(child);
+            }
+        }
+        return node;
+    }
+
+    std::shared_ptr<SceneNode> SceneSerializer::pasteNodeFromJson(const std::string&         json,
+                                                                  Scene&                     scene,
+                                                                  std::shared_ptr<SceneNode> parent,
+                                                                  RHIDevice&                 device,
+                                                                  AssetManager*              asset_mgr)
+    {
+        if (json.empty() || !parent)
+            return nullptr;
+        try
+        {
+            nlohmann::json                  j = nlohmann::json::parse(json);
+            std::unordered_set<std::string> used;
+            auto                            node = deserializeNodeWithUniquify(j, scene, device, asset_mgr, used);
+            if (node)
+            {
+                parent->addChild(node);
+                return node;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            RE_LOG_ERROR("Failed to paste entity: " + std::string(e.what()));
+        }
+        return nullptr;
     }
 
     std::shared_ptr<SceneNode> SceneSerializer::deserializeNode(const nlohmann::json& json,

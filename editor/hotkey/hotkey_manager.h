@@ -21,13 +21,15 @@ namespace RealmEngine
         HotkeyManager& operator=(HotkeyManager&&)      = delete;
 
         void registerHotkey(ImGuiKeyChord chord, Handler handler);
+        void registerHotkey(ImGuiKeyChord chord, Handler handler, ImGuiInputFlags flags);
         void process();
 
     private:
         struct Entry
         {
-            ImGuiKeyChord chord;
-            Handler       handler;
+            ImGuiKeyChord   chord;
+            Handler         handler;
+            ImGuiInputFlags flags {ImGuiInputFlags_RouteAlways};
         };
         std::vector<Entry> m_entries;
     };

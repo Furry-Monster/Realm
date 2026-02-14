@@ -10,6 +10,8 @@
 #include "scene/components/transform.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
+#include "scene/scene_node.h"
+#include "scene/serialization/scene_serializer.h"
 
 #include <glm/glm.hpp>
 
@@ -103,6 +105,20 @@ namespace RealmEngine
             RE_LOG_ERROR("Failed to add model to scene: " + std::string(e.what()));
             return false;
         }
+    }
+
+    std::shared_ptr<SceneNode> EditorEngineBridge::pasteEntityFromClipboard(const std::string&         json,
+                                                                            std::shared_ptr<SceneNode> parent)
+    {
+        auto scene = m_engine->getSceneManager().getCurrentScene();
+        if (!scene || !parent)
+            return nullptr;
+        auto* device = &m_engine->getRenderer().getDevice();
+        auto* assets = &m_engine->getAssets();
+        auto  node   = SceneSerializer::pasteNodeFromJson(json, *scene, std::move(parent), *device, assets);
+        if (node)
+            scene->markDirty();
+        return node;
     }
 
     EventBus& EditorEngineBridge::getEventBus() { return m_engine->getEventBus(); }

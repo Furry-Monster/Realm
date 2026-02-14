@@ -10,6 +10,12 @@ namespace RealmEngine
             action();
     }
 
+    static void menuItem(const char* label, const char* shortcut, bool enabled, const std::function<void()>& action)
+    {
+        if (ImGui::MenuItem(label, shortcut, false, enabled) && action)
+            action();
+    }
+
     MenuBarWidget::MenuBarWidget(MenuBarCallbacks callbacks) : Widget("MenuBar"), m_callbacks(std::move(callbacks)) {}
 
     const char* MenuBarWidget::panelShortcut(size_t one_based_index)
@@ -51,12 +57,21 @@ namespace RealmEngine
         if (!ImGui::BeginMenu("Edit"))
             return;
 
-        ImGui::MenuItem("Undo", "Ctrl+Z", false, false);
-        ImGui::MenuItem("Redo", "Ctrl+Y", false, false);
+        bool undo_enabled      = m_callbacks.can_undo ? m_callbacks.can_undo() : false;
+        bool redo_enabled      = m_callbacks.can_redo ? m_callbacks.can_redo() : false;
+        bool copy_enabled      = m_callbacks.can_copy ? m_callbacks.can_copy() : false;
+        bool paste_enabled     = m_callbacks.can_paste ? m_callbacks.can_paste() : false;
+        bool delete_enabled    = m_callbacks.can_delete ? m_callbacks.can_delete() : false;
+        bool duplicate_enabled = m_callbacks.can_duplicate ? m_callbacks.can_duplicate() : false;
+
+        menuItem("Undo", "Ctrl+Z", undo_enabled, m_callbacks.on_undo);
+        menuItem("Redo", "Ctrl+Y", redo_enabled, m_callbacks.on_redo);
         ImGui::Separator();
-        ImGui::MenuItem("Cut", "Ctrl+X", false, false);
-        ImGui::MenuItem("Copy", "Ctrl+C", false, false);
-        ImGui::MenuItem("Paste", "Ctrl+V", false, false);
+        menuItem("Cut", "Ctrl+X", delete_enabled, m_callbacks.on_cut);
+        menuItem("Copy", "Ctrl+C", copy_enabled, m_callbacks.on_copy);
+        menuItem("Paste", "Ctrl+V", paste_enabled, m_callbacks.on_paste);
+        menuItem("Delete", "Del", delete_enabled, m_callbacks.on_delete);
+        menuItem("Duplicate", "Ctrl+D", duplicate_enabled, m_callbacks.on_duplicate);
         ImGui::EndMenu();
     }
 

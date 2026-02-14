@@ -103,7 +103,23 @@ namespace RealmEngine
         menu_callbacks.on_save_scene_as = [this, file_dialog] {
             m_executor.execute(SaveSceneAsCommand(*m_bridge, file_dialog.get()));
         };
-        menu_callbacks.on_exit         = [this] { m_executor.execute(ExitCommand(*m_bridge)); };
+        menu_callbacks.on_exit      = [this] { m_executor.execute(ExitCommand(*m_bridge)); };
+        menu_callbacks.on_undo      = [this] { m_executor.undo(); };
+        menu_callbacks.on_redo      = [this] { m_executor.redo(); };
+        menu_callbacks.on_cut       = [this] { m_executor.execute(CutEntityCommand(*m_bridge, *m_context)); };
+        menu_callbacks.on_copy      = [this] { m_executor.execute(CopyEntityCommand(*m_bridge, *m_context)); };
+        menu_callbacks.on_paste     = [this] { m_executor.execute(PasteEntityCommand(*m_bridge, *m_context)); };
+        menu_callbacks.on_delete    = [this] { m_executor.execute(DeleteEntityCommand(*m_bridge, *m_context)); };
+        menu_callbacks.on_duplicate = [this] { m_executor.execute(DuplicateEntityCommand(*m_bridge, *m_context)); };
+        menu_callbacks.can_undo     = [this] { return m_executor.canUndo(); };
+        menu_callbacks.can_redo     = [this] { return m_executor.canRedo(); };
+        menu_callbacks.can_copy     = [this] { return m_context->hasSelectedNode(); };
+        menu_callbacks.can_paste    = [this] { return m_context->hasEntityClipboard(); };
+        menu_callbacks.can_delete   = [this] {
+            return m_context->hasSelectedNode() && m_bridge->getCurrentScene() &&
+                   m_context->getSelectedNode() != m_bridge->getCurrentScene()->getRoot();
+        };
+        menu_callbacks.can_duplicate   = [this] { return m_context->hasSelectedNode(); };
         menu_callbacks.get_view_panels = [this] {
             std::vector<Widget*> out;
             for (size_t i = 1; i < m_panels.size(); ++i)
@@ -133,6 +149,29 @@ namespace RealmEngine
         });
         hotkeys.registerHotkey(ImGuiMod_Ctrl | ImGuiKey_S, [this] { m_executor.execute(SaveSceneCommand(*m_bridge)); });
         hotkeys.registerHotkey(ImGuiMod_Alt | ImGuiKey_F4, [this] { m_executor.execute(ExitCommand(*m_bridge)); });
+
+        constexpr auto edit_flags = ImGuiInputFlags_RouteGlobal;
+        hotkeys.registerHotkey(ImGuiMod_Ctrl | ImGuiKey_Z, [this] { m_executor.undo(); }, edit_flags);
+        hotkeys.registerHotkey(ImGuiMod_Ctrl | ImGuiKey_Y, [this] { m_executor.redo(); }, edit_flags);
+        hotkeys.registerHotkey(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z, [this] { m_executor.redo(); }, edit_flags);
+        hotkeys.registerHotkey(
+            ImGuiMod_Ctrl | ImGuiKey_X,
+            [this] { m_executor.execute(CutEntityCommand(*m_bridge, *m_context)); },
+            edit_flags);
+        hotkeys.registerHotkey(
+            ImGuiMod_Ctrl | ImGuiKey_C,
+            [this] { m_executor.execute(CopyEntityCommand(*m_bridge, *m_context)); },
+            edit_flags);
+        hotkeys.registerHotkey(
+            ImGuiMod_Ctrl | ImGuiKey_V,
+            [this] { m_executor.execute(PasteEntityCommand(*m_bridge, *m_context)); },
+            edit_flags);
+        hotkeys.registerHotkey(
+            ImGuiMod_Ctrl | ImGuiKey_D,
+            [this] { m_executor.execute(DuplicateEntityCommand(*m_bridge, *m_context)); },
+            edit_flags);
+        hotkeys.registerHotkey(
+            ImGuiKey_Delete, [this] { m_executor.execute(DeleteEntityCommand(*m_bridge, *m_context)); }, edit_flags);
 
         for (size_t i = 1; i < m_panels.size() && i <= 6; ++i)
         {

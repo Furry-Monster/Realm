@@ -8,6 +8,7 @@
 
 namespace RealmEngine
 {
+    class EditorContext;
     class EditorEngineBridge;
     class FileDialogWidget;
     class Widget;
@@ -16,7 +17,7 @@ namespace RealmEngine
     {
     public:
         explicit NewSceneCommand(EditorEngineBridge& bridge);
-        void execute() override;
+        void execute(RegisterUndo registerUndo) override;
 
     private:
         EditorEngineBridge* m_bridge;
@@ -26,7 +27,7 @@ namespace RealmEngine
     {
     public:
         OpenSceneCommand(EditorEngineBridge& bridge, FileDialogWidget* file_dialog);
-        void execute() override;
+        void execute(RegisterUndo registerUndo) override;
 
     private:
         EditorEngineBridge* m_bridge;
@@ -37,7 +38,7 @@ namespace RealmEngine
     {
     public:
         explicit SaveSceneCommand(EditorEngineBridge& bridge);
-        void execute() override;
+        void execute(RegisterUndo registerUndo) override;
 
     private:
         EditorEngineBridge* m_bridge;
@@ -47,7 +48,7 @@ namespace RealmEngine
     {
     public:
         SaveSceneAsCommand(EditorEngineBridge& bridge, FileDialogWidget* file_dialog);
-        void execute() override;
+        void execute(RegisterUndo registerUndo) override;
 
     private:
         EditorEngineBridge* m_bridge;
@@ -58,7 +59,7 @@ namespace RealmEngine
     {
     public:
         explicit ReloadSceneCommand(EditorEngineBridge& bridge);
-        void execute() override;
+        void execute(RegisterUndo registerUndo) override;
 
     private:
         EditorEngineBridge* m_bridge;
@@ -68,7 +69,7 @@ namespace RealmEngine
     {
     public:
         explicit ExitCommand(EditorEngineBridge& bridge);
-        void execute() override;
+        void execute(RegisterUndo registerUndo) override;
 
     private:
         EditorEngineBridge* m_bridge;
@@ -78,11 +79,66 @@ namespace RealmEngine
     {
     public:
         TogglePanelCommand(std::vector<std::shared_ptr<Widget>>* widgets, size_t index);
-        void execute() override;
+        void execute(RegisterUndo registerUndo) override;
 
     private:
         std::vector<std::shared_ptr<Widget>>* m_widgets;
         size_t                                m_index;
+    };
+
+    class DeleteEntityCommand : public ICommand
+    {
+    public:
+        DeleteEntityCommand(EditorEngineBridge& bridge, EditorContext& context);
+        void execute(RegisterUndo registerUndo) override;
+
+    private:
+        EditorEngineBridge* m_bridge;
+        EditorContext*      m_context;
+    };
+
+    class CopyEntityCommand : public ICommand
+    {
+    public:
+        CopyEntityCommand(EditorEngineBridge& bridge, EditorContext& context);
+        void execute(RegisterUndo registerUndo) override;
+
+    private:
+        EditorEngineBridge* m_bridge;
+        EditorContext*      m_context;
+    };
+
+    class PasteEntityCommand : public ICommand
+    {
+    public:
+        PasteEntityCommand(EditorEngineBridge& bridge, EditorContext& context);
+        void execute(RegisterUndo registerUndo) override;
+
+    private:
+        EditorEngineBridge* m_bridge;
+        EditorContext*      m_context;
+    };
+
+    class CutEntityCommand : public ICommand
+    {
+    public:
+        CutEntityCommand(EditorEngineBridge& bridge, EditorContext& context);
+        void execute(RegisterUndo registerUndo) override;
+
+    private:
+        EditorEngineBridge* m_bridge;
+        EditorContext*      m_context;
+    };
+
+    class DuplicateEntityCommand : public ICommand
+    {
+    public:
+        DuplicateEntityCommand(EditorEngineBridge& bridge, EditorContext& context);
+        void execute(RegisterUndo registerUndo) override;
+
+    private:
+        EditorEngineBridge* m_bridge;
+        EditorContext*      m_context;
     };
 
 } // namespace RealmEngine

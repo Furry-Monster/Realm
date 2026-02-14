@@ -17,6 +17,19 @@ namespace RealmEngine
         std::function<void()>                 on_save_scene;
         std::function<void()>                 on_save_scene_as;
         std::function<void()>                 on_exit;
+        std::function<void()>                 on_undo;
+        std::function<void()>                 on_redo;
+        std::function<void()>                 on_cut;
+        std::function<void()>                 on_copy;
+        std::function<void()>                 on_paste;
+        std::function<void()>                 on_delete;
+        std::function<void()>                 on_duplicate;
+        std::function<bool()>                 can_undo;
+        std::function<bool()>                 can_redo;
+        std::function<bool()>                 can_copy;
+        std::function<bool()>                 can_paste;
+        std::function<bool()>                 can_delete;
+        std::function<bool()>                 can_duplicate;
         std::function<std::vector<Widget*>()> get_view_panels;
     };
 
