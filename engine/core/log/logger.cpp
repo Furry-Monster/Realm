@@ -16,13 +16,10 @@ namespace RealmEngine
 {
     Logger* g_logger = nullptr;
 
-    namespace
+    static std::string formatLogTag(const char* pretty_function)
     {
-        inline std::string formatLogTag(const char* pretty_function)
-        {
-            return "[" + std::string(extractClassFunction(pretty_function)) + "] ";
-        }
-    } // namespace
+        return "[" + std::string(extractClassFunction(pretty_function)) + "] ";
+    }
 
     void Logger::initialize()
     {

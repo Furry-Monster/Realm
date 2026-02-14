@@ -9,13 +9,10 @@
 
 namespace RealmEngine
 {
-    namespace
+    static GLenum depthAttachmentType(TextureFormat fmt)
     {
-        GLenum depthAttachmentType(TextureFormat fmt)
-        {
-            return (fmt == TextureFormat::Depth24Stencil8) ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
-        }
-    } // namespace
+        return (fmt == TextureFormat::Depth24Stencil8) ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+    }
 
     GLFramebuffer::GLFramebuffer(const FramebufferDesc& desc) : m_desc(desc)
     {

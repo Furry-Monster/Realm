@@ -4,14 +4,11 @@
 
 namespace RealmEngine
 {
-    namespace
+    static void menuItem(const char* label, const char* shortcut, const std::function<void()>& action)
     {
-        void menuItem(const char* label, const char* shortcut, const std::function<void()>& action)
-        {
-            if (ImGui::MenuItem(label, shortcut) && action)
-                action();
-        }
-    } // namespace
+        if (ImGui::MenuItem(label, shortcut) && action)
+            action();
+    }
 
     MenuBarWidget::MenuBarWidget(MenuBarCallbacks callbacks) : Widget("MenuBar"), m_callbacks(std::move(callbacks)) {}
 
