@@ -8,6 +8,10 @@ if(ENGINE_SOURCES)
 
     target_link_libraries(${TARGET_NAME} PUBLIC reflibs)
 
+    if(WIN32)
+        target_link_libraries(${TARGET_NAME} PRIVATE psapi)
+    endif()
+
     target_include_directories(${TARGET_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
     )

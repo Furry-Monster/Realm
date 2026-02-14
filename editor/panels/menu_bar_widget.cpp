@@ -7,6 +7,8 @@
 #include "renderer/renderer.h"
 #include "resource/config_manager.h"
 #include "rhi/rhi_device.h"
+#include "scene/components/camera_controller.h"
+#include "scene/scene.h"
 #include "scene/scene_manager.h"
 
 #include <imgui.h>
@@ -56,12 +58,38 @@ namespace RealmEngine
                 }
             }
 
+            if (ImGui::MenuItem("Reload Scene"))
+            {
+                if (scene_mgr.getCurrentScene())
+                {
+                    std::filesystem::path scene_file = config.getRootFolder() / config.getGamePlayConfig().scene_file;
+                    if (std::filesystem::exists(scene_file))
+                    {
+                        auto loaded = scene_mgr.loadScene(scene_file.string(), m_engine.getRenderer().getDevice());
+                        if (loaded)
+                        {
+                            scene_mgr.setCurrentScene(loaded);
+                            const GamePlayConfig& gp = config.getGamePlayConfig();
+                            loaded->getCameraController()->initialize(m_engine.getRenderer().getCamera(),
+                                                                      m_engine.getInput(),
+                                                                      gp.camera_mouse_sensitivity,
+                                                                      gp.camera_move_speed,
+                                                                      gp.camera_sprint_multiplier);
+                            RE_LOG_INFO("Scene reloaded from: " + scene_file.string());
+                        }
+                        else
+                            RE_LOG_ERROR("Failed to reload scene from: " + scene_file.string());
+                    }
+                    else
+                        RE_LOG_WARN("Scene file not found: " + scene_file.string());
+                }
+            }
+
             if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
             {
                 if (scene_mgr.getCurrentScene())
                 {
-                    std::filesystem::path scene_file =
-                        config.getRootFolder() / config.getGamePlayConfig().scene_file;
+                    std::filesystem::path scene_file = config.getRootFolder() / config.getGamePlayConfig().scene_file;
 
                     if (scene_mgr.saveCurrentScene(scene_file.string()))
                         RE_LOG_INFO("Scene saved to: " + scene_file.string());
@@ -78,8 +106,7 @@ namespace RealmEngine
             {
                 if (scene_mgr.getCurrentScene())
                 {
-                    std::filesystem::path scene_file =
-                        config.getRootFolder() / config.getGamePlayConfig().scene_file;
+                    std::filesystem::path scene_file = config.getRootFolder() / config.getGamePlayConfig().scene_file;
 
                     if (scene_mgr.saveCurrentScene(scene_file.string()))
                         RE_LOG_INFO("Scene saved to: " + scene_file.string());

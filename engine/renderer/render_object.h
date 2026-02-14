@@ -18,7 +18,9 @@ namespace RealmEngine
     public:
         explicit RenderObject(std::vector<RenderMesh> meshes);
 
-        bool isEmpty() const { return m_meshes.empty(); }
+        bool   isEmpty() const { return m_meshes.empty(); }
+        size_t getMeshCount() const { return m_meshes.size(); }
+        int    getTriangleCount(size_t mesh_index) const;
 
         void      setPosition(glm::vec3 position);
         glm::vec3 getPosition() const;

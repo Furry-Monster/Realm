@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include "core/debug/debug_console.h"
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/log_macros.h"
@@ -178,6 +179,14 @@ namespace RealmEngine
     {
         m_renderer->getRenderScene()->syncFromScene(m_scene->getCurrentScene());
         m_renderer->render();
+
+        FrameStats stats {};
+        stats.frame_time_ms  = m_delta_time * 1000.0;
+        stats.fps            = (m_delta_time > 1e-9) ? (1.0 / m_delta_time) : 0.0;
+        stats.draw_calls     = m_renderer->getRenderScene()->getDrawCallCount();
+        stats.triangle_count = m_renderer->getRenderScene()->getTriangleCount();
+        stats.memory_rss_kb  = PlatformInfo::getProcessRSSKB();
+        EditorConsole::instance().setFrameStats(stats);
     }
 
     // Subsystem accessors

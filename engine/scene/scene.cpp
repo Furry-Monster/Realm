@@ -74,6 +74,29 @@ namespace RealmEngine
 
     bool Scene::valid(entt::entity entity) const { return m_registry.valid(entity); }
 
+    namespace
+    {
+        std::shared_ptr<SceneNode> findNodeByEntityRecursive(std::shared_ptr<SceneNode> node, entt::entity entity)
+        {
+            if (!node)
+                return nullptr;
+            if (node->hasEntity() && node->getEntity() == entity)
+                return node;
+            for (size_t i = 0; i < node->getChildCount(); ++i)
+            {
+                auto found = findNodeByEntityRecursive(node->getChild(i), entity);
+                if (found)
+                    return found;
+            }
+            return nullptr;
+        }
+    } // namespace
+
+    std::shared_ptr<SceneNode> Scene::findNodeByEntity(entt::entity entity) const
+    {
+        return findNodeByEntityRecursive(m_root, entity);
+    }
+
     void Scene::onRenderStructureChanged(entt::registry&, entt::entity) { incrementGeneration(); }
 
     std::shared_ptr<SceneNode> Scene::createNode(const std::string& name) { return std::make_shared<SceneNode>(name); }

@@ -7,8 +7,11 @@
 #include "editor_context.h"
 #include "engine.h"
 #include "panels/asset_browser_widget.h"
+#include "panels/console_widget.h"
+#include "panels/entity_browser_widget.h"
 #include "panels/file_dialog_widget.h"
 #include "panels/menu_bar_widget.h"
+#include "panels/profiler_widget.h"
 #include "panels/properties_widget.h"
 #include "panels/scene_hierarchy_widget.h"
 #include "platform/input/input.h"
@@ -52,7 +55,7 @@ namespace RealmEngine
         ImGuiStyle& style = ImGui::GetStyle();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
-            style.WindowRounding = 0.0f;
+            style.WindowRounding              = 0.0f;
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
@@ -112,6 +115,10 @@ namespace RealmEngine
         m_panels.push_back(
             std::make_shared<SceneHierarchyWidget>(m_context, engine->getSceneManager(), engine->getEventBus()));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context, engine->getSceneManager()));
+        m_panels.push_back(
+            std::make_shared<EntityBrowserWidget>(m_context, engine->getSceneManager(), engine->getEventBus()));
+        m_panels.push_back(std::make_shared<ConsoleWidget>());
+        m_panels.push_back(std::make_shared<ProfilerWidget>());
         m_panels.push_back(std::make_shared<AssetBrowserWidget>(
             engine->getConfig(), engine->getSceneManager(), engine->getAssets(), engine->getRenderer().getDevice()));
         m_panels.push_back(file_dialog);

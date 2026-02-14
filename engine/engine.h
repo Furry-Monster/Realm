@@ -32,6 +32,8 @@ namespace RealmEngine
 
         void tick();
 
+        double getDeltaTime() const { return m_delta_time; }
+
         // Subsystem accessors
         EventBus&      getEventBus();
         Logger&        getLogger();

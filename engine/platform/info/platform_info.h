@@ -16,8 +16,9 @@ namespace RealmEngine
         static int         getLogicalCoreCount();
 
         // memory (megabytes)
-        static int getTotalMemoryMB();
-        static int getAvailableMemoryMB();
+        static int    getTotalMemoryMB();
+        static int    getAvailableMemoryMB();
+        static size_t getProcessRSSKB();
 
         // GPU (requires GL context)
         static std::string getGPUVendor();
@@ -31,7 +32,6 @@ namespace RealmEngine
         static void        getPrimaryMonitorPhysicalSize(int& width_mm, int& height_mm);
         static std::string getPrimaryMonitorName();
 
-        // prints all platform info to the log
         static void logPlatformInfo();
     };
 } // namespace RealmEngine

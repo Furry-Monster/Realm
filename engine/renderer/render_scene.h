@@ -27,6 +27,9 @@ namespace RealmEngine
 
         void syncFromScene(std::shared_ptr<Scene> scene);
 
+        int getDrawCallCount() const;
+        int getTriangleCount() const;
+
         std::vector<std::shared_ptr<RenderObject>> m_render_objects;
         std::vector<glm::mat4>                     m_render_model_matrices;
         std::vector<Light>                         m_lights;
