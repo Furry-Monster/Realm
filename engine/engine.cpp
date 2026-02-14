@@ -87,11 +87,11 @@ namespace RealmEngine
         m_renderer->disposal();
         m_renderer.reset();
 
-        m_window->disposal();
-        m_window.reset();
-
         m_assets->disposal();
         m_assets.reset();
+
+        m_window->disposal();
+        m_window.reset();
 
         m_config->disposal();
         m_config.reset();

@@ -33,6 +33,7 @@ namespace RealmEngine
             renderFileMenu();
             renderEditMenu();
             renderViewMenu();
+            renderSettingsMenu();
             ImGui::EndMainMenuBar();
         }
     }
@@ -94,6 +95,16 @@ namespace RealmEngine
                     panel->setOpen(is_open);
             }
         }
+        ImGui::EndMenu();
+    }
+
+    void MenuBarWidget::renderSettingsMenu() const
+    {
+        if (!ImGui::BeginMenu("Settings"))
+            return;
+
+        menuItem("Project Settings...", nullptr, m_callbacks.on_project_settings);
+        menuItem("Preferences...", nullptr, m_callbacks.on_preferences);
         ImGui::EndMenu();
     }
 

@@ -32,11 +32,13 @@ namespace RealmEngine
         static void serializeWindowConfig(const WindowConfig& window, nlohmann::json& json);
         static void serializeRendererConfig(const RendererConfig& renderer, nlohmann::json& json);
         static void serializeGamePlayConfig(const GamePlayConfig& gameplay, nlohmann::json& json);
+        static void serializePhysicsConfig(const PhysicsConfig& physics, nlohmann::json& json);
 
         static void deserializeGeneralConfig(GeneralConfig& general, const nlohmann::json& json);
         static void deserializeWindowConfig(WindowConfig& window, const nlohmann::json& json);
         static void deserializeRendererConfig(RendererConfig& renderer, const nlohmann::json& json);
         static void deserializeGamePlayConfig(GamePlayConfig& gameplay, const nlohmann::json& json);
+        static void deserializePhysicsConfig(PhysicsConfig& physics, const nlohmann::json& json);
     };
 
 } // namespace RealmEngine

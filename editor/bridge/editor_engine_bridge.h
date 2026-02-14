@@ -6,8 +6,9 @@
 
 namespace RealmEngine
 {
-    class SceneNode;
+    class ConfigManager;
     class Engine;
+    class SceneNode;
     class Scene;
     class EventBus;
 
@@ -33,6 +34,8 @@ namespace RealmEngine
         void                       initializeCameraForScene(std::shared_ptr<Scene> scene);
         std::filesystem::path      getAssetFolder() const;
         bool                       addModelToScene(const std::filesystem::path& model_path);
+        ConfigManager&             getConfig();
+        void                       saveConfig();
         std::shared_ptr<SceneNode> pasteEntityFromClipboard(const std::string& json, std::shared_ptr<SceneNode> parent);
 
         EventBus& getEventBus();

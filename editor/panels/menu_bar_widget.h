@@ -24,6 +24,8 @@ namespace RealmEngine
         std::function<void()>                 on_paste;
         std::function<void()>                 on_delete;
         std::function<void()>                 on_duplicate;
+        std::function<void()>                 on_project_settings;
+        std::function<void()>                 on_preferences;
         std::function<bool()>                 can_undo;
         std::function<bool()>                 can_redo;
         std::function<bool()>                 can_copy;
@@ -50,6 +52,7 @@ namespace RealmEngine
         void renderFileMenu() const;
         void renderEditMenu() const;
         void renderViewMenu() const;
+        void renderSettingsMenu() const;
 
         static const char* panelShortcut(size_t one_based_index);
 

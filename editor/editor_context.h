@@ -5,6 +5,7 @@
 #include <string>
 
 #include "hotkey/hotkey_manager.h"
+#include "preferences/editor_preferences.h"
 #include "scene/scene_node.h"
 
 namespace RealmEngine
@@ -38,11 +39,15 @@ namespace RealmEngine
         bool        hasEntityClipboard() const { return !m_entity_clipboard.empty(); }
         void        clearEntityClipboard() { m_entity_clipboard.clear(); }
 
+        EditorPreferences&       getPreferences() { return m_preferences; }
+        const EditorPreferences& getPreferences() const { return m_preferences; }
+
     private:
         HotkeyManager              m_hotkeys;
         entt::entity               m_selected_entity {entt::null};
         std::shared_ptr<SceneNode> m_selected_node {nullptr};
         std::string                m_entity_clipboard;
+        EditorPreferences          m_preferences;
     };
 
 } // namespace RealmEngine

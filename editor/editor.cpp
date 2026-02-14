@@ -14,10 +14,13 @@
 #include "panels/entity_browser_widget.h"
 #include "panels/file_dialog_widget.h"
 #include "panels/menu_bar_widget.h"
+#include "panels/preferences_widget.h"
 #include "panels/profiler_widget.h"
+#include "panels/project_settings_widget.h"
 #include "panels/properties_widget.h"
 #include "panels/scene_hierarchy_widget.h"
 #include "platform/window/window.h"
+#include "preferences/editor_preferences.h"
 #include "scene/scene.h"
 
 #define GLFW_INCLUDE_NONE
@@ -42,19 +45,9 @@ namespace RealmEngine
         ImGui::CreateContext();
 
         ImGuiIO& io = ImGui::GetIO();
-        (void)io;
-
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-        ImGui::StyleColorsDark();
-        ImGuiStyle& style = ImGui::GetStyle();
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            style.WindowRounding              = 0.0f;
-            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-        }
 
         if (!m_engine)
         {
@@ -67,6 +60,34 @@ namespace RealmEngine
 
         m_context = std::make_shared<EditorContext>();
         m_bridge  = std::make_unique<EditorEngineBridge>(*m_engine);
+
+        std::filesystem::path prefs_path = m_bridge->getConfigRootFolder() / "editor_preferences.json";
+        EditorPreferencesManager::load(m_context->getPreferences(), prefs_path);
+
+        switch (m_context->getPreferences().theme)
+        {
+            case EditorTheme::Dark:
+                ImGui::StyleColorsDark();
+                break;
+            case EditorTheme::Light:
+                ImGui::StyleColorsLight();
+                break;
+            case EditorTheme::Classic:
+                ImGui::StyleColorsClassic();
+                break;
+        }
+        io.FontGlobalScale = m_context->getPreferences().font_scale;
+
+        static std::string ini_path_storage;
+        ini_path_storage = (m_bridge->getConfigRootFolder() / "imgui.ini").string();
+        io.IniFilename   = ini_path_storage.c_str();
+
+        ImGuiStyle& style = ImGui::GetStyle();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            style.WindowRounding              = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
 
         auto file_dialog = std::make_shared<FileDialogWidget>();
         file_dialog->setOnFileSelected([this, file_dialog](const std::filesystem::path& path) {
@@ -119,7 +140,19 @@ namespace RealmEngine
             return m_context->hasSelectedNode() && m_bridge->getCurrentScene() &&
                    m_context->getSelectedNode() != m_bridge->getCurrentScene()->getRoot();
         };
-        menu_callbacks.can_duplicate   = [this] { return m_context->hasSelectedNode(); };
+        menu_callbacks.can_duplicate = [this] { return m_context->hasSelectedNode(); };
+
+        auto project_settings = std::make_shared<ProjectSettingsWidget>(*m_bridge);
+        auto preferences      = std::make_shared<PreferencesWidget>(
+            m_context->getPreferences(),
+            [this] { ImGui::GetIO().FontGlobalScale = m_context->getPreferences().font_scale; },
+            [this] { return m_bridge->getConfigRootFolder() / "editor_preferences.json"; });
+        project_settings->setOpen(false);
+        preferences->setOpen(false);
+
+        menu_callbacks.on_project_settings = [project_settings] { project_settings->setOpen(true); };
+        menu_callbacks.on_preferences      = [preferences] { preferences->setOpen(true); };
+
         menu_callbacks.get_view_panels = [this] {
             std::vector<Widget*> out;
             for (size_t i = 1; i < m_panels.size(); ++i)
@@ -137,6 +170,8 @@ namespace RealmEngine
         m_panels.push_back(std::make_shared<ConsoleWidget>());
         m_panels.push_back(std::make_shared<ProfilerWidget>());
         m_panels.push_back(std::make_shared<AssetBrowserWidget>(*m_bridge));
+        m_panels.push_back(project_settings);
+        m_panels.push_back(preferences);
         m_panels.push_back(file_dialog);
 
         auto& hotkeys = m_context->getHotkeyManager();

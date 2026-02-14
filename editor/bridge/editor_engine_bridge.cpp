@@ -5,6 +5,7 @@
 #include "platform/window/window.h"
 #include "renderer/renderer.h"
 #include "resource/config_manager.h"
+#include "resource/config_serializer.h"
 #include "scene/components/camera_controller.h"
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
@@ -13,6 +14,7 @@
 #include "scene/scene_node.h"
 #include "scene/serialization/scene_serializer.h"
 
+#include <filesystem>
 #include <glm/glm.hpp>
 
 namespace RealmEngine
@@ -119,6 +121,14 @@ namespace RealmEngine
         if (node)
             scene->markDirty();
         return node;
+    }
+
+    ConfigManager& EditorEngineBridge::getConfig() { return m_engine->getConfig(); }
+
+    void EditorEngineBridge::saveConfig()
+    {
+        std::filesystem::path path = m_engine->getConfig().getRootFolder() / "config.json";
+        ConfigSerializer::saveToFile(m_engine->getConfig(), path.string());
     }
 
     EventBus& EditorEngineBridge::getEventBus() { return m_engine->getEventBus(); }
