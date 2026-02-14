@@ -4,8 +4,10 @@
 #include "engine.h"
 #include "platform/window/window.h"
 #include "renderer/renderer.h"
+#include "resource/asset_manager.h"
 #include "resource/config_manager.h"
 #include "resource/config_serializer.h"
+#include "rhi/rhi_texture.h"
 #include "scene/components/camera_controller.h"
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
@@ -71,6 +73,13 @@ namespace RealmEngine
     }
 
     std::filesystem::path EditorEngineBridge::getAssetFolder() const { return m_engine->getConfig().getAssetFolder(); }
+
+    std::shared_ptr<RHITexture> EditorEngineBridge::getTextureForPreview(const std::filesystem::path& path)
+    {
+        auto& device = m_engine->getRenderer().getDevice();
+        auto& assets = m_engine->getAssets();
+        return assets.getOrLoadTextureForPreview(path.generic_string(), device);
+    }
 
     bool EditorEngineBridge::addModelToScene(const std::filesystem::path& model_path)
     {

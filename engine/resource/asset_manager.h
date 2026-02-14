@@ -30,6 +30,8 @@ namespace RealmEngine
         std::shared_ptr<RHITexture>
         getOrLoadTexture(const std::string& path, const std::string& directory, bool is_srgb, RHIDevice& device);
 
+        std::shared_ptr<RHITexture> getOrLoadTextureForPreview(const std::string& full_path, RHIDevice& device);
+
     private:
         std::string makeTextureCacheKey(const std::string& path, bool is_srgb) const;
 

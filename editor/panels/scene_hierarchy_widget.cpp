@@ -4,6 +4,7 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "editor_context.h"
+#include "panels/asset_browser_widget.h"
 #include "scene/scene.h"
 #include "scene/scene_node.h"
 
@@ -28,9 +29,30 @@ namespace RealmEngine
             return;
         }
 
-        auto root = current_scene->getRoot();
-        if (root)
-            renderNode(root, *current_scene);
+        if (ImGui::BeginChild("SceneHierarchyContent", ImVec2(0, 0), true))
+        {
+            auto root = current_scene->getRoot();
+            if (root)
+                renderNode(root, *current_scene);
+        }
+        ImGui::EndChild();
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(AssetBrowserWidget::DRAG_DROP_PAYLOAD_TYPE))
+            {
+                const char* path_cstr = static_cast<const char*>(payload->Data);
+                if (path_cstr)
+                {
+                    std::filesystem::path path(path_cstr);
+                    std::string           ext = path.extension().string();
+                    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                    if (ext == ".gltf" || ext == ".glb" || ext == ".fbx" || ext == ".obj")
+                        m_bridge->addModelToScene(path);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
 
         ImGui::End();
     }
