@@ -1,5 +1,7 @@
 # RealmEngine Build Scripts
 
+[English](GUIDE.md) | [中文](GUIDE_zh.md)
+
 Cross-platform build system for RealmEngine supporting Windows, Linux, and macOS.
 
 ## Overview
@@ -351,26 +353,3 @@ RealmEngine/
 ├── bin/                  # Output binaries (generated)
 └── CMakeLists.txt        # CMake configuration
 ```
-
-## Contributing
-
-When contributing, please:
-
-1. Format code before committing:
-   ```bash
-   python scripts/format.py
-   ```
-
-2. Check for linting issues:
-   ```bash
-   python scripts/lint.py
-   ```
-
-3. Ensure tests pass:
-   ```bash
-   python scripts/test.py
-   ```
-
-## License
-
-See LICENSE file in project root.

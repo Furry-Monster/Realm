@@ -1,84 +1,88 @@
 # RealmEngine
 
-基于 OpenGL 的现代游戏引擎，采用物理渲染（PBR）管线，支持 IBL 光照与 Bloom 后处理。集成可视化编辑器与实体组件系统（ECS）。
+[English](README.md) | [中文](README_zh.md)
+
+Modern OpenGL-based game engine with PBR pipeline, IBL lighting, and Bloom post-processing. Integrated visual editor and Entity-Component-System (ECS).
 
 ![pbr demo](helmet.png "pbr demo")
 
-![编辑器demo](editor.png "editor demo")
+![editor demo](editor.png "editor demo")
 
-## 核心特性
+![img](debug.png)
 
-- **物理渲染（PBR）** — 金属度 / 粗糙度工作流
-- **基于图像的光照（IBL）** — HDR 环境贴图与预计算光照
-- **Bloom 后处理** — 可调泛光、色调映射与伽马校正
-- **可视化编辑器** — ImGui 编辑器，支持场景编辑、实体管理与属性修改
-- **实体组件系统（ECS）** — 组件化架构，含 Transform、Renderable、Lighting、CameraController 等
-- **场景管理** — 场景创建、加载、保存与序列化
-- **资源管理** — 支持 glTF、FBX 等模型格式
-- **配置管理** — 统一配置，支持序列化与加密
-- **窗口管理** — 基于 GLFW 的跨平台窗口
-- **日志系统** — 基于 spdlog 的日志
+## Features
 
-## 运行环境
+- **Physically Based Rendering (PBR)** — Metallic/Roughness workflow
+- **Image-Based Lighting (IBL)** — HDR environment maps and precomputed lighting
+- **Bloom Post-Processing** — Configurable bloom, tone mapping, and gamma correction
+- **Visual Editor** — ImGui-based editor for scene editing, entity management, and property modification
+- **Entity-Component-System (ECS)** — Component-based architecture with Transform, Renderable, Lighting, CameraController, etc.
+- **Scene Management** — Create, load, save, and serialize scenes
+- **Resource Management** — glTF, FBX, and other model formats
+- **Configuration** — Unified config with serialization and encryption
+- **Window Management** — Cross-platform GLFW-based window
+- **Logging** — spdlog-based logging
 
-- **操作系统**: Windows / Linux / macOS
-- **编译器**: C++17
-  - Windows: Visual Studio 2017+ 或 MinGW
-  - Linux: GCC 7+ 或 Clang 5+
+## Requirements
+
+- **OS**: Windows / Linux / macOS
+- **Compiler**: C++17
+  - Windows: Visual Studio 2017+ or MinGW
+  - Linux: GCC 7+ or Clang 5+
   - macOS: Xcode Command Line Tools
 - **CMake**: 3.20+
 - **OpenGL**: 3.3+
-- **Python**: 3.6+（构建脚本）
+- **Python**: 3.6+ (build scripts)
 
-## 依赖
+## Dependencies
 
-依赖位于 `libs/` 目录：
+Dependencies are in `libs/`:
 
-- **GLFW** — 窗口与输入
-- **GLAD** — OpenGL 加载
-- **GLM** — 数学
-- **Assimp** — 模型加载
-- **spdlog** — 日志
-- **ImGui** — 即时模式 GUI
-- **stb** — 图像加载
+- **GLFW** — Window and input
+- **GLAD** — OpenGL loader
+- **GLM** — Math
+- **Assimp** — Model loading
+- **spdlog** — Logging
+- **ImGui** — Immediate-mode GUI
+- **stb** — Image loading
 
-依赖以 submodule 管理，克隆时需一并获取：
+Managed as submodules. Clone with:
 
 ```bash
-# 方式一：递归克隆
+# Option 1: Recursive clone
 git clone --recursive https://github.com/Furry-Monster/RealmEngine
 
-# 方式二：分步克隆
+# Option 2: Step by step
 git clone https://github.com/Furry-Monster/RealmEngine
 cd RealmEngine
 git submodule init
 git submodule update
 ```
 
-## 快速开始
+## Quick Start
 
-### 使用构建脚本（推荐）
+### Build Script (Recommended)
 
-跨平台 Python 构建脚本：
+Cross-platform Python build script:
 
 ```bash
-# 默认 Debug 构建
+# Default Debug build
 python build.py
 
-# Release 构建
+# Release build
 python build.py -t Release
 
-# 清理后构建
+# Clean and build
 python build.py -c
 
-# 构建并运行
+# Build and run
 python build.py -r
 
-# 指定并行任务数
+# Specify parallel jobs
 python build.py -j 8
 ```
 
-**平台快捷脚本：**
+**Platform shortcuts:**
 
 ```bash
 # Windows
@@ -88,135 +92,139 @@ build.bat
 ./build.sh
 ```
 
-构建完成后执行 `bin/RealmEngine`（Windows 为 `bin/RealmEngine.exe`）进入编辑器。
+After build, run `bin/RealmEngine` (or `bin/RealmEngine.exe` on Windows) to launch the editor.
 
-调试模式（无编辑器界面）：
+Debug mode (no editor UI):
 
 ```bash
 python build.py -r -- --debug
 ```
 
-### 手动构建
+### Manual Build
 
 ```bash
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Debug
 cmake --build . -j$(nproc)
 
-# 运行（Linux/macOS）
+# Run (Linux/macOS)
 ../bin/RealmEngine
 ```
 
-## 目录结构
+## Directory Structure
 
 ```
 RealmEngine/
-├── build.py         # 构建入口
-├── build.sh         # Unix 构建脚本
-├── build.bat        # Windows 构建脚本
-├── scripts/         # 构建脚本
+├── build.py         # Build entry
+├── build.sh         # Unix build script
+├── build.bat        # Windows build script
+├── scripts/         # Build scripts
 │   ├── build.py
 │   ├── build_config.py
 │   ├── format.py
 │   ├── lint.py
 │   ├── clean.py
 │   ├── test.py
-│   ├── README.md
+│   ├── GUIDE.md
 │   └── QUICKREF.md
-├── assets/          # 资源（模型、纹理、HDR 等）
-├── shaders/         # GLSL 着色器
-├── src/             # 源码
+├── assets/          # Resources (models, textures, HDR, etc.)
+├── shaders/         # GLSL shaders
+├── src/             # Source
 │   ├── main.cpp
-│   ├── editor/      # 编辑器
-│   ├── render/      # 渲染
-│   ├── resource/    # 资源管理
-│   ├── gameplay/    # 游戏逻辑
+│   ├── editor/      # Editor
+│   ├── render/      # Rendering
+│   ├── resource/    # Resource management
+│   ├── gameplay/    # Game logic
 │   │   ├── components/
 │   │   └── scene/
 │   └── ...
-├── libs/            # 第三方库
-├── bin/             # 输出目录
-└── build/           # CMake 构建目录
+├── libs/            # Third-party libs
+├── bin/             # Output
+└── build/           # CMake build dir
 ```
 
-## 构建选项
+## Build Options
 
-### 构建类型
+### Build Types
 
-- `Debug` — 调试（默认）
-- `Release` — 发布优化
-- `RelWithDebInfo` — 带调试信息的发布
-- `MinSizeRel` — 最小体积
+- `Debug` — Debug (default)
+- `Release` — Release optimization
+- `RelWithDebInfo` — Release with debug info
+- `MinSizeRel` — Minimum size
 
-### 构建脚本参数
+### Build Script Arguments
 
 ```bash
 python build.py --help
 
-常用参数：
-  -t, --type TYPE        构建类型
-  -d, --dir DIR          构建目录（默认 build）
-  -g, --generator GEN    CMake 生成器
-  -j, --jobs N           并行任务数
-  -c, --clean            清理
-  -r, --run              构建后运行
-  -v, --verbose          详细输出
-  --configure            仅配置
-  --build                仅构建
-  -D VAR=VALUE           传递 CMake 变量
+Common options:
+  -t, --type TYPE        Build type
+  -d, --dir DIR          Build directory (default: build)
+  -g, --generator GEN    CMake generator
+  -j, --jobs N           Parallel jobs
+  -c, --clean            Clean
+  -r, --run              Run after build
+  -v, --verbose          Verbose output
+  --configure            Configure only
+  --build                Build only
+  -D VAR=VALUE           Pass CMake variables
 ```
 
-### 辅助工具
+### Utility Scripts
 
 ```bash
-# 代码格式化
+# Format code
 python scripts/format.py
 python scripts/format.py --check
 
-# 代码检查
+# Lint
 python scripts/lint.py
 python scripts/lint.py --fix
 
-# 清理
+# Clean
 python scripts/clean.py
 python scripts/clean.py --all
 
-# 测试
+# Test
 python scripts/test.py
 ```
 
-更多说明见 `scripts/README.md` 与 `scripts/QUICKREF.md`。
+See `scripts/GUIDE.md` and `scripts/QUICKREF.md` for details.
 
-## 编辑器
+## Editor
 
-编辑器面板：
+Editor panels:
 
-- **菜单栏** — 文件（新建、打开、保存场景）、编辑等
-- **场景层级** — 实体与节点列表，支持选择与操作
-- **属性面板** — 编辑选中实体的组件（Transform、Renderable、Lighting 等）
-- **视口** — 实时场景预览
-- **文件对话框** — 打开与保存场景
+- **Menu Bar** — File (new, open, save scene), Edit, etc.
+- **Scene Hierarchy** — Entity and node list with selection and operations
+- **Property Panel** — Edit components (Transform, Renderable, Lighting, etc.) of selected entity
+- **Viewport** — Real-time scene preview
+- **File Dialog** — Open and save scenes
 
-场景以 JSON 格式存储，支持完整序列化与反序列化。
+Scenes are stored in JSON with full serialization/deserialization.
 
-## 资源
+## Resources
 
-- **模型**: glTF、FBX 等（Assimp）
-- **纹理**: 常见格式（stb_image）
-- **HDR 环境贴图**: .hdr（IBL）
+- **Models**: glTF, FBX, etc. (Assimp)
+- **Textures**: Common formats (stb_image)
+- **HDR Environment**: .hdr (IBL)
 
-资源放在 `assets/`，构建时复制到 `bin/assets/`。
+Place resources in `assets/`. They are copied to `bin/assets/` during build.
 
-## 着色器
+## Shaders
 
-`shaders/` 目录：
+`shaders/` directory:
 
-- `pbr.vert/frag` — PBR 主着色器
-- `skybox.vert/frag` — 天空盒
+- `pbr.vert/frag` — PBR main shader
+- `skybox.vert/frag` — Skybox
 - `bloom.vert/frag` — Bloom
-- `post.vert/frag` — 后处理
-- `ibl/` — IBL 相关
+- `post.vert/frag` — Post-processing
+- `ibl/` — IBL related
 
-## 贡献
+## License
 
-欢迎提交 Issue 与 Pull Request。
+See [LICENSE](LICENSE) in the project root.
+
+## Contributing
+
+Issues and Pull Requests are welcome.

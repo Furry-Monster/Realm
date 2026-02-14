@@ -197,7 +197,7 @@ def print_next_steps():
     logger.info("   python3 scripts/build.py -t Release")
     logger.info("")
     logger.info("For more options, run: python3 scripts/build.py --help")
-    logger.info("Documentation: scripts/README.md")
+    logger.info("Documentation: scripts/GUIDE.md")
     logger.info("=" * 60)
 
 
