@@ -144,7 +144,8 @@ namespace RealmEngine
                 ImGui::GetWindowDrawList()->AddText(
                     ImVec2(pos.x + m_thumbnail_size * 0.5f - ImGui::CalcTextSize("../").x * 0.5f,
                            pos.y + m_thumbnail_size * 0.5f - ImGui::GetTextLineHeight() * 0.5f),
-                    ImGui::GetColorU32(ImGuiCol_TextDisabled), "../");
+                    ImGui::GetColorU32(ImGuiCol_TextDisabled),
+                    "../");
                 ImGui::TextWrapped("../");
                 ImGui::EndGroup();
                 col = 1;
@@ -237,7 +238,8 @@ namespace RealmEngine
                 ImGui::GetWindowDrawList()->AddText(
                     ImVec2(pos.x + m_thumbnail_size * 0.5f - ImGui::CalcTextSize(hint).x * 0.5f,
                            pos.y + m_thumbnail_size * 0.5f - ImGui::GetTextLineHeight() * 0.5f),
-                    ImGui::GetColorU32(ImGuiCol_TextDisabled), hint);
+                    ImGui::GetColorU32(ImGuiCol_TextDisabled),
+                    hint);
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
                     m_selected_path = entry;
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right))

@@ -14,17 +14,22 @@ namespace RealmEngine
     {
         switch (t)
         {
-            case EditorTheme::Dark: return "dark";
-            case EditorTheme::Light: return "light";
-            case EditorTheme::Classic: return "classic";
+            case EditorTheme::Dark:
+                return "dark";
+            case EditorTheme::Light:
+                return "light";
+            case EditorTheme::Classic:
+                return "classic";
         }
         return "dark";
     }
 
     static EditorTheme stringToTheme(const std::string& s)
     {
-        if (s == "light") return EditorTheme::Light;
-        if (s == "classic") return EditorTheme::Classic;
+        if (s == "light")
+            return EditorTheme::Light;
+        if (s == "classic")
+            return EditorTheme::Classic;
         return EditorTheme::Dark;
     }
 
@@ -64,9 +69,9 @@ namespace RealmEngine
         try
         {
             nlohmann::json j;
-            j["theme"]             = themeToString(prefs.theme);
-            j["font_scale"]        = prefs.font_scale;
-            j["auto_save"]         = prefs.auto_save;
+            j["theme"]              = themeToString(prefs.theme);
+            j["font_scale"]         = prefs.font_scale;
+            j["auto_save"]          = prefs.auto_save;
             j["auto_save_interval"] = prefs.auto_save_interval;
             return FileSystem::writeTextFile(path, j.dump(2));
         }
