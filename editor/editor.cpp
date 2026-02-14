@@ -6,6 +6,7 @@
 #include "core/log/log_macros.h"
 #include "editor_context.h"
 #include "engine.h"
+#include "panels/asset_browser_widget.h"
 #include "panels/file_dialog_widget.h"
 #include "panels/menu_bar_widget.h"
 #include "panels/properties_widget.h"
@@ -102,9 +103,11 @@ namespace RealmEngine
         });
 
         m_panels.push_back(std::make_shared<MenuBarWidget>(*engine));
-        m_panels.push_back(std::make_shared<SceneHierarchyWidget>(
-            m_context, engine->getSceneManager(), engine->getEventBus()));
+        m_panels.push_back(
+            std::make_shared<SceneHierarchyWidget>(m_context, engine->getSceneManager(), engine->getEventBus()));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context, engine->getSceneManager()));
+        m_panels.push_back(std::make_shared<AssetBrowserWidget>(
+            engine->getConfig(), engine->getSceneManager(), engine->getAssets(), engine->getRenderer().getDevice()));
         m_panels.push_back(file_dialog);
 
         auto widgets_shared = std::make_shared<std::vector<std::shared_ptr<Widget>>>(m_panels);
