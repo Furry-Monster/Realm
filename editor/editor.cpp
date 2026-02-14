@@ -166,9 +166,15 @@ namespace RealmEngine
         m_panels.push_back(std::make_shared<MenuBarWidget>(std::move(menu_callbacks)));
         m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context, *m_bridge));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context, *m_bridge));
-        m_panels.push_back(std::make_shared<EntityBrowserWidget>(m_context, *m_bridge));
-        m_panels.push_back(std::make_shared<ConsoleWidget>());
-        m_panels.push_back(std::make_shared<ProfilerWidget>());
+        auto entity_browser = std::make_shared<EntityBrowserWidget>(m_context, *m_bridge);
+        auto console        = std::make_shared<ConsoleWidget>();
+        auto profiler       = std::make_shared<ProfilerWidget>();
+        entity_browser->setOpen(false);
+        console->setOpen(false);
+        profiler->setOpen(false);
+        m_panels.push_back(entity_browser);
+        m_panels.push_back(console);
+        m_panels.push_back(profiler);
         m_panels.push_back(std::make_shared<AssetBrowserWidget>(*m_bridge));
         m_panels.push_back(project_settings);
         m_panels.push_back(preferences);
