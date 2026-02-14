@@ -129,6 +129,8 @@ namespace RealmEngine
         {
             menu_bar->setWidgets(widgets_shared);
             menu_bar->setFileDialog(file_dialog);
+            menu_bar->setContext(m_context);
+            menu_bar->registerShortcuts();
         }
 
         // Auto-load scene or create default

@@ -1,6 +1,7 @@
 #include "panels/menu_bar_widget.h"
 
 #include "core/log/log_macros.h"
+#include "editor_context.h"
 #include "engine.h"
 #include "panels/file_dialog_widget.h"
 #include "platform/window/window.h"
@@ -18,8 +19,80 @@ namespace RealmEngine
 {
     MenuBarWidget::MenuBarWidget(Engine& engine) : Widget("MenuBar"), m_engine(engine) {}
 
+    void MenuBarWidget::registerShortcuts()
+    {
+        if (!m_context || m_shortcuts_registered)
+            return;
+
+        auto& shortcuts = m_context->getShortcutSystem();
+
+        shortcuts.registerShortcut(ImGuiMod_Ctrl | ImGuiKey_N, [this] {
+            auto new_scene = m_engine.getSceneManager().createDefaultScene(m_engine.getRenderer().getDevice());
+            if (new_scene)
+            {
+                m_engine.getSceneManager().setCurrentScene(new_scene);
+                RE_LOG_INFO("New scene created");
+            }
+        });
+
+        shortcuts.registerShortcut(ImGuiMod_Ctrl | ImGuiKey_O, [this] {
+            if (m_file_dialog)
+            {
+                std::filesystem::path initial_path = m_engine.getConfig().getRootFolder();
+                m_file_dialog->open(FileDialogWidget::Mode::Open, "Open Scene", ".json", initial_path);
+            }
+        });
+
+        shortcuts.registerShortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S, [this] {
+            if (m_file_dialog && m_engine.getSceneManager().getCurrentScene())
+            {
+                std::filesystem::path initial_path = m_engine.getConfig().getRootFolder();
+                m_file_dialog->open(FileDialogWidget::Mode::Save, "Save Scene As", ".json", initial_path);
+            }
+        });
+
+        shortcuts.registerShortcut(ImGuiMod_Ctrl | ImGuiKey_S, [this] {
+            if (!m_engine.getSceneManager().getCurrentScene())
+            {
+                RE_LOG_INFO("No scene to save");
+                return;
+            }
+            ConfigManager& config = m_engine.getConfig();
+            std::filesystem::path scene_file = config.getRootFolder() / config.getGamePlayConfig().scene_file;
+            if (m_engine.getSceneManager().saveCurrentScene(scene_file.string()))
+                RE_LOG_INFO("Scene saved to: " + scene_file.string());
+            else
+                RE_LOG_ERROR("Failed to save scene to: " + scene_file.string());
+        });
+
+        shortcuts.registerShortcut(ImGuiMod_Alt | ImGuiKey_F4, [this] { m_engine.getWindow().requestClose(); });
+
+        if (m_widgets && m_widgets->size() > 1)
+        {
+            auto toggle = [this](size_t idx) {
+                if (idx < m_widgets->size())
+                {
+                    auto w = m_widgets->at(idx);
+                    if (w)
+                        w->setOpen(!w->isOpen());
+                }
+            };
+            shortcuts.registerShortcut(ImGuiKey_F1, [toggle] { toggle(1); });
+            shortcuts.registerShortcut(ImGuiKey_F2, [toggle] { toggle(2); });
+            shortcuts.registerShortcut(ImGuiKey_F3, [toggle] { toggle(3); });
+            shortcuts.registerShortcut(ImGuiKey_F4, [toggle] { toggle(4); });
+            shortcuts.registerShortcut(ImGuiKey_F5, [toggle] { toggle(5); });
+            shortcuts.registerShortcut(ImGuiKey_F6, [toggle] { toggle(6); });
+        }
+
+        m_shortcuts_registered = true;
+    }
+
     void MenuBarWidget::render()
     {
+        if (m_context)
+            m_context->getShortcutSystem().process();
+
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
 
         if (ImGui::BeginMainMenuBar())
@@ -104,18 +177,10 @@ namespace RealmEngine
 
             if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
             {
-                if (scene_mgr.getCurrentScene())
+                if (m_file_dialog && scene_mgr.getCurrentScene())
                 {
-                    std::filesystem::path scene_file = config.getRootFolder() / config.getGamePlayConfig().scene_file;
-
-                    if (scene_mgr.saveCurrentScene(scene_file.string()))
-                        RE_LOG_INFO("Scene saved to: " + scene_file.string());
-                    else
-                        RE_LOG_ERROR("Failed to save scene to: " + scene_file.string());
-                }
-                else
-                {
-                    RE_LOG_INFO("No scene to save");
+                    std::filesystem::path initial_path = config.getRootFolder();
+                    m_file_dialog->open(FileDialogWidget::Mode::Save, "Save Scene As", ".json", initial_path);
                 }
             }
 
@@ -165,6 +230,23 @@ namespace RealmEngine
         }
     }
 
+    namespace
+    {
+        const char* getPanelShortcut(size_t idx)
+        {
+            switch (idx)
+            {
+                case 1: return "F1";
+                case 2: return "F2";
+                case 3: return "F3";
+                case 4: return "F4";
+                case 5: return "F5";
+                case 6: return "F6";
+                default: return nullptr;
+            }
+        }
+    }
+
     void MenuBarWidget::renderViewMenu()
     {
         if (ImGui::BeginMenu("View"))
@@ -177,7 +259,8 @@ namespace RealmEngine
                     if (widget)
                     {
                         bool is_open = widget->isOpen();
-                        if (ImGui::MenuItem(widget->getName().c_str(), nullptr, &is_open))
+                        const char* shortcut = getPanelShortcut(i);
+                        if (ImGui::MenuItem(widget->getName().c_str(), shortcut, &is_open))
                         {
                             widget->setOpen(is_open);
                         }
