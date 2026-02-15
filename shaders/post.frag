@@ -14,8 +14,24 @@ uniform float     bloomIntensity;
 uniform bool      tonemappingEnabled;
 uniform float     gammaCorrectionFactor;
 
+// 0=lit, 7=ssao, 8=depth (modes 1-6 from geometry pass)
+uniform int displayMode;
+
 void main()
 {
+    if (displayMode == 7)
+    {
+        float ao = texture(ssaoTexture, textureCoordinates).r;
+        FragColor = vec4(vec3(ao), 1.0);
+        return;
+    }
+    if (displayMode == 8)
+    {
+        float d = texture(depthTexture, textureCoordinates).r;
+        FragColor = vec4(vec3(d), 1.0);
+        return;
+    }
+
     vec3 color = texture(colorTexture, textureCoordinates).rgb;
 
     if (ssaoEnabled)

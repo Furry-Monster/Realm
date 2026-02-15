@@ -6,6 +6,7 @@
 #include "renderer/render_camera.h"
 #include "renderer/render_pipeline.h"
 #include "renderer/render_scene.h"
+#include "renderer/viewport_display_mode.h"
 
 namespace RealmEngine
 {
@@ -19,6 +20,7 @@ namespace RealmEngine
     class SpecularMap;
     class Skybox;
     class FullscreenQuad;
+    class RHIFramebuffer;
 
     class ShadowPass;
     class GeometryPass;
@@ -47,6 +49,12 @@ namespace RealmEngine
         std::shared_ptr<RenderCamera> getCamera() const { return m_camera; }
         std::shared_ptr<RenderScene>  getRenderScene() const { return m_render_scene; }
         RHIDevice&                    getDevice() { return *m_device; }
+
+        ViewportDisplayMode getViewportDisplayMode() const { return m_display_mode; }
+        void                setViewportDisplayMode(ViewportDisplayMode mode) { m_display_mode = mode; }
+
+        void setRenderToViewportTexture(bool enable);
+        RHITexture* getViewportTexture() const;
 
     private:
         void buildPipeline(ConfigManager& config);
@@ -84,6 +92,10 @@ namespace RealmEngine
         std::shared_ptr<RenderCamera> m_camera;
 
         std::filesystem::path m_shader_path;
+
+        ViewportDisplayMode m_display_mode {ViewportDisplayMode::Lit};
+        bool                m_render_to_viewport_texture {false};
+        std::unique_ptr<RHIFramebuffer> m_viewport_framebuffer;
     };
 
 } // namespace RealmEngine

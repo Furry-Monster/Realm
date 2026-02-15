@@ -67,6 +67,9 @@ uniform mat4      lightSpaceMatrix;
 // Post parameters
 uniform float bloomBrightnessCutoff;
 
+// Viewport display mode: 0=lit, 1=albedo, 2=normals, 3=metallic, 4=roughness, 5=materialAO, 6=emissive
+uniform int displayMode;
+
 // Fresnel function (Fresnel-Schlick approximation)
 //
 // F_schlick = f0 + (1 - f0)(1 - (h * v))^5
@@ -419,11 +422,46 @@ void main()
 
     vec3 ambient = (kDiffuse * diffuse + specular) * ao;
 
-    // Outputs:
-    // color = emissive + indirect + direct
     vec3 color = emissive + ambient + Lo;
+
+    if (displayMode == 1)
+    {
+        FragColor = vec4(albedo, 1.0);
+        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+    if (displayMode == 2)
+    {
+        FragColor = vec4(n * 0.5 + 0.5, 1.0);
+        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+    if (displayMode == 3)
+    {
+        FragColor = vec4(vec3(metallic), 1.0);
+        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+    if (displayMode == 4)
+    {
+        FragColor = vec4(vec3(roughness), 1.0);
+        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+    if (displayMode == 5)
+    {
+        FragColor = vec4(vec3(ao), 1.0);
+        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+    if (displayMode == 6)
+    {
+        FragColor = vec4(emissive, 1.0);
+        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
     FragColor  = vec4(color, 1.0);
-    // use greyscale conversion here because not all colors are equally "bright"
     float greyscaleBrightness = dot(FragColor.rgb, GREYSCALE_WEIGHT_VECTOR);
     BloomColor = greyscaleBrightness > bloomBrightnessCutoff ? vec4(emissive, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
 }

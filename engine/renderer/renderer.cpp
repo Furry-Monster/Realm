@@ -230,11 +230,13 @@ namespace RealmEngine
         }
 
         RenderContext ctx;
-        ctx.device          = m_device.get();
-        ctx.scene           = m_render_scene.get();
-        ctx.camera          = m_camera.get();
-        ctx.viewport_width  = m_window->getWidth();
-        ctx.viewport_height = m_window->getHeight();
+        ctx.device               = m_device.get();
+        ctx.scene                = m_render_scene.get();
+        ctx.camera               = m_camera.get();
+        ctx.viewport_width       = m_window->getWidth();
+        ctx.viewport_height      = m_window->getHeight();
+        ctx.display_mode         = m_display_mode;
+        ctx.viewport_framebuffer = m_render_to_viewport_texture ? m_viewport_framebuffer.get() : nullptr;
 
         m_pipeline.execute(ctx);
     }
@@ -320,6 +322,47 @@ namespace RealmEngine
             m_ssao_pass->setFramebuffer(make_ao_fb(width, height));
             m_ssao_blur_pass->setFramebuffer(make_ao_fb(width, height));
         }
+
+        if (m_viewport_framebuffer)
+        {
+            FramebufferDesc desc;
+            desc.width  = width;
+            desc.height = height;
+            FramebufferAttachment color;
+            color.format     = TextureFormat::RGBA8;
+            color.min_filter = TextureFilter::Linear;
+            color.mag_filter = TextureFilter::Linear;
+            color.wrap       = TextureWrap::ClampToEdge;
+            desc.color_attachments = {color};
+            m_viewport_framebuffer = m_device->createFramebuffer(desc);
+        }
+    }
+
+    void Renderer::setRenderToViewportTexture(bool enable)
+    {
+        m_render_to_viewport_texture = enable;
+        if (enable && !m_viewport_framebuffer && m_window)
+        {
+            FramebufferDesc desc;
+            desc.width  = m_window->getWidth();
+            desc.height = m_window->getHeight();
+
+            FramebufferAttachment color;
+            color.format     = TextureFormat::RGBA8;
+            color.min_filter = TextureFilter::Linear;
+            color.mag_filter = TextureFilter::Linear;
+            color.wrap       = TextureWrap::ClampToEdge;
+            desc.color_attachments = {color};
+
+            m_viewport_framebuffer = m_device->createFramebuffer(desc);
+        }
+        if (!enable)
+            m_viewport_framebuffer.reset();
+    }
+
+    RHITexture* Renderer::getViewportTexture() const
+    {
+        return m_viewport_framebuffer ? m_viewport_framebuffer->getColorAttachment(0) : nullptr;
     }
 
     void Renderer::disposal()
@@ -347,6 +390,7 @@ namespace RealmEngine
         m_render_scene.reset();
         m_window = nullptr;
 
+        m_viewport_framebuffer.reset();
         m_device.reset();
 
         RE_LOG_INFO("Renderer shutdown.");
