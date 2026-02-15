@@ -7,6 +7,9 @@
 
 #include "core/base/utils.h"
 #include "core/log/log_macros.h"
+#include "renderer/render_material.h"
+#include "renderer/render_mesh.h"
+#include "renderer/render_object.h"
 #include "resource/asset_manager.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
@@ -182,6 +185,33 @@ namespace RealmEngine
             c["type"]          = "Renderable";
             c["model_path"]    = r->model_path.empty() ? "" : r->model_path;
             c["flip_textures"] = r->flip_textures;
+            if (r->render_object)
+            {
+                nlohmann::json overrides = nlohmann::json::array();
+                for (size_t i = 0; i < r->render_object->getMeshCount(); ++i)
+                {
+                    auto* mesh = r->render_object->getMesh(i);
+                    if (!mesh)
+                        continue;
+                    const auto&    mat = mesh->m_material;
+                    nlohmann::json m;
+                    m["opacity"]                = mat.opacity;
+                    m["is_transparent"]         = mat.is_transparent;
+                    m["alpha_cutout"]           = mat.alpha_cutout;
+                    m["is_hair"]                = mat.is_hair;
+                    m["hair_layers"]            = mat.hair_layers;
+                    m["hair_layer_step"]        = mat.hair_layer_step;
+                    m["hair_specular_strength"] = mat.hair_specular_strength;
+                    m["hair_specular_power"]    = mat.hair_specular_power;
+                    m["subsurface_enabled"]     = mat.subsurface_enabled;
+                    m["subsurface_radius"]      = mat.subsurface_radius;
+                    m["subsurface_color"]  = {mat.subsurface_color.x, mat.subsurface_color.y, mat.subsurface_color.z};
+                    m["emissive"]          = {mat.emissive.x, mat.emissive.y, mat.emissive.z};
+                    m["emissive_strength"] = mat.emissive_strength;
+                    overrides.push_back(m);
+                }
+                c["mesh_overrides"] = overrides;
+            }
             components_json.push_back(c);
         }
 
@@ -403,6 +433,47 @@ namespace RealmEngine
                     r.loadModel(device, *asset_mgr);
                 else
                     r.loadModel(device);
+
+                if (comp_json.contains("mesh_overrides") && comp_json["mesh_overrides"].is_array() && r.render_object)
+                {
+                    const auto& arr = comp_json["mesh_overrides"];
+                    for (size_t i = 0; i < arr.size(); ++i)
+                    {
+                        auto* mesh = r.render_object->getMesh(i);
+                        if (!mesh)
+                            break;
+                        auto&       mat = mesh->m_material;
+                        const auto& m   = arr[i];
+                        if (m.contains("opacity") && m["opacity"].is_number())
+                            mat.opacity = m["opacity"];
+                        if (m.contains("is_transparent") && m["is_transparent"].is_boolean())
+                            mat.is_transparent = m["is_transparent"];
+                        if (m.contains("alpha_cutout") && m["alpha_cutout"].is_number())
+                            mat.alpha_cutout = m["alpha_cutout"];
+                        if (m.contains("is_hair") && m["is_hair"].is_boolean())
+                            mat.is_hair = m["is_hair"];
+                        if (m.contains("hair_layers") && m["hair_layers"].is_number_integer())
+                            mat.hair_layers = m["hair_layers"];
+                        if (m.contains("hair_layer_step") && m["hair_layer_step"].is_number())
+                            mat.hair_layer_step = m["hair_layer_step"];
+                        if (m.contains("hair_specular_strength") && m["hair_specular_strength"].is_number())
+                            mat.hair_specular_strength = m["hair_specular_strength"];
+                        if (m.contains("hair_specular_power") && m["hair_specular_power"].is_number())
+                            mat.hair_specular_power = m["hair_specular_power"];
+                        if (m.contains("subsurface_enabled") && m["subsurface_enabled"].is_boolean())
+                            mat.subsurface_enabled = m["subsurface_enabled"];
+                        if (m.contains("subsurface_radius") && m["subsurface_radius"].is_number())
+                            mat.subsurface_radius = m["subsurface_radius"];
+                        if (m.contains("subsurface_color") && m["subsurface_color"].is_array() &&
+                            m["subsurface_color"].size() == 3)
+                            mat.subsurface_color =
+                                glm::vec3(m["subsurface_color"][0], m["subsurface_color"][1], m["subsurface_color"][2]);
+                        if (m.contains("emissive") && m["emissive"].is_array() && m["emissive"].size() == 3)
+                            mat.emissive = glm::vec3(m["emissive"][0], m["emissive"][1], m["emissive"][2]);
+                        if (m.contains("emissive_strength") && m["emissive_strength"].is_number())
+                            mat.emissive_strength = m["emissive_strength"];
+                    }
+                }
             }
             else if (type == "Point")
             {
