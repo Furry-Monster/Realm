@@ -185,10 +185,7 @@ namespace RealmEngine
         glfwSetFramebufferSizeCallback(m_impl->handle.get(), framebufferSizeCallback);
         glfwSetWindowCloseCallback(m_impl->handle.get(), windowCloseCallback);
 
-        glViewport(0, 0, m_impl->width, m_impl->height);
         glfwSwapInterval(m_impl->vsync ? 1 : 0);
-        if (m_impl->msaa_samples > 0)
-            glEnable(GL_MULTISAMPLE);
 
         RE_LOG_INFO("GLFW window initialized.");
     }

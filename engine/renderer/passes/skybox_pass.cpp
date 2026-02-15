@@ -41,7 +41,7 @@ namespace RealmEngine
         m_shader->setInt("skybox", 0);
         m_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
 
-        m_skybox->draw();
+        m_skybox->draw(*ctx.device);
 
         ctx.device->setDepthWrite(true);
         ctx.device->setDepthFunc(DepthFunc::Less);

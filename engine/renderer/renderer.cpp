@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "core/log/log_macros.h"
-#include "core/math/fullscreen_quad.h"
 #include "platform/window/window.h"
+#include "renderer/fullscreen_quad.h"
 #include "renderer/ibl/diffuse_irradiance_map.h"
 #include "renderer/ibl/equirectangular_cubemap.h"
 #include "renderer/ibl/specular_map.h"
@@ -33,6 +33,7 @@ namespace RealmEngine
         m_device = RHIDevice::create();
         m_device->setDepthTest(true);
         m_device->enableSeamlessCubemap();
+        m_device->enableMultisample(window.isMSAAEnabled());
 
         m_camera       = std::make_shared<RenderCamera>();
         m_render_scene = std::make_shared<RenderScene>();
@@ -49,8 +50,7 @@ namespace RealmEngine
         // IBL precomputation (still GL-specific internally)
         precomputeIBL(config);
 
-        // Fullscreen quad (still GL-specific for draw call, but header is clean)
-        m_fullscreen_quad = std::make_unique<FullscreenQuad>();
+        m_fullscreen_quad = std::make_unique<FullscreenQuad>(*m_device);
 
         // Build and initialize the render pipeline
         buildPipeline(config);
@@ -77,7 +77,7 @@ namespace RealmEngine
         m_ibl_specular->computeBrdfConvolutionMap(*m_device);
 
         RHITexture* env_cubemap = m_ibl_equirect->getCubemapTexture();
-        m_skybox                = std::make_unique<Skybox>(env_cubemap ? env_cubemap->getNativeHandle() : 0);
+        m_skybox                = std::make_unique<Skybox>(*m_device, env_cubemap);
 
         m_ibl_diffuse_tex     = m_ibl_diffuse->getCubemapTexture();
         m_ibl_prefiltered_tex = m_ibl_specular->getPrefilteredEnvMapTexture();

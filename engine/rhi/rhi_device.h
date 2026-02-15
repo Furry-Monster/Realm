@@ -77,7 +77,15 @@ namespace RealmEngine
 
         // ----- Misc -------------------------------------------------------
 
-        virtual void enableSeamlessCubemap() = 0;
+        virtual void enableSeamlessCubemap()         = 0;
+        virtual void enableMultisample(bool enabled) = 0;
+
+        // ----- GPU info (for platform diagnostics) ------------------------
+
+        virtual std::string getGPUVendor() const              = 0;
+        virtual std::string getGPURenderer() const            = 0;
+        virtual std::string getAPIVersion() const             = 0;
+        virtual std::string getShadingLanguageVersion() const = 0;
 
         // ----- Factory ----------------------------------------------------
 

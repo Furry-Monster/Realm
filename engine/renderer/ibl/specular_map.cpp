@@ -1,5 +1,7 @@
 #include "renderer/ibl/specular_map.h"
 
+#include "core/geometry/primitive_vertices.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -91,7 +93,8 @@ namespace RealmEngine
                 m_prefilter_shader->setMVP(model, camera_angles[i], projection);
                 m_prefilter_framebuffer->setCubeFace(i);
                 device.clear(ClearFlags::Color | ClearFlags::Depth);
-                cube_mesh.vertex_input->draw(PrimitiveType::Triangles, 36);
+                cube_mesh.vertex_input->draw(PrimitiveType::Triangles,
+                                             static_cast<uint32_t>(PrimitiveVertices::k_cube_vertex_count));
             }
         }
 
@@ -109,7 +112,8 @@ namespace RealmEngine
         m_brdf_shader->use();
         device.setViewport(0, 0, m_brdf_width, m_brdf_height);
         device.clear(ClearFlags::Color | ClearFlags::Depth);
-        quad_mesh.vertex_input->draw(PrimitiveType::Triangles, 6);
+        quad_mesh.vertex_input->draw(PrimitiveType::Triangles,
+                                     static_cast<uint32_t>(PrimitiveVertices::k_fullscreen_quad_vertex_count));
 
         device.bindDefaultFramebuffer();
     }

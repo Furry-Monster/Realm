@@ -61,6 +61,13 @@ namespace RealmEngine
 
         // Misc
         void enableSeamlessCubemap() override;
+        void enableMultisample(bool enabled) override;
+
+        // GPU info
+        std::string getGPUVendor() const override;
+        std::string getGPURenderer() const override;
+        std::string getAPIVersion() const override;
+        std::string getShadingLanguageVersion() const override;
     };
 
 } // namespace RealmEngine

@@ -68,7 +68,7 @@ namespace RealmEngine
 
         m_last_frame_time = m_window->getTime();
 
-        PlatformInfo::logPlatformInfo();
+        PlatformInfo::logPlatformInfo(m_renderer->getDevice());
 
         RE_LOG_INFO("<<< Boot Engine Done. >>>");
     }
