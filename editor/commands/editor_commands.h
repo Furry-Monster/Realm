@@ -78,11 +78,11 @@ namespace RealmEngine
     class TogglePanelCommand : public ICommand
     {
     public:
-        TogglePanelCommand(std::vector<std::shared_ptr<Widget>>* widgets, size_t index);
+        TogglePanelCommand(std::vector<std::shared_ptr<Widget>>& widgets, size_t index);
         void execute(RegisterUndo registerUndo) override;
 
     private:
-        std::vector<std::shared_ptr<Widget>>* m_widgets;
+        std::vector<std::shared_ptr<Widget>>& m_widgets;
         size_t                                m_index;
     };
 

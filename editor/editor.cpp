@@ -221,7 +221,7 @@ namespace RealmEngine
         {
             size_t idx = i;
             hotkeys.registerHotkey(static_cast<ImGuiKey>(ImGuiKey_F1 + static_cast<int>(i) - 1),
-                                   [this, idx] { m_executor.execute(TogglePanelCommand(&m_panels, idx)); });
+                                   [this, idx] { m_executor.execute(TogglePanelCommand(m_panels, idx)); });
         }
 
         std::filesystem::path  scene_file = m_bridge->getSceneFileFromConfig();
@@ -277,6 +277,9 @@ namespace RealmEngine
 
     void Editor::run()
     {
+        if (!m_initialized || !m_engine)
+            return;
+
         RE_LOG_INFO("<<< Run in Editor-Mode. >>>");
 
         while (!m_engine->getWindow().shouldClose())
@@ -285,6 +288,9 @@ namespace RealmEngine
 
     void Editor::tick()
     {
+        if (!m_initialized || !m_engine)
+            return;
+
         m_engine->tick();
 
         beginFrame();

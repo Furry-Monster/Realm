@@ -4,9 +4,13 @@
 
 基于 OpenGL 的现代游戏引擎，集成 PBR 渲染管线、可视化编辑器与 ECS 架构。
 
-![编辑器](docs/editor.png)
+![editor](docs/editor.png "editor demo")
 
-![pbr + npr](docs/aqua.png)
+![pbr + npr](docs/aqua.png "pbr demo")
+
+![pbr + npr](docs/example.png)
+
+![debug](docs/debug.png)
 
 ## 特性
 

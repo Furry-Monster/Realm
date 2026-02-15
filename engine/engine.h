@@ -35,14 +35,46 @@ namespace RealmEngine
         double getDeltaTime() const { return m_delta_time; }
 
         // Subsystem accessors (assert that the engine has been initialized)
-        EventBus&      getEventBus()     { assert(m_event_bus && "Engine not initialized"); return *m_event_bus; }
-        Logger&        getLogger()       { assert(m_logger    && "Engine not initialized"); return *m_logger; }
-        ConfigManager& getConfig()       { assert(m_config    && "Engine not initialized"); return *m_config; }
-        AssetManager&  getAssets()       { assert(m_assets    && "Engine not initialized"); return *m_assets; }
-        SceneManager&  getSceneManager() { assert(m_scene     && "Engine not initialized"); return *m_scene; }
-        Window&        getWindow()       { assert(m_window    && "Engine not initialized"); return *m_window; }
-        Renderer&      getRenderer()     { assert(m_renderer  && "Engine not initialized"); return *m_renderer; }
-        Input&         getInput()        { assert(m_input     && "Engine not initialized"); return *m_input; }
+        EventBus& getEventBus()
+        {
+            assert(m_event_bus && "Engine not initialized");
+            return *m_event_bus;
+        }
+        Logger& getLogger()
+        {
+            assert(m_logger && "Engine not initialized");
+            return *m_logger;
+        }
+        ConfigManager& getConfig()
+        {
+            assert(m_config && "Engine not initialized");
+            return *m_config;
+        }
+        AssetManager& getAssets()
+        {
+            assert(m_assets && "Engine not initialized");
+            return *m_assets;
+        }
+        SceneManager& getSceneManager()
+        {
+            assert(m_scene && "Engine not initialized");
+            return *m_scene;
+        }
+        Window& getWindow()
+        {
+            assert(m_window && "Engine not initialized");
+            return *m_window;
+        }
+        Renderer& getRenderer()
+        {
+            assert(m_renderer && "Engine not initialized");
+            return *m_renderer;
+        }
+        Input& getInput()
+        {
+            assert(m_input && "Engine not initialized");
+            return *m_input;
+        }
 
     protected:
         void logicalTick();

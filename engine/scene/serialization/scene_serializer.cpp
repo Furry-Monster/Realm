@@ -56,9 +56,8 @@ namespace RealmEngine
 
             if (version > SCENE_FORMAT_VERSION)
             {
-                RE_LOG_ERROR("Scene file version " + std::to_string(version) +
-                             " is newer than supported version " + std::to_string(SCENE_FORMAT_VERSION) +
-                             ". Please update RealmEngine.");
+                RE_LOG_ERROR("Scene file version " + std::to_string(version) + " is newer than supported version " +
+                             std::to_string(SCENE_FORMAT_VERSION) + ". Please update RealmEngine.");
                 return nullptr;
             }
             if (version < 1)

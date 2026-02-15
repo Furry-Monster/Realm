@@ -34,6 +34,7 @@ namespace RealmEngine
         void   setMaxHistory(size_t max_history) { m_max_history = max_history; }
 
     private:
+        void executeImpl(ICommand& command);
         void trimHistory();
 
         using UndoRedoPair = std::pair<std::function<void()>, std::function<void()>>;

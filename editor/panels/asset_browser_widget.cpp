@@ -45,6 +45,14 @@ namespace RealmEngine
         renderTexturePreviewPopup();
 
         ImGui::End();
+
+        if (m_pending_navigate)
+        {
+            m_pending_navigate = false;
+            m_current_path     = m_pending_navigate_path;
+            m_pending_navigate_path.clear();
+            refreshDirectory();
+        }
     }
 
     void AssetBrowserWidget::renderToolbar()
@@ -103,18 +111,64 @@ namespace RealmEngine
             try
             {
                 std::vector<std::filesystem::path> subdirs;
+                std::vector<std::filesystem::path> files;
                 for (const auto& entry : std::filesystem::directory_iterator(path))
                 {
                     if (entry.is_directory())
                         subdirs.push_back(entry.path());
+                    else if (entry.is_regular_file())
+                        files.push_back(entry.path());
                 }
-                std::sort(
-                    subdirs.begin(), subdirs.end(), [](const std::filesystem::path& a, const std::filesystem::path& b) {
-                        return a.filename().string() < b.filename().string();
-                    });
 
+                auto cmp = [](const std::filesystem::path& a, const std::filesystem::path& b) {
+                    return a.filename().string() < b.filename().string();
+                };
+                std::sort(subdirs.begin(), subdirs.end(), cmp);
+                std::sort(files.begin(), files.end(), cmp);
+
+                // Directories first (recursive)
                 for (const auto& subdir : subdirs)
                     renderDirectoryTree(subdir, depth + 1);
+
+                // Then files as leaf nodes
+                for (const auto& file : files)
+                {
+                    if (m_show_only_assets && !isModelFile(file) && !isTextureFile(file) && !isHdrFile(file))
+                        continue;
+
+                    std::string file_name = file.filename().string();
+                    const char* icon      = "[F] ";
+                    if (isModelFile(file))
+                        icon = "[M] ";
+                    else if (isTextureFile(file) || isHdrFile(file))
+                        icon = "[T] ";
+
+                    std::string        file_label  = std::string(icon) + file_name;
+                    bool               is_selected = (m_selected_path == file);
+                    ImGuiTreeNodeFlags file_flags  = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen |
+                                                    ImGuiTreeNodeFlags_SpanAvailWidth;
+                    if (is_selected)
+                        file_flags |= ImGuiTreeNodeFlags_Selected;
+
+                    ImGui::TreeNodeEx(file_label.c_str(), file_flags);
+                    if (ImGui::IsItemClicked())
+                    {
+                        m_selected_path = file;
+                        // Also switch the right panel to this file's parent directory
+                        if (m_current_path != path)
+                        {
+                            m_pending_navigate      = true;
+                            m_pending_navigate_path = path;
+                        }
+                    }
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                    {
+                        if (isModelFile(file))
+                            m_bridge->addModelToScene(file);
+                        else if (isTextureFile(file) || isHdrFile(file))
+                            openTexturePreview(file);
+                    }
+                }
             }
             catch (const std::filesystem::filesystem_error&)
             {}
@@ -137,8 +191,8 @@ namespace RealmEngine
                 ImVec2 thumb_size(m_thumbnail_size, m_thumbnail_size);
                 if (ImGui::Button("##thumb_parent", thumb_size))
                 {
-                    m_current_path = m_current_path.parent_path();
-                    refreshDirectory();
+                    m_pending_navigate      = true;
+                    m_pending_navigate_path = m_current_path.parent_path();
                 }
                 ImVec2 pos = ImGui::GetItemRectMin();
                 ImGui::GetWindowDrawList()->AddText(
@@ -152,6 +206,8 @@ namespace RealmEngine
             }
             for (const auto& entry : m_directory_entries)
             {
+                if (m_pending_navigate)
+                    break;
                 if (!passesFilter(entry))
                     continue;
 
@@ -170,12 +226,14 @@ namespace RealmEngine
             {
                 if (ImGui::Selectable("../", false))
                 {
-                    m_current_path = m_current_path.parent_path();
-                    refreshDirectory();
+                    m_pending_navigate      = true;
+                    m_pending_navigate_path = m_current_path.parent_path();
                 }
             }
             for (const auto& entry : m_directory_entries)
             {
+                if (m_pending_navigate)
+                    break;
                 if (!passesFilter(entry))
                     continue;
                 renderFileItem(entry, std::filesystem::is_directory(entry));
@@ -251,8 +309,8 @@ namespace RealmEngine
                 {
                     if (is_dir)
                     {
-                        m_current_path = entry;
-                        refreshDirectory();
+                        m_pending_navigate      = true;
+                        m_pending_navigate_path = entry;
                     }
                     else if (isModelFile(entry))
                         m_bridge->addModelToScene(entry);
@@ -300,8 +358,8 @@ namespace RealmEngine
                 {
                     if (is_dir)
                     {
-                        m_current_path = entry;
-                        refreshDirectory();
+                        m_pending_navigate      = true;
+                        m_pending_navigate_path = entry;
                     }
                     else if (isModelFile(entry))
                         m_bridge->addModelToScene(entry);
@@ -325,10 +383,13 @@ namespace RealmEngine
     {
         if (!ImGui::BeginPopup("AssetContextMenu"))
             return;
-        if (ImGui::MenuItem("Add to Scene") && isModelFile(m_context_menu_path))
-            m_bridge->addModelToScene(m_context_menu_path);
-        if ((isTextureFile(m_context_menu_path) || isHdrFile(m_context_menu_path)) && ImGui::MenuItem("Preview"))
-            openTexturePreview(m_context_menu_path);
+        if (!m_context_menu_path.empty())
+        {
+            if (isModelFile(m_context_menu_path) && ImGui::MenuItem("Add to Scene"))
+                m_bridge->addModelToScene(m_context_menu_path);
+            if ((isTextureFile(m_context_menu_path) || isHdrFile(m_context_menu_path)) && ImGui::MenuItem("Preview"))
+                openTexturePreview(m_context_menu_path);
+        }
         if (ImGui::MenuItem("Refresh"))
             refreshDirectory();
         ImGui::EndPopup();
@@ -394,7 +455,7 @@ namespace RealmEngine
             float  w      = static_cast<float>(tex->getWidth());
             float  h      = static_cast<float>(tex->getHeight());
             float  max_sz = 480.0f;
-            float  scale  = std::min(1.0f, std::min(max_sz / w, max_sz / h));
+            float  scale  = (w > 0.0f && h > 0.0f) ? std::min(1.0f, std::min(max_sz / w, max_sz / h)) : 1.0f;
             ImVec2 display_size(w * scale, h * scale);
 
             ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));

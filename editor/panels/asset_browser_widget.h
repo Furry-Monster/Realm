@@ -53,6 +53,10 @@ namespace RealmEngine
         std::filesystem::path              m_texture_preview_path;
         bool                               m_texture_preview_open {false};
         std::filesystem::path              m_context_menu_path;
+
+        /// Deferred navigation to avoid iterator invalidation during renderFileList
+        bool                  m_pending_navigate {false};
+        std::filesystem::path m_pending_navigate_path;
     };
 
 } // namespace RealmEngine

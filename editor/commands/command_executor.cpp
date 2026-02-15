@@ -7,34 +7,33 @@ namespace RealmEngine
 
     void CommandExecutor::execute(std::unique_ptr<ICommand> command)
     {
-        if (command)
+        if (!command)
+            return;
+        executeImpl(*command);
+    }
+
+    void CommandExecutor::execute(ICommand& command) { executeImpl(command); }
+
+    void CommandExecutor::execute(ICommand&& command) { executeImpl(command); }
+
+    void CommandExecutor::executeImpl(ICommand& command)
+    {
+        size_t       prev_size = m_undo_stack.size();
+        RegisterUndo reg       = [this](std::function<void()> u, std::function<void()> r) {
+            m_undo_stack.emplace_back(std::move(u), std::move(r));
+        };
+        try
         {
-            m_redo_stack.clear();
-            RegisterUndo reg = [this](std::function<void()> u, std::function<void()> r) {
-                m_undo_stack.emplace_back(std::move(u), std::move(r));
-            };
-            command->execute(reg);
-            trimHistory();
+            command.execute(reg);
         }
-    }
-
-    void CommandExecutor::execute(ICommand& command)
-    {
+        catch (...)
+        {
+            // Roll back any undo entries the command may have registered
+            m_undo_stack.resize(prev_size);
+            throw;
+        }
+        // Only clear redo stack after successful execution
         m_redo_stack.clear();
-        RegisterUndo reg = [this](std::function<void()> u, std::function<void()> r) {
-            m_undo_stack.emplace_back(std::move(u), std::move(r));
-        };
-        command.execute(reg);
-        trimHistory();
-    }
-
-    void CommandExecutor::execute(ICommand&& command)
-    {
-        m_redo_stack.clear();
-        RegisterUndo reg = [this](std::function<void()> u, std::function<void()> r) {
-            m_undo_stack.emplace_back(std::move(u), std::move(r));
-        };
-        command.execute(reg);
         trimHistory();
     }
 
@@ -42,20 +41,37 @@ namespace RealmEngine
     {
         if (m_undo_stack.empty())
             return;
-        auto [undo_fn, redo_fn] = std::move(m_undo_stack.back());
+        auto entry = std::move(m_undo_stack.back());
         m_undo_stack.pop_back();
-        undo_fn();
-        m_redo_stack.emplace_back(std::move(undo_fn), std::move(redo_fn));
+        try
+        {
+            entry.first();
+        }
+        catch (...)
+        {
+            // Push back to redo even on exception so the pair is not lost
+            m_redo_stack.emplace_back(std::move(entry));
+            throw;
+        }
+        m_redo_stack.emplace_back(std::move(entry));
     }
 
     void CommandExecutor::redo()
     {
         if (m_redo_stack.empty())
             return;
-        auto [undo_fn, redo_fn] = std::move(m_redo_stack.back());
+        auto entry = std::move(m_redo_stack.back());
         m_redo_stack.pop_back();
-        redo_fn();
-        m_undo_stack.emplace_back(std::move(undo_fn), std::move(redo_fn));
+        try
+        {
+            entry.second();
+        }
+        catch (...)
+        {
+            m_undo_stack.emplace_back(std::move(entry));
+            throw;
+        }
+        m_undo_stack.emplace_back(std::move(entry));
     }
 
     bool CommandExecutor::canUndo() const { return !m_undo_stack.empty(); }

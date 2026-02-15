@@ -1,19 +1,32 @@
 #include "hotkey_manager.h"
 
+#include "core/log/log_macros.h"
+
 #include <imgui.h>
 
 namespace RealmEngine
 {
-    void HotkeyManager::registerHotkey(ImGuiKeyChord chord, Handler handler)
+    bool HotkeyManager::registerHotkey(ImGuiKeyChord chord, Handler handler)
     {
-        if (handler)
-            m_entries.push_back({chord, std::move(handler), ImGuiInputFlags_RouteAlways});
+        return registerHotkey(chord, std::move(handler), ImGuiInputFlags_RouteAlways);
     }
 
-    void HotkeyManager::registerHotkey(ImGuiKeyChord chord, Handler handler, ImGuiInputFlags flags)
+    bool HotkeyManager::registerHotkey(ImGuiKeyChord chord, Handler handler, ImGuiInputFlags flags)
     {
-        if (handler)
-            m_entries.push_back({chord, std::move(handler), flags});
+        if (!handler)
+            return false;
+
+        // Warn on duplicate chord+flags (later entry will shadow the earlier one)
+        for (const auto& entry : m_entries)
+        {
+            if (entry.chord == chord && entry.flags == flags)
+            {
+                RE_LOG_WARN("Hotkey conflict: chord already registered with same flags");
+                break;
+            }
+        }
+        m_entries.push_back({chord, std::move(handler), flags});
+        return true;
     }
 
     void HotkeyManager::process()

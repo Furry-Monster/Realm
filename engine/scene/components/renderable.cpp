@@ -19,7 +19,8 @@ namespace RealmEngine
     void loadRenderableModel(Renderable& renderable, RHIDevice& device, AssetManager& asset_mgr)
     {
         if (!renderable.model_path.empty())
-            renderable.render_object = asset_mgr.getOrLoadModel(renderable.model_path, renderable.flip_textures, device);
+            renderable.render_object =
+                asset_mgr.getOrLoadModel(renderable.model_path, renderable.flip_textures, device);
     }
 
 } // namespace RealmEngine

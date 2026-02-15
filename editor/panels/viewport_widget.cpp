@@ -37,6 +37,14 @@ namespace RealmEngine
             float  w     = static_cast<float>(tex->getWidth());
             float  h     = static_cast<float>(tex->getHeight());
             ImVec2 avail = ImGui::GetContentRegionAvail();
+
+            if (w <= 0.0f || h <= 0.0f || avail.x <= 0.0f || avail.y <= 0.0f)
+            {
+                ImGui::TextDisabled("Viewport resizing...");
+                ImGui::End();
+                return;
+            }
+
             float  scale = std::min(avail.x / w, avail.y / h);
             ImVec2 display_size(w * scale, h * scale);
 

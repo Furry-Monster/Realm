@@ -30,6 +30,7 @@ namespace RealmEngine
         {
             m_current_path = initial_path.parent_path();
             strncpy(m_filename_buffer, initial_path.filename().string().c_str(), sizeof(m_filename_buffer) - 1);
+            m_filename_buffer[sizeof(m_filename_buffer) - 1] = '\0';
         }
 
         m_selected_path.clear();
@@ -96,6 +97,7 @@ namespace RealmEngine
                         {
                             strncpy(
                                 m_filename_buffer, entry.filename().string().c_str(), sizeof(m_filename_buffer) - 1);
+                            m_filename_buffer[sizeof(m_filename_buffer) - 1] = '\0';
                         }
                     }
 
@@ -197,11 +199,11 @@ namespace RealmEngine
             {
                 for (const auto& entry : std::filesystem::directory_iterator(m_current_path))
                 {
-                    // Filter by extension if filter is specified
+                    // Filter by extension if filter is specified (exact extension match)
                     if (!m_filter.empty() && std::filesystem::is_regular_file(entry))
                     {
                         std::string ext = entry.path().extension().string();
-                        if (ext.empty() || m_filter.find(ext) == std::string::npos)
+                        if (ext.empty() || ext != m_filter)
                         {
                             continue;
                         }

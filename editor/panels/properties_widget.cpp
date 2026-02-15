@@ -65,6 +65,8 @@ namespace RealmEngine
         auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
+        if (!scene->valid(m_context->getSelectedEntity()))
+            return;
 
         auto* tf = scene->tryGet<Transform>(m_context->getSelectedEntity());
         if (!tf)
@@ -90,6 +92,8 @@ namespace RealmEngine
     {
         auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
+            return;
+        if (!scene->valid(m_context->getSelectedEntity()))
             return;
 
         auto* r = scene->tryGet<Renderable>(m_context->getSelectedEntity());
@@ -234,6 +238,8 @@ namespace RealmEngine
         auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
+        if (!scene->valid(m_context->getSelectedEntity()))
+            return;
 
         auto* pl = scene->tryGet<PointLight>(m_context->getSelectedEntity());
         if (!pl)
@@ -261,6 +267,8 @@ namespace RealmEngine
     {
         auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
+            return;
+        if (!scene->valid(m_context->getSelectedEntity()))
             return;
 
         auto* sl = scene->tryGet<SpotLight>(m_context->getSelectedEntity());
@@ -292,6 +300,8 @@ namespace RealmEngine
         auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
             return;
+        if (!scene->valid(m_context->getSelectedEntity()))
+            return;
 
         auto* dl = scene->tryGet<DirectionalLight>(m_context->getSelectedEntity());
         if (!dl)
@@ -310,6 +320,8 @@ namespace RealmEngine
     {
         auto scene = m_bridge->getCurrentScene();
         if (!scene || !m_context->hasSelectedEntity())
+            return;
+        if (!scene->valid(m_context->getSelectedEntity()))
             return;
 
         auto* al = scene->tryGet<AreaLight>(m_context->getSelectedEntity());

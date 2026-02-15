@@ -39,7 +39,12 @@ namespace RealmEngine
         if (ImGui::CollapsingHeader("General", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Checkbox("Auto Save", &copy.auto_save);
-            ImGui::DragFloat("Auto Save Interval (seconds)", &copy.auto_save_interval, 10.0f, 60.0f, 3600.0f, "%.0f");
+            if (ImGui::DragFloat(
+                    "Auto Save Interval (seconds)", &copy.auto_save_interval, 10.0f, 60.0f, 3600.0f, "%.0f"))
+            {
+                if (copy.auto_save_interval < 10.0f)
+                    copy.auto_save_interval = 10.0f;
+            }
         }
 
         ImGui::Separator();
@@ -51,7 +56,8 @@ namespace RealmEngine
             if (m_get_prefs_path)
             {
                 auto path = m_get_prefs_path();
-                EditorPreferencesManager::save(*m_prefs, path);
+                if (!path.empty())
+                    EditorPreferencesManager::save(*m_prefs, path);
             }
         }
         ImGui::SameLine();

@@ -4,9 +4,13 @@
 
 A modern OpenGL game engine with PBR rendering, a visual editor, and an ECS architecture.
 
-![editor](docs/editor.png)
+![editor](docs/editor.png "editor demo")
 
-![pbr + npr](docs/aqua.png)
+![pbr + npr](docs/aqua.png "pbr demo")
+
+![pbr + npr](docs/example.png)
+
+![debug](docs/debug.png)
 
 ## Features
 

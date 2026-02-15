@@ -98,15 +98,15 @@ namespace RealmEngine
 
     void ExitCommand::execute(RegisterUndo) { m_bridge->requestWindowClose(); }
 
-    TogglePanelCommand::TogglePanelCommand(std::vector<std::shared_ptr<Widget>>* widgets, size_t index) :
+    TogglePanelCommand::TogglePanelCommand(std::vector<std::shared_ptr<Widget>>& widgets, size_t index) :
         m_widgets(widgets), m_index(index)
     {}
 
     void TogglePanelCommand::execute(RegisterUndo)
     {
-        if (m_widgets && m_index < m_widgets->size())
+        if (m_index < m_widgets.size())
         {
-            auto& w = (*m_widgets)[m_index];
+            auto& w = m_widgets[m_index];
             if (w)
                 w->setOpen(!w->isOpen());
         }
@@ -156,9 +156,13 @@ namespace RealmEngine
             auto  pasted_storage = std::make_shared<std::shared_ptr<SceneNode>>();
             auto* bridge         = m_bridge;
             auto* context        = m_context;
+            auto  parent_weak    = std::weak_ptr<SceneNode>(parent);
             registerUndo(
-                [pasted_storage, bridge, context, json, parent] {
-                    auto pasted = bridge->pasteEntityFromClipboard(json, parent);
+                [pasted_storage, bridge, context, json, parent_weak] {
+                    auto p = parent_weak.lock();
+                    if (!p)
+                        return;
+                    auto pasted = bridge->pasteEntityFromClipboard(json, p);
                     if (pasted)
                     {
                         *pasted_storage = pasted;
@@ -204,9 +208,11 @@ namespace RealmEngine
     {
         if (!m_context->hasEntityClipboard())
             return;
-        auto scene  = m_bridge->getCurrentScene();
+        auto scene = m_bridge->getCurrentScene();
+        if (!scene)
+            return;
         auto parent = m_context->hasSelectedNode() ? m_context->getSelectedNode() : scene->getRoot();
-        if (!scene || !parent)
+        if (!parent)
             return;
         std::string json   = m_context->getEntityClipboard();
         auto        pasted = m_bridge->pasteEntityFromClipboard(json, parent);
@@ -217,6 +223,7 @@ namespace RealmEngine
             auto  pasted_storage = std::make_shared<std::shared_ptr<SceneNode>>(pasted);
             auto* bridge         = m_bridge;
             auto* context        = m_context;
+            auto  parent_weak    = std::weak_ptr<SceneNode>(parent);
             registerUndo(
                 [pasted_storage, bridge, context] {
                     if (!*pasted_storage)
@@ -233,16 +240,17 @@ namespace RealmEngine
                     *pasted_storage = nullptr;
                     sc->markDirty();
                 },
-                [pasted_storage, bridge, context, json, parent] {
-                    if (!parent)
+                [pasted_storage, bridge, context, json, parent_weak] {
+                    auto p = parent_weak.lock();
+                    if (!p)
                         return;
-                    auto pasted = bridge->pasteEntityFromClipboard(json, parent);
-                    if (pasted)
+                    auto restored = bridge->pasteEntityFromClipboard(json, p);
+                    if (restored)
                     {
-                        *pasted_storage = pasted;
-                        context->setSelectedNode(pasted);
-                        if (pasted->hasEntity())
-                            context->setSelectedEntity(pasted->getEntity());
+                        *pasted_storage = restored;
+                        context->setSelectedNode(restored);
+                        if (restored->hasEntity())
+                            context->setSelectedEntity(restored->getEntity());
                     }
                 });
         }
@@ -275,9 +283,13 @@ namespace RealmEngine
             auto  pasted_storage = std::make_shared<std::shared_ptr<SceneNode>>();
             auto* bridge         = m_bridge;
             auto* context        = m_context;
+            auto  parent_weak    = std::weak_ptr<SceneNode>(parent);
             registerUndo(
-                [pasted_storage, bridge, context, json, parent] {
-                    auto pasted = bridge->pasteEntityFromClipboard(json, parent);
+                [pasted_storage, bridge, context, json, parent_weak] {
+                    auto p = parent_weak.lock();
+                    if (!p)
+                        return;
+                    auto pasted = bridge->pasteEntityFromClipboard(json, p);
                     if (pasted)
                     {
                         *pasted_storage = pasted;
@@ -307,8 +319,11 @@ namespace RealmEngine
 
     void DuplicateEntityCommand::execute(RegisterUndo registerUndo)
     {
+        // Preserve existing clipboard so Duplicate doesn't clobber it
+        std::string saved_clipboard = m_context->getEntityClipboard();
         CopyEntityCommand(*m_bridge, *m_context).execute(nullptr);
         PasteEntityCommand(*m_bridge, *m_context).execute(registerUndo);
+        m_context->setEntityClipboard(saved_clipboard);
     }
 
 } // namespace RealmEngine

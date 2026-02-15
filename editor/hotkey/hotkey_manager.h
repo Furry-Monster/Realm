@@ -20,8 +20,9 @@ namespace RealmEngine
         HotkeyManager(HotkeyManager&&)                 = delete;
         HotkeyManager& operator=(HotkeyManager&&)      = delete;
 
-        void registerHotkey(ImGuiKeyChord chord, Handler handler);
-        void registerHotkey(ImGuiKeyChord chord, Handler handler, ImGuiInputFlags flags);
+        /// Returns false if the chord+flags combination is already registered (conflict)
+        bool registerHotkey(ImGuiKeyChord chord, Handler handler);
+        bool registerHotkey(ImGuiKeyChord chord, Handler handler, ImGuiInputFlags flags);
         void process();
 
     private:
