@@ -29,9 +29,9 @@ namespace RealmEngine
         bool use_texture_ambient_occlusion  = false;
         bool use_texture_emissive           = false;
 
-        glm::vec3 albedo            = glm::vec3(1.0f, 0.0f, 0.0f);
-        float     metallic          = 1.0f;
-        float     roughness         = 0.0f;
+        glm::vec3 albedo            = glm::vec3(0.7f, 0.7f, 0.7f);
+        float     metallic          = 0.0f;
+        float     roughness         = 0.5f;
         float     ambient_occlusion = 1.0f;
         glm::vec3 emissive          = glm::vec3(0.0, 0.0, 0.0);
 
