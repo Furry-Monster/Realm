@@ -136,6 +136,14 @@ namespace RealmEngine
             shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
         }
 
+        shader.setBool("material.useTextureOpacity", mat.use_texture_opacity);
+        shader.setFloat("material.opacity", mat.opacity);
+        if (mat.use_texture_opacity && mat.texture_opacity)
+        {
+            mat.texture_opacity->bind(TEXTURE_UNIT_OPACITY);
+            shader.setInt("material.textureOpacity", TEXTURE_UNIT_OPACITY);
+        }
+
         shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);
         shader.setVec3("material.emissive", mat.emissive);
         shader.setFloat("material.emissiveStrength", mat.emissive_strength);
