@@ -7,6 +7,7 @@
 #include <stb/stb_image.h>
 #include <assimp/Importer.hpp>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <glm/glm.hpp>
 
@@ -247,6 +248,12 @@ namespace RealmEngine
 
                 if (ai_material->GetTextureCount(aiTextureType_OPACITY))
                     load_tex(aiTextureType_OPACITY, material.use_texture_opacity, material.texture_opacity);
+
+                aiString alpha_mode;
+                if (ai_material->Get(AI_MATKEY_GLTF_ALPHAMODE, alpha_mode) == aiReturn_SUCCESS)
+                    material.is_transparent = (std::strcmp(alpha_mode.C_Str(), "BLEND") == 0);
+                else
+                    material.is_transparent = (material.opacity < 1.0f);
             }
 
             std::string mesh_name = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : "";

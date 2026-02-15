@@ -16,6 +16,7 @@
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
 #include "rhi/rhi_texture.h"
+#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {
@@ -116,17 +117,58 @@ namespace RealmEngine
             m_shader->setBool("shadowEnabled", false);
         }
 
-        // Draw objects
+        ctx.device->setBlend(false);
+        ctx.device->setDepthWrite(true);
+        m_shader->setBool("isTransparentPass", false);
+
         for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
         {
             auto&     ro    = ctx.scene->m_render_objects[i];
             glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
                                                                                 glm::mat4(1.0f);
-
             m_shader->setMVP(model, view, projection);
-            ctx.device->setDepthWrite(true);
             ro->drawOpaque(*m_shader);
         }
+
+        struct TransparentDraw
+        {
+            size_t    object_index;
+            glm::mat4 model;
+            float     distance;
+        };
+        std::vector<TransparentDraw> transparent_draws;
+        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+        {
+            auto& ro = ctx.scene->m_render_objects[i];
+            if (!ro || !ro->hasTransparentMeshes())
+                continue;
+
+            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
+                                                                                glm::mat4(1.0f);
+            glm::vec3 obj_pos(model[3]);
+            float     dist = glm::length(cam_pos - obj_pos);
+            transparent_draws.push_back({i, model, dist});
+        }
+
+        std::sort(transparent_draws.begin(),
+                  transparent_draws.end(),
+                  [](const TransparentDraw& a, const TransparentDraw& b) { return a.distance > b.distance; });
+
+        ctx.device->setBlend(true);
+        ctx.device->setBlendFunc(
+            BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha, BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
+        ctx.device->setDepthWrite(false);
+        m_shader->setBool("isTransparentPass", true);
+
+        for (const auto& td : transparent_draws)
+        {
+            auto& ro = ctx.scene->m_render_objects[td.object_index];
+            m_shader->setMVP(td.model, view, projection);
+            ro->drawTransparent(*m_shader);
+        }
+
+        ctx.device->setBlend(false);
+        ctx.device->setDepthWrite(true);
     }
 
     void GeometryPass::dispose()

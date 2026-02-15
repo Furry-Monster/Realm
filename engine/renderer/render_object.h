@@ -20,6 +20,7 @@ namespace RealmEngine
 
         bool   isEmpty() const { return m_meshes.empty(); }
         size_t getMeshCount() const { return m_meshes.size(); }
+        bool   hasTransparentMeshes() const;
         int    getTriangleCount(size_t mesh_index) const;
 
         void      setPosition(glm::vec3 position);
@@ -31,6 +32,7 @@ namespace RealmEngine
 
         void draw(RHIShader& shader);
         void drawOpaque(RHIShader& shader);
+        void drawTransparent(RHIShader& shader);
         void drawHair(RHIShader& shader);
         void drawShadow(RHIShader& shader);
 

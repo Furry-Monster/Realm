@@ -73,7 +73,8 @@ uniform bool      shadowEnabled;
 uniform mat4      lightSpaceMatrix;
 
 // Viewport display mode: 0=lit, 1=albedo, 2=normals, 3=metallic, 4=roughness, 5=materialAO, 6=emissive
-uniform int displayMode;
+uniform int  displayMode;
+uniform bool isTransparentPass;
 
 // Fresnel function (Fresnel-Schlick approximation)
 //
@@ -292,13 +293,19 @@ void main()
         albedo        = albedo_sample.rgb;
     }
 
-    // alpha cutout: opacity from scalar, texture_opacity, or albedo.a
+    // alpha: opacity from scalar, texture_opacity, or albedo.a
     float alpha = material.opacity;
     if (material.useTextureOpacity)
         alpha *= texture(material.textureOpacity, textureCoordinates).r;
     else if (material.useTextureAlbedo)
         alpha *= albedo_sample.a;
-    if (alpha < material.alphaCutout)
+
+    if (isTransparentPass)
+    {
+        if (alpha < 0.01)
+            discard;
+    }
+    else if (alpha < material.alphaCutout)
         discard;
 
     // metallic/roughness
@@ -460,8 +467,9 @@ void main()
 
     vec3 ambient = (kDiffuse * diffuse + specular) * ao;
 
-    vec3  color   = emissive + ambient + Lo;
-    float sssMask = material.subsurfaceEnabled ? 1.0 : 0.0;
+    vec3  color    = emissive + ambient + Lo;
+    float sssMask  = material.subsurfaceEnabled ? 1.0 : 0.0;
+    float outAlpha = isTransparentPass ? alpha : sssMask;
 
     if (displayMode == 1)
     {
@@ -494,5 +502,5 @@ void main()
         return;
     }
 
-    FragColor = vec4(color, sssMask);
+    FragColor = vec4(color, outAlpha);
 }

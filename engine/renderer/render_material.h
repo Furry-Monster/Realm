@@ -47,6 +47,7 @@ namespace RealmEngine
         float     subsurface_radius  = 1.0f;
         glm::vec3 subsurface_color   = glm::vec3(1.0f, 0.2f, 0.1f);
 
+        bool  is_transparent         = false;
         bool  is_hair                = false;
         int   hair_layers            = 8;
         float hair_layer_step        = 0.002f;

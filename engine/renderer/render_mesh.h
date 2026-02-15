@@ -42,6 +42,7 @@ namespace RealmEngine
         void drawShadow(RHIShader& shader);
 
         bool isHair() const { return m_material.is_hair; }
+        bool isTransparent() const { return m_material.is_transparent; }
         int  getTriangleCount() const { return static_cast<int>(m_indices.size()) / 3; }
 
         std::string               m_name;

@@ -18,6 +18,16 @@ namespace RealmEngine
 
     glm::quat RenderObject::getOrientation() const { return m_orientation; }
 
+    bool RenderObject::hasTransparentMeshes() const
+    {
+        for (const auto& mesh : m_meshes)
+        {
+            if (!mesh.isHair() && mesh.isTransparent())
+                return true;
+        }
+        return false;
+    }
+
     int RenderObject::getTriangleCount(size_t mesh_index) const
     {
         if (mesh_index >= m_meshes.size())
@@ -35,7 +45,16 @@ namespace RealmEngine
     {
         for (auto& mesh : m_meshes)
         {
-            if (!mesh.isHair())
+            if (!mesh.isHair() && !mesh.isTransparent())
+                mesh.draw(shader);
+        }
+    }
+
+    void RenderObject::drawTransparent(RHIShader& shader)
+    {
+        for (auto& mesh : m_meshes)
+        {
+            if (!mesh.isHair() && mesh.isTransparent())
                 mesh.draw(shader);
         }
     }
