@@ -25,8 +25,9 @@ namespace RealmEngine
 
     void BloomPass::init(RHIDevice& device)
     {
-        m_extract_shader = device.createShader(m_shader_path + "/bloom_extract.vert", m_shader_path + "/bloom_extract.frag");
-        m_shader         = device.createShader(m_shader_path + "/bloom.vert", m_shader_path + "/bloom.frag");
+        m_extract_shader =
+            device.createShader(m_shader_path + "/bloom_extract.vert", m_shader_path + "/bloom_extract.frag");
+        m_shader = device.createShader(m_shader_path + "/bloom.vert", m_shader_path + "/bloom.frag");
     }
 
     void BloomPass::execute(const RenderContext& ctx)
