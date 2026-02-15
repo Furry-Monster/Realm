@@ -1,10 +1,10 @@
 #include "platform/info/platform_info.h"
 
 #include "core/log/log_macros.h"
+#include "rhi/rhi_device.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <glad/gl.h>
 
 #include <string>
 #include <thread>
@@ -251,30 +251,17 @@ namespace RealmEngine
 #endif
     }
 
-    // GPU (requires GL context)
+    // GPU (via RHI)
 
-    std::string PlatformInfo::getGPUVendor()
-    {
-        const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-        return vendor ? std::string(vendor) : "Unknown";
-    }
+    std::string PlatformInfo::getGPUVendor(RHIDevice& device) { return device.getGPUVendor(); }
 
-    std::string PlatformInfo::getGPURenderer()
-    {
-        const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-        return renderer ? std::string(renderer) : "Unknown";
-    }
+    std::string PlatformInfo::getGPURenderer(RHIDevice& device) { return device.getGPURenderer(); }
 
-    std::string PlatformInfo::getOpenGLVersion()
-    {
-        const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        return version ? std::string(version) : "Unknown";
-    }
+    std::string PlatformInfo::getAPIVersion(RHIDevice& device) { return device.getAPIVersion(); }
 
-    std::string PlatformInfo::getGLSLVersion()
+    std::string PlatformInfo::getShadingLanguageVersion(RHIDevice& device)
     {
-        const char* version = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-        return version ? std::string(version) : "Unknown";
+        return device.getShadingLanguageVersion();
     }
 
     // display (requires GLFW)
@@ -327,7 +314,7 @@ namespace RealmEngine
         return "Unknown";
     }
 
-    void PlatformInfo::logPlatformInfo()
+    void PlatformInfo::logPlatformInfo(RHIDevice& device)
     {
         RE_LOG_INFO("=== Platform Information ===");
         RE_LOG_INFO("OS: " + getOSName() + " " + getOSVersion());
@@ -335,10 +322,10 @@ namespace RealmEngine
         RE_LOG_INFO("Logical cores: " + std::to_string(getLogicalCoreCount()));
         RE_LOG_INFO("Total memory: " + std::to_string(getTotalMemoryMB()) + " MB");
         RE_LOG_INFO("Available memory: " + std::to_string(getAvailableMemoryMB()) + " MB");
-        RE_LOG_INFO("GPU vendor: " + getGPUVendor());
-        RE_LOG_INFO("GPU renderer: " + getGPURenderer());
-        RE_LOG_INFO("OpenGL version: " + getOpenGLVersion());
-        RE_LOG_INFO("GLSL version: " + getGLSLVersion());
+        RE_LOG_INFO("GPU vendor: " + getGPUVendor(device));
+        RE_LOG_INFO("GPU renderer: " + getGPURenderer(device));
+        RE_LOG_INFO("API version: " + getAPIVersion(device));
+        RE_LOG_INFO("Shading language version: " + getShadingLanguageVersion(device));
 
         int mon_w = 0;
         int mon_h = 0;

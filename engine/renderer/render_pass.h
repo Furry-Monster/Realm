@@ -18,6 +18,10 @@ namespace RealmEngine
         int           viewport_height {0};
     };
 
+    /**
+     * @Lifecycle:
+     * init (one-time resource setup) -> execute (per-frame) -> dispose (teardown).
+     */
     class RenderPass
     {
     public:

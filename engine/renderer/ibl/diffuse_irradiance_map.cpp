@@ -1,5 +1,7 @@
 #include "renderer/ibl/diffuse_irradiance_map.h"
 
+#include "core/geometry/primitive_vertices.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -70,7 +72,8 @@ namespace RealmEngine
             m_shader->setMVP(model, camera_angles[i], projection);
             m_framebuffer->setCubeFace(i);
             device.clear(ClearFlags::Color | ClearFlags::Depth);
-            cube_mesh.vertex_input->draw(PrimitiveType::Triangles, 36);
+            cube_mesh.vertex_input->draw(PrimitiveType::Triangles,
+                                         static_cast<uint32_t>(PrimitiveVertices::k_cube_vertex_count));
         }
 
         device.bindDefaultFramebuffer();

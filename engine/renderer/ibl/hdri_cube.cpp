@@ -1,5 +1,7 @@
 #include "renderer/ibl/hdri_cube.h"
 
+#include "core/geometry/primitive_vertices.h"
+
 #include "renderer/ibl/hdr_texture.h"
 #include "renderer/ibl/ibl_geometry.h"
 #include "rhi/rhi_device.h"
@@ -21,6 +23,7 @@ namespace RealmEngine
     {
         shader.setInt("hdri", 0);
         device.bindTexture(0, m_hdr_texture->getTexture());
-        m_cube->vertex_input->draw(PrimitiveType::Triangles, 36);
+        m_cube->vertex_input->draw(PrimitiveType::Triangles,
+                                   static_cast<uint32_t>(PrimitiveVertices::k_cube_vertex_count));
     }
 } // namespace RealmEngine

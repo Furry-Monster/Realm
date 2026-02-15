@@ -4,6 +4,8 @@
 
 namespace RealmEngine
 {
+    class RHIDevice;
+
     class PlatformInfo
     {
     public:
@@ -20,11 +22,11 @@ namespace RealmEngine
         static int    getAvailableMemoryMB();
         static size_t getProcessRSSKB();
 
-        // GPU (requires GL context)
-        static std::string getGPUVendor();
-        static std::string getGPURenderer();
-        static std::string getOpenGLVersion();
-        static std::string getGLSLVersion();
+        // GPU (via RHI; requires valid device with active context)
+        static std::string getGPUVendor(RHIDevice& device);
+        static std::string getGPURenderer(RHIDevice& device);
+        static std::string getAPIVersion(RHIDevice& device);
+        static std::string getShadingLanguageVersion(RHIDevice& device);
 
         // display (requires GLFW)
         static int         getMonitorCount();
@@ -32,6 +34,6 @@ namespace RealmEngine
         static void        getPrimaryMonitorPhysicalSize(int& width_mm, int& height_mm);
         static std::string getPrimaryMonitorName();
 
-        static void logPlatformInfo();
+        static void logPlatformInfo(RHIDevice& device);
     };
 } // namespace RealmEngine

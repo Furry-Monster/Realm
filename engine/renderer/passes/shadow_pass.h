@@ -14,7 +14,7 @@ namespace RealmEngine
     class ShadowPass final : public RenderPass
     {
     public:
-        ShadowPass(const std::string& shader_path, int resolution = 2048);
+        explicit ShadowPass(const std::string& shader_path, int resolution = 2048);
         ~ShadowPass() override;
 
         void init(RHIDevice& device) override;

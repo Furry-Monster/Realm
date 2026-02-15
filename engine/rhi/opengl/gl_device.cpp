@@ -422,4 +422,38 @@ namespace RealmEngine
 
     void GLDevice::enableSeamlessCubemap() { glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); }
 
+    void GLDevice::enableMultisample(bool enabled)
+    {
+        if (enabled)
+            glEnable(GL_MULTISAMPLE);
+        else
+            glDisable(GL_MULTISAMPLE);
+    }
+
+    // ----- GPU info ------------------------------------------------------
+
+    std::string GLDevice::getGPUVendor() const
+    {
+        const char* v = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+        return v ? std::string(v) : "Unknown";
+    }
+
+    std::string GLDevice::getGPURenderer() const
+    {
+        const char* r = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+        return r ? std::string(r) : "Unknown";
+    }
+
+    std::string GLDevice::getAPIVersion() const
+    {
+        const char* v = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        return v ? std::string(v) : "Unknown";
+    }
+
+    std::string GLDevice::getShadingLanguageVersion() const
+    {
+        const char* v = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+        return v ? std::string(v) : "Unknown";
+    }
+
 } // namespace RealmEngine

@@ -31,4 +31,10 @@ namespace RealmEngine
             mesh.draw(shader);
     }
 
+    void RenderObject::drawShadow(RHIShader& shader)
+    {
+        for (auto& mesh : m_meshes)
+            mesh.drawShadow(shader);
+    }
+
 } // namespace RealmEngine

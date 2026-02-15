@@ -89,7 +89,7 @@ namespace RealmEngine
 
             m_shader->setMat4("lightSpaceMatrix", m_light_space_matrix);
             m_shader->setMat4("model", model);
-            ro->draw(*m_shader);
+            ro->drawShadow(*m_shader);
         }
 
         ctx.device->setCullFace(CullFace::Back);
