@@ -1,6 +1,7 @@
 build/
 bin/
 
+# private assets
 assets/sphere/
 assets/Cian/
 assets/Greseo/
@@ -12,8 +13,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-docs/
 
 # CMake
 CMakeCache.txt

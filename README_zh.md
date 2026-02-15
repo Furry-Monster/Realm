@@ -4,13 +4,13 @@
 
 基于 OpenGL 的现代游戏引擎，采用物理渲染（PBR）管线，支持 IBL 光照与 Bloom 后处理。集成可视化编辑器与实体组件系统（ECS）。
 
-![pbr demo](helmet.png "pbr demo")
+![编辑器demo](docs/editor.png "editor demo")
 
-![img](example.png)
+![pbr + npr](docs/aqua.png "pbr demo")
 
-![编辑器demo](editor.png "editor demo")
+![pbr + npr](docs/example.png)
 
-![img](debug.png)
+![调试](docs/debug.png)
 
 ## 核心特性
 
