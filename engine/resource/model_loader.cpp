@@ -249,11 +249,26 @@ namespace RealmEngine
                 if (ai_material->GetTextureCount(aiTextureType_OPACITY))
                     load_tex(aiTextureType_OPACITY, material.use_texture_opacity, material.texture_opacity);
 
+                if (ai_material->Get(AI_MATKEY_GLTF_ALPHACUTOFF, material.alpha_cutout) == aiReturn_SUCCESS)
+                    ; // use loaded value
+
                 aiString alpha_mode;
                 if (ai_material->Get(AI_MATKEY_GLTF_ALPHAMODE, alpha_mode) == aiReturn_SUCCESS)
-                    material.is_transparent = (std::strcmp(alpha_mode.C_Str(), "BLEND") == 0);
+                {
+                    const char* mode = alpha_mode.C_Str();
+                    if (std::strcmp(mode, "BLEND") == 0)
+                        material.is_transparent = true;
+                    else if (std::strcmp(mode, "MASK") == 0)
+                        material.is_transparent = false; // cutout via alpha_cutout
+                    else
+                        material.is_transparent = false; // OPAQUE or unknown
+                }
                 else
                     material.is_transparent = (material.opacity < 1.0f);
+
+                int two_sided = 0;
+                if (ai_material->Get(AI_MATKEY_TWOSIDED, two_sided) == aiReturn_SUCCESS && two_sided != 0)
+                    material.double_sided = true;
             }
 
             std::string mesh_name = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : "";

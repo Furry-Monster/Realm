@@ -1,6 +1,8 @@
 #include "renderer/render_object.h"
 
+#include "rhi/rhi_device.h"
 #include "rhi/rhi_shader.h"
+#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {
@@ -50,12 +52,15 @@ namespace RealmEngine
         }
     }
 
-    void RenderObject::drawTransparent(RHIShader& shader)
+    void RenderObject::drawTransparent(RHIShader& shader, RHIDevice& device)
     {
         for (auto& mesh : m_meshes)
         {
             if (!mesh.isHair() && mesh.isTransparent())
+            {
+                device.setCullFace(mesh.m_material.double_sided ? CullFace::None : CullFace::Back);
                 mesh.draw(shader);
+            }
         }
     }
 

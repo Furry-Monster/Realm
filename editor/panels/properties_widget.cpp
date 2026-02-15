@@ -137,6 +137,8 @@ namespace RealmEngine
                                 scene->markDirty();
                             if (ImGui::Checkbox("Transparent", &mesh->m_material.is_transparent))
                                 scene->markDirty();
+                            if (ImGui::Checkbox("Double Sided", &mesh->m_material.double_sided))
+                                scene->markDirty();
                             if (ImGui::DragFloat("Alpha Cutout", &mesh->m_material.alpha_cutout, 0.01f, 0.0f, 1.0f))
                                 scene->markDirty();
                             if (ImGui::Checkbox("Hair", &mesh->m_material.is_hair))

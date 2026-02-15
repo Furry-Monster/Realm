@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "renderer/render_mesh.h"
+#include "rhi/rhi_device.h"
+#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {
@@ -32,7 +34,7 @@ namespace RealmEngine
 
         void draw(RHIShader& shader);
         void drawOpaque(RHIShader& shader);
-        void drawTransparent(RHIShader& shader);
+        void drawTransparent(RHIShader& shader, RHIDevice& device);
         void drawHair(RHIShader& shader);
         void drawShadow(RHIShader& shader);
 

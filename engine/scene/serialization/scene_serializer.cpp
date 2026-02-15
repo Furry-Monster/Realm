@@ -197,6 +197,7 @@ namespace RealmEngine
                     nlohmann::json m;
                     m["opacity"]                = mat.opacity;
                     m["is_transparent"]         = mat.is_transparent;
+                    m["double_sided"]           = mat.double_sided;
                     m["alpha_cutout"]           = mat.alpha_cutout;
                     m["is_hair"]                = mat.is_hair;
                     m["hair_layers"]            = mat.hair_layers;
@@ -448,6 +449,8 @@ namespace RealmEngine
                             mat.opacity = m["opacity"];
                         if (m.contains("is_transparent") && m["is_transparent"].is_boolean())
                             mat.is_transparent = m["is_transparent"];
+                        if (m.contains("double_sided") && m["double_sided"].is_boolean())
+                            mat.double_sided = m["double_sided"];
                         if (m.contains("alpha_cutout") && m["alpha_cutout"].is_number())
                             mat.alpha_cutout = m["alpha_cutout"];
                         if (m.contains("is_hair") && m["is_hair"].is_boolean())

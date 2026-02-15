@@ -164,7 +164,7 @@ namespace RealmEngine
         {
             auto& ro = ctx.scene->m_render_objects[td.object_index];
             m_shader->setMVP(td.model, view, projection);
-            ro->drawTransparent(*m_shader);
+            ro->drawTransparent(*m_shader, *ctx.device);
         }
 
         ctx.device->setBlend(false);
