@@ -17,7 +17,7 @@ namespace RealmEngine
     class HairPass final : public RenderPass
     {
     public:
-        explicit HairPass(const std::string& shader_path, float bloom_brightness_cutoff);
+        explicit HairPass(const std::string& shader_path);
         ~HairPass() override;
 
         void init(RHIDevice& device) override;
@@ -30,7 +30,6 @@ namespace RealmEngine
 
     private:
         std::string m_shader_path;
-        float       m_bloom_brightness_cutoff;
 
         std::unique_ptr<RHIShader> m_shader;
         std::unique_ptr<RHIBuffer> m_light_ubo;

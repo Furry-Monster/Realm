@@ -3,7 +3,6 @@
 #define PI 3.1415926535897932384626433832795
 
 layout(location = 0) out vec4 FragColor;
-layout(location = 1) out vec4 BloomColor;
 
 in vec2 textureCoordinates;
 in vec3 worldCoordinates;
@@ -48,8 +47,7 @@ uniform bool        shadowEnabled;
 uniform mat4        lightSpaceMatrix;
 uniform samplerCube diffuseIrradianceMap;
 
-uniform float bloomBrightnessCutoff;
-uniform int   displayMode;
+uniform int displayMode;
 
 // Kajiya-Kay diffuse: Kd * sqrt(1 - (T·L)^2)
 float kajiyaKayDiffuse(vec3 T, vec3 L)
@@ -90,14 +88,12 @@ void main()
 
     if (displayMode == 1)
     {
-        FragColor  = vec4(albedo, 1.0);
-        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4(albedo, 1.0);
         return;
     }
     if (displayMode == 6)
     {
-        FragColor  = vec4(emissive, 1.0);
-        BloomColor = vec4(emissive, 1.0);
+        FragColor = vec4(emissive, 1.0);
         return;
     }
 
@@ -175,9 +171,5 @@ void main()
     vec3 ambient    = irradiance * albedo;
     vec3 color      = emissive + ambient + Lo;
 
-    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
-    vec4  bloomOut   = brightness > bloomBrightnessCutoff ? vec4(color, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
-
-    FragColor  = vec4(color, 1.0);
-    BloomColor = bloomOut;
+    FragColor = vec4(color, 1.0);
 }

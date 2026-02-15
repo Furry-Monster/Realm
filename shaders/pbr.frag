@@ -5,7 +5,6 @@
 #define PREFILTERED_ENV_MAP_LOD 4.0
 
 layout(location = 0) out vec4 FragColor;
-layout(location = 1) out vec4 BloomColor; // for bloom shader
 
 in vec3 worldCoordinates;
 in vec2 textureCoordinates;
@@ -68,9 +67,6 @@ uniform sampler2D   brdfConvolutionMap;
 uniform sampler2D shadowMap;
 uniform bool      shadowEnabled;
 uniform mat4      lightSpaceMatrix;
-
-// Post parameters
-uniform float bloomBrightnessCutoff;
 
 // Viewport display mode: 0=lit, 1=albedo, 2=normals, 3=metallic, 4=roughness, 5=materialAO, 6=emissive
 uniform int displayMode;
@@ -454,42 +450,34 @@ void main()
 
     if (displayMode == 1)
     {
-        FragColor  = vec4(albedo, 1.0);
-        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4(albedo, 1.0);
         return;
     }
     if (displayMode == 2)
     {
-        FragColor  = vec4(n * 0.5 + 0.5, 1.0);
-        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4(n * 0.5 + 0.5, 1.0);
         return;
     }
     if (displayMode == 3)
     {
-        FragColor  = vec4(vec3(metallic), 1.0);
-        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4(vec3(metallic), 1.0);
         return;
     }
     if (displayMode == 4)
     {
-        FragColor  = vec4(vec3(roughness), 1.0);
-        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4(vec3(roughness), 1.0);
         return;
     }
     if (displayMode == 5)
     {
-        FragColor  = vec4(vec3(ao), 1.0);
-        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4(vec3(ao), 1.0);
         return;
     }
     if (displayMode == 6)
     {
-        FragColor  = vec4(emissive, 1.0);
-        BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4(emissive, 1.0);
         return;
     }
 
-    FragColor                 = vec4(color, sssMask);
-    float greyscaleBrightness = dot(color, GREYSCALE_WEIGHT_VECTOR);
-    BloomColor = greyscaleBrightness > bloomBrightnessCutoff ? vec4(color, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
+    FragColor = vec4(color, sssMask);
 }

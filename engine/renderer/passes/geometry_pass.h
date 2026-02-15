@@ -18,12 +18,7 @@ namespace RealmEngine
     class GeometryPass final : public RenderPass
     {
     public:
-        GeometryPass(const std::string& shader_path,
-                     float              clear_r,
-                     float              clear_g,
-                     float              clear_b,
-                     float              clear_a,
-                     float              bloom_brightness_cutoff);
+        GeometryPass(const std::string& shader_path, float clear_r, float clear_g, float clear_b, float clear_a);
         ~GeometryPass() override;
 
         void init(RHIDevice& device) override;
@@ -40,7 +35,6 @@ namespace RealmEngine
     private:
         std::string m_shader_path;
         float       m_clear_r, m_clear_g, m_clear_b, m_clear_a;
-        float       m_bloom_brightness_cutoff;
 
         std::unique_ptr<RHIShader>      m_shader;
         std::unique_ptr<RHIFramebuffer> m_framebuffer;

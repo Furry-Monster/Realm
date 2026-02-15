@@ -25,10 +25,9 @@ namespace RealmEngine
                                float              clear_r,
                                float              clear_g,
                                float              clear_b,
-                               float              clear_a,
-                               float              bloom_brightness_cutoff) :
+                               float              clear_a) :
         RenderPass("geometry"), m_shader_path(shader_path), m_clear_r(clear_r), m_clear_g(clear_g), m_clear_b(clear_b),
-        m_clear_a(clear_a), m_bloom_brightness_cutoff(bloom_brightness_cutoff)
+        m_clear_a(clear_a)
     {}
 
     void GeometryPass::init(RHIDevice& device)
@@ -97,7 +96,6 @@ namespace RealmEngine
             m_shader->setInt("brdfConvolutionMap", TEXTURE_UNIT_BRDF_CONVOLUTION_MAP);
         }
 
-        m_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
         m_shader->setInt("displayMode", static_cast<int>(ctx.display_mode));
 
         // Shadow

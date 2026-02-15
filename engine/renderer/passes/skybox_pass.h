@@ -16,7 +16,7 @@ namespace RealmEngine
     class SkyboxPass final : public RenderPass
     {
     public:
-        SkyboxPass(const std::string& shader_path, float bloom_brightness_cutoff);
+        explicit SkyboxPass(const std::string& shader_path);
         ~SkyboxPass() override;
 
         void init(RHIDevice& device) override;
@@ -28,7 +28,6 @@ namespace RealmEngine
 
     private:
         std::string                m_shader_path;
-        float                      m_bloom_brightness_cutoff;
         std::unique_ptr<RHIShader> m_shader;
         Skybox*                    m_skybox {nullptr};
         GeometryPass*              m_geometry_pass {nullptr};

@@ -17,9 +17,7 @@ namespace RealmEngine
 {
     HairPass::~HairPass() = default;
 
-    HairPass::HairPass(const std::string& shader_path, float bloom_brightness_cutoff) :
-        RenderPass("hair"), m_shader_path(shader_path), m_bloom_brightness_cutoff(bloom_brightness_cutoff)
-    {}
+    HairPass::HairPass(const std::string& shader_path) : RenderPass("hair"), m_shader_path(shader_path) {}
 
     void HairPass::init(RHIDevice& device)
     {
@@ -66,7 +64,6 @@ namespace RealmEngine
             m_light_ubo->bindBase(LIGHT_UBO_BINDING_POINT);
         }
 
-        m_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
         m_shader->setInt("displayMode", static_cast<int>(ctx.display_mode));
 
         if (m_ibl_diffuse)

@@ -99,13 +99,13 @@ namespace RealmEngine
         m_pipeline.addPass(std::move(shadow));
 
         // --- Geometry pass (main PBR) ---
-        auto geometry = std::make_unique<GeometryPass>(
-            sp, rc.clear_color_r, rc.clear_color_g, rc.clear_color_b, rc.clear_color_a, rc.bloom_brightness_cutoff);
+        auto geometry =
+            std::make_unique<GeometryPass>(sp, rc.clear_color_r, rc.clear_color_g, rc.clear_color_b, rc.clear_color_a);
         m_geometry_pass = geometry.get();
         m_pipeline.addPass(std::move(geometry));
 
         // --- Hair pass (Kajiya-Kay + shell layers) ---
-        auto hair   = std::make_unique<HairPass>(sp, rc.bloom_brightness_cutoff);
+        auto hair   = std::make_unique<HairPass>(sp);
         m_hair_pass = hair.get();
         m_pipeline.addPass(std::move(hair));
 
@@ -126,7 +126,7 @@ namespace RealmEngine
         m_pipeline.addPass(std::move(sss));
 
         // --- Skybox pass ---
-        auto skybox   = std::make_unique<SkyboxPass>(sp, rc.bloom_brightness_cutoff);
+        auto skybox   = std::make_unique<SkyboxPass>(sp);
         m_skybox_pass = skybox.get();
         m_pipeline.addPass(std::move(skybox));
 
@@ -134,6 +134,7 @@ namespace RealmEngine
         auto bloom   = std::make_unique<BloomPass>(sp,
                                                  rc.bloom_enabled,
                                                  rc.bloom_intensity,
+                                                 rc.bloom_brightness_cutoff,
                                                  rc.bloom_iterations,
                                                  static_cast<BloomDirection>(rc.bloom_direction));
         m_bloom_pass = bloom.get();
@@ -167,14 +168,7 @@ namespace RealmEngine
             color0.mag_filter = TextureFilter::Linear;
             color0.wrap       = TextureWrap::ClampToEdge;
 
-            FramebufferAttachment bloom_color;
-            bloom_color.format     = TextureFormat::RGBA16F;
-            bloom_color.min_filter = TextureFilter::LinearMipmapLinear;
-            bloom_color.mag_filter = TextureFilter::Linear;
-            bloom_color.wrap       = TextureWrap::ClampToEdge;
-            bloom_color.gen_mips   = true;
-
-            desc.color_attachments                = {color0, bloom_color};
+            desc.color_attachments                = {color0};
             desc.has_depth                        = true;
             desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
             desc.depth_attachment.is_renderbuffer = false;
@@ -303,14 +297,7 @@ namespace RealmEngine
             color0.mag_filter = TextureFilter::Linear;
             color0.wrap       = TextureWrap::ClampToEdge;
 
-            FramebufferAttachment bloom_color;
-            bloom_color.format     = TextureFormat::RGBA16F;
-            bloom_color.min_filter = TextureFilter::LinearMipmapLinear;
-            bloom_color.mag_filter = TextureFilter::Linear;
-            bloom_color.wrap       = TextureWrap::ClampToEdge;
-            bloom_color.gen_mips   = true;
-
-            desc.color_attachments                = {color0, bloom_color};
+            desc.color_attachments                = {color0};
             desc.has_depth                        = true;
             desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
             desc.depth_attachment.is_renderbuffer = false;

@@ -11,9 +11,7 @@ namespace RealmEngine
 {
     SkyboxPass::~SkyboxPass() = default;
 
-    SkyboxPass::SkyboxPass(const std::string& shader_path, float bloom_brightness_cutoff) :
-        RenderPass("skybox"), m_shader_path(shader_path), m_bloom_brightness_cutoff(bloom_brightness_cutoff)
-    {}
+    SkyboxPass::SkyboxPass(const std::string& shader_path) : RenderPass("skybox"), m_shader_path(shader_path) {}
 
     void SkyboxPass::init(RHIDevice& device)
     {
@@ -39,7 +37,6 @@ namespace RealmEngine
 
         m_shader->setMVP(skybox_model, skybox_view, skybox_proj);
         m_shader->setInt("skybox", 0);
-        m_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
 
         m_skybox->draw(*ctx.device);
 
