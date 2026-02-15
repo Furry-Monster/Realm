@@ -16,12 +16,15 @@ in vec4 fragPosLightSpace;
 struct Material
 {
     bool useTextureAlbedo;
+    bool useTextureOpacity;
     bool useTextureMetallicRoughness;
     bool useTextureNormal;
     bool useTextureAmbientOcclusion;
     bool useTextureEmissive;
 
     vec3  albedo;
+    float opacity;
+    float alphaCutout;
     float metallic;
     float roughness;
     float ambientOcclusion;
@@ -33,6 +36,7 @@ struct Material
     vec3  subsurfaceColor;
 
     sampler2D textureAlbedo;
+    sampler2D textureOpacity;
     sampler2D textureMetallicRoughness;
     sampler2D textureNormal;
     sampler2D textureAmbientOcclusion;
@@ -280,11 +284,22 @@ void main()
 {
     // Preprocess:
     // albedo
-    vec3 albedo = material.albedo;
+    vec3 albedo        = material.albedo;
+    vec4 albedo_sample = vec4(albedo, 1.0);
     if (material.useTextureAlbedo)
     {
-        albedo = texture(material.textureAlbedo, textureCoordinates).rgb;
+        albedo_sample = texture(material.textureAlbedo, textureCoordinates);
+        albedo        = albedo_sample.rgb;
     }
+
+    // alpha cutout: opacity from scalar, texture_opacity, or albedo.a
+    float alpha = material.opacity;
+    if (material.useTextureOpacity)
+        alpha *= texture(material.textureOpacity, textureCoordinates).r;
+    else if (material.useTextureAlbedo)
+        alpha *= albedo_sample.a;
+    if (alpha < material.alphaCutout)
+        discard;
 
     // metallic/roughness
     float metallic  = material.metallic;

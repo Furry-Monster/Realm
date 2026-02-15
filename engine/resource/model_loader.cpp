@@ -169,6 +169,12 @@ namespace RealmEngine
                     ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color);
                 material.albedo = glm::vec3(diffuse_color.r, diffuse_color.g, diffuse_color.b);
 
+                float opacity = 1.0f;
+                if (ai_material->Get(AI_MATKEY_OPACITY, opacity) == aiReturn_SUCCESS)
+                    material.opacity = opacity;
+                else
+                    material.opacity = diffuse_color.a;
+
                 float metallic = 0.0f;
                 if (ai_material->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == aiReturn_SUCCESS)
                     material.metallic = metallic;
@@ -238,6 +244,9 @@ namespace RealmEngine
 
                 if (ai_material->GetTextureCount(aiTextureType_EMISSIVE))
                     load_tex(aiTextureType_EMISSIVE, material.use_texture_emissive, material.texture_emissive);
+
+                if (ai_material->GetTextureCount(aiTextureType_OPACITY))
+                    load_tex(aiTextureType_OPACITY, material.use_texture_opacity, material.texture_opacity);
             }
 
             std::string mesh_name = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : "";

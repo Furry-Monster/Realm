@@ -2,8 +2,9 @@ build/
 bin/
 
 assets/sphere/
-assets/Cian.fbx
-assets/Voodoo-Dool.fbx
+assets/Cian/
+assets/Greseo/
+assets/Aqua/
 
 .cache/
 .vscode/
