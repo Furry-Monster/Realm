@@ -19,6 +19,7 @@
 #include "panels/project_settings_widget.h"
 #include "panels/properties_widget.h"
 #include "panels/scene_hierarchy_widget.h"
+#include "panels/viewport_widget.h"
 #include "platform/window/window.h"
 #include "preferences/editor_preferences.h"
 #include "scene/scene.h"
@@ -164,6 +165,7 @@ namespace RealmEngine
         };
 
         m_panels.push_back(std::make_shared<MenuBarWidget>(std::move(menu_callbacks)));
+        m_panels.push_back(std::make_shared<ViewportWidget>(*m_bridge));
         m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context, *m_bridge));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context, *m_bridge));
         auto entity_browser = std::make_shared<EntityBrowserWidget>(m_context, *m_bridge);
@@ -322,6 +324,7 @@ namespace RealmEngine
         if (!m_initialized)
             return;
 
+        m_bridge->bindDefaultFramebufferForImGui();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

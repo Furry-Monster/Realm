@@ -99,6 +99,7 @@ namespace RealmEngine
         }
 
         m_shader->setFloat("bloomBrightnessCutoff", m_bloom_brightness_cutoff);
+        m_shader->setInt("displayMode", static_cast<int>(ctx.display_mode));
 
         // Shadow
         if (m_shadow_pass && m_shadow_pass->isShadowEnabled())

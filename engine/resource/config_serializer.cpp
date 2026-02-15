@@ -166,15 +166,22 @@ namespace RealmEngine
 
     void ConfigSerializer::serializeRendererConfig(const RendererConfig& renderer, nlohmann::json& json)
     {
-        json["camera_fov"]              = renderer.camera_fov;
-        json["camera_near_plane"]       = renderer.camera_near_plane;
-        json["camera_far_plane"]        = renderer.camera_far_plane;
-        json["camera_initial_pos_x"]    = renderer.camera_initial_pos_x;
-        json["camera_initial_pos_y"]    = renderer.camera_initial_pos_y;
-        json["camera_initial_pos_z"]    = renderer.camera_initial_pos_z;
-        json["camera_look_at_x"]        = renderer.camera_look_at_x;
-        json["camera_look_at_y"]        = renderer.camera_look_at_y;
-        json["camera_look_at_z"]        = renderer.camera_look_at_z;
+        json["camera_fov"]           = renderer.camera_fov;
+        json["camera_near_plane"]    = renderer.camera_near_plane;
+        json["camera_far_plane"]     = renderer.camera_far_plane;
+        json["camera_initial_pos_x"] = renderer.camera_initial_pos_x;
+        json["camera_initial_pos_y"] = renderer.camera_initial_pos_y;
+        json["camera_initial_pos_z"] = renderer.camera_initial_pos_z;
+        json["camera_look_at_x"]     = renderer.camera_look_at_x;
+        json["camera_look_at_y"]     = renderer.camera_look_at_y;
+        json["camera_look_at_z"]     = renderer.camera_look_at_z;
+        json["ssao_enabled"]         = renderer.ssao_enabled;
+        json["ssao_radius"]          = renderer.ssao_radius;
+        json["ssao_bias"]            = renderer.ssao_bias;
+        json["ssao_power"]           = renderer.ssao_power;
+        json["ssao_kernel_size"]     = renderer.ssao_kernel_size;
+        json["ssao_noise_size"]      = renderer.ssao_noise_size;
+
         json["bloom_enabled"]           = renderer.bloom_enabled;
         json["bloom_intensity"]         = renderer.bloom_intensity;
         json["bloom_iterations"]        = renderer.bloom_iterations;
@@ -244,6 +251,19 @@ namespace RealmEngine
             renderer.camera_look_at_y = json["camera_look_at_y"].get<float>();
         if (json.contains("camera_look_at_z"))
             renderer.camera_look_at_z = json["camera_look_at_z"].get<float>();
+        if (json.contains("ssao_enabled"))
+            renderer.ssao_enabled = json["ssao_enabled"].get<bool>();
+        if (json.contains("ssao_radius"))
+            renderer.ssao_radius = json["ssao_radius"].get<float>();
+        if (json.contains("ssao_bias"))
+            renderer.ssao_bias = json["ssao_bias"].get<float>();
+        if (json.contains("ssao_power"))
+            renderer.ssao_power = json["ssao_power"].get<float>();
+        if (json.contains("ssao_kernel_size"))
+            renderer.ssao_kernel_size = json["ssao_kernel_size"].get<int>();
+        if (json.contains("ssao_noise_size"))
+            renderer.ssao_noise_size = json["ssao_noise_size"].get<int>();
+
         if (json.contains("bloom_enabled"))
             renderer.bloom_enabled = json["bloom_enabled"].get<bool>();
         if (json.contains("bloom_intensity"))

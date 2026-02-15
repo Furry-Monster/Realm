@@ -2,20 +2,25 @@
 
 #include <string>
 
+#include "renderer/viewport_display_mode.h"
+
 namespace RealmEngine
 {
     class RHIDevice;
     class RenderScene;
     class RenderCamera;
 
-    // Per-frame data shared between all passes
+    class RHIFramebuffer;
+
     struct RenderContext
     {
-        RHIDevice*    device {};
-        RenderScene*  scene {};
-        RenderCamera* camera {};
-        int           viewport_width {0};
-        int           viewport_height {0};
+        RHIDevice*          device {};
+        RenderScene*        scene {};
+        RenderCamera*       camera {};
+        int                 viewport_width {0};
+        int                 viewport_height {0};
+        ViewportDisplayMode display_mode {ViewportDisplayMode::Lit};
+        RHIFramebuffer*     viewport_framebuffer {nullptr};
     };
 
     /**

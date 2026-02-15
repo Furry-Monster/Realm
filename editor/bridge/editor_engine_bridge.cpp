@@ -7,7 +7,9 @@
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
 #include "resource/config_serializer.h"
+#include "rhi/rhi_device.h"
 #include "rhi/rhi_texture.h"
+#include "rhi/rhi_types.h"
 #include "scene/components/camera_controller.h"
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
@@ -141,5 +143,30 @@ namespace RealmEngine
     }
 
     EventBus& EditorEngineBridge::getEventBus() { return m_engine->getEventBus(); }
+
+    ViewportDisplayMode EditorEngineBridge::getViewportDisplayMode() const
+    {
+        return m_engine->getRenderer().getViewportDisplayMode();
+    }
+
+    void EditorEngineBridge::setViewportDisplayMode(ViewportDisplayMode mode)
+    {
+        m_engine->getRenderer().setViewportDisplayMode(mode);
+    }
+
+    void EditorEngineBridge::setRenderToViewportTexture(bool enable)
+    {
+        m_engine->getRenderer().setRenderToViewportTexture(enable);
+    }
+
+    RHITexture* EditorEngineBridge::getViewportTexture() const { return m_engine->getRenderer().getViewportTexture(); }
+
+    void EditorEngineBridge::bindDefaultFramebufferForImGui() const
+    {
+        auto& device = m_engine->getRenderer().getDevice();
+        device.bindDefaultFramebuffer();
+        device.setClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        device.clear(ClearFlags::Color | ClearFlags::Depth);
+    }
 
 } // namespace RealmEngine

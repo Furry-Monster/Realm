@@ -17,6 +17,9 @@ namespace RealmEngine
     static constexpr int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
     static constexpr int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
     static constexpr int TEXTURE_UNIT_SHADOW_MAP             = 13; // Shadow
+    static constexpr int TEXTURE_UNIT_SSAO_DEPTH             = 14;
+    static constexpr int TEXTURE_UNIT_SSAO_NOISE             = 15;
+    static constexpr int TEXTURE_UNIT_SSAO_RESULT            = 16;
 
     struct RenderMaterial
     {
@@ -26,9 +29,9 @@ namespace RealmEngine
         bool use_texture_ambient_occlusion  = false;
         bool use_texture_emissive           = false;
 
-        glm::vec3 albedo            = glm::vec3(1.0f, 0.0f, 0.0f);
-        float     metallic          = 1.0f;
-        float     roughness         = 0.0f;
+        glm::vec3 albedo            = glm::vec3(0.7f, 0.7f, 0.7f);
+        float     metallic          = 0.0f;
+        float     roughness         = 0.5f;
         float     ambient_occlusion = 1.0f;
         glm::vec3 emissive          = glm::vec3(0.0, 0.0, 0.0);
 

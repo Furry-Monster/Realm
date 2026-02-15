@@ -5,14 +5,43 @@ in vec2  textureCoordinates;
 
 uniform sampler2D colorTexture;
 uniform sampler2D bloomTexture;
+uniform sampler2D ssaoTexture;
+uniform sampler2D depthTexture;
+uniform bool      ssaoEnabled;
+uniform float     ssaoPower;
 uniform bool      bloomEnabled;
 uniform float     bloomIntensity;
 uniform bool      tonemappingEnabled;
 uniform float     gammaCorrectionFactor;
 
+// 0=lit, 7=ssao, 8=depth (modes 1-6 from geometry pass)
+uniform int displayMode;
+
 void main()
 {
+    if (displayMode == 7)
+    {
+        float ao = texture(ssaoTexture, textureCoordinates).r;
+        FragColor = vec4(vec3(ao), 1.0);
+        return;
+    }
+    if (displayMode == 8)
+    {
+        float d = texture(depthTexture, textureCoordinates).r;
+        FragColor = vec4(vec3(d), 1.0);
+        return;
+    }
+
     vec3 color = texture(colorTexture, textureCoordinates).rgb;
+
+    if (ssaoEnabled)
+    {
+        // Apply AO: C' = C · AO^p (p controls contrast)
+        float depth = texture(depthTexture, textureCoordinates).r;
+        float ao    = texture(ssaoTexture, textureCoordinates).r;
+        if (depth < 1.0)
+            color *= pow(ao, ssaoPower);
+    }
 
     // bloom
     if (bloomEnabled)
@@ -26,16 +55,12 @@ void main()
         color += bloomColor * bloomIntensity;
     }
 
-    // tonemapping
+    // Reinhard: C' = C / (1 + C)
     if (tonemappingEnabled)
-    {
-        // apply Reinhard tonemapping C = C / (1 + C)
         color = color / (color + vec3(1.0));
-    }
 
-    // gamma correction
-    color = pow(color,
-                vec3(1.0 / gammaCorrectionFactor)); // gamma correction to account for monitor, raise to the (1 / 2.2)
+    // Gamma: C' = C^(1/γ)
+    color = pow(color, vec3(1.0 / gammaCorrectionFactor));
 
     FragColor = vec4(color, 1.0);
 }

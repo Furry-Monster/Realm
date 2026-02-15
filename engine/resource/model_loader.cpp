@@ -6,9 +6,13 @@
 #include <assimp/scene.h>
 #include <stb/stb_image.h>
 #include <assimp/Importer.hpp>
+#include <cmath>
+#include <filesystem>
 #include <glm/glm.hpp>
 
 #include "core/log/log_macros.h"
+
+namespace fs = std::filesystem;
 #include "renderer/render_material.h"
 #include "renderer/render_mesh.h"
 #include "resource/asset_manager.h"
@@ -38,11 +42,14 @@ namespace RealmEngine
         std::shared_ptr<RHITexture>
         loadMaterialTexture(const aiMaterial*                                             material,
                             aiTextureType                                                 type,
+                            const aiScene*                                                scene,
                             RHIDevice&                                                    device,
                             const std::string&                                            directory,
                             AssetManager*                                                 asset_mgr,
                             std::unordered_map<std::string, std::shared_ptr<RHITexture>>& textures_loaded);
 
+        std::shared_ptr<RHITexture>
+        textureFromEmbedded(const aiTexture* embedded, aiTextureType type, RHIDevice& device);
         std::shared_ptr<RHITexture>
         textureFromFile(const char* file_name, const std::string& directory, aiTextureType type, RHIDevice& device);
     } // namespace
@@ -154,70 +161,127 @@ namespace RealmEngine
             {
                 const aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
 
+                aiColor4D diffuse_color(0.8f, 0.8f, 0.8f, 1.0f);
+                if (ai_material->Get(AI_MATKEY_BASE_COLOR, diffuse_color) != aiReturn_SUCCESS)
+                    ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color);
+                material.albedo = glm::vec3(diffuse_color.r, diffuse_color.g, diffuse_color.b);
+
+                float metallic = 0.0f;
+                if (ai_material->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == aiReturn_SUCCESS)
+                    material.metallic = metallic;
+
+                float roughness = 0.5f;
+                if (ai_material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == aiReturn_SUCCESS)
+                    material.roughness = roughness;
+                else
+                {
+                    float glossiness = 0.0f;
+                    if (ai_material->Get(AI_MATKEY_GLOSSINESS_FACTOR, glossiness) == aiReturn_SUCCESS)
+                        material.roughness = 1.0f - glossiness;
+                    else
+                    {
+                        float shininess = 0.0f;
+                        if (ai_material->Get(AI_MATKEY_SHININESS, shininess) == aiReturn_SUCCESS && shininess > 0.0f)
+                        {
+                            float gloss        = std::min(shininess / 128.0f, 1.0f);
+                            material.roughness = 1.0f - std::sqrt(gloss);
+                        }
+                    }
+                }
+
+                aiColor3D emissive(0.0f, 0.0f, 0.0f);
+                if (ai_material->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == aiReturn_SUCCESS)
+                    material.emissive = glm::vec3(emissive.r, emissive.g, emissive.b);
+
+                auto load_tex = [&](aiTextureType type, bool& use_flag, std::shared_ptr<RHITexture>& out_tex) {
+                    auto tex =
+                        loadMaterialTexture(ai_material, type, scene, device, directory, asset_mgr, textures_loaded);
+                    if (tex)
+                    {
+                        use_flag = true;
+                        out_tex  = std::move(tex);
+                    }
+                };
+
                 if (ai_material->GetTextureCount(aiTextureType_BASE_COLOR))
-                {
-                    material.use_texture_albedo = true;
-                    material.texture_albedo     = loadMaterialTexture(
-                        ai_material, aiTextureType_BASE_COLOR, device, directory, asset_mgr, textures_loaded);
-                }
+                    load_tex(aiTextureType_BASE_COLOR, material.use_texture_albedo, material.texture_albedo);
                 else if (ai_material->GetTextureCount(aiTextureType_DIFFUSE))
-                {
-                    material.use_texture_albedo = true;
-                    material.texture_albedo     = loadMaterialTexture(
-                        ai_material, aiTextureType_DIFFUSE, device, directory, asset_mgr, textures_loaded);
-                }
+                    load_tex(aiTextureType_DIFFUSE, material.use_texture_albedo, material.texture_albedo);
 
                 if (ai_material->GetTextureCount(aiTextureType_GLTF_METALLIC_ROUGHNESS))
-                {
-                    material.use_texture_metallic_roughness = true;
-                    material.texture_metallic_roughness     = loadMaterialTexture(ai_material,
-                                                                              aiTextureType_GLTF_METALLIC_ROUGHNESS,
-                                                                              device,
-                                                                              directory,
-                                                                              asset_mgr,
-                                                                              textures_loaded);
-                }
+                    load_tex(aiTextureType_GLTF_METALLIC_ROUGHNESS,
+                             material.use_texture_metallic_roughness,
+                             material.texture_metallic_roughness);
                 else if (ai_material->GetTextureCount(aiTextureType_UNKNOWN))
-                {
-                    material.use_texture_metallic_roughness = true;
-                    material.texture_metallic_roughness     = loadMaterialTexture(
-                        ai_material, aiTextureType_UNKNOWN, device, directory, asset_mgr, textures_loaded);
-                }
+                    load_tex(aiTextureType_UNKNOWN,
+                             material.use_texture_metallic_roughness,
+                             material.texture_metallic_roughness);
 
                 if (ai_material->GetTextureCount(aiTextureType_NORMALS))
-                {
-                    material.use_texture_normal = true;
-                    material.texture_normal     = loadMaterialTexture(
-                        ai_material, aiTextureType_NORMALS, device, directory, asset_mgr, textures_loaded);
-                }
+                    load_tex(aiTextureType_NORMALS, material.use_texture_normal, material.texture_normal);
 
                 if (ai_material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION))
-                {
-                    material.use_texture_ambient_occlusion = true;
-                    material.texture_ambient_occlusion     = loadMaterialTexture(
-                        ai_material, aiTextureType_AMBIENT_OCCLUSION, device, directory, asset_mgr, textures_loaded);
-                }
+                    load_tex(aiTextureType_AMBIENT_OCCLUSION,
+                             material.use_texture_ambient_occlusion,
+                             material.texture_ambient_occlusion);
                 else if (ai_material->GetTextureCount(aiTextureType_LIGHTMAP))
-                {
-                    material.use_texture_ambient_occlusion = true;
-                    material.texture_ambient_occlusion     = loadMaterialTexture(
-                        ai_material, aiTextureType_LIGHTMAP, device, directory, asset_mgr, textures_loaded);
-                }
+                    load_tex(aiTextureType_LIGHTMAP,
+                             material.use_texture_ambient_occlusion,
+                             material.texture_ambient_occlusion);
 
                 if (ai_material->GetTextureCount(aiTextureType_EMISSIVE))
-                {
-                    material.use_texture_emissive = true;
-                    material.texture_emissive     = loadMaterialTexture(
-                        ai_material, aiTextureType_EMISSIVE, device, directory, asset_mgr, textures_loaded);
-                }
+                    load_tex(aiTextureType_EMISSIVE, material.use_texture_emissive, material.texture_emissive);
             }
 
             return RenderMesh(std::move(vertices), std::move(indices), std::move(material), device);
         }
 
+        std::string getTextureFilename(const std::string& path)
+        {
+            size_t slash = path.find_last_of("/\\");
+            return slash != std::string::npos ? path.substr(slash + 1) : path;
+        }
+
+        std::string findTextureInDirectory(const std::string& search_root, const std::string& filename)
+        {
+            if (search_root.empty() || filename.empty())
+                return "";
+            try
+            {
+                fs::path root(search_root);
+                if (!fs::exists(root) || !fs::is_directory(root))
+                    return "";
+                for (const auto& entry :
+                     fs::recursive_directory_iterator(root, fs::directory_options::skip_permission_denied))
+                {
+                    if (entry.is_regular_file() && entry.path().filename() == filename)
+                        return entry.path().string();
+                }
+            }
+            catch (const fs::filesystem_error&)
+            {}
+            return "";
+        }
+
+        std::string resolveTexturePath(const std::string& raw_path)
+        {
+            if (raw_path.empty())
+                return "";
+            if (raw_path[0] == '*')
+                return raw_path;
+            std::string path = raw_path;
+            for (char& c : path)
+                if (c == '\\')
+                    c = '/';
+            if (path[0] == '/' || (path.length() > 1 && path[1] == ':'))
+                return getTextureFilename(path);
+            return path;
+        }
+
         std::shared_ptr<RHITexture>
         loadMaterialTexture(const aiMaterial*                                             material,
                             aiTextureType                                                 type,
+                            const aiScene*                                                scene,
                             RHIDevice&                                                    device,
                             const std::string&                                            directory,
                             AssetManager*                                                 asset_mgr,
@@ -225,26 +289,147 @@ namespace RealmEngine
         {
             aiString path;
             material->GetTexture(type, 0, &path);
+            std::string path_str(path.C_Str());
 
-            auto it = textures_loaded.find(std::string(path.C_Str()));
+            auto it = textures_loaded.find(path_str);
             if (it != textures_loaded.end())
                 return it->second;
 
             std::shared_ptr<RHITexture> texture;
-            if (asset_mgr)
+            if (path_str[0] == '*')
             {
-                bool is_srgb = (type == aiTextureType_DIFFUSE || type == aiTextureType_BASE_COLOR);
-                texture      = asset_mgr->getOrLoadTexture(path.C_Str(), directory, is_srgb, device);
+                const aiTexture* embedded = scene->GetEmbeddedTexture(path_str.c_str());
+                if (embedded)
+                    texture = textureFromEmbedded(embedded, type, device);
             }
-            else
+            if (!texture)
             {
-                texture = textureFromFile(path.C_Str(), directory, type, device);
+                std::string resolved = resolveTexturePath(path_str);
+                if (!resolved.empty() && resolved[0] != '*')
+                {
+                    bool is_srgb = (type == aiTextureType_DIFFUSE || type == aiTextureType_BASE_COLOR);
+                    if (asset_mgr)
+                        texture = asset_mgr->getOrLoadTexture(resolved, directory, is_srgb, device);
+                    if (!texture)
+                        texture = textureFromFile(resolved.c_str(), directory, type, device);
+                    if (!texture && resolved != getTextureFilename(resolved))
+                    {
+                        std::string fallback = getTextureFilename(resolved);
+                        if (asset_mgr)
+                            texture = asset_mgr->getOrLoadTexture(fallback, directory, is_srgb, device);
+                        if (!texture)
+                            texture = textureFromFile(fallback.c_str(), directory, type, device);
+                    }
+                    if (!texture)
+                    {
+                        std::string filename = getTextureFilename(resolved);
+                        std::string found    = findTextureInDirectory(directory, filename);
+                        if (found.empty())
+                        {
+                            try
+                            {
+                                fs::path parent = fs::path(directory).parent_path();
+                                if (parent != fs::path(directory))
+                                    found = findTextureInDirectory(parent.string(), filename);
+                            }
+                            catch (const fs::filesystem_error&)
+                            {}
+                        }
+                        if (!found.empty())
+                        {
+                            if (asset_mgr)
+                                texture = asset_mgr->getOrLoadTexture(found, "", is_srgb, device);
+                            if (!texture)
+                                texture = textureFromFile(found.c_str(), "", type, device);
+                        }
+                    }
+                }
             }
 
             if (texture)
-                textures_loaded.emplace(std::string(path.C_Str()), texture);
+                textures_loaded.emplace(path_str, texture);
 
             return texture;
+        }
+
+        std::shared_ptr<RHITexture>
+        textureFromEmbedded(const aiTexture* embedded, aiTextureType type, RHIDevice& device)
+        {
+            int            width, height, num_channels;
+            unsigned char* data = nullptr;
+
+            if (embedded->mHeight == 0)
+            {
+                data = stbi_load_from_memory(reinterpret_cast<const unsigned char*>(embedded->pcData),
+                                             static_cast<int>(embedded->mWidth),
+                                             &width,
+                                             &height,
+                                             &num_channels,
+                                             0);
+            }
+            else
+            {
+                width        = static_cast<int>(embedded->mWidth);
+                height       = static_cast<int>(embedded->mHeight);
+                num_channels = 4;
+                size_t size  = static_cast<size_t>(width) * height * 4;
+                data         = static_cast<unsigned char*>(malloc(size));
+                if (data)
+                {
+                    const aiTexel* src = embedded->pcData;
+                    for (int i = 0; i < width * height; ++i)
+                    {
+                        data[i * 4 + 0] = src[i].r;
+                        data[i * 4 + 1] = src[i].g;
+                        data[i * 4 + 2] = src[i].b;
+                        data[i * 4 + 3] = src[i].a;
+                    }
+                }
+            }
+
+            if (!data)
+            {
+                RE_LOG_ERROR("Failed to load embedded texture");
+                return nullptr;
+            }
+
+            bool          is_srgb = (type == aiTextureType_DIFFUSE || type == aiTextureType_BASE_COLOR);
+            TextureFormat format;
+            switch (num_channels)
+            {
+                case 1:
+                    format = TextureFormat::R8;
+                    break;
+                case 3:
+                    format = is_srgb ? TextureFormat::SRGB8 : TextureFormat::RGB8;
+                    break;
+                case 4:
+                    format = is_srgb ? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
+                    break;
+                default:
+                    free(data);
+                    return nullptr;
+            }
+
+            TextureDesc desc;
+            desc.type       = TextureType::Texture2D;
+            desc.format     = format;
+            desc.width      = width;
+            desc.height     = height;
+            desc.min_filter = TextureFilter::Linear;
+            desc.mag_filter = TextureFilter::Linear;
+            desc.wrap_s     = TextureWrap::Repeat;
+            desc.wrap_t     = TextureWrap::Repeat;
+            desc.gen_mips   = true;
+            desc.data       = data;
+
+            auto tex = device.createTexture(desc);
+            if (embedded->mHeight != 0)
+                free(data);
+            else
+                stbi_image_free(data);
+
+            return tex ? std::shared_ptr<RHITexture>(std::move(tex)) : nullptr;
         }
 
         std::shared_ptr<RHITexture>
