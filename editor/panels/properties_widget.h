@@ -1,6 +1,9 @@
 #pragma once
 
 #include <memory>
+
+#include "renderer/render_material.h"
+#include "rhi/rhi_texture.h"
 #include "widget.h"
 
 namespace RealmEngine
@@ -24,6 +27,8 @@ namespace RealmEngine
     private:
         void renderTransform();
         void renderRenderable();
+        void renderMaterialPreview(const RenderMaterial& mat);
+        void renderTextureSlot(const char* label, bool use_tex, const std::shared_ptr<RHITexture>& tex);
         void renderPointLight();
         void renderSpotLight();
         void renderDirectionalLight();

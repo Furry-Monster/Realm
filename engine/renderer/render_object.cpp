@@ -31,6 +31,16 @@ namespace RealmEngine
             mesh.draw(shader);
     }
 
+    RenderMesh* RenderObject::getMesh(size_t index)
+    {
+        return index < m_meshes.size() ? &m_meshes[index] : nullptr;
+    }
+
+    const RenderMesh* RenderObject::getMesh(size_t index) const
+    {
+        return index < m_meshes.size() ? &m_meshes[index] : nullptr;
+    }
+
     void RenderObject::drawShadow(RHIShader& shader)
     {
         for (auto& mesh : m_meshes)

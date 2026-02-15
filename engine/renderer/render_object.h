@@ -32,6 +32,9 @@ namespace RealmEngine
         void draw(RHIShader& shader);
         void drawShadow(RHIShader& shader);
 
+        RenderMesh*       getMesh(size_t index);
+        const RenderMesh* getMesh(size_t index) const;
+
     private:
         glm::vec3               m_position {glm::vec3(0.0)};
         glm::vec3               m_scale {glm::vec3(1.0, 1.0, 1.0)};

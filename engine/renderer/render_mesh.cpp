@@ -60,44 +60,45 @@ namespace RealmEngine
 
     void RenderMesh::draw(RHIShader& shader)
     {
-        // Bind PBR material textures
-        shader.setBool("material.useTextureAlbedo", m_material.use_texture_albedo);
-        shader.setVec3("material.albedo", m_material.albedo);
-        if (m_material.use_texture_albedo && m_material.texture_albedo)
+        const RenderMaterial& mat = m_material;
+
+        shader.setBool("material.useTextureAlbedo", mat.use_texture_albedo);
+        shader.setVec3("material.albedo", mat.albedo);
+        if (mat.use_texture_albedo && mat.texture_albedo)
         {
-            m_material.texture_albedo->bind(TEXTURE_UNIT_ALBEDO);
+            mat.texture_albedo->bind(TEXTURE_UNIT_ALBEDO);
             shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
         }
 
-        shader.setBool("material.useTextureMetallicRoughness", m_material.use_texture_metallic_roughness);
-        shader.setFloat("material.metallic", m_material.metallic);
-        shader.setFloat("material.roughness", m_material.roughness);
-        if (m_material.use_texture_metallic_roughness && m_material.texture_metallic_roughness)
+        shader.setBool("material.useTextureMetallicRoughness", mat.use_texture_metallic_roughness);
+        shader.setFloat("material.metallic", mat.metallic);
+        shader.setFloat("material.roughness", mat.roughness);
+        if (mat.use_texture_metallic_roughness && mat.texture_metallic_roughness)
         {
-            m_material.texture_metallic_roughness->bind(TEXTURE_UNIT_METALLIC_ROUGHNESS);
+            mat.texture_metallic_roughness->bind(TEXTURE_UNIT_METALLIC_ROUGHNESS);
             shader.setInt("material.textureMetallicRoughness", TEXTURE_UNIT_METALLIC_ROUGHNESS);
         }
 
-        shader.setBool("material.useTextureNormal", m_material.use_texture_normal);
-        if (m_material.use_texture_normal && m_material.texture_normal)
+        shader.setBool("material.useTextureNormal", mat.use_texture_normal);
+        if (mat.use_texture_normal && mat.texture_normal)
         {
-            m_material.texture_normal->bind(TEXTURE_UNIT_NORMAL);
+            mat.texture_normal->bind(TEXTURE_UNIT_NORMAL);
             shader.setInt("material.textureNormal", TEXTURE_UNIT_NORMAL);
         }
 
-        shader.setBool("material.useTextureAmbientOcclusion", m_material.use_texture_ambient_occlusion);
-        shader.setFloat("material.ambientOcclusion", m_material.ambient_occlusion);
-        if (m_material.use_texture_ambient_occlusion && m_material.texture_ambient_occlusion)
+        shader.setBool("material.useTextureAmbientOcclusion", mat.use_texture_ambient_occlusion);
+        shader.setFloat("material.ambientOcclusion", mat.ambient_occlusion);
+        if (mat.use_texture_ambient_occlusion && mat.texture_ambient_occlusion)
         {
-            m_material.texture_ambient_occlusion->bind(TEXTURE_UNIT_AMBIENT_OCCLUSION);
+            mat.texture_ambient_occlusion->bind(TEXTURE_UNIT_AMBIENT_OCCLUSION);
             shader.setInt("material.textureAmbientOcclusion", TEXTURE_UNIT_AMBIENT_OCCLUSION);
         }
 
-        shader.setBool("material.useTextureEmissive", m_material.use_texture_emissive);
-        shader.setVec3("material.emissive", m_material.emissive);
-        if (m_material.use_texture_emissive && m_material.texture_emissive)
+        shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);
+        shader.setVec3("material.emissive", mat.emissive);
+        if (mat.use_texture_emissive && mat.texture_emissive)
         {
-            m_material.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
+            mat.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
             shader.setInt("material.textureEmissive", TEXTURE_UNIT_EMISSIVE);
         }
 
