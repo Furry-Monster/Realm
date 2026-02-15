@@ -154,6 +154,9 @@ namespace RealmEngine
                                 ImGui::DragFloat("SSS Radius", &mesh->m_material.subsurface_radius, 0.1f, 0.1f, 10.0f);
                                 ImGui::ColorEdit3("SSS Color", &mesh->m_material.subsurface_color.x);
                             }
+                            ImGui::ColorEdit3("Emissive", &mesh->m_material.emissive.x);
+                            ImGui::DragFloat(
+                                "Emissive Strength", &mesh->m_material.emissive_strength, 0.01f, 0.0f, 10.0f);
                             ImGui::TreePop();
                         }
                         ImGui::TreePop();
@@ -188,7 +191,11 @@ namespace RealmEngine
         ImGui::Text("Metallic: %.2f", mat.metallic);
         ImGui::Text("Roughness: %.2f", mat.roughness);
         ImGui::Text("Ambient Occlusion: %.2f", mat.ambient_occlusion);
-        ImGui::Text("Emissive: (%.2f, %.2f, %.2f)", mat.emissive.x, mat.emissive.y, mat.emissive.z);
+        ImGui::Text("Emissive: (%.2f, %.2f, %.2f) Strength: %.2f",
+                    mat.emissive.x,
+                    mat.emissive.y,
+                    mat.emissive.z,
+                    mat.emissive_strength);
 
         ImGui::Separator();
         ImGui::Text("Textures");

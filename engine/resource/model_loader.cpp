@@ -196,6 +196,10 @@ namespace RealmEngine
                 if (ai_material->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == aiReturn_SUCCESS)
                     material.emissive = glm::vec3(emissive.r, emissive.g, emissive.b);
 
+                float emissive_strength = 1.0f;
+                if (ai_material->Get(AI_MATKEY_EMISSIVE_INTENSITY, emissive_strength) == aiReturn_SUCCESS)
+                    material.emissive_strength = emissive_strength;
+
                 auto load_tex = [&](aiTextureType type, bool& use_flag, std::shared_ptr<RHITexture>& out_tex) {
                     auto tex =
                         loadMaterialTexture(ai_material, type, scene, device, directory, asset_mgr, textures_loaded);

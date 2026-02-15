@@ -17,6 +17,7 @@ struct HairMaterial
     bool  useTextureEmissive;
     vec3  albedo;
     vec3  emissive;
+    float emissiveStrength;
     float specularStrength;
     float specularPower;
 
@@ -85,6 +86,7 @@ void main()
     vec3 emissive = material.emissive;
     if (material.useTextureEmissive)
         emissive = texture(material.textureEmissive, textureCoordinates).rgb;
+    emissive *= material.emissiveStrength;
 
     if (displayMode == 1)
     {
@@ -126,7 +128,7 @@ void main()
             vec3  toLight = lightPos - worldCoordinates;
             float dist    = length(toLight);
             L             = normalize(toLight);
-            float range  = l.attenuation.z;
+            float range   = l.attenuation.z;
             if (dist > range)
                 continue;
             attenuation = 1.0 / (lightConst + l.attenuation.x * dist + l.attenuation.y * dist * dist);
@@ -140,10 +142,10 @@ void main()
             vec3  toLight = lightPos - worldCoordinates;
             float dist    = length(toLight);
             L             = normalize(toLight);
-            float range  = l.attenuation.z;
+            float range   = l.attenuation.z;
             if (dist > range)
                 continue;
-            attenuation = 1.0 / (lightConst + l.attenuation.x * dist + l.attenuation.y * dist * dist);
+            attenuation    = 1.0 / (lightConst + l.attenuation.x * dist + l.attenuation.y * dist * dist);
             float theta    = dot(L, -lightDir);
             float outerCos = cos(radians(l.spot_area.x));
             float innerCos = cos(radians(l.attenuation.w));

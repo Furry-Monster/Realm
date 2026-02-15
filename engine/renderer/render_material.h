@@ -37,6 +37,7 @@ namespace RealmEngine
         float     roughness         = 0.5f;
         float     ambient_occlusion = 1.0f;
         glm::vec3 emissive          = glm::vec3(0.0, 0.0, 0.0);
+        float     emissive_strength = 1.0f;
 
         bool      subsurface_enabled = false;
         float     subsurface_radius  = 1.0f;

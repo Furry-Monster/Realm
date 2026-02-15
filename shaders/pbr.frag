@@ -27,6 +27,7 @@ struct Material
     float roughness;
     float ambientOcclusion;
     vec3  emissive;
+    float emissiveStrength;
 
     bool  subsurfaceEnabled;
     float subsurfaceRadius;
@@ -316,9 +317,8 @@ void main()
     // emissive
     vec3 emissive = material.emissive;
     if (material.useTextureEmissive)
-    {
         emissive = texture(material.textureEmissive, textureCoordinates).rgb;
-    }
+    emissive *= material.emissiveStrength;
 
     vec3 v = normalize(cameraPosition - worldCoordinates);
     vec3 r = reflect(-v, n);
@@ -490,6 +490,6 @@ void main()
     }
 
     FragColor                 = vec4(color, sssMask);
-    float greyscaleBrightness = dot(FragColor.rgb, GREYSCALE_WEIGHT_VECTOR);
-    BloomColor = greyscaleBrightness > bloomBrightnessCutoff ? vec4(emissive, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
+    float greyscaleBrightness = dot(color, GREYSCALE_WEIGHT_VECTOR);
+    BloomColor = greyscaleBrightness > bloomBrightnessCutoff ? vec4(color, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
 }

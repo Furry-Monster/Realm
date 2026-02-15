@@ -98,6 +98,7 @@ namespace RealmEngine
 
         shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);
         shader.setVec3("material.emissive", mat.emissive);
+        shader.setFloat("material.emissiveStrength", mat.emissive_strength);
         if (mat.use_texture_emissive && mat.texture_emissive)
         {
             mat.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
@@ -128,6 +129,7 @@ namespace RealmEngine
 
         shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);
         shader.setVec3("material.emissive", mat.emissive);
+        shader.setFloat("material.emissiveStrength", mat.emissive_strength);
         if (mat.use_texture_emissive && mat.texture_emissive)
         {
             mat.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
