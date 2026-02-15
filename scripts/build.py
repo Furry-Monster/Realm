@@ -164,9 +164,11 @@ class Builder:
             self.logger.error(f"Build failed: {e}")
             return False
 
-    def run_executable(self, build_type: BuildType, args: list = None) -> bool:
+    def run_executable(
+        self, build_type: BuildType, target: str = "RealmEditor", args: list = None
+    ) -> bool:
         """Run the built executable"""
-        exe_path = self.config.get_executable_path(build_type)
+        exe_path = self.config.get_executable_path(build_type, target=target)
 
         if not exe_path.exists():
             self.logger.error(f"Executable not found: {exe_path}")
@@ -203,12 +205,14 @@ def parse_arguments():
         epilog="""
 Examples:
   python build.py                          # Default build (Debug)
-  python build.py -t Release               # Release build
-  python build.py -c -r                    # Clean build and run
-  python build.py -r -- --debug            # Run with arguments
   python build.py -t Release -j 8          # Release build with 8 jobs
+  python build.py -c -r                    # Clean build and run editor
+  python build.py -r --run-target RealmRuntime  # Build and run runtime
+  python build.py --no-editor              # Build without editor
+  python build.py --tests --sanitizers     # Build with tests + sanitizers
   python build.py --configure              # Only configure, don't build
   python build.py --build                  # Only build, skip configure
+  python build.py -D CMAKE_CXX_COMPILER=clang++  # Custom CMake variable
         """,
     )
 
@@ -246,6 +250,31 @@ Examples:
 
     parser.add_argument("-T", "--target", type=str, help="Build specific target only")
 
+    # Target selection
+    parser.add_argument(
+        "--no-editor",
+        action="store_true",
+        help="Disable building the editor (REALM_BUILD_EDITOR=OFF)",
+    )
+
+    parser.add_argument(
+        "--no-runtime",
+        action="store_true",
+        help="Disable building the runtime (REALM_BUILD_RUNTIME=OFF)",
+    )
+
+    parser.add_argument(
+        "--tests",
+        action="store_true",
+        help="Enable building tests (REALM_BUILD_TESTS=ON)",
+    )
+
+    parser.add_argument(
+        "--sanitizers",
+        action="store_true",
+        help="Enable sanitizers (REALM_ENABLE_SANITIZERS=ON)",
+    )
+
     # Actions
     parser.add_argument(
         "-c",
@@ -256,6 +285,14 @@ Examples:
 
     parser.add_argument(
         "-r", "--run", action="store_true", help="Run the executable after building"
+    )
+
+    parser.add_argument(
+        "--run-target",
+        type=str,
+        default="RealmEditor",
+        choices=["RealmEditor", "RealmRuntime"],
+        help="Which executable to run with -r (default: RealmEditor)",
     )
 
     parser.add_argument(
@@ -320,6 +357,14 @@ def main():
 
     # Prepare CMake defines
     cmake_args = []
+    if args.no_editor:
+        cmake_args.append("-DREALM_BUILD_EDITOR=OFF")
+    if args.no_runtime:
+        cmake_args.append("-DREALM_BUILD_RUNTIME=OFF")
+    if args.tests:
+        cmake_args.append("-DREALM_BUILD_TESTS=ON")
+    if args.sanitizers:
+        cmake_args.append("-DREALM_ENABLE_SANITIZERS=ON")
     if args.cmake_defines:
         for define in args.cmake_defines:
             cmake_args.append(f"-D{define}")
@@ -346,7 +391,9 @@ def main():
         return 1
 
     # Run if requested
-    if args.run and not builder.run_executable(build_type, args=args.exe_args):
+    if args.run and not builder.run_executable(
+        build_type, target=args.run_target, args=args.exe_args
+    ):
         return 1
 
     logger.success("All done!")

@@ -52,8 +52,9 @@ namespace RealmEngine
 
         if (!m_engine)
         {
+            // ensure engine initialized
             m_engine = std::make_unique<Engine>();
-            m_engine->boot();
+            m_engine->initialize();
         }
 
         ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(m_engine->getWindow().getNativeHandle()), true);

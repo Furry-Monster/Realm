@@ -1,104 +1,107 @@
-message(STATUS "Building libraries...")
+message(STATUS "[Realm] Configuring third-party libraries ...")
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libs" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
+# GLFW
 if(NOT TARGET glfw)
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "..." FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "..." FORCE)
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "..." FORCE)
-    set(GLFW_INSTALL OFF CACHE BOOL "..." FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
     add_subdirectory(glfw)
+    get_target_property(_glfw_inc glfw INTERFACE_INCLUDE_DIRECTORIES)
+    if(_glfw_inc)
+        set_target_properties(glfw PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_glfw_inc}")
+    endif()
 endif()
 
+# GLAD
 if(NOT TARGET glad)
-    add_library(glad STATIC ${CMAKE_CURRENT_SOURCE_DIR}/glad/src/gl.c)
-    target_include_directories(glad PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glad/include)
+    add_library(glad STATIC "${CMAKE_CURRENT_SOURCE_DIR}/glad/src/gl.c")
+    target_include_directories(glad SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/glad/include")
 endif()
 
+# GLM
 if(NOT TARGET glm)
     add_library(glm INTERFACE)
-    target_include_directories(glm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/glm)
+    target_include_directories(glm SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/glm")
 endif()
 
+# ImGui
 if(NOT TARGET imgui)
-    set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
-    file(GLOB IMGUI_SOURCE
-        "${IMGUI_DIR}/*.cpp"
+    set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
+    file(GLOB IMGUI_CORE_SOURCES "${IMGUI_DIR}/*.cpp")
+    add_library(imgui STATIC
+        ${IMGUI_CORE_SOURCES}
         "${IMGUI_DIR}/backends/imgui_impl_glfw.cpp"
         "${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp"
     )
-    add_library(imgui STATIC ${IMGUI_SOURCE})
-    target_include_directories(imgui PUBLIC
-        ${IMGUI_DIR}
-        ${IMGUI_DIR}/backends
-    )
+    target_include_directories(imgui SYSTEM PUBLIC "${IMGUI_DIR}" "${IMGUI_DIR}/backends")
     target_link_libraries(imgui PUBLIC glfw)
-    target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
-    target_compile_definitions(imgui PUBLIC IMGUI_HAS_DOCK)
+    target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD IMGUI_HAS_DOCK)
 endif()
 
+# stb
 if(NOT TARGET stb)
     add_library(stb INTERFACE)
-    target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+    target_include_directories(stb SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/stb")
 endif()
 
+# Assimp
 if(NOT TARGET assimp)
-    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "..." FORCE)
-    set(ASSIMP_INSTALL OFF CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_PLY_IMPORTER ON CACHE BOOL "..." FORCE)
-    set(ASSIMP_BUILD_STL_IMPORTER ON CACHE BOOL "..." FORCE)
-    set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "..." FORCE)
+    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_PLY_IMPORTER ON CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_STL_IMPORTER ON CACHE BOOL "" FORCE)
     add_subdirectory(assimp)
 endif()
 
+# spdlog
 if(NOT TARGET spdlog)
-    set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "..." FORCE)
-    set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "..." FORCE)
-    set(SPDLOG_BUILD_BENCH OFF CACHE BOOL "..." FORCE)
-    set(SPDLOG_INSTALL OFF CACHE BOOL "..." FORCE)
+    set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
+    set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(SPDLOG_BUILD_BENCH OFF CACHE BOOL "" FORCE)
+    set(SPDLOG_INSTALL OFF CACHE BOOL "" FORCE)
     add_subdirectory(spdlog)
 endif()
 
+# nlohmann/json
 if(NOT TARGET nlohmann)
     add_library(nlohmann INTERFACE)
-    target_include_directories(nlohmann INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann)
+    target_include_directories(nlohmann SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/nlohmann")
 endif()
 
-if(NOT TARGET EnTT::EnTT)
+# EnTT
+if(NOT TARGET entt)
     add_library(entt INTERFACE)
-    target_include_directories(entt INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entt/src)
+    target_include_directories(entt SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/entt/src")
 endif()
 
-add_library(reflibs INTERFACE)
-target_link_libraries(reflibs INTERFACE glad glfw glm imgui assimp spdlog nlohmann entt)
-
-# Link OpenGL library
+# OpenGL (platform-specific)
+add_library(realm_opengl INTERFACE)
 if(UNIX AND NOT APPLE)
-    # linux only support x11 framework
-    set(OPENGL_GL_PREFERENCE GLVND)
+    set(OpenGL_GL_PREFERENCE GLVND)
     find_package(OpenGL REQUIRED)
     find_package(X11 REQUIRED)
-    target_link_libraries(reflibs INTERFACE
-        OpenGL::GL
-        ${X11_LIBRARIES}
-    )
+    target_link_libraries(realm_opengl INTERFACE OpenGL::GL ${X11_LIBRARIES})
 elseif(WIN32)
-    # OpenGL was supported by opengl32.lib on Win
-    target_link_libraries(reflibs INTERFACE opengl32)
+    target_link_libraries(realm_opengl INTERFACE opengl32)
 elseif(APPLE)
     find_package(OpenGL REQUIRED)
-    # macOS need system framework link
-    target_link_libraries(reflibs INTERFACE
-        OpenGL::GL
-        "-framework Cocoa"
-        "-framework IOKit"
-        "-framework CoreVideo"
-    )
+    target_link_libraries(realm_opengl INTERFACE
+        OpenGL::GL "-framework Cocoa" "-framework IOKit" "-framework CoreVideo")
 endif()
+
+# Aggregate target
+add_library(realm_third_party INTERFACE)
+add_library(Realm::ThirdParty ALIAS realm_third_party)
+target_link_libraries(realm_third_party INTERFACE
+    glad glfw glm imgui stb assimp spdlog nlohmann entt realm_opengl)

@@ -134,20 +134,15 @@ class BuildConfig:
 
     def get_cmake_generator(self) -> str:
         """Get appropriate CMake generator for platform"""
-        if self.platform == Platform.WINDOWS:
-            # Check for Visual Studio versions
-            vs_generators = [
-                "Visual Studio 17 2022",
-                "Visual Studio 16 2019",
-                "Visual Studio 15 2017",
-            ]
-            # Use default VS generator
-            return vs_generators[0] if self.find_program("cmake") else "Ninja"
+        # Prefer Ninja on all platforms if available
+        if self.find_program("ninja"):
+            return "Ninja"
 
-        elif self.platform in (Platform.LINUX, Platform.MACOS):
-            if self.find_program("ninja"):
-                return "Ninja"
-            return "Unix Makefiles"
+        if self.platform == Platform.WINDOWS:
+            # Fall back to Visual Studio
+            if self.find_program("cl"):
+                return "Visual Studio 17 2022"
+            return "MinGW Makefiles"
 
         return "Unix Makefiles"
 

@@ -1,0 +1,6 @@
+#pragma once
+
+#define REALM_VERSION_MAJOR @RealmEngine_VERSION_MAJOR@
+#define REALM_VERSION_MINOR @RealmEngine_VERSION_MINOR@
+#define REALM_VERSION_PATCH @RealmEngine_VERSION_PATCH@
+#define REALM_VERSION_STRING "@RealmEngine_VERSION@"

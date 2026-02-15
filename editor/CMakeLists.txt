@@ -1,14 +1,30 @@
 set(TARGET_NAME RealmEditor)
 
-file(GLOB_RECURSE EDITOR_SOURCES "*.cpp" "*.c")
-file(GLOB_RECURSE EDITOR_HEADERS "*.hpp" "*.h")
+set(EDITOR_MODULES
+    bridge
+    commands
+    hotkey
+    panels
+    preferences
+)
 
-if(EDITOR_SOURCES)
-    add_executable(${TARGET_NAME} ${EDITOR_SOURCES} ${EDITOR_HEADERS})
+file(GLOB EDITOR_ROOT_FILES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+)
 
-    target_link_libraries(${TARGET_NAME} PRIVATE RealmEngineLib)
+realm_collect_sources(EDITOR_SOURCES
+    DIRECTORIES ${EDITOR_MODULES}
+    ROOT_FILES ${EDITOR_ROOT_FILES}
+)
 
-    target_include_directories(${TARGET_NAME} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-endif()
+add_executable(${TARGET_NAME} ${EDITOR_SOURCES})
+
+realm_target_common_setup(${TARGET_NAME} FOLDER "Editor")
+
+target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${TARGET_NAME} PRIVATE Realm::Engine)
+target_compile_definitions(${TARGET_NAME} PRIVATE REALM_EDITOR)
+
+add_dependencies(${TARGET_NAME} realm_copy_resources)

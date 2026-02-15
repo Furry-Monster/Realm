@@ -28,7 +28,7 @@ namespace RealmEngine
     Engine::Engine()           = default;
     Engine::~Engine() noexcept = default;
 
-    void Engine::boot()
+    void Engine::initialize()
     {
         // EventBus first (other subsystems publish/subscribe)
         m_event_bus = std::make_unique<EventBus>();
@@ -97,14 +97,13 @@ namespace RealmEngine
         m_config.reset();
 
         m_logger->disposal();
-        g_logger = nullptr;
         m_logger.reset();
 
         // EventBus last
         m_event_bus.reset();
     }
 
-    void Engine::debug()
+    void Engine::loop()
     {
         std::filesystem::path scene_file = m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
 
@@ -142,17 +141,6 @@ namespace RealmEngine
         {
             tick();
             m_window->swapBuffer();
-        }
-
-        if (m_scene->getCurrentScene())
-        {
-            std::filesystem::path save_path = m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
-
-            RE_LOG_INFO("Saving scene to: " + save_path.string());
-            if (m_scene->saveCurrentScene(save_path.string()))
-                RE_LOG_INFO("Scene saved successfully.");
-            else
-                RE_LOG_ERROR("Failed to save scene file.");
         }
     }
 

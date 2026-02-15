@@ -24,12 +24,10 @@ namespace RealmEngine
         Engine& operator=(const Engine&) = delete;
         Engine& operator=(Engine&&)      = delete;
 
-        void boot();
+        void initialize();
         void shutdown();
 
-        // Runtime stand-alone loop (loads scene, runs until window close)
-        void debug();
-
+        void loop();
         void tick();
 
         double getDeltaTime() const { return m_delta_time; }
