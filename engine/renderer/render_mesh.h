@@ -36,6 +36,7 @@ namespace RealmEngine
         RenderMesh& operator=(RenderMesh&& other) noexcept;
 
         void draw(RHIShader& shader);
+        void drawShadow(RHIShader& shader);
         int  getTriangleCount() const { return static_cast<int>(m_indices.size()) / 3; }
 
         std::vector<RenderVertex> m_vertices;

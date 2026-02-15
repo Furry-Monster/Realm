@@ -30,6 +30,7 @@ namespace RealmEngine
         glm::quat getOrientation() const;
 
         void draw(RHIShader& shader);
+        void drawShadow(RHIShader& shader);
 
     private:
         glm::vec3               m_position {glm::vec3(0.0)};

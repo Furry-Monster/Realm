@@ -103,4 +103,9 @@ namespace RealmEngine
 
         m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
     }
+
+    void RenderMesh::drawShadow([[maybe_unused]] RHIShader& shader)
+    {
+        m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
+    }
 } // namespace RealmEngine
