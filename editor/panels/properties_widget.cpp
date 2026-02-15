@@ -122,15 +122,30 @@ namespace RealmEngine
                         continue;
 
                     ImGui::PushID(static_cast<int>(i));
-                    if (ImGui::TreeNodeEx(("Mesh " + std::to_string(i)).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                    std::string mesh_label = mesh->m_name.empty() ? "Mesh " + std::to_string(i) : mesh->m_name;
+                    if (ImGui::TreeNodeEx(mesh_label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                     {
                         ImGui::Text("Vertices: %zu", mesh->m_vertices.size());
                         ImGui::Text("Indices: %zu", mesh->m_indices.size());
                         ImGui::Text("Triangles: %d", mesh->getTriangleCount());
 
-                        if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen))
+                        std::string mat_label = mesh->m_material.name.empty() ? "Material" : mesh->m_material.name;
+                        if (ImGui::TreeNodeEx(mat_label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                         {
                             renderMaterialPreview(mesh->m_material);
+                            if (ImGui::Checkbox("Hair", &mesh->m_material.is_hair))
+                            {
+                            }
+                            if (mesh->m_material.is_hair)
+                            {
+                                ImGui::SliderInt("Hair Layers", &mesh->m_material.hair_layers, 1, 32);
+                                ImGui::DragFloat(
+                                    "Hair Layer Step", &mesh->m_material.hair_layer_step, 0.0001f, 0.0f, 0.1f, "%.4f");
+                                ImGui::DragFloat(
+                                    "Hair Specular", &mesh->m_material.hair_specular_strength, 0.01f, 0.0f, 2.0f);
+                                ImGui::DragFloat(
+                                    "Hair Specular Power", &mesh->m_material.hair_specular_power, 1.0f, 1.0f, 256.0f);
+                            }
                             if (ImGui::Checkbox("Subsurface", &mesh->m_material.subsurface_enabled))
                             {
                             }

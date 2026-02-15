@@ -10,6 +10,7 @@
 #include "renderer/ibl/specular_map.h"
 #include "renderer/passes/bloom_pass.h"
 #include "renderer/passes/geometry_pass.h"
+#include "renderer/passes/hair_pass.h"
 #include "renderer/passes/postprocess_pass.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/passes/skybox_pass.h"
@@ -103,6 +104,11 @@ namespace RealmEngine
         m_geometry_pass = geometry.get();
         m_pipeline.addPass(std::move(geometry));
 
+        // --- Hair pass (Kajiya-Kay + shell layers) ---
+        auto hair   = std::make_unique<HairPass>(sp, rc.bloom_brightness_cutoff);
+        m_hair_pass = hair.get();
+        m_pipeline.addPass(std::move(hair));
+
         // --- SSAO pass ---
         auto ssao = std::make_unique<SSAOPass>(
             sp, rc.ssao_enabled, rc.ssao_radius, rc.ssao_bias, rc.ssao_kernel_size, rc.ssao_noise_size);
@@ -144,6 +150,10 @@ namespace RealmEngine
 
         m_geometry_pass->setShadowPass(m_shadow_pass);
         m_geometry_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
+
+        m_hair_pass->setGeometryPass(m_geometry_pass);
+        m_hair_pass->setShadowPass(m_shadow_pass);
+        m_hair_pass->setIBLTextures(m_ibl_diffuse_tex);
 
         // Create PBR framebuffer for geometry pass
         {

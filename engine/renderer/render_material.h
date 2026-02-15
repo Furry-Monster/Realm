@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <string>
 
 namespace RealmEngine
 {
@@ -23,6 +24,8 @@ namespace RealmEngine
 
     struct RenderMaterial
     {
+        std::string name = "";
+
         bool use_texture_albedo             = false;
         bool use_texture_metallic_roughness = false;
         bool use_texture_normal             = false;
@@ -38,6 +41,12 @@ namespace RealmEngine
         bool      subsurface_enabled = false;
         float     subsurface_radius  = 1.0f;
         glm::vec3 subsurface_color   = glm::vec3(1.0f, 0.2f, 0.1f);
+
+        bool  is_hair                = false;
+        int   hair_layers            = 8;
+        float hair_layer_step        = 0.002f;
+        float hair_specular_strength = 0.5f;
+        float hair_specular_power    = 64.0f;
 
         std::shared_ptr<RHITexture> texture_albedo;
         std::shared_ptr<RHITexture> texture_metallic_roughness;

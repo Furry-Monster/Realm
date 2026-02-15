@@ -30,6 +30,8 @@ namespace RealmEngine
         glm::quat getOrientation() const;
 
         void draw(RHIShader& shader);
+        void drawOpaque(RHIShader& shader);
+        void drawHair(RHIShader& shader);
         void drawShadow(RHIShader& shader);
 
         RenderMesh*       getMesh(size_t index);

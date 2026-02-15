@@ -31,6 +31,21 @@ namespace RealmEngine
             mesh.draw(shader);
     }
 
+    void RenderObject::drawOpaque(RHIShader& shader)
+    {
+        for (auto& mesh : m_meshes)
+        {
+            if (!mesh.isHair())
+                mesh.draw(shader);
+        }
+    }
+
+    void RenderObject::drawHair(RHIShader& shader)
+    {
+        for (auto& mesh : m_meshes)
+            mesh.drawHair(shader);
+    }
+
     RenderMesh* RenderObject::getMesh(size_t index) { return index < m_meshes.size() ? &m_meshes[index] : nullptr; }
 
     const RenderMesh* RenderObject::getMesh(size_t index) const
