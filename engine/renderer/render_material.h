@@ -35,6 +35,10 @@ namespace RealmEngine
         float     ambient_occlusion = 1.0f;
         glm::vec3 emissive          = glm::vec3(0.0, 0.0, 0.0);
 
+        bool      subsurface_enabled = false;
+        float     subsurface_radius  = 1.0f;
+        glm::vec3 subsurface_color   = glm::vec3(1.0f, 0.2f, 0.1f);
+
         std::shared_ptr<RHITexture> texture_albedo;
         std::shared_ptr<RHITexture> texture_metallic_roughness;
         std::shared_ptr<RHITexture> texture_normal;

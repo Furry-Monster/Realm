@@ -55,6 +55,16 @@ namespace RealmEngine
 
         // Framebuffer
         void bindDefaultFramebuffer() override;
+        void blitFramebuffer(RHIFramebuffer* src,
+                             RHIFramebuffer* dst,
+                             int             srcX0,
+                             int             srcY0,
+                             int             srcX1,
+                             int             srcY1,
+                             int             dstX0,
+                             int             dstY0,
+                             int             dstX1,
+                             int             dstY1) override;
 
         // Texture helpers
         void bindTexture(uint32_t unit, RHITexture& texture) override;

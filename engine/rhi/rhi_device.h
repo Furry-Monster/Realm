@@ -71,6 +71,17 @@ namespace RealmEngine
 
         virtual void bindDefaultFramebuffer() = 0;
 
+        virtual void blitFramebuffer(RHIFramebuffer* src,
+                                     RHIFramebuffer* dst,
+                                     int             srcX0,
+                                     int             srcY0,
+                                     int             srcX1,
+                                     int             srcY1,
+                                     int             dstX0,
+                                     int             dstY0,
+                                     int             dstX1,
+                                     int             dstY1) = 0;
+
         // ----- Texture helpers (bind texture to unit) ---------------------
 
         virtual void bindTexture(uint32_t unit, RHITexture& texture) = 0;

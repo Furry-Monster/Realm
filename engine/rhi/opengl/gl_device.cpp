@@ -9,6 +9,7 @@
 #include "rhi/opengl/gl_shader.h"
 #include "rhi/opengl/gl_texture.h"
 #include "rhi/opengl/gl_vertex_input.h"
+#include "rhi/rhi_framebuffer.h"
 
 namespace RealmEngine
 {
@@ -413,6 +414,27 @@ namespace RealmEngine
     // ----- Framebuffer ---------------------------------------------------
 
     void GLDevice::bindDefaultFramebuffer() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+
+    void GLDevice::blitFramebuffer(RHIFramebuffer* src,
+                                   RHIFramebuffer* dst,
+                                   int             srcX0,
+                                   int             srcY0,
+                                   int             srcX1,
+                                   int             srcY1,
+                                   int             dstX0,
+                                   int             dstY0,
+                                   int             dstX1,
+                                   int             dstY1)
+    {
+        GLuint src_fbo = src->getNativeHandle();
+        GLuint dst_fbo = dst->getNativeHandle();
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, src_fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_fbo);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 
     // ----- Texture helpers -----------------------------------------------
 

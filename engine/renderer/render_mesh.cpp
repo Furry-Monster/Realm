@@ -102,6 +102,10 @@ namespace RealmEngine
             shader.setInt("material.textureEmissive", TEXTURE_UNIT_EMISSIVE);
         }
 
+        shader.setBool("material.subsurfaceEnabled", mat.subsurface_enabled);
+        shader.setFloat("material.subsurfaceRadius", mat.subsurface_radius);
+        shader.setVec3("material.subsurfaceColor", mat.subsurface_color);
+
         m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
     }
 

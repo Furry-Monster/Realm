@@ -28,6 +28,10 @@ struct Material
     float ambientOcclusion;
     vec3  emissive;
 
+    bool  subsurfaceEnabled;
+    float subsurfaceRadius;
+    vec3  subsurfaceColor;
+
     sampler2D textureAlbedo;
     sampler2D textureMetallicRoughness;
     sampler2D textureNormal;
@@ -144,6 +148,10 @@ vec3 calculateNormal(vec3 tangentNormal)
     return normalize(TBN * norm); // tangent --> world
 }
 
+// BSSRDF-inspired wrapped diffuse: wrap(NdotL) = (NdotL + w) / (1 + w)
+// Larger w increases subsurface spread (softer falloff at grazing)
+float subsurfaceWrap(float nDotL, float wrap) { return (nDotL + wrap) / (1.0 + wrap); }
+
 // Cook-Torrance specular BRDF term
 //
 //                DFG
@@ -162,7 +170,10 @@ vec3 discreteMonteCarloContribution(vec3  l,
                                     vec3  albedo,
                                     float metallic,
                                     float roughness,
-                                    vec3  f0)
+                                    vec3  f0,
+                                    bool  subsurfaceEnabled,
+                                    float subsurfaceRadius,
+                                    vec3  subsurfaceColor)
 {
     vec3 h = normalize(v + l);
 
@@ -177,13 +188,19 @@ vec3 discreteMonteCarloContribution(vec3  l,
 
     vec3 kSpecular = F;
     vec3 kDiffuse  = vec3(1.0) - kSpecular;
-    kDiffuse *= 1.0 - metallic; // metallic materials should have less diffuse component
+    kDiffuse *= 1.0 - metallic;
 
-    vec3  diffuse          = kDiffuse * albedo / PI;
-    vec3  cookTorranceBrdf = diffuse + specular;
-    float nDotL            = max(dot(n, l), 0.0);
+    vec3 diffuseAlbedo = albedo;
+    if (subsurfaceEnabled)
+        diffuseAlbedo *= subsurfaceColor;
 
-    return cookTorranceBrdf * radiance * nDotL;
+    vec3 diffuse          = kDiffuse * diffuseAlbedo / PI;
+    vec3 cookTorranceBrdf = diffuse + specular;
+
+    float nDotL      = dot(n, l);
+    float diffWeight = subsurfaceEnabled ? subsurfaceWrap(max(nDotL, 0.0), subsurfaceRadius * 0.5) : max(nDotL, 0.0);
+
+    return cookTorranceBrdf * radiance * diffWeight;
 }
 
 // Percentage Closer Filtering - Shadow Calculating
@@ -402,18 +419,28 @@ void main()
 
         if (length(radiance) > 0.0)
         {
-            Lo += discreteMonteCarloContribution(l, radiance, n, v, albedo, metallic, roughness, f0);
+            Lo += discreteMonteCarloContribution(l,
+                                                 radiance,
+                                                 n,
+                                                 v,
+                                                 albedo,
+                                                 metallic,
+                                                 roughness,
+                                                 f0,
+                                                 material.subsurfaceEnabled,
+                                                 material.subsurfaceRadius,
+                                                 material.subsurfaceColor);
         }
     }
 
     // Indirect lighting (only use IBL):
-    // IBL = prefilteredEnvMap * (LUT.r * F + LUT.g)
     vec3 kSpecular = fresnelSchlickRoughness(max(dot(n, v), 0.0), f0, roughness);
     vec3 kDiffuse  = 1.0 - kSpecular;
-    kDiffuse *= 1.0 - metallic; // metallic materials should have less diffuse component
+    kDiffuse *= 1.0 - metallic;
 
-    vec3 irradiance = texture(diffuseIrradianceMap, n).rgb;
-    vec3 diffuse    = irradiance * albedo;
+    vec3 diffuseAlbedo = material.subsurfaceEnabled ? albedo * material.subsurfaceColor : albedo;
+    vec3 irradiance    = texture(diffuseIrradianceMap, n).rgb;
+    vec3 diffuse       = irradiance * diffuseAlbedo;
 
     vec3  prefilteredEnvMapColor = textureLod(prefilteredEnvMap, r, roughness * PREFILTERED_ENV_MAP_LOD).rgb;
     float NdotV                  = max(dot(n, v), 0.0);
@@ -422,46 +449,47 @@ void main()
 
     vec3 ambient = (kDiffuse * diffuse + specular) * ao;
 
-    vec3 color = emissive + ambient + Lo;
+    vec3  color   = emissive + ambient + Lo;
+    float sssMask = material.subsurfaceEnabled ? 1.0 : 0.0;
 
     if (displayMode == 1)
     {
-        FragColor = vec4(albedo, 1.0);
+        FragColor  = vec4(albedo, 1.0);
         BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
     if (displayMode == 2)
     {
-        FragColor = vec4(n * 0.5 + 0.5, 1.0);
+        FragColor  = vec4(n * 0.5 + 0.5, 1.0);
         BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
     if (displayMode == 3)
     {
-        FragColor = vec4(vec3(metallic), 1.0);
+        FragColor  = vec4(vec3(metallic), 1.0);
         BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
     if (displayMode == 4)
     {
-        FragColor = vec4(vec3(roughness), 1.0);
+        FragColor  = vec4(vec3(roughness), 1.0);
         BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
     if (displayMode == 5)
     {
-        FragColor = vec4(vec3(ao), 1.0);
+        FragColor  = vec4(vec3(ao), 1.0);
         BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
     if (displayMode == 6)
     {
-        FragColor = vec4(emissive, 1.0);
+        FragColor  = vec4(emissive, 1.0);
         BloomColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
 
-    FragColor  = vec4(color, 1.0);
+    FragColor                 = vec4(color, sssMask);
     float greyscaleBrightness = dot(FragColor.rgb, GREYSCALE_WEIGHT_VECTOR);
     BloomColor = greyscaleBrightness > bloomBrightnessCutoff ? vec4(emissive, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
 }

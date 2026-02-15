@@ -122,8 +122,7 @@ namespace RealmEngine
                         continue;
 
                     ImGui::PushID(static_cast<int>(i));
-                    if (ImGui::TreeNodeEx(("Mesh " + std::to_string(i)).c_str(),
-                                          ImGuiTreeNodeFlags_DefaultOpen))
+                    if (ImGui::TreeNodeEx(("Mesh " + std::to_string(i)).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                     {
                         ImGui::Text("Vertices: %zu", mesh->m_vertices.size());
                         ImGui::Text("Indices: %zu", mesh->m_indices.size());
@@ -132,6 +131,14 @@ namespace RealmEngine
                         if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen))
                         {
                             renderMaterialPreview(mesh->m_material);
+                            if (ImGui::Checkbox("Subsurface", &mesh->m_material.subsurface_enabled))
+                            {
+                            }
+                            if (mesh->m_material.subsurface_enabled)
+                            {
+                                ImGui::DragFloat("SSS Radius", &mesh->m_material.subsurface_radius, 0.1f, 0.1f, 10.0f);
+                                ImGui::ColorEdit3("SSS Color", &mesh->m_material.subsurface_color.x);
+                            }
                             ImGui::TreePop();
                         }
                         ImGui::TreePop();
@@ -143,8 +150,7 @@ namespace RealmEngine
         }
     }
 
-    void PropertiesWidget::renderTextureSlot(const char* label, bool use_tex,
-                                             const std::shared_ptr<RHITexture>& tex)
+    void PropertiesWidget::renderTextureSlot(const char* label, bool use_tex, const std::shared_ptr<RHITexture>& tex)
     {
         ImGui::Text("%s:", label);
         ImGui::SameLine(140);
@@ -152,7 +158,7 @@ namespace RealmEngine
         {
             ImGui::Text("(%dx%d) %s", tex->getWidth(), tex->getHeight(), use_tex ? "on" : "off");
             const float preview_sz = 48.0f;
-            ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
+            ImTextureID tid        = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
             ImGui::Image(tid, ImVec2(preview_sz, preview_sz), ImVec2(0, 1), ImVec2(1, 0));
         }
         else
@@ -172,11 +178,9 @@ namespace RealmEngine
         ImGui::Separator();
         ImGui::Text("Textures");
         renderTextureSlot("Albedo", mat.use_texture_albedo, mat.texture_albedo);
-        renderTextureSlot("Metallic/Roughness", mat.use_texture_metallic_roughness,
-                         mat.texture_metallic_roughness);
+        renderTextureSlot("Metallic/Roughness", mat.use_texture_metallic_roughness, mat.texture_metallic_roughness);
         renderTextureSlot("Normal", mat.use_texture_normal, mat.texture_normal);
-        renderTextureSlot("Ambient Occlusion", mat.use_texture_ambient_occlusion,
-                         mat.texture_ambient_occlusion);
+        renderTextureSlot("Ambient Occlusion", mat.use_texture_ambient_occlusion, mat.texture_ambient_occlusion);
         renderTextureSlot("Emissive", mat.use_texture_emissive, mat.texture_emissive);
     }
 

@@ -29,7 +29,7 @@ namespace RealmEngine
         void setMipLevel(int level) override;
         void setCubeFace(int face) override;
 
-        uint32_t getNativeHandle() const { return m_fbo; }
+        uint32_t getNativeHandle() const override { return m_fbo; }
 
     private:
         void create();

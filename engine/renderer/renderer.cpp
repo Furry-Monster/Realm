@@ -15,6 +15,7 @@
 #include "renderer/passes/skybox_pass.h"
 #include "renderer/passes/ssao_blur_pass.h"
 #include "renderer/passes/ssao_pass.h"
+#include "renderer/passes/sss_pass.h"
 #include "renderer/skybox.h"
 #include "resource/config_manager.h"
 #include "rhi/rhi_device.h"
@@ -113,6 +114,11 @@ namespace RealmEngine
         m_ssao_blur_pass = ssao_blur.get();
         m_pipeline.addPass(std::move(ssao_blur));
 
+        // --- SSS pass ---
+        auto sss   = std::make_unique<SSSPass>(sp, rc.sss_enabled, rc.sss_radius, rc.sss_samples);
+        m_sss_pass = sss.get();
+        m_pipeline.addPass(std::move(sss));
+
         // --- Skybox pass ---
         auto skybox   = std::make_unique<SkyboxPass>(sp, rc.bloom_brightness_cutoff);
         m_skybox_pass = skybox.get();
@@ -205,11 +211,30 @@ namespace RealmEngine
             m_ssao_blur_pass->setFramebuffer(make_ao_fb(w, h));
         }
 
+        {
+            auto make_sss_fb = [&]() {
+                FramebufferDesc desc;
+                desc.width  = m_window->getWidth();
+                desc.height = m_window->getHeight();
+                FramebufferAttachment color;
+                color.format           = TextureFormat::RGBA16F;
+                color.min_filter       = TextureFilter::Linear;
+                color.mag_filter       = TextureFilter::Linear;
+                color.wrap             = TextureWrap::ClampToEdge;
+                desc.color_attachments = {color};
+                return m_device->createFramebuffer(desc);
+            };
+            m_sss_pass->setFramebuffers(make_sss_fb(), make_sss_fb());
+        }
+
         m_ssao_pass->setGeometryPass(m_geometry_pass);
         m_ssao_pass->setFullscreenQuad(m_fullscreen_quad.get());
         m_ssao_blur_pass->setSSAOPass(m_ssao_pass);
         m_ssao_blur_pass->setGeometryPass(m_geometry_pass);
         m_ssao_blur_pass->setFullscreenQuad(m_fullscreen_quad.get());
+
+        m_sss_pass->setGeometryPass(m_geometry_pass);
+        m_sss_pass->setFullscreenQuad(m_fullscreen_quad.get());
 
         m_skybox_pass->setSkybox(m_skybox.get());
         m_skybox_pass->setGeometryPass(m_geometry_pass);
@@ -321,6 +346,23 @@ namespace RealmEngine
             };
             m_ssao_pass->setFramebuffer(make_ao_fb(width, height));
             m_ssao_blur_pass->setFramebuffer(make_ao_fb(width, height));
+        }
+
+        if (m_sss_pass)
+        {
+            auto make_sss_fb = [&]() {
+                FramebufferDesc desc;
+                desc.width  = width;
+                desc.height = height;
+                FramebufferAttachment color;
+                color.format           = TextureFormat::RGBA16F;
+                color.min_filter       = TextureFilter::Linear;
+                color.mag_filter       = TextureFilter::Linear;
+                color.wrap             = TextureWrap::ClampToEdge;
+                desc.color_attachments = {color};
+                return m_device->createFramebuffer(desc);
+            };
+            m_sss_pass->setFramebuffers(make_sss_fb(), make_sss_fb());
         }
 
         if (m_viewport_framebuffer)

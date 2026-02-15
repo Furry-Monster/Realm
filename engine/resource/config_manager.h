@@ -46,6 +46,10 @@ namespace RealmEngine
         int   bloom_iterations        = 10;
         int   bloom_direction         = 0; // 0=BOTH, 1=HORIZONTAL, 2=VERTICAL
         float bloom_brightness_cutoff = 1.0f;
+
+        bool  sss_enabled             = true;
+        float sss_radius              = 2.0f;
+        int   sss_samples             = 9;
         bool  tonemapping_enabled     = true;
         float gamma_correction_factor = 2.2f;
 
