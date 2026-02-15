@@ -52,8 +52,8 @@ namespace RealmEngine
         m_shader->setBool("tonemappingEnabled", m_tonemapping);
         m_shader->setFloat("gammaCorrectionFactor", m_gamma);
 
-        auto* depth_tex = geo_fb->getDepthAttachment();
-        bool  ssao_on   = m_ssao_enabled && m_ssao_blur_pass && m_ssao_blur_pass->getResultTexture() && depth_tex;
+        auto* depth_tex    = geo_fb->getDepthAttachment();
+        bool  ssao_on      = m_ssao_enabled && m_ssao_blur_pass && m_ssao_blur_pass->getResultTexture() && depth_tex;
         int   display_mode = static_cast<int>(ctx.display_mode);
         if (display_mode == 7 && !ssao_on)
             display_mode = 0;

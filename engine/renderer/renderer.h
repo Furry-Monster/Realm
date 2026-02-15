@@ -53,7 +53,7 @@ namespace RealmEngine
         ViewportDisplayMode getViewportDisplayMode() const { return m_display_mode; }
         void                setViewportDisplayMode(ViewportDisplayMode mode) { m_display_mode = mode; }
 
-        void setRenderToViewportTexture(bool enable);
+        void        setRenderToViewportTexture(bool enable);
         RHITexture* getViewportTexture() const;
 
     private:
@@ -93,8 +93,8 @@ namespace RealmEngine
 
         std::filesystem::path m_shader_path;
 
-        ViewportDisplayMode m_display_mode {ViewportDisplayMode::Lit};
-        bool                m_render_to_viewport_texture {false};
+        ViewportDisplayMode             m_display_mode {ViewportDisplayMode::Lit};
+        bool                            m_render_to_viewport_texture {false};
         std::unique_ptr<RHIFramebuffer> m_viewport_framebuffer;
     };
 

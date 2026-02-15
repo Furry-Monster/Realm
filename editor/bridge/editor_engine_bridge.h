@@ -40,12 +40,12 @@ namespace RealmEngine
         std::shared_ptr<RHITexture> getTextureForPreview(const std::filesystem::path& path);
         ConfigManager&              getConfig();
 
-        ViewportDisplayMode getViewportDisplayMode() const;
-        void                setViewportDisplayMode(ViewportDisplayMode mode);
-        void                setRenderToViewportTexture(bool enable);
-        RHITexture*         getViewportTexture() const;
-        void                bindDefaultFramebufferForImGui() const;
-        void                        saveConfig();
+        ViewportDisplayMode        getViewportDisplayMode() const;
+        void                       setViewportDisplayMode(ViewportDisplayMode mode);
+        void                       setRenderToViewportTexture(bool enable);
+        RHITexture*                getViewportTexture() const;
+        void                       bindDefaultFramebufferForImGui() const;
+        void                       saveConfig();
         std::shared_ptr<SceneNode> pasteEntityFromClipboard(const std::string& json, std::shared_ptr<SceneNode> parent);
 
         EventBus& getEventBus();

@@ -2,14 +2,14 @@
 
 #include "core/log/log_macros.h"
 #include "engine.h"
-#include "rhi/rhi_device.h"
-#include "rhi/rhi_types.h"
 #include "platform/window/window.h"
 #include "renderer/renderer.h"
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
 #include "resource/config_serializer.h"
+#include "rhi/rhi_device.h"
 #include "rhi/rhi_texture.h"
+#include "rhi/rhi_types.h"
 #include "scene/components/camera_controller.h"
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
@@ -159,10 +159,7 @@ namespace RealmEngine
         m_engine->getRenderer().setRenderToViewportTexture(enable);
     }
 
-    RHITexture* EditorEngineBridge::getViewportTexture() const
-    {
-        return m_engine->getRenderer().getViewportTexture();
-    }
+    RHITexture* EditorEngineBridge::getViewportTexture() const { return m_engine->getRenderer().getViewportTexture(); }
 
     void EditorEngineBridge::bindDefaultFramebufferForImGui() const
     {

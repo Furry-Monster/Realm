@@ -8,15 +8,8 @@
 
 namespace RealmEngine
 {
-    static const char* displayModeLabels[] = {"Lit",
-                                              "Albedo",
-                                              "Normals",
-                                              "Metallic",
-                                              "Roughness",
-                                              "Material AO",
-                                              "Emissive",
-                                              "SSAO",
-                                              "Depth"};
+    static const char* displayModeLabels[] =
+        {"Lit", "Albedo", "Normals", "Metallic", "Roughness", "Material AO", "Emissive", "SSAO", "Depth"};
 
     ViewportWidget::ViewportWidget(EditorEngineBridge& bridge) : Widget("Viewport"), m_bridge(&bridge)
     {
@@ -33,8 +26,7 @@ namespace RealmEngine
         }
 
         int mode = static_cast<int>(m_bridge->getViewportDisplayMode());
-        if (ImGui::Combo("Display Mode", &mode, displayModeLabels,
-                         static_cast<int>(ViewportDisplayMode::Count)))
+        if (ImGui::Combo("Display Mode", &mode, displayModeLabels, static_cast<int>(ViewportDisplayMode::Count)))
         {
             m_bridge->setViewportDisplayMode(static_cast<ViewportDisplayMode>(mode));
         }
@@ -42,8 +34,8 @@ namespace RealmEngine
         auto* tex = m_bridge->getViewportTexture();
         if (tex)
         {
-            float  w  = static_cast<float>(tex->getWidth());
-            float  h  = static_cast<float>(tex->getHeight());
+            float  w     = static_cast<float>(tex->getWidth());
+            float  h     = static_cast<float>(tex->getHeight());
             ImVec2 avail = ImGui::GetContentRegionAvail();
             float  scale = std::min(avail.x / w, avail.y / h);
             ImVec2 display_size(w * scale, h * scale);

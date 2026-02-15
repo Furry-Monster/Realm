@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cstdint>
+
 namespace RealmEngine
 {
-    enum class ViewportDisplayMode : int
+    enum class ViewportDisplayMode : uint16_t
     {
         Lit = 0,
         Albedo,

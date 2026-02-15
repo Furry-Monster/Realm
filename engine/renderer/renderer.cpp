@@ -329,10 +329,10 @@ namespace RealmEngine
             desc.width  = width;
             desc.height = height;
             FramebufferAttachment color;
-            color.format     = TextureFormat::RGBA8;
-            color.min_filter = TextureFilter::Linear;
-            color.mag_filter = TextureFilter::Linear;
-            color.wrap       = TextureWrap::ClampToEdge;
+            color.format           = TextureFormat::RGBA8;
+            color.min_filter       = TextureFilter::Linear;
+            color.mag_filter       = TextureFilter::Linear;
+            color.wrap             = TextureWrap::ClampToEdge;
             desc.color_attachments = {color};
             m_viewport_framebuffer = m_device->createFramebuffer(desc);
         }
@@ -348,10 +348,10 @@ namespace RealmEngine
             desc.height = m_window->getHeight();
 
             FramebufferAttachment color;
-            color.format     = TextureFormat::RGBA8;
-            color.min_filter = TextureFilter::Linear;
-            color.mag_filter = TextureFilter::Linear;
-            color.wrap       = TextureWrap::ClampToEdge;
+            color.format           = TextureFormat::RGBA8;
+            color.min_filter       = TextureFilter::Linear;
+            color.mag_filter       = TextureFilter::Linear;
+            color.wrap             = TextureWrap::ClampToEdge;
             desc.color_attachments = {color};
 
             m_viewport_framebuffer = m_device->createFramebuffer(desc);
