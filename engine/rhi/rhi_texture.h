@@ -24,9 +24,9 @@ namespace RealmEngine
         TextureType   getType() const { return m_type; }
         TextureFormat getFormat() const { return m_format; }
 
-        // NOTE:
         // Backend-specific handle (e.g. GL texture id).
-        // Needed by framebuffer attachment and legacy code during migration.
+        // Used internally by RHI implementations (framebuffer attachment, etc.).
+        // Avoid calling from renderer/application code; prefer RHI abstractions.
         virtual uint32_t getNativeHandle() const = 0;
 
     protected:

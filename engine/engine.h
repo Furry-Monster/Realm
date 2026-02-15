@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <memory>
 
 namespace RealmEngine
@@ -30,24 +31,25 @@ namespace RealmEngine
         void loop();
         void tick();
 
+        bool   isInitialized() const { return m_initialized; }
         double getDeltaTime() const { return m_delta_time; }
 
-        // Subsystem accessors
-        EventBus&      getEventBus();
-        Logger&        getLogger();
-        ConfigManager& getConfig();
-        AssetManager&  getAssets();
-        SceneManager&  getSceneManager();
-        Window&        getWindow();
-        Renderer&      getRenderer();
-        Input&         getInput();
+        // Subsystem accessors (assert that the engine has been initialized)
+        EventBus&      getEventBus()     { assert(m_event_bus && "Engine not initialized"); return *m_event_bus; }
+        Logger&        getLogger()       { assert(m_logger    && "Engine not initialized"); return *m_logger; }
+        ConfigManager& getConfig()       { assert(m_config    && "Engine not initialized"); return *m_config; }
+        AssetManager&  getAssets()       { assert(m_assets    && "Engine not initialized"); return *m_assets; }
+        SceneManager&  getSceneManager() { assert(m_scene     && "Engine not initialized"); return *m_scene; }
+        Window&        getWindow()       { assert(m_window    && "Engine not initialized"); return *m_window; }
+        Renderer&      getRenderer()     { assert(m_renderer  && "Engine not initialized"); return *m_renderer; }
+        Input&         getInput()        { assert(m_input     && "Engine not initialized"); return *m_input; }
 
     protected:
         void logicalTick();
         void renderTick();
 
     private:
-        // Subsystems (order matters for init/destroy)
+        // Subsystems (declaration order = destruction order when using reset())
         std::unique_ptr<EventBus>      m_event_bus;
         std::unique_ptr<Logger>        m_logger;
         std::unique_ptr<ConfigManager> m_config;
@@ -57,6 +59,7 @@ namespace RealmEngine
         std::unique_ptr<Renderer>      m_renderer;
         std::unique_ptr<Input>         m_input;
 
+        bool   m_initialized {false};
         double m_delta_time {0.0};
         double m_max_delta_time {0.1};
         double m_last_frame_time {0.0};

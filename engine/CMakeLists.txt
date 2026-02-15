@@ -48,5 +48,5 @@ target_include_directories(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
     PUBLIC Realm::ThirdParty
-    PRIVATE $<$<PLATFORM_ID:Windows>:psapi>
+    PRIVATE $<$<PLATFORM_ID:Windows>:psapi advapi32>
 )

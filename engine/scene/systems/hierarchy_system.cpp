@@ -6,11 +6,19 @@
 
 namespace RealmEngine
 {
+    uint64_t HierarchySystem::s_last_synced_generation = UINT64_MAX;
+
     void HierarchySystem::update(Scene& scene)
     {
+        // Skip rebuild when the scene hierarchy hasn't changed
+        uint64_t current_gen = scene.getGeneration();
+        if (current_gen == s_last_synced_generation)
+            return;
+        s_last_synced_generation = current_gen;
+
         auto& registry = scene.getRegistry();
 
-        // Clear stale hierarchy components from previous frame
+        // Clear stale hierarchy components
         registry.clear<Parent>();
         registry.clear<Children>();
 
@@ -21,6 +29,8 @@ namespace RealmEngine
 
         syncNode(scene, root, entt::null);
     }
+
+    void HierarchySystem::invalidate() { s_last_synced_generation = UINT64_MAX; }
 
     void HierarchySystem::syncNode(Scene& scene, const std::shared_ptr<SceneNode>& node, entt::entity parent_entity)
     {

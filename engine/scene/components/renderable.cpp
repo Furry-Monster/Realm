@@ -6,20 +6,20 @@
 
 namespace RealmEngine
 {
-    void Renderable::loadModel(RHIDevice& device)
+    void loadRenderableModel(Renderable& renderable, RHIDevice& device)
     {
-        if (model_path.empty())
+        if (renderable.model_path.empty())
             return;
 
-        auto meshes = ModelLoader::load(model_path, flip_textures, device, nullptr);
+        auto meshes = ModelLoader::load(renderable.model_path, renderable.flip_textures, device, nullptr);
         if (!meshes.empty())
-            render_object = std::make_shared<RenderObject>(std::move(meshes));
+            renderable.render_object = std::make_shared<RenderObject>(std::move(meshes));
     }
 
-    void Renderable::loadModel(RHIDevice& device, AssetManager& asset_mgr)
+    void loadRenderableModel(Renderable& renderable, RHIDevice& device, AssetManager& asset_mgr)
     {
-        if (!model_path.empty())
-            render_object = asset_mgr.getOrLoadModel(model_path, flip_textures, device);
+        if (!renderable.model_path.empty())
+            renderable.render_object = asset_mgr.getOrLoadModel(renderable.model_path, renderable.flip_textures, device);
     }
 
 } // namespace RealmEngine

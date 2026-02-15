@@ -105,7 +105,7 @@ namespace RealmEngine
 
             auto& renderable      = entity.emplace<Renderable>();
             renderable.model_path = model_path_str;
-            renderable.loadModel(m_engine->getRenderer().getDevice(), m_engine->getAssets());
+            loadRenderableModel(renderable, m_engine->getRenderer().getDevice(), m_engine->getAssets());
 
             scene->getRoot()->addChild(node);
             scene->markDirty();

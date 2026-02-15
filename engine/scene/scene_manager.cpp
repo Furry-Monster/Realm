@@ -46,9 +46,9 @@ namespace RealmEngine
             auto&       renderable1 = helmet_entity.emplace<Renderable>();
             renderable1.model_path  = helmet_path;
             if (m_asset_mgr)
-                renderable1.loadModel(device, *m_asset_mgr);
+                loadRenderableModel(renderable1, device, *m_asset_mgr);
             else
-                renderable1.loadModel(device);
+                loadRenderableModel(renderable1, device);
 
             scene->getRoot()->addChild(helmet_node);
         }
@@ -69,9 +69,9 @@ namespace RealmEngine
             auto&       renderable2 = sphere_entity.emplace<Renderable>();
             renderable2.model_path  = sphere_path;
             if (m_asset_mgr)
-                renderable2.loadModel(device, *m_asset_mgr);
+                loadRenderableModel(renderable2, device, *m_asset_mgr);
             else
-                renderable2.loadModel(device);
+                loadRenderableModel(renderable2, device);
 
             scene->getRoot()->addChild(sphere_node);
         }

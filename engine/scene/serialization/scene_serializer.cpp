@@ -22,13 +22,15 @@
 
 namespace RealmEngine
 {
+    static constexpr int SCENE_FORMAT_VERSION = 1;
+
     std::string SceneSerializer::serialize(std::shared_ptr<Scene> scene)
     {
         if (!scene)
             return "{}";
 
         nlohmann::json json;
-        json["version"] = 1;
+        json["version"] = SCENE_FORMAT_VERSION;
 
         nlohmann::json root_json;
         serializeNode(root_json, scene->getRoot(), *scene);
@@ -46,6 +48,23 @@ namespace RealmEngine
         try
         {
             nlohmann::json json_obj = nlohmann::json::parse(json);
+
+            // Version check
+            int version = 0;
+            if (json_obj.contains("version") && json_obj["version"].is_number_integer())
+                version = json_obj["version"].get<int>();
+
+            if (version > SCENE_FORMAT_VERSION)
+            {
+                RE_LOG_ERROR("Scene file version " + std::to_string(version) +
+                             " is newer than supported version " + std::to_string(SCENE_FORMAT_VERSION) +
+                             ". Please update RealmEngine.");
+                return nullptr;
+            }
+            if (version < 1)
+            {
+                RE_LOG_WARN("Scene file has no version field; assuming version 1.");
+            }
 
             auto scene = std::make_shared<Scene>();
 
@@ -431,9 +450,9 @@ namespace RealmEngine
                     r.flip_textures = comp_json["flip_textures"];
 
                 if (asset_mgr)
-                    r.loadModel(device, *asset_mgr);
+                    loadRenderableModel(r, device, *asset_mgr);
                 else
-                    r.loadModel(device);
+                    loadRenderableModel(r, device);
 
                 if (comp_json.contains("mesh_overrides") && comp_json["mesh_overrides"].is_array() && r.render_object)
                 {

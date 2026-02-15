@@ -63,9 +63,9 @@ namespace RealmEngine
 
         std::string result;
         int         val = 0, valb = -6;
-        for (unsigned char c : data)
+        for (char c : data)
         {
-            val = (val << 8) + c;
+            val = (val << 8) + static_cast<unsigned char>(c);
             valb += 8;
             while (valb >= 0)
             {
@@ -95,7 +95,7 @@ namespace RealmEngine
             if (pos == nullptr)
                 continue;
 
-            val = (val << 6) + (pos - base64_chars);
+            val = (val << 6) + static_cast<int>(pos - base64_chars);
             valb += 6;
             if (valb >= 0)
             {
@@ -113,7 +113,7 @@ namespace RealmEngine
         for (char i : str)
         {
             seed = seed * 1103515245 + 12345;
-            result += static_cast<char>(i ^ (seed & 0xFF));
+            result += static_cast<char>(static_cast<unsigned char>(i) ^ (seed & 0xFF));
         }
         return result;
     }
@@ -125,7 +125,7 @@ namespace RealmEngine
         for (char i : obfuscated)
         {
             seed = seed * 1103515245 + 12345;
-            result += static_cast<char>(i ^ (seed & 0xFF));
+            result += static_cast<char>(static_cast<unsigned char>(i) ^ (seed & 0xFF));
         }
         return result;
     }

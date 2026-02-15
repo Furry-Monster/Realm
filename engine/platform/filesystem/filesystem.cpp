@@ -35,11 +35,22 @@ namespace RealmEngine
             buffer[len] = '\0';
             return std::filesystem::path(buffer);
         }
+        RE_LOG_WARN("readlink(/proc/self/exe) failed, falling back to cwd");
 #elif defined(_WIN32)
         wchar_t buffer[MAX_PATH];
         DWORD   len = GetModuleFileNameW(NULL, buffer, MAX_PATH);
         if (len > 0 && len < MAX_PATH)
             return std::filesystem::path(buffer);
+
+        // Retry with a larger buffer for long paths
+        if (len == MAX_PATH || GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+        {
+            std::vector<wchar_t> big_buffer(32768);
+            len = GetModuleFileNameW(NULL, big_buffer.data(), static_cast<DWORD>(big_buffer.size()));
+            if (len > 0 && len < big_buffer.size())
+                return std::filesystem::path(big_buffer.data(), big_buffer.data() + len);
+        }
+        RE_LOG_WARN("GetModuleFileNameW failed, falling back to cwd");
 #elif defined(__APPLE__)
         char     buffer[PATH_MAX];
         uint32_t size = sizeof(buffer);
@@ -50,8 +61,12 @@ namespace RealmEngine
             auto            resolved = std::filesystem::canonical(buffer, ec);
             return ec ? std::filesystem::path(buffer) : resolved;
         }
+        RE_LOG_WARN("_NSGetExecutablePath failed, falling back to cwd");
+#else
+        RE_LOG_WARN("Unsupported platform for getExecutablePath(), using cwd");
 #endif
-        return std::filesystem::current_path() / "RealmEngine";
+        // Last resort: return current working directory (without a hardcoded name)
+        return std::filesystem::current_path();
     }
 
     std::filesystem::path FileSystem::getExecutableDir() noexcept { return getExecutablePath().parent_path(); }

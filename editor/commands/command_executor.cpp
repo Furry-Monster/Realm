@@ -3,6 +3,8 @@
 
 namespace RealmEngine
 {
+    CommandExecutor::CommandExecutor(size_t max_history) : m_max_history(max_history) {}
+
     void CommandExecutor::execute(std::unique_ptr<ICommand> command)
     {
         if (command)
@@ -12,6 +14,7 @@ namespace RealmEngine
                 m_undo_stack.emplace_back(std::move(u), std::move(r));
             };
             command->execute(reg);
+            trimHistory();
         }
     }
 
@@ -22,6 +25,7 @@ namespace RealmEngine
             m_undo_stack.emplace_back(std::move(u), std::move(r));
         };
         command.execute(reg);
+        trimHistory();
     }
 
     void CommandExecutor::execute(ICommand&& command)
@@ -31,6 +35,7 @@ namespace RealmEngine
             m_undo_stack.emplace_back(std::move(u), std::move(r));
         };
         command.execute(reg);
+        trimHistory();
     }
 
     void CommandExecutor::undo()
@@ -56,5 +61,14 @@ namespace RealmEngine
     bool CommandExecutor::canUndo() const { return !m_undo_stack.empty(); }
 
     bool CommandExecutor::canRedo() const { return !m_redo_stack.empty(); }
+
+    void CommandExecutor::trimHistory()
+    {
+        if (m_max_history > 0 && m_undo_stack.size() > m_max_history)
+        {
+            size_t excess = m_undo_stack.size() - m_max_history;
+            m_undo_stack.erase(m_undo_stack.begin(), m_undo_stack.begin() + static_cast<ptrdiff_t>(excess));
+        }
+    }
 
 } // namespace RealmEngine

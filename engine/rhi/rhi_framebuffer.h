@@ -28,6 +28,7 @@ namespace RealmEngine
         // Select which cubemap face to render into (0-5 for +X,-X,+Y,-Y,+Z,-Z). No-op for non-cubemap FBOs.
         virtual void setCubeFace(int face) = 0;
 
+        // Backend-specific handle. Used internally by RHI implementations (blit, etc.).
         virtual uint32_t getNativeHandle() const { return 0; }
 
         int getWidth() const { return m_width; }

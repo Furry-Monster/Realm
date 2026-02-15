@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -11,7 +12,9 @@ namespace RealmEngine
     class CommandExecutor
     {
     public:
-        CommandExecutor()  = default;
+        static constexpr size_t DEFAULT_MAX_HISTORY = 200;
+
+        explicit CommandExecutor(size_t max_history = DEFAULT_MAX_HISTORY);
         ~CommandExecutor() = default;
 
         CommandExecutor(const CommandExecutor&)            = delete;
@@ -27,10 +30,16 @@ namespace RealmEngine
         bool canUndo() const;
         bool canRedo() const;
 
+        size_t getMaxHistory() const { return m_max_history; }
+        void   setMaxHistory(size_t max_history) { m_max_history = max_history; }
+
     private:
+        void trimHistory();
+
         using UndoRedoPair = std::pair<std::function<void()>, std::function<void()>>;
         std::vector<UndoRedoPair> m_undo_stack;
         std::vector<UndoRedoPair> m_redo_stack;
+        size_t                    m_max_history;
     };
 
 } // namespace RealmEngine

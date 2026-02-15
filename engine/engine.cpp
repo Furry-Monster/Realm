@@ -30,62 +30,82 @@ namespace RealmEngine
 
     void Engine::initialize()
     {
-        // EventBus first (other subsystems publish/subscribe)
-        m_event_bus = std::make_unique<EventBus>();
+        try
+        {
+            // EventBus first (other subsystems publish/subscribe)
+            m_event_bus = std::make_unique<EventBus>();
 
-        m_logger = std::make_unique<Logger>();
-        m_logger->initialize();
-        g_logger = m_logger.get();
+            m_logger = std::make_unique<Logger>();
+            m_logger->initialize();
+            g_logger = m_logger.get();
 
-        m_config = std::make_unique<ConfigManager>();
-        m_config->initialize();
+            m_config = std::make_unique<ConfigManager>();
+            m_config->initialize();
 
-        m_assets = std::make_unique<AssetManager>();
-        m_assets->initialize();
+            m_assets = std::make_unique<AssetManager>();
+            m_assets->initialize();
 
-        m_scene = std::make_unique<SceneManager>();
-        m_scene->initialize(m_config->getAssetFolder());
-        m_scene->setAssetManager(m_assets.get());
-        m_scene->setOnSceneChanged([this](std::shared_ptr<Scene> old_scene, std::shared_ptr<Scene> new_scene) {
-            m_event_bus->publish(SceneChangedEvent {old_scene.get(), new_scene.get()});
-        });
+            m_scene = std::make_unique<SceneManager>();
+            m_scene->initialize(m_config->getAssetFolder());
+            m_scene->setAssetManager(m_assets.get());
+            m_scene->setOnSceneChanged([this](std::shared_ptr<Scene> old_scene, std::shared_ptr<Scene> new_scene) {
+                m_event_bus->publish(SceneChangedEvent {old_scene.get(), new_scene.get()});
+            });
 
-        m_window = std::make_unique<Window>();
-        m_window->initialize(*m_event_bus, m_config->getWindowConfig());
+            m_window = std::make_unique<Window>();
+            m_window->initialize(*m_event_bus, m_config->getWindowConfig());
 
-        m_renderer = std::make_unique<Renderer>();
-        m_renderer->initialize(*m_config, *m_window);
+            m_renderer = std::make_unique<Renderer>();
+            m_renderer->initialize(*m_config, *m_window);
 
-        // Forward framebuffer resize events to the renderer
-        m_event_bus->subscribe<FramebufferResizeEvent>(
-            [this](const FramebufferResizeEvent& e) { m_renderer->onResize(e.width, e.height); });
+            // Forward framebuffer resize events to the renderer
+            m_event_bus->subscribe<FramebufferResizeEvent>(
+                [this](const FramebufferResizeEvent& e) { m_renderer->onResize(e.width, e.height); });
 
-        m_input = std::make_unique<Input>();
-        m_input->initialize(*m_event_bus, *m_window);
+            m_input = std::make_unique<Input>();
+            m_input->initialize(*m_event_bus, *m_window);
 
-        const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
-        m_max_delta_time                      = gameplay_config.max_delta_time;
+            const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
+            m_max_delta_time                      = gameplay_config.max_delta_time;
 
-        m_last_frame_time = m_window->getTime();
+            m_last_frame_time = m_window->getTime();
 
-        PlatformInfo::logPlatformInfo(m_renderer->getDevice());
+            PlatformInfo::logPlatformInfo(m_renderer->getDevice());
 
-        RE_LOG_INFO("<<< Boot Engine Done. >>>");
+            m_initialized = true;
+            RE_LOG_INFO("<<< Boot Engine Done. >>>");
+        }
+        catch (...)
+        {
+            // Ensure clean state on partial initialization failure
+            g_logger = nullptr;
+            m_input.reset();
+            m_renderer.reset();
+            m_window.reset();
+            m_scene.reset();
+            m_assets.reset();
+            m_config.reset();
+            m_logger.reset();
+            m_event_bus.reset();
+            throw;
+        }
     }
 
     void Engine::shutdown()
     {
         RE_LOG_INFO("<<< Now Terminating Engine. >>>");
 
-        m_delta_time = 0.0;
+        m_initialized = false;
+        m_delta_time  = 0.0;
 
+        // Shutdown in reverse initialization order
         m_input->disposal(*m_event_bus);
         m_input.reset();
 
-        m_scene.reset();
-
         m_renderer->disposal();
         m_renderer.reset();
+
+        m_scene.reset();
 
         m_assets->disposal();
         m_assets.reset();
@@ -96,6 +116,8 @@ namespace RealmEngine
         m_config->disposal();
         m_config.reset();
 
+        // Clear global logger before destroying it
+        g_logger = nullptr;
         m_logger->disposal();
         m_logger.reset();
 
@@ -176,15 +198,5 @@ namespace RealmEngine
         stats.memory_rss_kb  = PlatformInfo::getProcessRSSKB();
         EditorConsole::instance().setFrameStats(stats);
     }
-
-    // Subsystem accessors
-    EventBus&      Engine::getEventBus() { return *m_event_bus; }
-    Logger&        Engine::getLogger() { return *m_logger; }
-    ConfigManager& Engine::getConfig() { return *m_config; }
-    AssetManager&  Engine::getAssets() { return *m_assets; }
-    SceneManager&  Engine::getSceneManager() { return *m_scene; }
-    Window&        Engine::getWindow() { return *m_window; }
-    Renderer&      Engine::getRenderer() { return *m_renderer; }
-    Input&         Engine::getInput() { return *m_input; }
 
 } // namespace RealmEngine
