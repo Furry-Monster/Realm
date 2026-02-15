@@ -6,6 +6,8 @@ Modern OpenGL-based game engine with PBR pipeline, IBL lighting, and Bloom post-
 
 ![pbr demo](helmet.png "pbr demo")
 
+![img](example.png)
+
 ![editor demo](editor.png "editor demo")
 
 ![img](debug.png)
