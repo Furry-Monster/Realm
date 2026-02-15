@@ -6,6 +6,8 @@
 
 ![pbr demo](helmet.png "pbr demo")
 
+![img](example.png)
+
 ![编辑器demo](editor.png "editor demo")
 
 ![img](debug.png)
