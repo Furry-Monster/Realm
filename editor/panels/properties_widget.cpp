@@ -112,7 +112,7 @@ namespace RealmEngine
 
             ImGui::Text(r->render_object ? "Render Object: Loaded" : "Render Object: Not loaded");
 
-            if (r->render_object && ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_DefaultOpen))
+            if (r->render_object && ImGui::TreeNodeEx("Meshes", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 const size_t mesh_count = r->render_object->getMeshCount();
                 for (size_t i = 0; i < mesh_count; ++i)
@@ -125,7 +125,15 @@ namespace RealmEngine
                     if (ImGui::TreeNodeEx(("Mesh " + std::to_string(i)).c_str(),
                                           ImGuiTreeNodeFlags_DefaultOpen))
                     {
-                        renderMaterialPreview(mesh->m_material);
+                        ImGui::Text("Vertices: %zu", mesh->m_vertices.size());
+                        ImGui::Text("Indices: %zu", mesh->m_indices.size());
+                        ImGui::Text("Triangles: %d", mesh->getTriangleCount());
+
+                        if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen))
+                        {
+                            renderMaterialPreview(mesh->m_material);
+                            ImGui::TreePop();
+                        }
                         ImGui::TreePop();
                     }
                     ImGui::PopID();
