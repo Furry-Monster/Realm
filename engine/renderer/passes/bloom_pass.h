@@ -26,6 +26,7 @@ namespace RealmEngine
         BloomPass(const std::string& shader_path,
                   bool               enabled,
                   float              intensity,
+                  float              brightness_cutoff,
                   int                iterations,
                   BloomDirection     direction);
         ~BloomPass() override;
@@ -39,6 +40,7 @@ namespace RealmEngine
         void setFramebuffers(std::unique_ptr<RHIFramebuffer> fb0, std::unique_ptr<RHIFramebuffer> fb1);
 
         RHITexture* getResultTexture() const;
+        int         getMaxMipLevel() const;
         bool        isEnabled() const { return m_enabled; }
         float       getIntensity() const { return m_intensity; }
 
@@ -46,9 +48,11 @@ namespace RealmEngine
         std::string    m_shader_path;
         bool           m_enabled;
         float          m_intensity;
+        float          m_brightness_cutoff;
         int            m_iterations;
         BloomDirection m_direction;
 
+        std::unique_ptr<RHIShader>      m_extract_shader;
         std::unique_ptr<RHIShader>      m_shader;
         std::unique_ptr<RHIFramebuffer> m_framebuffers[2];
         GeometryPass*                   m_geometry_pass {nullptr};

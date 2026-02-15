@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "renderer/render_material.h"
@@ -27,7 +28,8 @@ namespace RealmEngine
         RenderMesh(std::vector<RenderVertex> vertices,
                    std::vector<unsigned int> indices,
                    RenderMaterial            material,
-                   RHIDevice&                device);
+                   RHIDevice&                device,
+                   const std::string&        name = "");
         ~RenderMesh();
 
         RenderMesh(const RenderMesh&)            = delete;
@@ -36,9 +38,13 @@ namespace RealmEngine
         RenderMesh& operator=(RenderMesh&& other) noexcept;
 
         void draw(RHIShader& shader);
+        void drawHair(RHIShader& shader);
         void drawShadow(RHIShader& shader);
+
+        bool isHair() const { return m_material.is_hair; }
         int  getTriangleCount() const { return static_cast<int>(m_indices.size()) / 3; }
 
+        std::string               m_name;
         std::vector<RenderVertex> m_vertices;
         std::vector<unsigned int> m_indices;
         RenderMaterial            m_material;

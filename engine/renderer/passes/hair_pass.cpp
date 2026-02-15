@@ -1,13 +1,9 @@
-#include "renderer/passes/geometry_pass.h"
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include "renderer/passes/hair_pass.h"
 
 #include <algorithm>
-#include <cstring>
 
 #include "renderer/light.h"
+#include "renderer/passes/geometry_pass.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/render_camera.h"
 #include "renderer/render_scene.h"
@@ -19,48 +15,37 @@
 
 namespace RealmEngine
 {
-    GeometryPass::~GeometryPass() = default;
+    HairPass::~HairPass() = default;
 
-    GeometryPass::GeometryPass(const std::string& shader_path,
-                               float              clear_r,
-                               float              clear_g,
-                               float              clear_b,
-                               float              clear_a) :
-        RenderPass("geometry"), m_shader_path(shader_path), m_clear_r(clear_r), m_clear_g(clear_g), m_clear_b(clear_b),
-        m_clear_a(clear_a)
-    {}
+    HairPass::HairPass(const std::string& shader_path) : RenderPass("hair"), m_shader_path(shader_path) {}
 
-    void GeometryPass::init(RHIDevice& device)
+    void HairPass::init(RHIDevice& device)
     {
-        m_shader = device.createShader(m_shader_path + "/pbr.vert", m_shader_path + "/pbr.frag");
+        m_shader = device.createShader(m_shader_path + "/hair.vert", m_shader_path + "/hair.frag");
         m_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
-
-        // Light UBO
         m_light_ubo = device.createBuffer(BufferType::Uniform, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
     }
 
-    void GeometryPass::execute(const RenderContext& ctx)
+    void HairPass::execute(const RenderContext& ctx)
     {
-        if (!m_framebuffer)
+        if (!m_geometry_pass || !m_geometry_pass->getFramebuffer())
             return;
 
-        m_framebuffer->bind();
+        auto* fb = m_geometry_pass->getFramebuffer();
+        fb->bind();
         ctx.device->setViewport(0, 0, ctx.viewport_width, ctx.viewport_height);
-        ctx.device->setClearColor(m_clear_r, m_clear_g, m_clear_b, m_clear_a);
-        ctx.device->clear(ClearFlags::Color | ClearFlags::Depth);
         ctx.device->setDepthTest(true);
         ctx.device->setDepthFunc(DepthFunc::Less);
+        ctx.device->setDepthWrite(true);
 
         m_shader->use();
 
-        // Camera
         ctx.camera->update();
         glm::vec3 cam_pos    = ctx.camera->getPosition();
         glm::mat4 projection = ctx.camera->getProjMatrix();
         glm::mat4 view       = ctx.camera->getViewMatrix();
         m_shader->setVec3("cameraPosition", cam_pos);
 
-        // Lights UBO
         {
             size_t    count   = std::min(ctx.scene->m_lights.size(), MAX_LIGHTS);
             int       count_i = static_cast<int>(count);
@@ -79,26 +64,14 @@ namespace RealmEngine
             m_light_ubo->bindBase(LIGHT_UBO_BINDING_POINT);
         }
 
-        // IBL textures
+        m_shader->setInt("displayMode", static_cast<int>(ctx.display_mode));
+
         if (m_ibl_diffuse)
         {
             ctx.device->bindTexture(TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP, *m_ibl_diffuse);
             m_shader->setInt("diffuseIrradianceMap", TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP);
         }
-        if (m_ibl_prefiltered)
-        {
-            ctx.device->bindTexture(TEXTURE_UNIT_PREFILTERED_ENV_MAP, *m_ibl_prefiltered);
-            m_shader->setInt("prefilteredEnvMap", TEXTURE_UNIT_PREFILTERED_ENV_MAP);
-        }
-        if (m_ibl_brdf)
-        {
-            ctx.device->bindTexture(TEXTURE_UNIT_BRDF_CONVOLUTION_MAP, *m_ibl_brdf);
-            m_shader->setInt("brdfConvolutionMap", TEXTURE_UNIT_BRDF_CONVOLUTION_MAP);
-        }
 
-        m_shader->setInt("displayMode", static_cast<int>(ctx.display_mode));
-
-        // Shadow
         if (m_shadow_pass && m_shadow_pass->isShadowEnabled())
         {
             auto* depth = m_shadow_pass->getFramebuffer()->getDepthAttachment();
@@ -116,31 +89,38 @@ namespace RealmEngine
             m_shader->setBool("shadowEnabled", false);
         }
 
-        // Draw objects
         for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
         {
             auto&     ro    = ctx.scene->m_render_objects[i];
             glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
                                                                                 glm::mat4(1.0f);
 
-            m_shader->setMVP(model, view, projection);
-            ctx.device->setDepthWrite(true);
-            ro->drawOpaque(*m_shader);
+            for (size_t m = 0; m < ro->getMeshCount(); ++m)
+            {
+                auto* mesh = ro->getMesh(m);
+                if (!mesh->isHair())
+                    continue;
+
+                int   layers     = mesh->m_material.hair_layers;
+                float layer_step = mesh->m_material.hair_layer_step;
+
+                for (int layer = 0; layer < layers; ++layer)
+                {
+                    m_shader->setFloat("layerIndex", static_cast<float>(layer));
+                    m_shader->setFloat("layerStep", layer_step);
+                    m_shader->setMVP(model, view, projection);
+                    mesh->drawHair(*m_shader);
+                }
+            }
         }
     }
 
-    void GeometryPass::dispose()
+    void HairPass::dispose()
     {
-        m_framebuffer.reset();
         m_shader.reset();
         m_light_ubo.reset();
     }
 
-    void GeometryPass::setIBLTextures(RHITexture* diffuse_irradiance, RHITexture* prefiltered_env, RHITexture* brdf_lut)
-    {
-        m_ibl_diffuse     = diffuse_irradiance;
-        m_ibl_prefiltered = prefiltered_env;
-        m_ibl_brdf        = brdf_lut;
-    }
+    void HairPass::setIBLTextures(RHITexture* diffuse_irradiance) { m_ibl_diffuse = diffuse_irradiance; }
 
 } // namespace RealmEngine

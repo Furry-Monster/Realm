@@ -24,8 +24,9 @@ namespace RealmEngine
     RenderMesh::RenderMesh(std::vector<RenderVertex> vertices,
                            std::vector<unsigned int> indices,
                            RenderMaterial            material,
-                           RHIDevice&                device) :
-        m_vertices(std::move(vertices)), m_indices(std::move(indices)), m_material(std::move(material))
+                           RHIDevice&                device,
+                           const std::string&        name) :
+        m_name(name), m_vertices(std::move(vertices)), m_indices(std::move(indices)), m_material(std::move(material))
     {
         m_vertex_buffer = device.createBuffer(
             BufferType::Vertex, BufferUsage::Static, m_vertices.data(), m_vertices.size() * sizeof(RenderVertex));
@@ -39,7 +40,7 @@ namespace RealmEngine
     RenderMesh::~RenderMesh() = default;
 
     RenderMesh::RenderMesh(RenderMesh&& other) noexcept :
-        m_vertices(std::move(other.m_vertices)), m_indices(std::move(other.m_indices)),
+        m_name(std::move(other.m_name)), m_vertices(std::move(other.m_vertices)), m_indices(std::move(other.m_indices)),
         m_material(std::move(other.m_material)), m_vertex_buffer(std::move(other.m_vertex_buffer)),
         m_index_buffer(std::move(other.m_index_buffer)), m_vertex_input(std::move(other.m_vertex_input))
     {}
@@ -48,6 +49,7 @@ namespace RealmEngine
     {
         if (this != &other)
         {
+            m_name          = std::move(other.m_name);
             m_vertices      = std::move(other.m_vertices);
             m_indices       = std::move(other.m_indices);
             m_material      = std::move(other.m_material);
@@ -96,6 +98,7 @@ namespace RealmEngine
 
         shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);
         shader.setVec3("material.emissive", mat.emissive);
+        shader.setFloat("material.emissiveStrength", mat.emissive_strength);
         if (mat.use_texture_emissive && mat.texture_emissive)
         {
             mat.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
@@ -105,6 +108,36 @@ namespace RealmEngine
         shader.setBool("material.subsurfaceEnabled", mat.subsurface_enabled);
         shader.setFloat("material.subsurfaceRadius", mat.subsurface_radius);
         shader.setVec3("material.subsurfaceColor", mat.subsurface_color);
+
+        m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
+    }
+
+    void RenderMesh::drawHair(RHIShader& shader)
+    {
+        if (!m_material.is_hair)
+            return;
+
+        const RenderMaterial& mat = m_material;
+
+        shader.setBool("material.useTextureAlbedo", mat.use_texture_albedo);
+        shader.setVec3("material.albedo", mat.albedo);
+        if (mat.use_texture_albedo && mat.texture_albedo)
+        {
+            mat.texture_albedo->bind(TEXTURE_UNIT_ALBEDO);
+            shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
+        }
+
+        shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);
+        shader.setVec3("material.emissive", mat.emissive);
+        shader.setFloat("material.emissiveStrength", mat.emissive_strength);
+        if (mat.use_texture_emissive && mat.texture_emissive)
+        {
+            mat.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
+            shader.setInt("material.textureEmissive", TEXTURE_UNIT_EMISSIVE);
+        }
+
+        shader.setFloat("material.specularStrength", mat.hair_specular_strength);
+        shader.setFloat("material.specularPower", mat.hair_specular_power);
 
         m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
     }

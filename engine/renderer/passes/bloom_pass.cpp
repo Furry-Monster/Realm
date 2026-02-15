@@ -16,14 +16,17 @@ namespace RealmEngine
     BloomPass::BloomPass(const std::string& shader_path,
                          bool               enabled,
                          float              intensity,
+                         float              brightness_cutoff,
                          int                iterations,
                          BloomDirection     direction) :
         RenderPass("bloom"), m_shader_path(shader_path), m_enabled(enabled), m_intensity(intensity),
-        m_iterations(iterations), m_direction(direction)
+        m_brightness_cutoff(brightness_cutoff), m_iterations(iterations), m_direction(direction)
     {}
 
     void BloomPass::init(RHIDevice& device)
     {
+        m_extract_shader =
+            device.createShader(m_shader_path + "/bloom_extract.vert", m_shader_path + "/bloom_extract.frag");
         m_shader = device.createShader(m_shader_path + "/bloom.vert", m_shader_path + "/bloom.frag");
     }
 
@@ -36,8 +39,8 @@ namespace RealmEngine
         if (!pbr_fb)
             return;
 
-        auto* bloom_tex = pbr_fb->getColorAttachment(1);
-        if (!bloom_tex)
+        auto* hdr_tex = pbr_fb->getColorAttachment(0);
+        if (!hdr_tex)
             return;
 
         glm::vec2 blur_direction_x = glm::vec2(1.0f, 0.0f);
@@ -55,13 +58,29 @@ namespace RealmEngine
                 break;
         }
 
-        bloom_tex->generateMipmaps();
-
-        m_shader->use();
         ctx.device->setDepthTest(false);
 
         int base_w = m_framebuffers[0]->getWidth();
         int base_h = m_framebuffers[0]->getHeight();
+
+        m_framebuffers[0]->setMipLevel(0);
+        m_framebuffers[0]->bind();
+        ctx.device->setViewport(0, 0, base_w, base_h);
+        m_extract_shader->use();
+        ctx.device->bindTexture(0, *hdr_tex);
+        m_extract_shader->setInt("inputColorTexture", 0);
+        m_extract_shader->setFloat("bloomBrightnessCutoff", m_brightness_cutoff);
+        m_quad->draw();
+
+        auto* bloom_tex = m_framebuffers[0]->getColorAttachment(0);
+        if (!bloom_tex)
+        {
+            ctx.device->setDepthTest(true);
+            return;
+        }
+        bloom_tex->generateMipmaps();
+
+        m_shader->use();
 
         static constexpr int BLOOM_MAX_MIP = 5;
         for (int mip = 0; mip <= BLOOM_MAX_MIP; ++mip)
@@ -104,6 +123,7 @@ namespace RealmEngine
 
     void BloomPass::dispose()
     {
+        m_extract_shader.reset();
         m_shader.reset();
         m_framebuffers[0].reset();
         m_framebuffers[1].reset();
@@ -118,6 +138,12 @@ namespace RealmEngine
     RHITexture* BloomPass::getResultTexture() const
     {
         return m_framebuffers[m_result_idx] ? m_framebuffers[m_result_idx]->getColorAttachment(0) : nullptr;
+    }
+
+    int BloomPass::getMaxMipLevel() const
+    {
+        static constexpr int BLOOM_MAX_MIP = 5;
+        return BLOOM_MAX_MIP;
     }
 
 } // namespace RealmEngine

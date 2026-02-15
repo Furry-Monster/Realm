@@ -160,6 +160,9 @@ namespace RealmEngine
             if (mesh->mMaterialIndex < scene->mNumMaterials)
             {
                 const aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
+                aiString          mat_name;
+                if (ai_material->Get(AI_MATKEY_NAME, mat_name) == aiReturn_SUCCESS)
+                    material.name = std::string(mat_name.C_Str());
 
                 aiColor4D diffuse_color(0.8f, 0.8f, 0.8f, 1.0f);
                 if (ai_material->Get(AI_MATKEY_BASE_COLOR, diffuse_color) != aiReturn_SUCCESS)
@@ -192,6 +195,10 @@ namespace RealmEngine
                 aiColor3D emissive(0.0f, 0.0f, 0.0f);
                 if (ai_material->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == aiReturn_SUCCESS)
                     material.emissive = glm::vec3(emissive.r, emissive.g, emissive.b);
+
+                float emissive_strength = 1.0f;
+                if (ai_material->Get(AI_MATKEY_EMISSIVE_INTENSITY, emissive_strength) == aiReturn_SUCCESS)
+                    material.emissive_strength = emissive_strength;
 
                 auto load_tex = [&](aiTextureType type, bool& use_flag, std::shared_ptr<RHITexture>& out_tex) {
                     auto tex =
@@ -233,7 +240,8 @@ namespace RealmEngine
                     load_tex(aiTextureType_EMISSIVE, material.use_texture_emissive, material.texture_emissive);
             }
 
-            return RenderMesh(std::move(vertices), std::move(indices), std::move(material), device);
+            std::string mesh_name = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : "";
+            return RenderMesh(std::move(vertices), std::move(indices), std::move(material), device, mesh_name);
         }
 
         std::string getTextureFilename(const std::string& path)

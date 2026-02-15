@@ -24,6 +24,7 @@ namespace RealmEngine
 
     class ShadowPass;
     class GeometryPass;
+    class HairPass;
     class SSAOPass;
     class SSAOBlurPass;
     class SSSPass;
@@ -70,6 +71,7 @@ namespace RealmEngine
         // Non-owning pass pointers for cross-pass wiring
         ShadowPass*      m_shadow_pass {nullptr};
         GeometryPass*    m_geometry_pass {nullptr};
+        HairPass*        m_hair_pass {nullptr};
         SSAOPass*        m_ssao_pass {nullptr};
         SSAOBlurPass*    m_ssao_blur_pass {nullptr};
         SSSPass*         m_sss_pass {nullptr};
