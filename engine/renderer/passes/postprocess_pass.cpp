@@ -3,6 +3,7 @@
 #include "renderer/fullscreen_quad.h"
 #include "renderer/passes/bloom_pass.h"
 #include "renderer/passes/geometry_pass.h"
+#include "renderer/passes/ssao_blur_pass.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
@@ -12,8 +13,13 @@ namespace RealmEngine
 {
     PostProcessPass::~PostProcessPass() = default;
 
-    PostProcessPass::PostProcessPass(const std::string& shader_path, bool tonemapping, float gamma) :
-        RenderPass("postprocess"), m_shader_path(shader_path), m_tonemapping(tonemapping), m_gamma(gamma)
+    PostProcessPass::PostProcessPass(const std::string& shader_path,
+                                     bool               tonemapping,
+                                     float              gamma,
+                                     bool               ssao_enabled,
+                                     float              ssao_power) :
+        RenderPass("postprocess"), m_shader_path(shader_path), m_tonemapping(tonemapping), m_gamma(gamma),
+        m_ssao_enabled(ssao_enabled), m_ssao_power(ssao_power)
     {}
 
     void PostProcessPass::init(RHIDevice& device)
@@ -68,6 +74,18 @@ namespace RealmEngine
 
         m_shader->setBool("bloomEnabled", bloom_on);
         m_shader->setFloat("bloomIntensity", bloom_intensity);
+
+        auto* depth_tex = geo_fb->getDepthAttachment();
+        bool  ssao_on   = m_ssao_enabled && m_ssao_blur_pass && m_ssao_blur_pass->getResultTexture() && depth_tex;
+        m_shader->setBool("ssaoEnabled", ssao_on);
+        m_shader->setFloat("ssaoPower", m_ssao_power);
+        if (ssao_on)
+        {
+            ctx.device->bindTexture(2, *m_ssao_blur_pass->getResultTexture());
+            m_shader->setInt("ssaoTexture", 2);
+            ctx.device->bindTexture(3, *depth_tex);
+            m_shader->setInt("depthTexture", 3);
+        }
 
         m_quad->draw();
 

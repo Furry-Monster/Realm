@@ -74,6 +74,12 @@ namespace RealmEngine
         }
         if (ImGui::TreeNode("Post-Processing"))
         {
+            ImGui::Checkbox("SSAO", &copy.ssao_enabled);
+            ImGui::DragFloat("SSAO Radius", &copy.ssao_radius, 0.01f, 0.01f, 2.0f);
+            ImGui::DragFloat("SSAO Bias", &copy.ssao_bias, 0.001f, 0.0f, 0.1f);
+            ImGui::DragFloat("SSAO Power", &copy.ssao_power, 0.1f, 0.5f, 5.0f);
+            ImGui::DragInt("SSAO Kernel Size", &copy.ssao_kernel_size, 1, 16, 64);
+            ImGui::Separator();
             ImGui::Checkbox("Bloom", &copy.bloom_enabled);
             ImGui::DragFloat("Bloom Intensity", &copy.bloom_intensity, 0.1f, 0.0f, 10.0f);
             ImGui::DragInt("Bloom Iterations", &copy.bloom_iterations, 1, 1, 32);

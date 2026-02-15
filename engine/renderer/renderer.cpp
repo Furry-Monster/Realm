@@ -13,6 +13,8 @@
 #include "renderer/passes/postprocess_pass.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/passes/skybox_pass.h"
+#include "renderer/passes/ssao_blur_pass.h"
+#include "renderer/passes/ssao_pass.h"
 #include "renderer/skybox.h"
 #include "resource/config_manager.h"
 #include "rhi/rhi_device.h"
@@ -100,6 +102,17 @@ namespace RealmEngine
         m_geometry_pass = geometry.get();
         m_pipeline.addPass(std::move(geometry));
 
+        // --- SSAO pass ---
+        auto ssao = std::make_unique<SSAOPass>(
+            sp, rc.ssao_enabled, rc.ssao_radius, rc.ssao_bias, rc.ssao_kernel_size, rc.ssao_noise_size);
+        m_ssao_pass = ssao.get();
+        m_pipeline.addPass(std::move(ssao));
+
+        // --- SSAO blur pass ---
+        auto ssao_blur   = std::make_unique<SSAOBlurPass>(sp);
+        m_ssao_blur_pass = ssao_blur.get();
+        m_pipeline.addPass(std::move(ssao_blur));
+
         // --- Skybox pass ---
         auto skybox   = std::make_unique<SkyboxPass>(sp, rc.bloom_brightness_cutoff);
         m_skybox_pass = skybox.get();
@@ -115,7 +128,8 @@ namespace RealmEngine
         m_pipeline.addPass(std::move(bloom));
 
         // --- Postprocess pass ---
-        auto post          = std::make_unique<PostProcessPass>(sp, rc.tonemapping_enabled, rc.gamma_correction_factor);
+        auto post = std::make_unique<PostProcessPass>(
+            sp, rc.tonemapping_enabled, rc.gamma_correction_factor, rc.ssao_enabled, rc.ssao_power);
         m_postprocess_pass = post.get();
         m_pipeline.addPass(std::move(post));
 
@@ -147,7 +161,7 @@ namespace RealmEngine
             desc.color_attachments                = {color0, bloom_color};
             desc.has_depth                        = true;
             desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
-            desc.depth_attachment.is_renderbuffer = true;
+            desc.depth_attachment.is_renderbuffer = false;
 
             m_geometry_pass->setFramebuffer(m_device->createFramebuffer(desc));
         }
@@ -173,12 +187,37 @@ namespace RealmEngine
             m_bloom_pass->setFramebuffers(make_fb(), make_fb());
         }
 
+        {
+            auto make_ao_fb = [&](int w, int h) {
+                FramebufferDesc desc;
+                desc.width  = w;
+                desc.height = h;
+                FramebufferAttachment ao;
+                ao.format              = TextureFormat::R16F;
+                ao.min_filter          = TextureFilter::Linear;
+                ao.mag_filter          = TextureFilter::Linear;
+                ao.wrap                = TextureWrap::ClampToEdge;
+                desc.color_attachments = {ao};
+                return m_device->createFramebuffer(desc);
+            };
+            int w = m_window->getWidth(), h = m_window->getHeight();
+            m_ssao_pass->setFramebuffer(make_ao_fb(w, h));
+            m_ssao_blur_pass->setFramebuffer(make_ao_fb(w, h));
+        }
+
+        m_ssao_pass->setGeometryPass(m_geometry_pass);
+        m_ssao_pass->setFullscreenQuad(m_fullscreen_quad.get());
+        m_ssao_blur_pass->setSSAOPass(m_ssao_pass);
+        m_ssao_blur_pass->setGeometryPass(m_geometry_pass);
+        m_ssao_blur_pass->setFullscreenQuad(m_fullscreen_quad.get());
+
         m_skybox_pass->setSkybox(m_skybox.get());
         m_skybox_pass->setGeometryPass(m_geometry_pass);
         m_bloom_pass->setGeometryPass(m_geometry_pass);
         m_bloom_pass->setFullscreenQuad(m_fullscreen_quad.get());
         m_postprocess_pass->setGeometryPass(m_geometry_pass);
         m_postprocess_pass->setBloomPass(m_bloom_pass);
+        m_postprocess_pass->setSSAOBlurPass(m_ssao_blur_pass);
         m_postprocess_pass->setFullscreenQuad(m_fullscreen_quad.get());
     }
 
@@ -237,7 +276,7 @@ namespace RealmEngine
             desc.color_attachments                = {color0, bloom_color};
             desc.has_depth                        = true;
             desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
-            desc.depth_attachment.is_renderbuffer = true;
+            desc.depth_attachment.is_renderbuffer = false;
 
             m_geometry_pass->setFramebuffer(m_device->createFramebuffer(desc));
         }
@@ -262,6 +301,24 @@ namespace RealmEngine
             };
 
             m_bloom_pass->setFramebuffers(make_fb(), make_fb());
+        }
+
+        if (m_ssao_pass && m_ssao_blur_pass)
+        {
+            auto make_ao_fb = [&](int w, int h) {
+                FramebufferDesc desc;
+                desc.width  = w;
+                desc.height = h;
+                FramebufferAttachment ao;
+                ao.format              = TextureFormat::R16F;
+                ao.min_filter          = TextureFilter::Linear;
+                ao.mag_filter          = TextureFilter::Linear;
+                ao.wrap                = TextureWrap::ClampToEdge;
+                desc.color_attachments = {ao};
+                return m_device->createFramebuffer(desc);
+            };
+            m_ssao_pass->setFramebuffer(make_ao_fb(width, height));
+            m_ssao_blur_pass->setFramebuffer(make_ao_fb(width, height));
         }
     }
 
