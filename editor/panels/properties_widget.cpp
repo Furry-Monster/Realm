@@ -133,30 +133,52 @@ namespace RealmEngine
                         if (ImGui::TreeNodeEx(mat_label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                         {
                             renderMaterialPreview(mesh->m_material);
+                            if (ImGui::DragFloat("Opacity", &mesh->m_material.opacity, 0.01f, 0.0f, 1.0f))
+                                scene->markDirty();
+                            if (ImGui::Checkbox("Transparent", &mesh->m_material.is_transparent))
+                                scene->markDirty();
+                            if (ImGui::Checkbox("Double Sided", &mesh->m_material.double_sided))
+                                scene->markDirty();
+                            if (ImGui::DragFloat("Alpha Cutout", &mesh->m_material.alpha_cutout, 0.01f, 0.0f, 1.0f))
+                                scene->markDirty();
                             if (ImGui::Checkbox("Hair", &mesh->m_material.is_hair))
-                            {
-                            }
+                                scene->markDirty();
                             if (mesh->m_material.is_hair)
                             {
-                                ImGui::SliderInt("Hair Layers", &mesh->m_material.hair_layers, 1, 32);
-                                ImGui::DragFloat(
-                                    "Hair Layer Step", &mesh->m_material.hair_layer_step, 0.0001f, 0.0f, 0.1f, "%.4f");
-                                ImGui::DragFloat(
-                                    "Hair Specular", &mesh->m_material.hair_specular_strength, 0.01f, 0.0f, 2.0f);
-                                ImGui::DragFloat(
-                                    "Hair Specular Power", &mesh->m_material.hair_specular_power, 1.0f, 1.0f, 256.0f);
+                                if (ImGui::SliderInt("Hair Layers", &mesh->m_material.hair_layers, 1, 32))
+                                    scene->markDirty();
+                                if (ImGui::DragFloat("Hair Layer Step",
+                                                     &mesh->m_material.hair_layer_step,
+                                                     0.0001f,
+                                                     0.0f,
+                                                     0.1f,
+                                                     "%.4f"))
+                                    scene->markDirty();
+                                if (ImGui::DragFloat(
+                                        "Hair Specular", &mesh->m_material.hair_specular_strength, 0.01f, 0.0f, 2.0f))
+                                    scene->markDirty();
+                                if (ImGui::DragFloat("Hair Specular Power",
+                                                     &mesh->m_material.hair_specular_power,
+                                                     1.0f,
+                                                     1.0f,
+                                                     256.0f))
+                                    scene->markDirty();
                             }
                             if (ImGui::Checkbox("Subsurface", &mesh->m_material.subsurface_enabled))
-                            {
-                            }
+                                scene->markDirty();
                             if (mesh->m_material.subsurface_enabled)
                             {
-                                ImGui::DragFloat("SSS Radius", &mesh->m_material.subsurface_radius, 0.1f, 0.1f, 10.0f);
-                                ImGui::ColorEdit3("SSS Color", &mesh->m_material.subsurface_color.x);
+                                if (ImGui::DragFloat(
+                                        "SSS Radius", &mesh->m_material.subsurface_radius, 0.1f, 0.1f, 10.0f))
+                                    scene->markDirty();
+                                if (ImGui::ColorEdit3("SSS Color", &mesh->m_material.subsurface_color.x))
+                                    scene->markDirty();
                             }
-                            ImGui::ColorEdit3("Emissive", &mesh->m_material.emissive.x);
-                            ImGui::DragFloat(
-                                "Emissive Strength", &mesh->m_material.emissive_strength, 0.01f, 0.0f, 10.0f);
+                            if (ImGui::ColorEdit3("Emissive", &mesh->m_material.emissive.x))
+                                scene->markDirty();
+                            if (ImGui::DragFloat(
+                                    "Emissive Strength", &mesh->m_material.emissive_strength, 0.01f, 0.0f, 10.0f))
+                                scene->markDirty();
                             ImGui::TreePop();
                         }
                         ImGui::TreePop();
@@ -203,6 +225,7 @@ namespace RealmEngine
         renderTextureSlot("Metallic/Roughness", mat.use_texture_metallic_roughness, mat.texture_metallic_roughness);
         renderTextureSlot("Normal", mat.use_texture_normal, mat.texture_normal);
         renderTextureSlot("Ambient Occlusion", mat.use_texture_ambient_occlusion, mat.texture_ambient_occlusion);
+        renderTextureSlot("Opacity", mat.use_texture_opacity, mat.texture_opacity);
         renderTextureSlot("Emissive", mat.use_texture_emissive, mat.texture_emissive);
     }
 

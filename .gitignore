@@ -1,9 +1,11 @@
 build/
 bin/
 
+# private assets
 assets/sphere/
-assets/Cian.fbx
-assets/Voodoo-Dool.fbx
+assets/Cian/
+assets/Greseo/
+assets/Aqua/
 
 .cache/
 .vscode/
@@ -11,8 +13,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-docs/
 
 # CMake
 CMakeCache.txt

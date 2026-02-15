@@ -13,14 +13,17 @@ in vec3 normal;
 struct HairMaterial
 {
     bool  useTextureAlbedo;
+    bool  useTextureOpacity;
     bool  useTextureEmissive;
     vec3  albedo;
+    float opacity;
     vec3  emissive;
     float emissiveStrength;
     float specularStrength;
     float specularPower;
 
     sampler2D textureAlbedo;
+    sampler2D textureOpacity;
     sampler2D textureEmissive;
 };
 
@@ -78,8 +81,20 @@ float calcShadow(vec4 fragPosLightSpace)
 void main()
 {
     vec3 albedo = material.albedo;
+    vec4 albedo_sample = vec4(albedo, 1.0);
     if (material.useTextureAlbedo)
-        albedo = texture(material.textureAlbedo, textureCoordinates).rgb;
+    {
+        albedo_sample = texture(material.textureAlbedo, textureCoordinates);
+        albedo = albedo_sample.rgb;
+    }
+
+    float alpha = material.opacity;
+    if (material.useTextureOpacity)
+        alpha *= texture(material.textureOpacity, textureCoordinates).r;
+    else if (material.useTextureAlbedo)
+        alpha *= albedo_sample.a;
+    if (alpha < 0.01)
+        discard;
 
     vec3 emissive = material.emissive;
     if (material.useTextureEmissive)
@@ -88,12 +103,12 @@ void main()
 
     if (displayMode == 1)
     {
-        FragColor = vec4(albedo, 1.0);
+        FragColor = vec4(albedo, alpha);
         return;
     }
     if (displayMode == 6)
     {
-        FragColor = vec4(emissive, 1.0);
+        FragColor = vec4(emissive, alpha);
         return;
     }
 
@@ -171,5 +186,5 @@ void main()
     vec3 ambient    = irradiance * albedo;
     vec3 color      = emissive + ambient + Lo;
 
-    FragColor = vec4(color, 1.0);
+    FragColor = vec4(color, alpha);
 }

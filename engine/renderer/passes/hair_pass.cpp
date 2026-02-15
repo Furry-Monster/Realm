@@ -12,6 +12,7 @@
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
 #include "rhi/rhi_texture.h"
+#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {
@@ -36,7 +37,10 @@ namespace RealmEngine
         ctx.device->setViewport(0, 0, ctx.viewport_width, ctx.viewport_height);
         ctx.device->setDepthTest(true);
         ctx.device->setDepthFunc(DepthFunc::Less);
-        ctx.device->setDepthWrite(true);
+        ctx.device->setBlend(true);
+        ctx.device->setBlendFunc(
+            BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha, BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
+        ctx.device->setDepthWrite(false);
 
         m_shader->use();
 
@@ -113,6 +117,9 @@ namespace RealmEngine
                 }
             }
         }
+
+        ctx.device->setBlend(false);
+        ctx.device->setDepthWrite(true);
     }
 
     void HairPass::dispose()

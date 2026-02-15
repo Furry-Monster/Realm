@@ -4,13 +4,13 @@
 
 Modern OpenGL-based game engine with PBR pipeline, IBL lighting, and Bloom post-processing. Integrated visual editor and Entity-Component-System (ECS).
 
-![pbr demo](helmet.png "pbr demo")
+![editor](docs/editor.png "editor demo")
 
-![img](example.png)
+![pbr + npr](docs/aqua.png "pbr demo")
 
-![editor demo](editor.png "editor demo")
+![pbr + npr](docs/example.png)
 
-![img](debug.png)
+![debug](docs/debug.png)
 
 ## Features
 

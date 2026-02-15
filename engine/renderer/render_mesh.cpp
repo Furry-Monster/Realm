@@ -72,6 +72,15 @@ namespace RealmEngine
             shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
         }
 
+        shader.setBool("material.useTextureOpacity", mat.use_texture_opacity);
+        shader.setFloat("material.opacity", mat.opacity);
+        shader.setFloat("material.alphaCutout", mat.alpha_cutout);
+        if (mat.use_texture_opacity && mat.texture_opacity)
+        {
+            mat.texture_opacity->bind(TEXTURE_UNIT_OPACITY);
+            shader.setInt("material.textureOpacity", TEXTURE_UNIT_OPACITY);
+        }
+
         shader.setBool("material.useTextureMetallicRoughness", mat.use_texture_metallic_roughness);
         shader.setFloat("material.metallic", mat.metallic);
         shader.setFloat("material.roughness", mat.roughness);
@@ -125,6 +134,14 @@ namespace RealmEngine
         {
             mat.texture_albedo->bind(TEXTURE_UNIT_ALBEDO);
             shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
+        }
+
+        shader.setBool("material.useTextureOpacity", mat.use_texture_opacity);
+        shader.setFloat("material.opacity", mat.opacity);
+        if (mat.use_texture_opacity && mat.texture_opacity)
+        {
+            mat.texture_opacity->bind(TEXTURE_UNIT_OPACITY);
+            shader.setInt("material.textureOpacity", TEXTURE_UNIT_OPACITY);
         }
 
         shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);

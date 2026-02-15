@@ -1,6 +1,8 @@
 #include "renderer/render_object.h"
 
+#include "rhi/rhi_device.h"
 #include "rhi/rhi_shader.h"
+#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {
@@ -17,6 +19,16 @@ namespace RealmEngine
     void RenderObject::setOrientation(glm::quat orientation) { m_orientation = orientation; }
 
     glm::quat RenderObject::getOrientation() const { return m_orientation; }
+
+    bool RenderObject::hasTransparentMeshes() const
+    {
+        for (const auto& mesh : m_meshes)
+        {
+            if (!mesh.isHair() && mesh.isTransparent())
+                return true;
+        }
+        return false;
+    }
 
     int RenderObject::getTriangleCount(size_t mesh_index) const
     {
@@ -35,8 +47,20 @@ namespace RealmEngine
     {
         for (auto& mesh : m_meshes)
         {
-            if (!mesh.isHair())
+            if (!mesh.isHair() && !mesh.isTransparent())
                 mesh.draw(shader);
+        }
+    }
+
+    void RenderObject::drawTransparent(RHIShader& shader, RHIDevice& device)
+    {
+        for (auto& mesh : m_meshes)
+        {
+            if (!mesh.isHair() && mesh.isTransparent())
+            {
+                device.setCullFace(mesh.m_material.double_sided ? CullFace::None : CullFace::Back);
+                mesh.draw(shader);
+            }
         }
     }
 

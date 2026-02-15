@@ -7,6 +7,7 @@
 #include <stb/stb_image.h>
 #include <assimp/Importer.hpp>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <glm/glm.hpp>
 
@@ -169,6 +170,12 @@ namespace RealmEngine
                     ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color);
                 material.albedo = glm::vec3(diffuse_color.r, diffuse_color.g, diffuse_color.b);
 
+                float opacity = 1.0f;
+                if (ai_material->Get(AI_MATKEY_OPACITY, opacity) == aiReturn_SUCCESS)
+                    material.opacity = opacity;
+                else
+                    material.opacity = diffuse_color.a;
+
                 float metallic = 0.0f;
                 if (ai_material->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == aiReturn_SUCCESS)
                     material.metallic = metallic;
@@ -238,6 +245,30 @@ namespace RealmEngine
 
                 if (ai_material->GetTextureCount(aiTextureType_EMISSIVE))
                     load_tex(aiTextureType_EMISSIVE, material.use_texture_emissive, material.texture_emissive);
+
+                if (ai_material->GetTextureCount(aiTextureType_OPACITY))
+                    load_tex(aiTextureType_OPACITY, material.use_texture_opacity, material.texture_opacity);
+
+                if (ai_material->Get(AI_MATKEY_GLTF_ALPHACUTOFF, material.alpha_cutout) == aiReturn_SUCCESS)
+                    ; // use loaded value
+
+                aiString alpha_mode;
+                if (ai_material->Get(AI_MATKEY_GLTF_ALPHAMODE, alpha_mode) == aiReturn_SUCCESS)
+                {
+                    const char* mode = alpha_mode.C_Str();
+                    if (std::strcmp(mode, "BLEND") == 0)
+                        material.is_transparent = true;
+                    else if (std::strcmp(mode, "MASK") == 0)
+                        material.is_transparent = false; // cutout via alpha_cutout
+                    else
+                        material.is_transparent = false; // OPAQUE or unknown
+                }
+                else
+                    material.is_transparent = (material.opacity < 1.0f);
+
+                int two_sided = 0;
+                if (ai_material->Get(AI_MATKEY_TWOSIDED, two_sided) == aiReturn_SUCCESS && two_sided != 0)
+                    material.double_sided = true;
             }
 
             std::string mesh_name = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : "";

@@ -16,12 +16,15 @@ in vec4 fragPosLightSpace;
 struct Material
 {
     bool useTextureAlbedo;
+    bool useTextureOpacity;
     bool useTextureMetallicRoughness;
     bool useTextureNormal;
     bool useTextureAmbientOcclusion;
     bool useTextureEmissive;
 
     vec3  albedo;
+    float opacity;
+    float alphaCutout;
     float metallic;
     float roughness;
     float ambientOcclusion;
@@ -33,6 +36,7 @@ struct Material
     vec3  subsurfaceColor;
 
     sampler2D textureAlbedo;
+    sampler2D textureOpacity;
     sampler2D textureMetallicRoughness;
     sampler2D textureNormal;
     sampler2D textureAmbientOcclusion;
@@ -69,7 +73,8 @@ uniform bool      shadowEnabled;
 uniform mat4      lightSpaceMatrix;
 
 // Viewport display mode: 0=lit, 1=albedo, 2=normals, 3=metallic, 4=roughness, 5=materialAO, 6=emissive
-uniform int displayMode;
+uniform int  displayMode;
+uniform bool isTransparentPass;
 
 // Fresnel function (Fresnel-Schlick approximation)
 //
@@ -280,11 +285,28 @@ void main()
 {
     // Preprocess:
     // albedo
-    vec3 albedo = material.albedo;
+    vec3 albedo        = material.albedo;
+    vec4 albedo_sample = vec4(albedo, 1.0);
     if (material.useTextureAlbedo)
     {
-        albedo = texture(material.textureAlbedo, textureCoordinates).rgb;
+        albedo_sample = texture(material.textureAlbedo, textureCoordinates);
+        albedo        = albedo_sample.rgb;
     }
+
+    // alpha: opacity from scalar, texture_opacity, or albedo.a
+    float alpha = material.opacity;
+    if (material.useTextureOpacity)
+        alpha *= texture(material.textureOpacity, textureCoordinates).r;
+    else if (material.useTextureAlbedo)
+        alpha *= albedo_sample.a;
+
+    if (isTransparentPass)
+    {
+        if (alpha < 0.01)
+            discard;
+    }
+    else if (alpha < material.alphaCutout)
+        discard;
 
     // metallic/roughness
     float metallic  = material.metallic;
@@ -445,8 +467,9 @@ void main()
 
     vec3 ambient = (kDiffuse * diffuse + specular) * ao;
 
-    vec3  color   = emissive + ambient + Lo;
-    float sssMask = material.subsurfaceEnabled ? 1.0 : 0.0;
+    vec3  color    = emissive + ambient + Lo;
+    float sssMask  = material.subsurfaceEnabled ? 1.0 : 0.0;
+    float outAlpha = isTransparentPass ? alpha : sssMask;
 
     if (displayMode == 1)
     {
@@ -479,5 +502,5 @@ void main()
         return;
     }
 
-    FragColor = vec4(color, sssMask);
+    FragColor = vec4(color, outAlpha);
 }
