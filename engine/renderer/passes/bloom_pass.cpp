@@ -120,4 +120,10 @@ namespace RealmEngine
         return m_framebuffers[m_result_idx] ? m_framebuffers[m_result_idx]->getColorAttachment(0) : nullptr;
     }
 
+    int BloomPass::getMaxMipLevel() const
+    {
+        static constexpr int BLOOM_MAX_MIP = 5;
+        return BLOOM_MAX_MIP;
+    }
+
 } // namespace RealmEngine

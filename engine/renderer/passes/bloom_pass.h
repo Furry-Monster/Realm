@@ -39,6 +39,7 @@ namespace RealmEngine
         void setFramebuffers(std::unique_ptr<RHIFramebuffer> fb0, std::unique_ptr<RHIFramebuffer> fb1);
 
         RHITexture* getResultTexture() const;
+        int         getMaxMipLevel() const;
         bool        isEnabled() const { return m_enabled; }
         float       getIntensity() const { return m_intensity; }
 

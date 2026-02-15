@@ -84,6 +84,7 @@ namespace RealmEngine
 
         m_shader->setBool("bloomEnabled", bloom_on);
         m_shader->setFloat("bloomIntensity", bloom_intensity);
+        m_shader->setInt("bloomMaxMip", m_bloom_pass ? m_bloom_pass->getMaxMipLevel() : 0);
 
         m_shader->setBool("ssaoEnabled", ssao_on);
         m_shader->setFloat("ssaoPower", m_ssao_power);
