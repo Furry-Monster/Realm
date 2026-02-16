@@ -8,7 +8,7 @@
 #ifndef STB_IMAGE_IMPLEMENTATION
 #  define STB_IMAGE_IMPLEMENTATION
 #endif
-#include <stb/stb_image.h>
+#include <stb_image.h>
 
 namespace RealmEngine
 {

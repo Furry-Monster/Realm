@@ -1,6 +1,6 @@
 #include "resource/asset_manager.h"
 
-#include <stb/stb_image.h>
+#include <stb_image.h>
 
 #include <algorithm>
 #include <cmath>
