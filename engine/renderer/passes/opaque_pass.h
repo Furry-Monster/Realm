@@ -6,7 +6,6 @@
 #include "renderer/render_pass.h"
 #include "renderer/scene_color_source.h"
 #include "renderer/shader_cache.h"
-#include "renderer/material.h"
 #include "rhi/rhi_types.h"
 
 namespace RealmEngine
@@ -41,8 +40,8 @@ namespace RealmEngine
         // scene color source's framebuffer (which is owned by DeferredLightingPass).
         void setDeferredMode(bool deferred, SceneColorSource* src = nullptr)
         {
-            m_deferred_mode  = deferred;
-            m_scene_color    = src;
+            m_deferred_mode = deferred;
+            m_scene_color   = src;
         }
 
         void reloadShaders() { m_shader_cache.clear(); }

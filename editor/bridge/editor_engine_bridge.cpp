@@ -173,7 +173,10 @@ namespace RealmEngine
         device.clear(ClearFlags::Color | ClearFlags::Depth);
     }
 
-    RHITexture* EditorEngineBridge::getGBufferAlbedoAO() const { return m_engine->getRenderer().getGBufferAlbedoAO(); }
+    RHITexture* EditorEngineBridge::getGBufferAlbedoModelID() const
+    {
+        return m_engine->getRenderer().getGBufferAlbedoModelID();
+    }
 
     RHITexture* EditorEngineBridge::getGBufferNormalMetallic() const
     {

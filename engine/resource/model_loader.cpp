@@ -163,15 +163,15 @@ namespace RealmEngine
 
             // Defaults for PBR properties
             glm::vec3 albedo(0.7f, 0.7f, 0.7f);
-            float     opacity           = 1.0f;
-            float     metallic_val      = 0.0f;
-            float     roughness_val     = 0.5f;
-            float     ao_val            = 1.0f;
+            float     opacity       = 1.0f;
+            float     metallic_val  = 0.0f;
+            float     roughness_val = 0.5f;
+            float     ao_val        = 1.0f;
             glm::vec3 emissive_val(0.0f);
-            float     emissive_str      = 1.0f;
-            float     alpha_cutout_val  = 0.5f;
-            bool      is_transparent    = false;
-            bool      is_double_sided   = false;
+            float     emissive_str     = 1.0f;
+            float     alpha_cutout_val = 0.5f;
+            bool      is_transparent   = false;
+            bool      is_double_sided  = false;
 
             if (mesh->mMaterialIndex < scene->mNumMaterials)
             {

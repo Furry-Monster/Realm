@@ -189,7 +189,10 @@ namespace RealmEngine
         if (mat.blend_mode == BlendMode::AlphaTest)
         {
             if (ImGui::DragFloat("Alpha Cutoff", &mat.alpha_cutoff, 0.01f, 0.0f, 1.0f))
+            {
+                props.setFloat("material.alphaCutout", mat.alpha_cutoff);
                 scene->markDirty();
+            }
         }
 
         // Render Face
@@ -200,6 +203,9 @@ namespace RealmEngine
             mat.render_face = static_cast<RenderFace>(rf);
             scene->markDirty();
         }
+
+        if (ImGui::DragInt("Render Queue", &mat.render_queue, 1, 0, 5000))
+            scene->markDirty();
 
         // Custom shader paths
         if (mat.shading_model == ShadingModel::Custom || mat.hasCustomShader())
@@ -309,11 +315,10 @@ namespace RealmEngine
             ImGui::Separator();
             ImGui::Text("Textures");
             renderTextureSlot("Albedo", "material.useTextureAlbedo", "material.textureAlbedo", props);
-            renderTextureSlot("MetRough", "material.useTextureMetallicRoughness",
-                              "material.textureMetallicRoughness", props);
+            renderTextureSlot(
+                "MetRough", "material.useTextureMetallicRoughness", "material.textureMetallicRoughness", props);
             renderTextureSlot("Normal", "material.useTextureNormal", "material.textureNormal", props);
-            renderTextureSlot("AO", "material.useTextureAmbientOcclusion",
-                              "material.textureAmbientOcclusion", props);
+            renderTextureSlot("AO", "material.useTextureAmbientOcclusion", "material.textureAmbientOcclusion", props);
             renderTextureSlot("Emissive", "material.useTextureEmissive", "material.textureEmissive", props);
             renderTextureSlot("Opacity", "material.useTextureOpacity", "material.textureOpacity", props);
         }
@@ -360,8 +365,7 @@ namespace RealmEngine
                 bool changed = false;
                 switch (prop.type)
                 {
-                    case PropType::Bool:
-                    {
+                    case PropType::Bool: {
                         bool bv = prop.values[0] != 0.0f;
                         if (ImGui::Checkbox("##val", &bv))
                         {
@@ -374,8 +378,7 @@ namespace RealmEngine
                         ImGui::SetNextItemWidth(100);
                         changed = ImGui::DragFloat("##val", &prop.values[0], 0.01f);
                         break;
-                    case PropType::Int:
-                    {
+                    case PropType::Int: {
                         int iv = static_cast<int>(prop.values[0]);
                         ImGui::SetNextItemWidth(100);
                         if (ImGui::DragInt("##val", &iv))

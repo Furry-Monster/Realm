@@ -467,7 +467,7 @@ namespace RealmEngine
         return m_viewport_framebuffer ? m_viewport_framebuffer->getColorAttachment(0) : nullptr;
     }
 
-    RHITexture* Renderer::getGBufferAlbedoAO() const
+    RHITexture* Renderer::getGBufferAlbedoModelID() const
     {
         if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
             return nullptr;

@@ -37,8 +37,8 @@ namespace RealmEngine
     }
 
     // Recursively resolve #include "path" directives
-    std::string GLShader::resolveIncludes(const std::string&              source,
-                                          const std::string&              base_dir,
+    std::string GLShader::resolveIncludes(const std::string&               source,
+                                          const std::string&               base_dir,
                                           std::unordered_set<std::string>& included)
     {
         std::istringstream stream(source);
@@ -55,7 +55,7 @@ namespace RealmEngine
                 auto q2 = line.find('"', q1 + 1);
                 if (q1 != std::string::npos && q2 != std::string::npos)
                 {
-                    std::string inc_path = line.substr(q1 + 1, q2 - q1 - 1);
+                    std::string           inc_path  = line.substr(q1 + 1, q2 - q1 - 1);
                     std::filesystem::path full_path = std::filesystem::path(base_dir) / inc_path;
 
                     try

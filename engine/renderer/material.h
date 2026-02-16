@@ -71,10 +71,21 @@ namespace RealmEngine
 
         [[nodiscard]] bool hasCustomShader() const { return !vert_path.empty() && !frag_path.empty(); }
 
-        // Deferred-compatible: only standard PBR opaque materials
+        // Deferred-compatible: standard PBR opaque materials without
+        // special forward-only rendering requirements.
         [[nodiscard]] bool isDeferred() const
         {
-            return shading_model == ShadingModel::StandardPBR && isOpaque();
+            if (shading_model != ShadingModel::StandardPBR || !isOpaque())
+                return false;
+            if (hasCustomShader())
+                return false;
+            // Hair requires multi-layer forward rendering
+            if (properties.getBool("isHair"))
+                return false;
+            // SSS parameters can't be encoded in the current G-Buffer
+            if (properties.getBool("material.subsurfaceEnabled"))
+                return false;
+            return true;
         }
     };
 

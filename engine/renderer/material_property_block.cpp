@@ -220,8 +220,7 @@ namespace RealmEngine
                     shader.setVec3(name, glm::vec3(prop.values[0], prop.values[1], prop.values[2]));
                     break;
                 case PropType::Vec4:
-                    shader.setVec4(name,
-                                   glm::vec4(prop.values[0], prop.values[1], prop.values[2], prop.values[3]));
+                    shader.setVec4(name, glm::vec4(prop.values[0], prop.values[1], prop.values[2], prop.values[3]));
                     break;
                 case PropType::Texture2D:
                     if (prop.texture && prop.texture_unit >= 0)

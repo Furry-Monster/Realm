@@ -65,7 +65,7 @@ namespace RealmEngine
         void        setRenderToViewportTexture(bool enable);
         RHITexture* getViewportTexture() const;
 
-        RHITexture* getGBufferAlbedoAO() const;
+        RHITexture* getGBufferAlbedoModelID() const;
         RHITexture* getGBufferNormalMetallic() const;
         RHITexture* getGBufferEmissiveRoughness() const;
         RHITexture* getGBufferDepth() const;

@@ -50,7 +50,7 @@ namespace RealmEngine
         void                bindDefaultFramebufferForImGui() const;
 
         // G-Buffer texture access (deferred only)
-        RHITexture*                getGBufferAlbedoAO() const;
+        RHITexture*                getGBufferAlbedoModelID() const;
         RHITexture*                getGBufferNormalMetallic() const;
         RHITexture*                getGBufferEmissiveRoughness() const;
         RHITexture*                getGBufferDepth() const;

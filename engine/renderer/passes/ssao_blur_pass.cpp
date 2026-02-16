@@ -1,8 +1,8 @@
 #include "renderer/passes/ssao_blur_pass.h"
 
 #include "renderer/fullscreen_quad.h"
-#include "renderer/passes/ssao_pass.h"
 #include "renderer/material.h"
+#include "renderer/passes/ssao_pass.h"
 #include "renderer/scene_color_source.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"

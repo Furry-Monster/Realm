@@ -545,6 +545,9 @@ namespace RealmEngine
                             }
                         }
 
+                        // Sync alpha_cutoff -> property block
+                        props.setFloat("material.alphaCutout", mat.alpha_cutoff);
+
                         // Legacy format backward compatibility
                         if (m.contains("opacity") && m["opacity"].is_number() && !m.contains("properties"))
                         {

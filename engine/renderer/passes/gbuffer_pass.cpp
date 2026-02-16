@@ -19,8 +19,10 @@ namespace RealmEngine
     {
         switch (model)
         {
-            case ShadingModel::StandardPBR: return 0;
-            default: return 0;
+            case ShadingModel::StandardPBR:
+                return 0;
+            default:
+                return 0;
         }
     }
 

@@ -98,7 +98,7 @@ namespace RealmEngine
             switch (m_gbuffer_preview)
             {
                 case 1:
-                    gbuf_tex = m_bridge->getGBufferAlbedoAO();
+                    gbuf_tex = m_bridge->getGBufferAlbedoModelID();
                     break;
                 case 2:
                     gbuf_tex = m_bridge->getGBufferNormalMetallic();

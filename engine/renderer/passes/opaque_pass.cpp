@@ -155,9 +155,8 @@ namespace RealmEngine
         }
 
         // Sort by shader pointer to minimize state switches
-        std::sort(commands.begin(), commands.end(), [](const DrawCmd& a, const DrawCmd& b) {
-            return a.shader < b.shader;
-        });
+        std::sort(
+            commands.begin(), commands.end(), [](const DrawCmd& a, const DrawCmd& b) { return a.shader < b.shader; });
 
         // Render
         RHIShader* active_shader = nullptr;
@@ -187,8 +186,10 @@ namespace RealmEngine
                 // Multi-layer rendering (hair)
                 float layer_step = mat.properties.getFloat("hair.layerStep", 0.002f);
                 ctx.device->setBlend(true);
-                ctx.device->setBlendFunc(BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha,
-                                         BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
+                ctx.device->setBlendFunc(BlendFactor::SrcAlpha,
+                                         BlendFactor::OneMinusSrcAlpha,
+                                         BlendFactor::SrcAlpha,
+                                         BlendFactor::OneMinusSrcAlpha);
                 ctx.device->setDepthWrite(false);
 
                 for (int layer = 0; layer < layer_count; ++layer)

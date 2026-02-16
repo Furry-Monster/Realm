@@ -44,7 +44,8 @@ namespace RealmEngine
         uint32_t    compileStage(uint32_t stage_type, const std::string& source, const std::string& path);
         bool        linkProgram(uint32_t vertex, uint32_t fragment, uint32_t geometry = 0);
         std::string loadFile(const std::string& path);
-        std::string resolveIncludes(const std::string& source, const std::string& base_dir,
+        std::string resolveIncludes(const std::string&               source,
+                                    const std::string&               base_dir,
                                     std::unordered_set<std::string>& included);
         int         getUniformLocation(const std::string& name);
 

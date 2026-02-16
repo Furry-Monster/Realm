@@ -28,7 +28,9 @@ namespace RealmEngine
         void renderTransform();
         void renderRenderable();
         void renderMaterialEditor(Material& mat);
-        void renderTextureSlot(const char* label, const std::string& use_key, const std::string& tex_key,
+        void renderTextureSlot(const char*            label,
+                               const std::string&     use_key,
+                               const std::string&     tex_key,
                                MaterialPropertyBlock& props);
         void renderPointLight();
         void renderSpotLight();
