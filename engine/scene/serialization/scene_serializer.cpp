@@ -210,45 +210,31 @@ namespace RealmEngine
                     auto* mesh = r->render_object->getMesh(i);
                     if (!mesh)
                         continue;
-                    const auto&    mat = mesh->m_material;
+                    const auto&    mat   = mesh->m_material;
+                    const auto&    props = mat.properties;
                     nlohmann::json m;
-                    m["opacity"]                = mat.opacity;
-                    m["is_transparent"]         = mat.is_transparent;
-                    m["double_sided"]           = mat.double_sided;
-                    m["alpha_cutout"]           = mat.alpha_cutout;
-                    m["is_hair"]                = mat.is_hair;
-                    m["hair_layers"]            = mat.hair_layers;
-                    m["hair_layer_step"]        = mat.hair_layer_step;
-                    m["hair_specular_strength"] = mat.hair_specular_strength;
-                    m["hair_specular_power"]    = mat.hair_specular_power;
-                    m["subsurface_enabled"]     = mat.subsurface_enabled;
-                    m["subsurface_radius"]      = mat.subsurface_radius;
-                    m["subsurface_color"]  = {mat.subsurface_color.x, mat.subsurface_color.y, mat.subsurface_color.z};
-                    m["emissive"]          = {mat.emissive.x, mat.emissive.y, mat.emissive.z};
-                    m["emissive_strength"] = mat.emissive_strength;
 
-                    // Custom shader
-                    m["use_custom_shader"] = mat.use_custom_shader;
-                    if (mat.use_custom_shader)
+                    m["shading_model"] = static_cast<int>(mat.shading_model);
+                    m["blend_mode"]    = static_cast<int>(mat.blend_mode);
+                    m["render_face"]   = static_cast<int>(mat.render_face);
+                    m["alpha_cutoff"]  = mat.alpha_cutoff;
+                    m["render_queue"]  = mat.render_queue;
+                    m["vert_path"]     = mat.vert_path;
+                    m["frag_path"]     = mat.frag_path;
+
+                    // Serialize all non-texture properties
+                    nlohmann::json props_json = nlohmann::json::array();
+                    for (const auto& [name, prop] : props.getProperties())
                     {
-                        m["custom_vert_path"] = mat.custom_vert_path;
-                        m["custom_frag_path"] = mat.custom_frag_path;
-
-                        if (!mat.custom_params.empty())
-                        {
-                            nlohmann::json params_json = nlohmann::json::array();
-                            for (const auto& param : mat.custom_params)
-                            {
-                                nlohmann::json pj;
-                                pj["name"] = param.name;
-                                pj["type"] = static_cast<int>(param.type);
-                                pj["values"] =
-                                    {param.values[0], param.values[1], param.values[2], param.values[3]};
-                                params_json.push_back(pj);
-                            }
-                            m["custom_params"] = params_json;
-                        }
+                        if (prop.type == PropType::Texture2D)
+                            continue;
+                        nlohmann::json pj;
+                        pj["name"]   = name;
+                        pj["type"]   = static_cast<int>(prop.type);
+                        pj["values"] = {prop.values[0], prop.values[1], prop.values[2], prop.values[3]};
+                        props_json.push_back(pj);
                     }
+                    m["properties"] = props_json;
 
                     overrides.push_back(m);
                 }
@@ -497,64 +483,109 @@ namespace RealmEngine
                         auto* mesh = r.render_object->getMesh(i);
                         if (!mesh)
                             break;
-                        auto&       mat = mesh->m_material;
-                        const auto& m   = arr[i];
-                        if (m.contains("opacity") && m["opacity"].is_number())
-                            mat.opacity = m["opacity"];
-                        if (m.contains("is_transparent") && m["is_transparent"].is_boolean())
-                            mat.is_transparent = m["is_transparent"];
-                        if (m.contains("double_sided") && m["double_sided"].is_boolean())
-                            mat.double_sided = m["double_sided"];
-                        if (m.contains("alpha_cutout") && m["alpha_cutout"].is_number())
-                            mat.alpha_cutout = m["alpha_cutout"];
-                        if (m.contains("is_hair") && m["is_hair"].is_boolean())
-                            mat.is_hair = m["is_hair"];
-                        if (m.contains("hair_layers") && m["hair_layers"].is_number_integer())
-                            mat.hair_layers = m["hair_layers"];
-                        if (m.contains("hair_layer_step") && m["hair_layer_step"].is_number())
-                            mat.hair_layer_step = m["hair_layer_step"];
-                        if (m.contains("hair_specular_strength") && m["hair_specular_strength"].is_number())
-                            mat.hair_specular_strength = m["hair_specular_strength"];
-                        if (m.contains("hair_specular_power") && m["hair_specular_power"].is_number())
-                            mat.hair_specular_power = m["hair_specular_power"];
-                        if (m.contains("subsurface_enabled") && m["subsurface_enabled"].is_boolean())
-                            mat.subsurface_enabled = m["subsurface_enabled"];
-                        if (m.contains("subsurface_radius") && m["subsurface_radius"].is_number())
-                            mat.subsurface_radius = m["subsurface_radius"];
-                        if (m.contains("subsurface_color") && m["subsurface_color"].is_array() &&
-                            m["subsurface_color"].size() == 3)
-                            mat.subsurface_color =
-                                glm::vec3(m["subsurface_color"][0], m["subsurface_color"][1], m["subsurface_color"][2]);
-                        if (m.contains("emissive") && m["emissive"].is_array() && m["emissive"].size() == 3)
-                            mat.emissive = glm::vec3(m["emissive"][0], m["emissive"][1], m["emissive"][2]);
-                        if (m.contains("emissive_strength") && m["emissive_strength"].is_number())
-                            mat.emissive_strength = m["emissive_strength"];
+                        auto&       mat   = mesh->m_material;
+                        auto&       props = mat.properties;
+                        const auto& m     = arr[i];
 
-                        // Custom shader
-                        if (m.contains("use_custom_shader") && m["use_custom_shader"].is_boolean())
-                            mat.use_custom_shader = m["use_custom_shader"];
-                        if (m.contains("custom_vert_path") && m["custom_vert_path"].is_string())
-                            mat.custom_vert_path = m["custom_vert_path"];
-                        if (m.contains("custom_frag_path") && m["custom_frag_path"].is_string())
-                            mat.custom_frag_path = m["custom_frag_path"];
-                        if (m.contains("custom_params") && m["custom_params"].is_array())
+                        // New format
+                        if (m.contains("shading_model") && m["shading_model"].is_number_integer())
+                            mat.shading_model = static_cast<ShadingModel>(m["shading_model"].get<int>());
+                        if (m.contains("blend_mode") && m["blend_mode"].is_number_integer())
+                            mat.blend_mode = static_cast<BlendMode>(m["blend_mode"].get<int>());
+                        if (m.contains("render_face") && m["render_face"].is_number_integer())
+                            mat.render_face = static_cast<RenderFace>(m["render_face"].get<int>());
+                        if (m.contains("alpha_cutoff") && m["alpha_cutoff"].is_number())
+                            mat.alpha_cutoff = m["alpha_cutoff"];
+                        if (m.contains("render_queue") && m["render_queue"].is_number_integer())
+                            mat.render_queue = m["render_queue"];
+                        if (m.contains("vert_path") && m["vert_path"].is_string())
+                            mat.vert_path = m["vert_path"];
+                        if (m.contains("frag_path") && m["frag_path"].is_string())
+                            mat.frag_path = m["frag_path"];
+
+                        if (m.contains("properties") && m["properties"].is_array())
                         {
-                            mat.custom_params.clear();
-                            for (const auto& pj : m["custom_params"])
+                            for (const auto& pj : m["properties"])
                             {
-                                MaterialParam param;
-                                if (pj.contains("name") && pj["name"].is_string())
-                                    param.name = pj["name"];
-                                if (pj.contains("type") && pj["type"].is_number_integer())
-                                    param.type = static_cast<MaterialParamType>(pj["type"].get<int>());
+                                if (!pj.contains("name") || !pj["name"].is_string())
+                                    continue;
+                                std::string pname = pj["name"];
+                                auto        ptype = static_cast<PropType>(pj.value("type", 0));
+                                float       v[4]  = {};
                                 if (pj.contains("values") && pj["values"].is_array() && pj["values"].size() >= 4)
                                 {
-                                    param.values[0] = pj["values"][0];
-                                    param.values[1] = pj["values"][1];
-                                    param.values[2] = pj["values"][2];
-                                    param.values[3] = pj["values"][3];
+                                    v[0] = pj["values"][0];
+                                    v[1] = pj["values"][1];
+                                    v[2] = pj["values"][2];
+                                    v[3] = pj["values"][3];
                                 }
-                                mat.custom_params.push_back(param);
+                                switch (ptype)
+                                {
+                                    case PropType::Bool:
+                                        props.setBool(pname, v[0] != 0.0f);
+                                        break;
+                                    case PropType::Float:
+                                        props.setFloat(pname, v[0]);
+                                        break;
+                                    case PropType::Int:
+                                        props.setInt(pname, static_cast<int>(v[0]));
+                                        break;
+                                    case PropType::Vec2:
+                                        props.setVec2(pname, glm::vec2(v[0], v[1]));
+                                        break;
+                                    case PropType::Vec3:
+                                        props.setVec3(pname, glm::vec3(v[0], v[1], v[2]));
+                                        break;
+                                    case PropType::Vec4:
+                                        props.setVec4(pname, glm::vec4(v[0], v[1], v[2], v[3]));
+                                        break;
+                                    case PropType::Texture2D:
+                                        break;
+                                }
+                            }
+                        }
+
+                        // Legacy format backward compatibility
+                        if (m.contains("opacity") && m["opacity"].is_number() && !m.contains("properties"))
+                        {
+                            props.setFloat("material.opacity", m["opacity"]);
+                            if (m.contains("is_transparent") && m["is_transparent"].get<bool>())
+                                mat.blend_mode = BlendMode::Transparent;
+                            if (m.contains("double_sided") && m["double_sided"].get<bool>())
+                                mat.render_face = RenderFace::Both;
+                            if (m.contains("alpha_cutout") && m["alpha_cutout"].is_number())
+                                mat.alpha_cutoff = m["alpha_cutout"];
+                            if (m.contains("is_hair") && m["is_hair"].get<bool>())
+                                props.setBool("isHair", true);
+                            if (m.contains("hair_layers"))
+                                props.setInt("hair.layers", m["hair_layers"]);
+                            if (m.contains("hair_layer_step"))
+                                props.setFloat("hair.layerStep", m["hair_layer_step"]);
+                            if (m.contains("hair_specular_strength"))
+                                props.setFloat("material.specularStrength", m["hair_specular_strength"]);
+                            if (m.contains("hair_specular_power"))
+                                props.setFloat("material.specularPower", m["hair_specular_power"]);
+                            if (m.contains("subsurface_enabled"))
+                                props.setBool("material.subsurfaceEnabled", m["subsurface_enabled"]);
+                            if (m.contains("subsurface_radius"))
+                                props.setFloat("material.subsurfaceRadius", m["subsurface_radius"]);
+                            if (m.contains("subsurface_color") && m["subsurface_color"].is_array() &&
+                                m["subsurface_color"].size() == 3)
+                                props.setVec3("material.subsurfaceColor",
+                                              glm::vec3(m["subsurface_color"][0],
+                                                        m["subsurface_color"][1],
+                                                        m["subsurface_color"][2]));
+                            if (m.contains("emissive") && m["emissive"].is_array() && m["emissive"].size() == 3)
+                                props.setVec3("material.emissive",
+                                              glm::vec3(m["emissive"][0], m["emissive"][1], m["emissive"][2]));
+                            if (m.contains("emissive_strength"))
+                                props.setFloat("material.emissiveStrength", m["emissive_strength"]);
+                            if (m.contains("use_custom_shader") && m["use_custom_shader"].get<bool>())
+                            {
+                                if (m.contains("custom_vert_path"))
+                                    mat.vert_path = m["custom_vert_path"];
+                                if (m.contains("custom_frag_path"))
+                                    mat.frag_path = m["custom_frag_path"];
                             }
                         }
                     }

@@ -102,18 +102,18 @@ namespace RealmEngine
             for (size_t m = 0; m < ro->getMeshCount(); ++m)
             {
                 auto* mesh = ro->getMesh(m);
-                if (!mesh->isHair())
+                if (!mesh->m_material.properties.getBool("isHair"))
                     continue;
 
-                int   layers     = mesh->m_material.hair_layers;
-                float layer_step = mesh->m_material.hair_layer_step;
+                int   layers     = mesh->m_material.properties.getInt("hair.layers", 8);
+                float layer_step = mesh->m_material.properties.getFloat("hair.layerStep", 0.002f);
 
                 for (int layer = 0; layer < layers; ++layer)
                 {
                     m_shader->setFloat("layerIndex", static_cast<float>(layer));
                     m_shader->setFloat("layerStep", layer_step);
                     m_shader->setMVP(model, view, projection);
-                    mesh->drawHair(*m_shader);
+                    mesh->draw(*m_shader);
                 }
             }
         }

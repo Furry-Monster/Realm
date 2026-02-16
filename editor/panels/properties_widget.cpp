@@ -129,65 +129,7 @@ namespace RealmEngine
                         std::string mat_label = mesh->m_material.name.empty() ? "Material" : mesh->m_material.name;
                         if (ImGui::TreeNodeEx(mat_label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                         {
-                            renderCustomShaderMaterial(mesh->m_material);
-
-                            if (!mesh->m_material.use_custom_shader)
-                            {
-                                renderMaterialPreview(mesh->m_material);
-                                if (ImGui::DragFloat("Opacity", &mesh->m_material.opacity, 0.01f, 0.0f, 1.0f))
-                                    scene->markDirty();
-                                if (ImGui::Checkbox("Transparent", &mesh->m_material.is_transparent))
-                                    scene->markDirty();
-                                if (ImGui::Checkbox("Double Sided", &mesh->m_material.double_sided))
-                                    scene->markDirty();
-                                if (ImGui::DragFloat(
-                                        "Alpha Cutout", &mesh->m_material.alpha_cutout, 0.01f, 0.0f, 1.0f))
-                                    scene->markDirty();
-                                if (ImGui::Checkbox("Hair", &mesh->m_material.is_hair))
-                                    scene->markDirty();
-                                if (mesh->m_material.is_hair)
-                                {
-                                    if (ImGui::SliderInt("Hair Layers", &mesh->m_material.hair_layers, 1, 32))
-                                        scene->markDirty();
-                                    if (ImGui::DragFloat("Hair Layer Step",
-                                                         &mesh->m_material.hair_layer_step,
-                                                         0.0001f,
-                                                         0.0f,
-                                                         0.1f,
-                                                         "%.4f"))
-                                        scene->markDirty();
-                                    if (ImGui::DragFloat("Hair Specular",
-                                                         &mesh->m_material.hair_specular_strength,
-                                                         0.01f,
-                                                         0.0f,
-                                                         2.0f))
-                                        scene->markDirty();
-                                    if (ImGui::DragFloat("Hair Specular Power",
-                                                         &mesh->m_material.hair_specular_power,
-                                                         1.0f,
-                                                         1.0f,
-                                                         256.0f))
-                                        scene->markDirty();
-                                }
-                                if (ImGui::Checkbox("Subsurface", &mesh->m_material.subsurface_enabled))
-                                    scene->markDirty();
-                                if (mesh->m_material.subsurface_enabled)
-                                {
-                                    if (ImGui::DragFloat(
-                                            "SSS Radius", &mesh->m_material.subsurface_radius, 0.1f, 0.1f, 10.0f))
-                                        scene->markDirty();
-                                    if (ImGui::ColorEdit3("SSS Color", &mesh->m_material.subsurface_color.x))
-                                        scene->markDirty();
-                                }
-                                if (ImGui::ColorEdit3("Emissive", &mesh->m_material.emissive.x))
-                                    scene->markDirty();
-                                if (ImGui::DragFloat("Emissive Strength",
-                                                     &mesh->m_material.emissive_strength,
-                                                     0.01f,
-                                                     0.0f,
-                                                     10.0f))
-                                    scene->markDirty();
-                            }
+                            renderMaterialEditor(mesh->m_material);
                             ImGui::TreePop();
                         }
                         ImGui::TreePop();
@@ -199,10 +141,15 @@ namespace RealmEngine
         }
     }
 
-    void PropertiesWidget::renderTextureSlot(const char* label, bool use_tex, const std::shared_ptr<RHITexture>& tex)
+    void PropertiesWidget::renderTextureSlot(const char*            label,
+                                             const std::string&     use_key,
+                                             const std::string&     tex_key,
+                                             MaterialPropertyBlock& props)
     {
         ImGui::Text("%s:", label);
         ImGui::SameLine(140);
+        auto tex     = props.getTexture(tex_key);
+        bool use_tex = props.getBool(use_key);
         if (tex)
         {
             ImGui::Text("(%dx%d) %s", tex->getWidth(), tex->getHeight(), use_tex ? "on" : "off");
@@ -216,188 +163,264 @@ namespace RealmEngine
         }
     }
 
-    void PropertiesWidget::renderMaterialPreview(const RenderMaterial& mat)
+    void PropertiesWidget::renderMaterialEditor(Material& mat)
     {
-        ImGui::Text("Albedo: (%.2f, %.2f, %.2f)", mat.albedo.x, mat.albedo.y, mat.albedo.z);
-        ImGui::Text("Metallic: %.2f", mat.metallic);
-        ImGui::Text("Roughness: %.2f", mat.roughness);
-        ImGui::Text("Ambient Occlusion: %.2f", mat.ambient_occlusion);
-        ImGui::Text("Emissive: (%.2f, %.2f, %.2f) Strength: %.2f",
-                    mat.emissive.x,
-                    mat.emissive.y,
-                    mat.emissive.z,
-                    mat.emissive_strength);
+        auto  scene = m_bridge->getCurrentScene();
+        auto& props = mat.properties;
 
-        ImGui::Separator();
-        ImGui::Text("Textures");
-        renderTextureSlot("Albedo", mat.use_texture_albedo, mat.texture_albedo);
-        renderTextureSlot("Metallic/Roughness", mat.use_texture_metallic_roughness, mat.texture_metallic_roughness);
-        renderTextureSlot("Normal", mat.use_texture_normal, mat.texture_normal);
-        renderTextureSlot("Ambient Occlusion", mat.use_texture_ambient_occlusion, mat.texture_ambient_occlusion);
-        renderTextureSlot("Opacity", mat.use_texture_opacity, mat.texture_opacity);
-        renderTextureSlot("Emissive", mat.use_texture_emissive, mat.texture_emissive);
-    }
-
-    void PropertiesWidget::renderCustomShaderMaterial(RenderMaterial& mat)
-    {
-        auto scene = m_bridge->getCurrentScene();
-
-        if (ImGui::Checkbox("Custom Shader", &mat.use_custom_shader))
-            scene->markDirty();
-
-        if (!mat.use_custom_shader)
-            return;
-
-        ImGui::Separator();
-        ImGui::Text("Custom Shader");
-
-        // Vertex shader path
+        // Shading Model
+        static const char* shading_names[] = {"Standard PBR", "Unlit", "Custom"};
+        int                sm              = static_cast<int>(mat.shading_model);
+        if (ImGui::Combo("Shading Model", &sm, shading_names, IM_ARRAYSIZE(shading_names)))
         {
-            char buf[512];
-            strncpy(buf, mat.custom_vert_path.c_str(), sizeof(buf) - 1);
-            buf[sizeof(buf) - 1] = '\0';
-            if (ImGui::InputText("Vertex Shader", buf, sizeof(buf)))
-            {
-                mat.custom_vert_path = buf;
-                scene->markDirty();
-            }
+            mat.shading_model = static_cast<ShadingModel>(sm);
+            scene->markDirty();
         }
 
-        // Fragment shader path
+        // Blend Mode
+        static const char* blend_names[] = {"Opaque", "Alpha Test", "Transparent"};
+        int                bm            = static_cast<int>(mat.blend_mode);
+        if (ImGui::Combo("Blend Mode", &bm, blend_names, IM_ARRAYSIZE(blend_names)))
         {
-            char buf[512];
-            strncpy(buf, mat.custom_frag_path.c_str(), sizeof(buf) - 1);
-            buf[sizeof(buf) - 1] = '\0';
-            if (ImGui::InputText("Fragment Shader", buf, sizeof(buf)))
-            {
-                mat.custom_frag_path = buf;
-                scene->markDirty();
-            }
+            mat.blend_mode = static_cast<BlendMode>(bm);
+            scene->markDirty();
         }
 
-        // Common properties still useful for custom shaders
-        if (ImGui::DragFloat("Opacity##custom", &mat.opacity, 0.01f, 0.0f, 1.0f))
-            scene->markDirty();
-        if (ImGui::Checkbox("Transparent##custom", &mat.is_transparent))
-            scene->markDirty();
-        if (ImGui::Checkbox("Double Sided##custom", &mat.double_sided))
-            scene->markDirty();
-
-        // Custom parameters
-        ImGui::Separator();
-        ImGui::Text("Custom Parameters");
-
-        static const char* param_type_names[] = {"Float", "Int", "Vec2", "Vec3", "Vec4", "Color3", "Color4"};
-
-        for (size_t p = 0; p < mat.custom_params.size(); ++p)
+        if (mat.blend_mode == BlendMode::AlphaTest)
         {
-            auto& param = mat.custom_params[p];
-            ImGui::PushID(static_cast<int>(p));
+            if (ImGui::DragFloat("Alpha Cutoff", &mat.alpha_cutoff, 0.01f, 0.0f, 1.0f))
+                scene->markDirty();
+        }
 
-            // Param name
+        // Render Face
+        static const char* face_names[] = {"Front", "Back", "Both"};
+        int                rf           = static_cast<int>(mat.render_face);
+        if (ImGui::Combo("Render Face", &rf, face_names, IM_ARRAYSIZE(face_names)))
+        {
+            mat.render_face = static_cast<RenderFace>(rf);
+            scene->markDirty();
+        }
+
+        // Custom shader paths
+        if (mat.shading_model == ShadingModel::Custom || mat.hasCustomShader())
+        {
+            ImGui::Separator();
+            ImGui::Text("Shader");
+
+            char vbuf[512], fbuf[512];
+            strncpy(vbuf, mat.vert_path.c_str(), sizeof(vbuf) - 1);
+            vbuf[sizeof(vbuf) - 1] = '\0';
+            strncpy(fbuf, mat.frag_path.c_str(), sizeof(fbuf) - 1);
+            fbuf[sizeof(fbuf) - 1] = '\0';
+
+            if (ImGui::InputText("Vertex Shader", vbuf, sizeof(vbuf)))
             {
+                mat.vert_path = vbuf;
+                scene->markDirty();
+            }
+            if (ImGui::InputText("Fragment Shader", fbuf, sizeof(fbuf)))
+            {
+                mat.frag_path = fbuf;
+                scene->markDirty();
+            }
+
+            if (ImGui::Button("Reload Shaders"))
+                m_bridge->reloadCustomShaders();
+        }
+
+        ImGui::Separator();
+
+        // Standard PBR properties
+        if (mat.shading_model == ShadingModel::StandardPBR)
+        {
+            glm::vec3 albedo = props.getVec3("material.albedo", glm::vec3(0.7f));
+            if (ImGui::ColorEdit3("Albedo", &albedo.x))
+            {
+                props.setVec3("material.albedo", albedo);
+                scene->markDirty();
+            }
+
+            float metallic = props.getFloat("material.metallic");
+            if (ImGui::DragFloat("Metallic", &metallic, 0.01f, 0.0f, 1.0f))
+            {
+                props.setFloat("material.metallic", metallic);
+                scene->markDirty();
+            }
+
+            float roughness = props.getFloat("material.roughness", 0.5f);
+            if (ImGui::DragFloat("Roughness", &roughness, 0.01f, 0.0f, 1.0f))
+            {
+                props.setFloat("material.roughness", roughness);
+                scene->markDirty();
+            }
+
+            float ao = props.getFloat("material.ambientOcclusion", 1.0f);
+            if (ImGui::DragFloat("Ambient Occlusion", &ao, 0.01f, 0.0f, 1.0f))
+            {
+                props.setFloat("material.ambientOcclusion", ao);
+                scene->markDirty();
+            }
+
+            float opacity = props.getFloat("material.opacity", 1.0f);
+            if (ImGui::DragFloat("Opacity", &opacity, 0.01f, 0.0f, 1.0f))
+            {
+                props.setFloat("material.opacity", opacity);
+                scene->markDirty();
+            }
+
+            glm::vec3 emissive = props.getVec3("material.emissive");
+            if (ImGui::ColorEdit3("Emissive", &emissive.x))
+            {
+                props.setVec3("material.emissive", emissive);
+                scene->markDirty();
+            }
+
+            float emissive_str = props.getFloat("material.emissiveStrength", 1.0f);
+            if (ImGui::DragFloat("Emissive Strength", &emissive_str, 0.01f, 0.0f, 10.0f))
+            {
+                props.setFloat("material.emissiveStrength", emissive_str);
+                scene->markDirty();
+            }
+
+            // SSS
+            bool sss = props.getBool("material.subsurfaceEnabled");
+            if (ImGui::Checkbox("Subsurface", &sss))
+            {
+                props.setBool("material.subsurfaceEnabled", sss);
+                scene->markDirty();
+            }
+            if (sss)
+            {
+                float sss_radius = props.getFloat("material.subsurfaceRadius", 1.0f);
+                if (ImGui::DragFloat("SSS Radius", &sss_radius, 0.1f, 0.1f, 10.0f))
+                {
+                    props.setFloat("material.subsurfaceRadius", sss_radius);
+                    scene->markDirty();
+                }
+                glm::vec3 sss_color = props.getVec3("material.subsurfaceColor", glm::vec3(1.0f, 0.2f, 0.1f));
+                if (ImGui::ColorEdit3("SSS Color", &sss_color.x))
+                {
+                    props.setVec3("material.subsurfaceColor", sss_color);
+                    scene->markDirty();
+                }
+            }
+
+            // Textures
+            ImGui::Separator();
+            ImGui::Text("Textures");
+            renderTextureSlot("Albedo", "material.useTextureAlbedo", "material.textureAlbedo", props);
+            renderTextureSlot("MetRough", "material.useTextureMetallicRoughness",
+                              "material.textureMetallicRoughness", props);
+            renderTextureSlot("Normal", "material.useTextureNormal", "material.textureNormal", props);
+            renderTextureSlot("AO", "material.useTextureAmbientOcclusion",
+                              "material.textureAmbientOcclusion", props);
+            renderTextureSlot("Emissive", "material.useTextureEmissive", "material.textureEmissive", props);
+            renderTextureSlot("Opacity", "material.useTextureOpacity", "material.textureOpacity", props);
+        }
+
+        // Dynamic properties for Custom / Unlit
+        if (mat.shading_model != ShadingModel::StandardPBR)
+        {
+            ImGui::Separator();
+            ImGui::Text("Properties");
+
+            static const char* type_names[] = {"Bool", "Float", "Int", "Vec2", "Vec3", "Vec4", "Texture2D"};
+
+            auto& all_props = props.getProperties();
+            for (size_t p = 0; p < all_props.size(); ++p)
+            {
+                auto& [pname, prop] = all_props[p];
+                if (prop.type == PropType::Texture2D)
+                    continue;
+
+                ImGui::PushID(static_cast<int>(p));
+
                 char name_buf[128];
-                strncpy(name_buf, param.name.c_str(), sizeof(name_buf) - 1);
+                strncpy(name_buf, pname.c_str(), sizeof(name_buf) - 1);
                 name_buf[sizeof(name_buf) - 1] = '\0';
-                ImGui::SetNextItemWidth(120);
+                ImGui::SetNextItemWidth(140);
                 if (ImGui::InputText("##name", name_buf, sizeof(name_buf)))
                 {
-                    param.name = name_buf;
+                    pname = name_buf;
                     scene->markDirty();
                 }
-            }
 
-            ImGui::SameLine();
+                ImGui::SameLine();
 
-            // Type selector
-            {
-                int type_idx = static_cast<int>(param.type);
+                int type_idx = static_cast<int>(prop.type);
                 ImGui::SetNextItemWidth(80);
-                if (ImGui::Combo("##type", &type_idx, param_type_names, IM_ARRAYSIZE(param_type_names)))
+                if (ImGui::Combo("##type", &type_idx, type_names, IM_ARRAYSIZE(type_names)))
                 {
-                    param.type = static_cast<MaterialParamType>(type_idx);
+                    prop.type = static_cast<PropType>(type_idx);
                     scene->markDirty();
                 }
-            }
 
-            ImGui::SameLine();
+                ImGui::SameLine();
 
-            // Value editor
-            bool changed = false;
-            switch (param.type)
-            {
-                case MaterialParamType::Float:
-                    ImGui::SetNextItemWidth(100);
-                    changed = ImGui::DragFloat("##val", &param.values[0], 0.01f);
-                    break;
-                case MaterialParamType::Int:
+                bool changed = false;
+                switch (prop.type)
                 {
-                    int iv = static_cast<int>(param.values[0]);
-                    ImGui::SetNextItemWidth(100);
-                    if (ImGui::DragInt("##val", &iv))
+                    case PropType::Bool:
                     {
-                        param.values[0] = static_cast<float>(iv);
-                        changed         = true;
+                        bool bv = prop.values[0] != 0.0f;
+                        if (ImGui::Checkbox("##val", &bv))
+                        {
+                            prop.values[0] = bv ? 1.0f : 0.0f;
+                            changed        = true;
+                        }
+                        break;
                     }
+                    case PropType::Float:
+                        ImGui::SetNextItemWidth(100);
+                        changed = ImGui::DragFloat("##val", &prop.values[0], 0.01f);
+                        break;
+                    case PropType::Int:
+                    {
+                        int iv = static_cast<int>(prop.values[0]);
+                        ImGui::SetNextItemWidth(100);
+                        if (ImGui::DragInt("##val", &iv))
+                        {
+                            prop.values[0] = static_cast<float>(iv);
+                            changed        = true;
+                        }
+                        break;
+                    }
+                    case PropType::Vec2:
+                        ImGui::SetNextItemWidth(160);
+                        changed = ImGui::DragFloat2("##val", prop.values, 0.01f);
+                        break;
+                    case PropType::Vec3:
+                        ImGui::SetNextItemWidth(200);
+                        changed = ImGui::DragFloat3("##val", prop.values, 0.01f);
+                        break;
+                    case PropType::Vec4:
+                        ImGui::SetNextItemWidth(240);
+                        changed = ImGui::DragFloat4("##val", prop.values, 0.01f);
+                        break;
+                    case PropType::Texture2D:
+                        break;
+                }
+                if (changed)
+                    scene->markDirty();
+
+                ImGui::SameLine();
+                if (ImGui::Button("X"))
+                {
+                    all_props.erase(all_props.begin() + static_cast<ptrdiff_t>(p));
+                    scene->markDirty();
+                    ImGui::PopID();
                     break;
                 }
-                case MaterialParamType::Vec2:
-                    ImGui::SetNextItemWidth(160);
-                    changed = ImGui::DragFloat2("##val", param.values, 0.01f);
-                    break;
-                case MaterialParamType::Vec3:
-                    ImGui::SetNextItemWidth(200);
-                    changed = ImGui::DragFloat3("##val", param.values, 0.01f);
-                    break;
-                case MaterialParamType::Vec4:
-                    ImGui::SetNextItemWidth(240);
-                    changed = ImGui::DragFloat4("##val", param.values, 0.01f);
-                    break;
-                case MaterialParamType::Color3:
-                    changed = ImGui::ColorEdit3("##val", param.values);
-                    break;
-                case MaterialParamType::Color4:
-                    changed = ImGui::ColorEdit4("##val", param.values);
-                    break;
-            }
-            if (changed)
-                scene->markDirty();
 
-            ImGui::SameLine();
-            if (ImGui::Button("X"))
-            {
-                mat.custom_params.erase(mat.custom_params.begin() + static_cast<ptrdiff_t>(p));
-                scene->markDirty();
                 ImGui::PopID();
-                break;
             }
 
-            ImGui::PopID();
+            if (ImGui::Button("+ Add Property"))
+            {
+                props.setFloat("newParam", 0.0f);
+                scene->markDirty();
+            }
         }
-
-        if (ImGui::Button("+ Add Parameter"))
-        {
-            MaterialParam param;
-            param.name = "newParam";
-            mat.custom_params.push_back(param);
-            scene->markDirty();
-        }
-
-        ImGui::Spacing();
-        if (ImGui::Button("Reload Shaders"))
-            m_bridge->reloadCustomShaders();
-
-        // Show texture info even in custom shader mode
-        ImGui::Separator();
-        ImGui::Text("Textures (from model)");
-        renderTextureSlot("Albedo", mat.use_texture_albedo, mat.texture_albedo);
-        renderTextureSlot("Normal", mat.use_texture_normal, mat.texture_normal);
-        renderTextureSlot("Metallic/Roughness", mat.use_texture_metallic_roughness, mat.texture_metallic_roughness);
-        renderTextureSlot("Ambient Occlusion", mat.use_texture_ambient_occlusion, mat.texture_ambient_occlusion);
-        renderTextureSlot("Emissive", mat.use_texture_emissive, mat.texture_emissive);
-        renderTextureSlot("Opacity", mat.use_texture_opacity, mat.texture_opacity);
-
-        ImGui::Separator();
     }
 
     void PropertiesWidget::renderPointLight()

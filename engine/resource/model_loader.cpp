@@ -14,7 +14,7 @@
 #include "core/log/log_macros.h"
 
 namespace fs = std::filesystem;
-#include "renderer/render_material.h"
+#include "renderer/material.h"
 #include "renderer/render_mesh.h"
 #include "resource/asset_manager.h"
 #include "rhi/rhi_device.h"
@@ -120,7 +120,10 @@ namespace RealmEngine
         {
             std::vector<RenderVertex> vertices;
             std::vector<unsigned int> indices;
-            RenderMaterial            material;
+            Material                  material;
+            auto&                     props = material.properties;
+
+            material.shading_model = ShadingModel::StandardPBR;
 
             for (unsigned int i = 0; i < mesh->mNumVertices; i++)
             {
@@ -158,6 +161,18 @@ namespace RealmEngine
                     indices.push_back(face.mIndices[j]);
             }
 
+            // Defaults for PBR properties
+            glm::vec3 albedo(0.7f, 0.7f, 0.7f);
+            float     opacity           = 1.0f;
+            float     metallic_val      = 0.0f;
+            float     roughness_val     = 0.5f;
+            float     ao_val            = 1.0f;
+            glm::vec3 emissive_val(0.0f);
+            float     emissive_str      = 1.0f;
+            float     alpha_cutout_val  = 0.5f;
+            bool      is_transparent    = false;
+            bool      is_double_sided   = false;
+
             if (mesh->mMaterialIndex < scene->mNumMaterials)
             {
                 const aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
@@ -168,108 +183,177 @@ namespace RealmEngine
                 aiColor4D diffuse_color(0.8f, 0.8f, 0.8f, 1.0f);
                 if (ai_material->Get(AI_MATKEY_BASE_COLOR, diffuse_color) != aiReturn_SUCCESS)
                     ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color);
-                material.albedo = glm::vec3(diffuse_color.r, diffuse_color.g, diffuse_color.b);
+                albedo = glm::vec3(diffuse_color.r, diffuse_color.g, diffuse_color.b);
 
-                float opacity = 1.0f;
-                if (ai_material->Get(AI_MATKEY_OPACITY, opacity) == aiReturn_SUCCESS)
-                    material.opacity = opacity;
-                else
-                    material.opacity = diffuse_color.a;
+                if (ai_material->Get(AI_MATKEY_OPACITY, opacity) != aiReturn_SUCCESS)
+                    opacity = diffuse_color.a;
 
-                float metallic = 0.0f;
-                if (ai_material->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == aiReturn_SUCCESS)
-                    material.metallic = metallic;
+                ai_material->Get(AI_MATKEY_METALLIC_FACTOR, metallic_val);
 
-                float roughness = 0.5f;
-                if (ai_material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == aiReturn_SUCCESS)
-                    material.roughness = roughness;
+                float roughness_tmp = 0.5f;
+                if (ai_material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness_tmp) == aiReturn_SUCCESS)
+                    roughness_val = roughness_tmp;
                 else
                 {
                     float glossiness = 0.0f;
                     if (ai_material->Get(AI_MATKEY_GLOSSINESS_FACTOR, glossiness) == aiReturn_SUCCESS)
-                        material.roughness = 1.0f - glossiness;
+                        roughness_val = 1.0f - glossiness;
                     else
                     {
                         float shininess = 0.0f;
                         if (ai_material->Get(AI_MATKEY_SHININESS, shininess) == aiReturn_SUCCESS && shininess > 0.0f)
                         {
-                            float gloss        = std::min(shininess / 128.0f, 1.0f);
-                            material.roughness = 1.0f - std::sqrt(gloss);
+                            float gloss   = std::min(shininess / 128.0f, 1.0f);
+                            roughness_val = 1.0f - std::sqrt(gloss);
                         }
                     }
                 }
 
-                aiColor3D emissive(0.0f, 0.0f, 0.0f);
-                if (ai_material->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == aiReturn_SUCCESS)
-                    material.emissive = glm::vec3(emissive.r, emissive.g, emissive.b);
+                aiColor3D emissive_c(0.0f, 0.0f, 0.0f);
+                if (ai_material->Get(AI_MATKEY_COLOR_EMISSIVE, emissive_c) == aiReturn_SUCCESS)
+                    emissive_val = glm::vec3(emissive_c.r, emissive_c.g, emissive_c.b);
 
-                float emissive_strength = 1.0f;
-                if (ai_material->Get(AI_MATKEY_EMISSIVE_INTENSITY, emissive_strength) == aiReturn_SUCCESS)
-                    material.emissive_strength = emissive_strength;
+                ai_material->Get(AI_MATKEY_EMISSIVE_INTENSITY, emissive_str);
 
-                auto load_tex = [&](aiTextureType type, bool& use_flag, std::shared_ptr<RHITexture>& out_tex) {
+                // Texture loading helper
+                auto load_tex = [&](aiTextureType type, const char* use_name, const char* tex_name, int unit) {
                     auto tex =
                         loadMaterialTexture(ai_material, type, scene, device, directory, asset_mgr, textures_loaded);
                     if (tex)
                     {
-                        use_flag = true;
-                        out_tex  = std::move(tex);
+                        props.setBool(use_name, true);
+                        props.setTexture(tex_name, std::move(tex), unit);
+                    }
+                    else
+                    {
+                        props.setBool(use_name, false);
                     }
                 };
 
+                bool has_albedo_tex = false;
                 if (ai_material->GetTextureCount(aiTextureType_BASE_COLOR))
-                    load_tex(aiTextureType_BASE_COLOR, material.use_texture_albedo, material.texture_albedo);
+                {
+                    load_tex(aiTextureType_BASE_COLOR,
+                             "material.useTextureAlbedo",
+                             "material.textureAlbedo",
+                             TEXTURE_UNIT_ALBEDO);
+                    has_albedo_tex = true;
+                }
                 else if (ai_material->GetTextureCount(aiTextureType_DIFFUSE))
-                    load_tex(aiTextureType_DIFFUSE, material.use_texture_albedo, material.texture_albedo);
+                {
+                    load_tex(aiTextureType_DIFFUSE,
+                             "material.useTextureAlbedo",
+                             "material.textureAlbedo",
+                             TEXTURE_UNIT_ALBEDO);
+                    has_albedo_tex = true;
+                }
+                if (!has_albedo_tex)
+                    props.setBool("material.useTextureAlbedo", false);
 
+                bool has_mr = false;
                 if (ai_material->GetTextureCount(aiTextureType_GLTF_METALLIC_ROUGHNESS))
+                {
                     load_tex(aiTextureType_GLTF_METALLIC_ROUGHNESS,
-                             material.use_texture_metallic_roughness,
-                             material.texture_metallic_roughness);
+                             "material.useTextureMetallicRoughness",
+                             "material.textureMetallicRoughness",
+                             TEXTURE_UNIT_METALLIC_ROUGHNESS);
+                    has_mr = true;
+                }
                 else if (ai_material->GetTextureCount(aiTextureType_UNKNOWN))
+                {
                     load_tex(aiTextureType_UNKNOWN,
-                             material.use_texture_metallic_roughness,
-                             material.texture_metallic_roughness);
+                             "material.useTextureMetallicRoughness",
+                             "material.textureMetallicRoughness",
+                             TEXTURE_UNIT_METALLIC_ROUGHNESS);
+                    has_mr = true;
+                }
+                if (!has_mr)
+                    props.setBool("material.useTextureMetallicRoughness", false);
 
                 if (ai_material->GetTextureCount(aiTextureType_NORMALS))
-                    load_tex(aiTextureType_NORMALS, material.use_texture_normal, material.texture_normal);
+                    load_tex(aiTextureType_NORMALS,
+                             "material.useTextureNormal",
+                             "material.textureNormal",
+                             TEXTURE_UNIT_NORMAL);
+                else
+                    props.setBool("material.useTextureNormal", false);
 
+                bool has_ao = false;
                 if (ai_material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION))
+                {
                     load_tex(aiTextureType_AMBIENT_OCCLUSION,
-                             material.use_texture_ambient_occlusion,
-                             material.texture_ambient_occlusion);
+                             "material.useTextureAmbientOcclusion",
+                             "material.textureAmbientOcclusion",
+                             TEXTURE_UNIT_AMBIENT_OCCLUSION);
+                    has_ao = true;
+                }
                 else if (ai_material->GetTextureCount(aiTextureType_LIGHTMAP))
+                {
                     load_tex(aiTextureType_LIGHTMAP,
-                             material.use_texture_ambient_occlusion,
-                             material.texture_ambient_occlusion);
+                             "material.useTextureAmbientOcclusion",
+                             "material.textureAmbientOcclusion",
+                             TEXTURE_UNIT_AMBIENT_OCCLUSION);
+                    has_ao = true;
+                }
+                if (!has_ao)
+                    props.setBool("material.useTextureAmbientOcclusion", false);
 
                 if (ai_material->GetTextureCount(aiTextureType_EMISSIVE))
-                    load_tex(aiTextureType_EMISSIVE, material.use_texture_emissive, material.texture_emissive);
+                    load_tex(aiTextureType_EMISSIVE,
+                             "material.useTextureEmissive",
+                             "material.textureEmissive",
+                             TEXTURE_UNIT_EMISSIVE);
+                else
+                    props.setBool("material.useTextureEmissive", false);
 
                 if (ai_material->GetTextureCount(aiTextureType_OPACITY))
-                    load_tex(aiTextureType_OPACITY, material.use_texture_opacity, material.texture_opacity);
+                    load_tex(aiTextureType_OPACITY,
+                             "material.useTextureOpacity",
+                             "material.textureOpacity",
+                             TEXTURE_UNIT_OPACITY);
+                else
+                    props.setBool("material.useTextureOpacity", false);
 
-                if (ai_material->Get(AI_MATKEY_GLTF_ALPHACUTOFF, material.alpha_cutout) == aiReturn_SUCCESS)
-                    ; // use loaded value
+                ai_material->Get(AI_MATKEY_GLTF_ALPHACUTOFF, alpha_cutout_val);
 
                 aiString alpha_mode;
                 if (ai_material->Get(AI_MATKEY_GLTF_ALPHAMODE, alpha_mode) == aiReturn_SUCCESS)
                 {
                     const char* mode = alpha_mode.C_Str();
                     if (std::strcmp(mode, "BLEND") == 0)
-                        material.is_transparent = true;
+                        is_transparent = true;
                     else if (std::strcmp(mode, "MASK") == 0)
-                        material.is_transparent = false; // cutout via alpha_cutout
+                        is_transparent = false;
                     else
-                        material.is_transparent = false; // OPAQUE or unknown
+                        is_transparent = false;
                 }
                 else
-                    material.is_transparent = (material.opacity < 1.0f);
+                    is_transparent = (opacity < 1.0f);
 
                 int two_sided = 0;
                 if (ai_material->Get(AI_MATKEY_TWOSIDED, two_sided) == aiReturn_SUCCESS && two_sided != 0)
-                    material.double_sided = true;
+                    is_double_sided = true;
             }
+
+            // Store PBR properties using standard uniform names
+            props.setVec3("material.albedo", albedo);
+            props.setFloat("material.opacity", opacity);
+            props.setFloat("material.alphaCutout", alpha_cutout_val);
+            props.setFloat("material.metallic", metallic_val);
+            props.setFloat("material.roughness", roughness_val);
+            props.setFloat("material.ambientOcclusion", ao_val);
+            props.setVec3("material.emissive", emissive_val);
+            props.setFloat("material.emissiveStrength", emissive_str);
+
+            // SSS defaults (off)
+            props.setBool("material.subsurfaceEnabled", false);
+            props.setFloat("material.subsurfaceRadius", 1.0f);
+            props.setVec3("material.subsurfaceColor", glm::vec3(1.0f, 0.2f, 0.1f));
+
+            // Material rendering config
+            material.alpha_cutoff = alpha_cutout_val;
+            material.blend_mode   = is_transparent ? BlendMode::Transparent : BlendMode::Opaque;
+            material.render_face  = is_double_sided ? RenderFace::Both : RenderFace::Front;
 
             std::string mesh_name = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : "";
             return RenderMesh(std::move(vertices), std::move(indices), std::move(material), device, mesh_name);

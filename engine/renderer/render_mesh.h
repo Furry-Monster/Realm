@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "renderer/render_material.h"
+#include "renderer/material.h"
 #include "rhi/rhi_shader.h"
 
 namespace RealmEngine
@@ -27,7 +27,7 @@ namespace RealmEngine
     public:
         RenderMesh(std::vector<RenderVertex> vertices,
                    std::vector<unsigned int> indices,
-                   RenderMaterial            material,
+                   Material                  material,
                    RHIDevice&                device,
                    const std::string&        name = "");
         ~RenderMesh();
@@ -38,25 +38,16 @@ namespace RealmEngine
         RenderMesh& operator=(RenderMesh&& other) noexcept;
 
         void draw(RHIShader& shader);
-        void drawCustom(RHIShader& shader);
-        void drawHair(RHIShader& shader);
         void drawShadow(RHIShader& shader);
 
-        bool isHair() const { return m_material.is_hair; }
-        bool isTransparent() const { return m_material.is_transparent; }
-        bool hasCustomShader() const { return m_material.hasCustomShader(); }
-        int  getTriangleCount() const { return static_cast<int>(m_indices.size()) / 3; }
+        [[nodiscard]] int getTriangleCount() const { return static_cast<int>(m_indices.size()) / 3; }
 
         std::string               m_name;
         std::vector<RenderVertex> m_vertices;
         std::vector<unsigned int> m_indices;
-        RenderMaterial            m_material;
+        Material                  m_material;
 
     private:
-        void bindStandardMaterialUniforms(RHIShader& shader);
-        void bindCustomParams(RHIShader& shader);
-        void issueDrawCall();
-
         std::unique_ptr<RHIBuffer>      m_vertex_buffer;
         std::unique_ptr<RHIBuffer>      m_index_buffer;
         std::unique_ptr<RHIVertexInput> m_vertex_input;

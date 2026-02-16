@@ -5,7 +5,7 @@
 #include "renderer/light.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/render_camera.h"
-#include "renderer/render_material.h"
+#include "renderer/material.h"
 #include "renderer/render_scene.h"
 #include "renderer/scene_color_source.h"
 #include "rhi/rhi_buffer.h"
@@ -130,7 +130,7 @@ namespace RealmEngine
 
             ro->forEachCustomOpaqueMesh([&](RenderMesh& mesh) {
                 const auto& mat    = mesh.m_material;
-                RHIShader*  shader = m_shader_cache.getOrCreate(mat.custom_vert_path, mat.custom_frag_path, *ctx.device);
+                RHIShader*  shader = m_shader_cache.getOrCreate(mat.vert_path, mat.frag_path, *ctx.device);
                 if (!shader)
                     return;
 
@@ -142,9 +142,9 @@ namespace RealmEngine
                     active_shader = shader;
                 }
 
-                ctx.device->setCullFace(mat.double_sided ? CullFace::None : CullFace::Back);
+                ctx.device->setCullFace(mat.isDoubleSided() ? CullFace::None : CullFace::Back);
                 shader->setMVP(model, view, projection);
-                mesh.drawCustom(*shader);
+                mesh.draw(*shader);
             });
         }
 
@@ -168,7 +168,7 @@ namespace RealmEngine
 
             ro->forEachCustomTransparentMesh([&](RenderMesh& mesh) {
                 const auto& mat    = mesh.m_material;
-                RHIShader*  shader = m_shader_cache.getOrCreate(mat.custom_vert_path, mat.custom_frag_path, *ctx.device);
+                RHIShader*  shader = m_shader_cache.getOrCreate(mat.vert_path, mat.frag_path, *ctx.device);
                 if (!shader)
                     return;
 
@@ -180,9 +180,9 @@ namespace RealmEngine
                     active_shader = shader;
                 }
 
-                ctx.device->setCullFace(mat.double_sided ? CullFace::None : CullFace::Back);
+                ctx.device->setCullFace(mat.isDoubleSided() ? CullFace::None : CullFace::Back);
                 shader->setMVP(model, view, projection);
-                mesh.drawCustom(*shader);
+                mesh.draw(*shader);
             });
         }
 
