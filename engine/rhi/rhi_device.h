@@ -80,7 +80,8 @@ namespace RealmEngine
                                      int             dstX0,
                                      int             dstY0,
                                      int             dstX1,
-                                     int             dstY1) = 0;
+                                     int             dstY1,
+                                     BlitMask        mask = BlitMask::Color) = 0;
 
         // ----- Texture helpers (bind texture to unit) ---------------------
 

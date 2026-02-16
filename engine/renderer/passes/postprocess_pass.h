@@ -9,7 +9,7 @@ namespace RealmEngine
 {
     class RHIShader;
     class FullscreenQuad;
-    class GeometryPass;
+    class SceneColorSource;
     class BloomPass;
     class SSAOBlurPass;
 
@@ -27,7 +27,7 @@ namespace RealmEngine
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 
-        void setGeometryPass(GeometryPass* gp) { m_geometry_pass = gp; }
+        void setSceneColorSource(SceneColorSource* src) { m_scene_color = src; }
         void setBloomPass(BloomPass* bp) { m_bloom_pass = bp; }
         void setSSAOBlurPass(SSAOBlurPass* pass) { m_ssao_blur_pass = pass; }
         void setFullscreenQuad(FullscreenQuad* quad) { m_quad = quad; }
@@ -39,7 +39,7 @@ namespace RealmEngine
         bool                       m_ssao_enabled;
         float                      m_ssao_power;
         std::unique_ptr<RHIShader> m_shader;
-        GeometryPass*              m_geometry_pass {nullptr};
+        SceneColorSource*          m_scene_color {nullptr};
         BloomPass*                 m_bloom_pass {nullptr};
         SSAOBlurPass*              m_ssao_blur_pass {nullptr};
         FullscreenQuad*            m_quad {nullptr};

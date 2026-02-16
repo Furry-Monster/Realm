@@ -64,7 +64,8 @@ namespace RealmEngine
                              int             dstX0,
                              int             dstY0,
                              int             dstX1,
-                             int             dstY1) override;
+                             int             dstY1,
+                             BlitMask        mask = BlitMask::Color) override;
 
         // Texture helpers
         void bindTexture(uint32_t unit, RHITexture& texture) override;

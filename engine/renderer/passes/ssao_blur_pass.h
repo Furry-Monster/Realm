@@ -11,7 +11,7 @@ namespace RealmEngine
     class RHIFramebuffer;
     class RHITexture;
     class SSAOPass;
-    class GeometryPass;
+    class SceneColorSource;
     class FullscreenQuad;
 
     class SSAOBlurPass final : public RenderPass
@@ -25,7 +25,7 @@ namespace RealmEngine
         void dispose() override;
 
         void setSSAOPass(SSAOPass* pass) { m_ssao_pass = pass; }
-        void setGeometryPass(GeometryPass* gp) { m_geometry_pass = gp; }
+        void setSceneColorSource(SceneColorSource* src) { m_scene_color = src; }
         void setFullscreenQuad(FullscreenQuad* quad) { m_quad = quad; }
         void setFramebuffer(std::unique_ptr<RHIFramebuffer> fb) { m_framebuffer = std::move(fb); }
 
@@ -36,7 +36,7 @@ namespace RealmEngine
         std::unique_ptr<RHIShader>      m_shader;
         std::unique_ptr<RHIFramebuffer> m_framebuffer;
         SSAOPass*                       m_ssao_pass {nullptr};
-        GeometryPass*                   m_geometry_pass {nullptr};
+        SceneColorSource*               m_scene_color {nullptr};
         FullscreenQuad*                 m_quad {nullptr};
     };
 

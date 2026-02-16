@@ -3,9 +3,9 @@
 #include <random>
 
 #include "renderer/fullscreen_quad.h"
-#include "renderer/passes/geometry_pass.h"
 #include "renderer/render_camera.h"
 #include "renderer/render_material.h"
+#include "renderer/scene_color_source.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
@@ -76,10 +76,10 @@ namespace RealmEngine
 
     void SSAOPass::execute(const RenderContext& ctx)
     {
-        if (!m_enabled || !m_geometry_pass || !m_quad || !m_framebuffer)
+        if (!m_enabled || !m_scene_color || !m_quad || !m_framebuffer)
             return;
 
-        auto* geo_fb = m_geometry_pass->getFramebuffer();
+        auto* geo_fb = m_scene_color->getFramebuffer();
         if (!geo_fb)
             return;
 
@@ -105,8 +105,8 @@ namespace RealmEngine
         m_shader->setMat4("invProjection", inv_proj);
 
         m_shader->setVec2("noiseScale",
-                          glm::vec2(static_cast<float>(ctx.viewport_width) / m_noise_size,
-                                    static_cast<float>(ctx.viewport_height) / m_noise_size));
+                          glm::vec2(static_cast<float>(ctx.viewport_width) / static_cast<float>(m_noise_size),
+                                    static_cast<float>(ctx.viewport_height) / static_cast<float>(m_noise_size)));
         m_shader->setFloat("radius", m_radius);
         m_shader->setFloat("bias", m_bias);
         m_shader->setInt("kernelSize", m_kernel_size);

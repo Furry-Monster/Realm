@@ -144,6 +144,8 @@ namespace RealmEngine
 
     EventBus& EditorEngineBridge::getEventBus() { return m_engine->getEventBus(); }
 
+    PipelineMode EditorEngineBridge::getPipelineMode() const { return m_engine->getRenderer().getPipelineMode(); }
+
     ViewportDisplayMode EditorEngineBridge::getViewportDisplayMode() const
     {
         return m_engine->getRenderer().getViewportDisplayMode();
@@ -167,6 +169,26 @@ namespace RealmEngine
         device.bindDefaultFramebuffer();
         device.setClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         device.clear(ClearFlags::Color | ClearFlags::Depth);
+    }
+
+    RHITexture* EditorEngineBridge::getGBufferAlbedoAO() const
+    {
+        return m_engine->getRenderer().getGBufferAlbedoAO();
+    }
+
+    RHITexture* EditorEngineBridge::getGBufferNormalMetallic() const
+    {
+        return m_engine->getRenderer().getGBufferNormalMetallic();
+    }
+
+    RHITexture* EditorEngineBridge::getGBufferEmissiveRoughness() const
+    {
+        return m_engine->getRenderer().getGBufferEmissiveRoughness();
+    }
+
+    RHITexture* EditorEngineBridge::getGBufferDepth() const
+    {
+        return m_engine->getRenderer().getGBufferDepth();
     }
 
 } // namespace RealmEngine

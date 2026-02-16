@@ -65,6 +65,17 @@ namespace RealmEngine
         const auto&    cfg  = m_bridge->getConfig().getRendererConfig();
         RendererConfig copy = cfg;
 
+        {
+            static const char* pipelineModeLabels[] = {"Forward", "Deferred"};
+            int                pipeline_idx         = static_cast<int>(copy.pipeline_mode);
+            if (ImGui::Combo("Pipeline Mode", &pipeline_idx, pipelineModeLabels, 2))
+            {
+                copy.pipeline_mode = static_cast<PipelineMode>(pipeline_idx);
+            }
+            ImGui::SameLine();
+            ImGui::TextDisabled("(requires restart)");
+        }
+
         if (ImGui::TreeNode("Camera"))
         {
             ImGui::DragFloat("FOV", &copy.camera_fov, 1.0f, 1.0f, 179.0f);

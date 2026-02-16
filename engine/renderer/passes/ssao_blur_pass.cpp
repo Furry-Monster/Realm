@@ -1,9 +1,9 @@
 #include "renderer/passes/ssao_blur_pass.h"
 
 #include "renderer/fullscreen_quad.h"
-#include "renderer/passes/geometry_pass.h"
 #include "renderer/passes/ssao_pass.h"
 #include "renderer/render_material.h"
+#include "renderer/scene_color_source.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
@@ -26,7 +26,7 @@ namespace RealmEngine
             return;
 
         RHITexture* ssao_tex  = m_ssao_pass->getResultTexture();
-        auto*       geo_fb    = m_geometry_pass ? m_geometry_pass->getFramebuffer() : nullptr;
+        auto*       geo_fb    = m_scene_color ? m_scene_color->getFramebuffer() : nullptr;
         RHITexture* depth_tex = geo_fb ? geo_fb->getDepthAttachment() : nullptr;
         if (!ssao_tex || !depth_tex)
             return;
@@ -42,7 +42,9 @@ namespace RealmEngine
         m_shader->setInt("ssaoTexture", TEXTURE_UNIT_SSAO_RESULT);
         ctx.device->bindTexture(TEXTURE_UNIT_SSAO_DEPTH, *depth_tex);
         m_shader->setInt("depthTexture", TEXTURE_UNIT_SSAO_DEPTH);
-        m_shader->setVec2("texelSize", glm::vec2(1.0f / ctx.viewport_width, 1.0f / ctx.viewport_height));
+        m_shader->setVec2(
+            "texelSize",
+            glm::vec2(1.0f / static_cast<float>(ctx.viewport_width), 1.0f / static_cast<float>(ctx.viewport_height)));
 
         m_quad->draw();
 

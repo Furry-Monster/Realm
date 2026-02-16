@@ -5,6 +5,7 @@
 #include <string>
 
 #include "renderer/viewport_display_mode.h"
+#include "resource/config_manager.h"
 
 namespace RealmEngine
 {
@@ -40,11 +41,19 @@ namespace RealmEngine
         std::shared_ptr<RHITexture> getTextureForPreview(const std::filesystem::path& path);
         ConfigManager&              getConfig();
 
+        PipelineMode               getPipelineMode() const;
+
         ViewportDisplayMode        getViewportDisplayMode() const;
         void                       setViewportDisplayMode(ViewportDisplayMode mode);
         void                       setRenderToViewportTexture(bool enable);
         RHITexture*                getViewportTexture() const;
         void                       bindDefaultFramebufferForImGui() const;
+
+        // G-Buffer texture access (deferred only)
+        RHITexture*                getGBufferAlbedoAO() const;
+        RHITexture*                getGBufferNormalMetallic() const;
+        RHITexture*                getGBufferEmissiveRoughness() const;
+        RHITexture*                getGBufferDepth() const;
         void                       saveConfig();
         std::shared_ptr<SceneNode> pasteEntityFromClipboard(const std::string& json, std::shared_ptr<SceneNode> parent);
 

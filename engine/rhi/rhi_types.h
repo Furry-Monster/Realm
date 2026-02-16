@@ -184,6 +184,22 @@ namespace RealmEngine
         return (static_cast<uint32_t>(a) & static_cast<uint32_t>(b)) != 0;
     }
 
+    // ---- Blit mask -------------------------------------------------------
+
+    enum class BlitMask : uint32_t
+    {
+        Color   = 1u << 0,
+        Depth   = 1u << 1,
+        Stencil = 1u << 2
+    };
+
+    inline BlitMask operator|(BlitMask a, BlitMask b)
+    {
+        return static_cast<BlitMask>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+
+    inline bool operator&(BlitMask a, BlitMask b) { return (static_cast<uint32_t>(a) & static_cast<uint32_t>(b)) != 0; }
+
     // ---- Blend state -----------------------------------------------------
 
     enum class BlendFactor : uint8_t

@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "renderer/fullscreen_quad.h"
-#include "renderer/passes/geometry_pass.h"
+#include "renderer/scene_color_source.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
@@ -32,10 +32,10 @@ namespace RealmEngine
 
     void BloomPass::execute(const RenderContext& ctx)
     {
-        if (!m_enabled || !m_geometry_pass || !m_quad)
+        if (!m_enabled || !m_scene_color || !m_quad)
             return;
 
-        auto* pbr_fb = m_geometry_pass->getFramebuffer();
+        auto* pbr_fb = m_scene_color->getFramebuffer();
         if (!pbr_fb)
             return;
 

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "renderer/render_pass.h"
+#include "renderer/scene_color_source.h"
 #include "rhi/rhi_types.h"
 
 namespace RealmEngine
@@ -14,8 +15,10 @@ namespace RealmEngine
     class RHITexture;
     class ShadowPass;
 
-    // Main PBR geometry pass: renders all objects into HDR + bloom framebuffers.
-    class GeometryPass final : public RenderPass
+    // Main PBR geometry pass (forward): renders all objects into HDR + bloom framebuffers.
+    class GeometryPass final
+        : public RenderPass
+        , public SceneColorSource
     {
     public:
         GeometryPass(const std::string& shader_path, float clear_r, float clear_g, float clear_b, float clear_a);
@@ -30,7 +33,7 @@ namespace RealmEngine
         void setIBLTextures(RHITexture* diffuse_irradiance, RHITexture* prefiltered_env, RHITexture* brdf_lut);
 
         void            setFramebuffer(std::unique_ptr<RHIFramebuffer> fb) { m_framebuffer = std::move(fb); }
-        RHIFramebuffer* getFramebuffer() const { return m_framebuffer.get(); }
+        RHIFramebuffer* getFramebuffer() const override { return m_framebuffer.get(); }
 
     private:
         std::string m_shader_path;
