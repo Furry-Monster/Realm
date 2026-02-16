@@ -558,16 +558,6 @@ namespace RealmEngine
                                 mat.render_face = RenderFace::Both;
                             if (m.contains("alpha_cutout") && m["alpha_cutout"].is_number())
                                 mat.alpha_cutoff = m["alpha_cutout"];
-                            if (m.contains("is_hair") && m["is_hair"].get<bool>())
-                                props.setBool("isHair", true);
-                            if (m.contains("hair_layers"))
-                                props.setInt("hair.layers", m["hair_layers"]);
-                            if (m.contains("hair_layer_step"))
-                                props.setFloat("hair.layerStep", m["hair_layer_step"]);
-                            if (m.contains("hair_specular_strength"))
-                                props.setFloat("material.specularStrength", m["hair_specular_strength"]);
-                            if (m.contains("hair_specular_power"))
-                                props.setFloat("material.specularPower", m["hair_specular_power"]);
                             if (m.contains("subsurface_enabled"))
                                 props.setBool("material.subsurfaceEnabled", m["subsurface_enabled"]);
                             if (m.contains("subsurface_radius"))

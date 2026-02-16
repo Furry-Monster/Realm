@@ -175,34 +175,8 @@ namespace RealmEngine
             const Material& mat = cmd.mesh->m_material;
             ctx.device->setCullFace(mat.isDoubleSided() ? CullFace::None : CullFace::Back);
 
-            int layer_count = mat.properties.getInt("hair.layers", 1);
-            if (layer_count <= 1)
-            {
-                cmd.shader->setMVP(cmd.model, view, projection);
-                cmd.mesh->draw(*cmd.shader);
-            }
-            else
-            {
-                // Multi-layer rendering (hair)
-                float layer_step = mat.properties.getFloat("hair.layerStep", 0.002f);
-                ctx.device->setBlend(true);
-                ctx.device->setBlendFunc(BlendFactor::SrcAlpha,
-                                         BlendFactor::OneMinusSrcAlpha,
-                                         BlendFactor::SrcAlpha,
-                                         BlendFactor::OneMinusSrcAlpha);
-                ctx.device->setDepthWrite(false);
-
-                for (int layer = 0; layer < layer_count; ++layer)
-                {
-                    cmd.shader->setFloat("layerIndex", static_cast<float>(layer));
-                    cmd.shader->setFloat("layerStep", layer_step);
-                    cmd.shader->setMVP(cmd.model, view, projection);
-                    cmd.mesh->draw(*cmd.shader);
-                }
-
-                ctx.device->setBlend(false);
-                ctx.device->setDepthWrite(true);
-            }
+            cmd.shader->setMVP(cmd.model, view, projection);
+            cmd.mesh->draw(*cmd.shader);
         }
     }
 
