@@ -132,17 +132,44 @@ class BuildConfig:
         """Find a program in PATH"""
         return shutil.which(name)
 
+    def _detect_visual_studio(self) -> Optional[str]:
+        """Detect installed Visual Studio version via vswhere"""
+        vswhere = Path(os.environ.get("ProgramFiles(x86)", "")) / "Microsoft Visual Studio" / "Installer" / "vswhere.exe"
+        if not vswhere.exists():
+            return None
+
+        try:
+            result = subprocess.run(
+                [str(vswhere), "-latest", "-property", "installationVersion"],
+                capture_output=True, text=True, check=False,
+            )
+            if result.returncode != 0 or not result.stdout.strip():
+                return None
+
+            major = int(result.stdout.strip().split(".")[0])
+            # VS major version -> CMake generator mapping
+            vs_generators = {
+                18: "Visual Studio 18 2026",
+                17: "Visual Studio 17 2022",
+            }
+            return vs_generators.get(major)
+        except Exception:
+            return None
+
     def get_cmake_generator(self) -> str:
         """Get appropriate CMake generator for platform"""
-        # Prefer Ninja on all platforms if available
+        if self.platform == Platform.WINDOWS:
+            vs_gen = self._detect_visual_studio()
+            if vs_gen:
+                return vs_gen
+            if self.find_program("ninja"):
+                return "Ninja"
+            if self.find_program("g++"):
+                return "MinGW Makefiles"
+            return "NMake Makefiles"
+
         if self.find_program("ninja"):
             return "Ninja"
-
-        if self.platform == Platform.WINDOWS:
-            # Fall back to Visual Studio
-            if self.find_program("cl"):
-                return "Visual Studio 17 2022"
-            return "MinGW Makefiles"
 
         return "Unix Makefiles"
 
