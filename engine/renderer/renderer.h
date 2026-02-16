@@ -25,14 +25,12 @@ namespace RealmEngine
     class SceneColorSource;
 
     class ShadowPass;
-    class GeometryPass;
+    class OpaquePass;
+    class TransparentPass;
     class GBufferPass;
     class DeferredLightingPass;
-    class CustomShaderPass;
-    class HairPass;
     class SSAOPass;
     class SSAOBlurPass;
-    class SSSPass;
     class SkyboxPass;
     class BloomPass;
     class PostProcessPass;
@@ -67,7 +65,6 @@ namespace RealmEngine
         void        setRenderToViewportTexture(bool enable);
         RHITexture* getViewportTexture() const;
 
-        // G-Buffer texture access (deferred mode only, returns nullptr in forward)
         RHITexture* getGBufferAlbedoAO() const;
         RHITexture* getGBufferNormalMetallic() const;
         RHITexture* getGBufferEmissiveRoughness() const;
@@ -80,30 +77,22 @@ namespace RealmEngine
         void createSharedFramebuffers(int width, int height, const RendererConfig& rc);
         void recreateSharedFramebuffers(int width, int height);
 
-        // RHI
         std::unique_ptr<RHIDevice> m_device;
 
-        // Pipeline
         PipelineMode   m_pipeline_mode {PipelineMode::Forward};
         RenderPipeline m_pipeline;
 
-        // Scene color source -- points to either GeometryPass (forward) or
-        // DeferredLightingPass (deferred). Non-owning; lifetime is the pipeline's.
         SceneColorSource* m_scene_color_source {nullptr};
 
-        // Non-owning pass pointers for cross-pass wiring (forward)
-        ShadowPass*       m_shadow_pass {nullptr};
-        GeometryPass*     m_geometry_pass {nullptr};
-        CustomShaderPass* m_custom_shader_pass {nullptr};
-        HairPass*         m_hair_pass {nullptr};
+        ShadowPass*      m_shadow_pass {nullptr};
+        OpaquePass*      m_opaque_pass {nullptr};
+        TransparentPass* m_transparent_pass {nullptr};
         SSAOPass*        m_ssao_pass {nullptr};
         SSAOBlurPass*    m_ssao_blur_pass {nullptr};
-        SSSPass*         m_sss_pass {nullptr};
         SkyboxPass*      m_skybox_pass {nullptr};
         BloomPass*       m_bloom_pass {nullptr};
         PostProcessPass* m_postprocess_pass {nullptr};
 
-        // Non-owning pass pointers (deferred-specific)
         GBufferPass*          m_gbuffer_pass {nullptr};
         DeferredLightingPass* m_deferred_lighting_pass {nullptr};
 
@@ -117,7 +106,6 @@ namespace RealmEngine
         std::unique_ptr<Skybox>         m_skybox;
         std::unique_ptr<FullscreenQuad> m_fullscreen_quad;
 
-        // Scene & camera
         Window*                       m_window {nullptr};
         std::shared_ptr<RenderScene>  m_render_scene;
         std::shared_ptr<RenderCamera> m_camera;

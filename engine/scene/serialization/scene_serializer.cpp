@@ -7,7 +7,7 @@
 
 #include "core/base/utils.h"
 #include "core/log/log_macros.h"
-#include "renderer/render_material.h"
+#include "renderer/material.h"
 #include "renderer/render_mesh.h"
 #include "renderer/render_object.h"
 #include "resource/asset_manager.h"

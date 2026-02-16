@@ -1,11 +1,13 @@
-#include "renderer/passes/custom_shader_pass.h"
+#include "renderer/passes/transparent_pass.h"
 
 #include <algorithm>
 
 #include "renderer/light.h"
+#include "renderer/material.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/render_camera.h"
-#include "renderer/material.h"
+#include "renderer/render_mesh.h"
+#include "renderer/render_object.h"
 #include "renderer/render_scene.h"
 #include "renderer/scene_color_source.h"
 #include "rhi/rhi_buffer.h"
@@ -16,20 +18,31 @@
 
 namespace RealmEngine
 {
-    CustomShaderPass::CustomShaderPass() : RenderPass("custom_shader") {}
-    CustomShaderPass::~CustomShaderPass() = default;
+    TransparentPass::TransparentPass(const std::string& shader_path) :
+        RenderPass("transparent"), m_shader_path(shader_path)
+    {}
 
-    void CustomShaderPass::init(RHIDevice& device)
+    TransparentPass::~TransparentPass() = default;
+
+    void TransparentPass::init(RHIDevice& device)
     {
+        m_pbr_shader = device.createShader(m_shader_path + "/pbr.vert", m_shader_path + "/pbr.frag");
+        m_pbr_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
         m_light_ubo = device.createBuffer(BufferType::Uniform, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
     }
 
-    void CustomShaderPass::setupEngineUniforms(RHIShader& shader, const RenderContext& ctx)
+    RHIShader* TransparentPass::resolveShader(const Material& mat, RHIDevice& device)
+    {
+        if (mat.hasCustomShader())
+            return m_shader_cache.getOrCreate(mat.vert_path, mat.frag_path, device);
+        return m_pbr_shader.get();
+    }
+
+    void TransparentPass::setupEngineUniforms(RHIShader& shader, const RenderContext& ctx)
     {
         shader.setVec3("cameraPosition", ctx.camera->getPosition());
         shader.setInt("displayMode", static_cast<int>(ctx.display_mode));
 
-        // IBL
         if (m_ibl_diffuse)
         {
             ctx.device->bindTexture(TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP, *m_ibl_diffuse);
@@ -46,7 +59,6 @@ namespace RealmEngine
             shader.setInt("brdfConvolutionMap", TEXTURE_UNIT_BRDF_CONVOLUTION_MAP);
         }
 
-        // Shadow
         if (m_shadow_pass && m_shadow_pass->isShadowEnabled())
         {
             auto* depth = m_shadow_pass->getFramebuffer()->getDepthAttachment();
@@ -65,22 +77,9 @@ namespace RealmEngine
         }
     }
 
-    void CustomShaderPass::execute(const RenderContext& ctx)
+    void TransparentPass::execute(const RenderContext& ctx)
     {
         if (!m_scene_color || !m_scene_color->getFramebuffer())
-            return;
-
-        // Check if any custom shader meshes exist
-        bool has_custom = false;
-        for (const auto& ro : ctx.scene->m_render_objects)
-        {
-            if (ro && ro->hasCustomShaderMeshes())
-            {
-                has_custom = true;
-                break;
-            }
-        }
-        if (!has_custom)
             return;
 
         auto* fb = m_scene_color->getFramebuffer();
@@ -90,6 +89,7 @@ namespace RealmEngine
         ctx.device->setDepthFunc(DepthFunc::Less);
 
         ctx.camera->update();
+        glm::vec3 cam_pos    = ctx.camera->getPosition();
         glm::mat4 projection = ctx.camera->getProjMatrix();
         glm::mat4 view       = ctx.camera->getViewMatrix();
 
@@ -112,49 +112,15 @@ namespace RealmEngine
             m_light_ubo->bindBase(LIGHT_UBO_BINDING_POINT);
         }
 
-        // Opaque custom shader meshes
-        ctx.device->setBlend(false);
-        ctx.device->setDepthWrite(true);
-
-        RHIShader* active_shader = nullptr;
-
-        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+        // Collect transparent draw commands sorted by distance (back-to-front)
+        struct DrawCmd
         {
-            auto& ro = ctx.scene->m_render_objects[i];
-            if (!ro || !ro->hasCustomShaderMeshes())
-                continue;
-
-            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ?
-                                  ctx.scene->m_render_model_matrices[i] :
-                                  glm::mat4(1.0f);
-
-            ro->forEachCustomOpaqueMesh([&](RenderMesh& mesh) {
-                const auto& mat    = mesh.m_material;
-                RHIShader*  shader = m_shader_cache.getOrCreate(mat.vert_path, mat.frag_path, *ctx.device);
-                if (!shader)
-                    return;
-
-                if (shader != active_shader)
-                {
-                    shader->use();
-                    shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
-                    setupEngineUniforms(*shader, ctx);
-                    active_shader = shader;
-                }
-
-                ctx.device->setCullFace(mat.isDoubleSided() ? CullFace::None : CullFace::Back);
-                shader->setMVP(model, view, projection);
-                mesh.draw(*shader);
-            });
-        }
-
-        // Transparent custom shader meshes
-        ctx.device->setBlend(true);
-        ctx.device->setBlendFunc(
-            BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha, BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
-        ctx.device->setDepthWrite(false);
-
-        active_shader = nullptr;
+            RenderMesh* mesh;
+            glm::mat4   model;
+            RHIShader*  shader;
+            float       distance;
+        };
+        std::vector<DrawCmd> commands;
 
         for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
         {
@@ -162,41 +128,64 @@ namespace RealmEngine
             if (!ro)
                 continue;
 
-            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ?
-                                  ctx.scene->m_render_model_matrices[i] :
-                                  glm::mat4(1.0f);
+            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
+                                                                                glm::mat4(1.0f);
+            glm::vec3 obj_pos(model[3]);
+            float     dist = glm::length(cam_pos - obj_pos);
 
-            ro->forEachCustomTransparentMesh([&](RenderMesh& mesh) {
-                const auto& mat    = mesh.m_material;
-                RHIShader*  shader = m_shader_cache.getOrCreate(mat.vert_path, mat.frag_path, *ctx.device);
+            ro->forEachMesh([&](RenderMesh& mesh) {
+                if (!mesh.m_material.isTransparent())
+                    return;
+
+                RHIShader* shader = resolveShader(mesh.m_material, *ctx.device);
                 if (!shader)
                     return;
 
-                if (shader != active_shader)
-                {
-                    shader->use();
-                    shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
-                    setupEngineUniforms(*shader, ctx);
-                    active_shader = shader;
-                }
-
-                ctx.device->setCullFace(mat.isDoubleSided() ? CullFace::None : CullFace::Back);
-                shader->setMVP(model, view, projection);
-                mesh.draw(*shader);
+                commands.push_back({&mesh, model, shader, dist});
             });
+        }
+
+        // Sort back-to-front
+        std::sort(commands.begin(), commands.end(), [](const DrawCmd& a, const DrawCmd& b) {
+            return a.distance > b.distance;
+        });
+
+        // Render
+        ctx.device->setBlend(true);
+        ctx.device->setBlendFunc(
+            BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha, BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
+        ctx.device->setDepthWrite(false);
+
+        RHIShader* active_shader = nullptr;
+
+        for (const auto& cmd : commands)
+        {
+            if (cmd.shader != active_shader)
+            {
+                cmd.shader->use();
+                cmd.shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
+                setupEngineUniforms(*cmd.shader, ctx);
+                cmd.shader->setBool("isTransparentPass", true);
+                active_shader = cmd.shader;
+            }
+
+            ctx.device->setCullFace(cmd.mesh->m_material.isDoubleSided() ? CullFace::None : CullFace::Back);
+            cmd.shader->setMVP(cmd.model, view, projection);
+            cmd.mesh->draw(*cmd.shader);
         }
 
         ctx.device->setBlend(false);
         ctx.device->setDepthWrite(true);
     }
 
-    void CustomShaderPass::dispose()
+    void TransparentPass::dispose()
     {
-        m_shader_cache.clear();
+        m_pbr_shader.reset();
         m_light_ubo.reset();
+        m_shader_cache.clear();
     }
 
-    void CustomShaderPass::setIBLTextures(RHITexture* diffuse, RHITexture* prefiltered, RHITexture* brdf)
+    void TransparentPass::setIBLTextures(RHITexture* diffuse, RHITexture* prefiltered, RHITexture* brdf)
     {
         m_ibl_diffuse     = diffuse;
         m_ibl_prefiltered = prefiltered;

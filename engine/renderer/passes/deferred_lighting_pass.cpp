@@ -11,7 +11,7 @@
 #include "renderer/passes/gbuffer_pass.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/render_camera.h"
-#include "renderer/render_material.h"
+#include "renderer/material.h"
 #include "renderer/render_scene.h"
 #include "rhi/rhi_buffer.h"
 #include "rhi/rhi_device.h"
