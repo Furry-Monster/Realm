@@ -64,7 +64,8 @@ namespace RealmEngine
                                     0,
                                     0,
                                     m_framebuffer->getWidth(),
-                                    m_framebuffer->getHeight());
+                                    m_framebuffer->getHeight(),
+                                    BlitMask::Depth);
 
         m_framebuffer->bind();
         ctx.device->setViewport(0, 0, ctx.viewport_width, ctx.viewport_height);

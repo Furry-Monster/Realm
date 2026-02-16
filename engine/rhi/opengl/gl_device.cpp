@@ -424,15 +424,29 @@ namespace RealmEngine
                                    int             dstX0,
                                    int             dstY0,
                                    int             dstX1,
-                                   int             dstY1)
+                                   int             dstY1,
+                                   BlitMask        mask)
     {
         GLuint src_fbo = src->getNativeHandle();
         GLuint dst_fbo = dst->getNativeHandle();
         glBindFramebuffer(GL_READ_FRAMEBUFFER, src_fbo);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_fbo);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
-        glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+        GLbitfield gl_mask = 0;
+        if (mask & BlitMask::Color)
+        {
+            glReadBuffer(GL_COLOR_ATTACHMENT0);
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+            gl_mask |= GL_COLOR_BUFFER_BIT;
+        }
+        if (mask & BlitMask::Depth)
+            gl_mask |= GL_DEPTH_BUFFER_BIT;
+        if (mask & BlitMask::Stencil)
+            gl_mask |= GL_STENCIL_BUFFER_BIT;
+
+        // GL spec: depth/stencil blit requires GL_NEAREST
+        GLenum filter = (mask & BlitMask::Depth) || (mask & BlitMask::Stencil) ? GL_NEAREST : GL_LINEAR;
+        glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, gl_mask, filter);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
