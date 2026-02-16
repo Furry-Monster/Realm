@@ -28,6 +28,7 @@ namespace RealmEngine
     class GeometryPass;
     class GBufferPass;
     class DeferredLightingPass;
+    class CustomShaderPass;
     class HairPass;
     class SSAOPass;
     class SSAOBlurPass;
@@ -89,9 +90,10 @@ namespace RealmEngine
         SceneColorSource* m_scene_color_source {nullptr};
 
         // Non-owning pass pointers for cross-pass wiring (forward)
-        ShadowPass*      m_shadow_pass {nullptr};
-        GeometryPass*    m_geometry_pass {nullptr};
-        HairPass*        m_hair_pass {nullptr};
+        ShadowPass*       m_shadow_pass {nullptr};
+        GeometryPass*     m_geometry_pass {nullptr};
+        CustomShaderPass* m_custom_shader_pass {nullptr};
+        HairPass*         m_hair_pass {nullptr};
         SSAOPass*        m_ssao_pass {nullptr};
         SSAOBlurPass*    m_ssao_blur_pass {nullptr};
         SSSPass*         m_sss_pass {nullptr};

@@ -226,6 +226,30 @@ namespace RealmEngine
                     m["subsurface_color"]  = {mat.subsurface_color.x, mat.subsurface_color.y, mat.subsurface_color.z};
                     m["emissive"]          = {mat.emissive.x, mat.emissive.y, mat.emissive.z};
                     m["emissive_strength"] = mat.emissive_strength;
+
+                    // Custom shader
+                    m["use_custom_shader"] = mat.use_custom_shader;
+                    if (mat.use_custom_shader)
+                    {
+                        m["custom_vert_path"] = mat.custom_vert_path;
+                        m["custom_frag_path"] = mat.custom_frag_path;
+
+                        if (!mat.custom_params.empty())
+                        {
+                            nlohmann::json params_json = nlohmann::json::array();
+                            for (const auto& param : mat.custom_params)
+                            {
+                                nlohmann::json pj;
+                                pj["name"] = param.name;
+                                pj["type"] = static_cast<int>(param.type);
+                                pj["values"] =
+                                    {param.values[0], param.values[1], param.values[2], param.values[3]};
+                                params_json.push_back(pj);
+                            }
+                            m["custom_params"] = params_json;
+                        }
+                    }
+
                     overrides.push_back(m);
                 }
                 c["mesh_overrides"] = overrides;
@@ -505,6 +529,34 @@ namespace RealmEngine
                             mat.emissive = glm::vec3(m["emissive"][0], m["emissive"][1], m["emissive"][2]);
                         if (m.contains("emissive_strength") && m["emissive_strength"].is_number())
                             mat.emissive_strength = m["emissive_strength"];
+
+                        // Custom shader
+                        if (m.contains("use_custom_shader") && m["use_custom_shader"].is_boolean())
+                            mat.use_custom_shader = m["use_custom_shader"];
+                        if (m.contains("custom_vert_path") && m["custom_vert_path"].is_string())
+                            mat.custom_vert_path = m["custom_vert_path"];
+                        if (m.contains("custom_frag_path") && m["custom_frag_path"].is_string())
+                            mat.custom_frag_path = m["custom_frag_path"];
+                        if (m.contains("custom_params") && m["custom_params"].is_array())
+                        {
+                            mat.custom_params.clear();
+                            for (const auto& pj : m["custom_params"])
+                            {
+                                MaterialParam param;
+                                if (pj.contains("name") && pj["name"].is_string())
+                                    param.name = pj["name"];
+                                if (pj.contains("type") && pj["type"].is_number_integer())
+                                    param.type = static_cast<MaterialParamType>(pj["type"].get<int>());
+                                if (pj.contains("values") && pj["values"].is_array() && pj["values"].size() >= 4)
+                                {
+                                    param.values[0] = pj["values"][0];
+                                    param.values[1] = pj["values"][1];
+                                    param.values[2] = pj["values"][2];
+                                    param.values[3] = pj["values"][3];
+                                }
+                                mat.custom_params.push_back(param);
+                            }
+                        }
                     }
                 }
             }

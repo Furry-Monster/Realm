@@ -129,53 +129,65 @@ namespace RealmEngine
                         std::string mat_label = mesh->m_material.name.empty() ? "Material" : mesh->m_material.name;
                         if (ImGui::TreeNodeEx(mat_label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                         {
-                            renderMaterialPreview(mesh->m_material);
-                            if (ImGui::DragFloat("Opacity", &mesh->m_material.opacity, 0.01f, 0.0f, 1.0f))
-                                scene->markDirty();
-                            if (ImGui::Checkbox("Transparent", &mesh->m_material.is_transparent))
-                                scene->markDirty();
-                            if (ImGui::Checkbox("Double Sided", &mesh->m_material.double_sided))
-                                scene->markDirty();
-                            if (ImGui::DragFloat("Alpha Cutout", &mesh->m_material.alpha_cutout, 0.01f, 0.0f, 1.0f))
-                                scene->markDirty();
-                            if (ImGui::Checkbox("Hair", &mesh->m_material.is_hair))
-                                scene->markDirty();
-                            if (mesh->m_material.is_hair)
+                            renderCustomShaderMaterial(mesh->m_material);
+
+                            if (!mesh->m_material.use_custom_shader)
                             {
-                                if (ImGui::SliderInt("Hair Layers", &mesh->m_material.hair_layers, 1, 32))
+                                renderMaterialPreview(mesh->m_material);
+                                if (ImGui::DragFloat("Opacity", &mesh->m_material.opacity, 0.01f, 0.0f, 1.0f))
                                     scene->markDirty();
-                                if (ImGui::DragFloat("Hair Layer Step",
-                                                     &mesh->m_material.hair_layer_step,
-                                                     0.0001f,
+                                if (ImGui::Checkbox("Transparent", &mesh->m_material.is_transparent))
+                                    scene->markDirty();
+                                if (ImGui::Checkbox("Double Sided", &mesh->m_material.double_sided))
+                                    scene->markDirty();
+                                if (ImGui::DragFloat(
+                                        "Alpha Cutout", &mesh->m_material.alpha_cutout, 0.01f, 0.0f, 1.0f))
+                                    scene->markDirty();
+                                if (ImGui::Checkbox("Hair", &mesh->m_material.is_hair))
+                                    scene->markDirty();
+                                if (mesh->m_material.is_hair)
+                                {
+                                    if (ImGui::SliderInt("Hair Layers", &mesh->m_material.hair_layers, 1, 32))
+                                        scene->markDirty();
+                                    if (ImGui::DragFloat("Hair Layer Step",
+                                                         &mesh->m_material.hair_layer_step,
+                                                         0.0001f,
+                                                         0.0f,
+                                                         0.1f,
+                                                         "%.4f"))
+                                        scene->markDirty();
+                                    if (ImGui::DragFloat("Hair Specular",
+                                                         &mesh->m_material.hair_specular_strength,
+                                                         0.01f,
+                                                         0.0f,
+                                                         2.0f))
+                                        scene->markDirty();
+                                    if (ImGui::DragFloat("Hair Specular Power",
+                                                         &mesh->m_material.hair_specular_power,
+                                                         1.0f,
+                                                         1.0f,
+                                                         256.0f))
+                                        scene->markDirty();
+                                }
+                                if (ImGui::Checkbox("Subsurface", &mesh->m_material.subsurface_enabled))
+                                    scene->markDirty();
+                                if (mesh->m_material.subsurface_enabled)
+                                {
+                                    if (ImGui::DragFloat(
+                                            "SSS Radius", &mesh->m_material.subsurface_radius, 0.1f, 0.1f, 10.0f))
+                                        scene->markDirty();
+                                    if (ImGui::ColorEdit3("SSS Color", &mesh->m_material.subsurface_color.x))
+                                        scene->markDirty();
+                                }
+                                if (ImGui::ColorEdit3("Emissive", &mesh->m_material.emissive.x))
+                                    scene->markDirty();
+                                if (ImGui::DragFloat("Emissive Strength",
+                                                     &mesh->m_material.emissive_strength,
+                                                     0.01f,
                                                      0.0f,
-                                                     0.1f,
-                                                     "%.4f"))
-                                    scene->markDirty();
-                                if (ImGui::DragFloat(
-                                        "Hair Specular", &mesh->m_material.hair_specular_strength, 0.01f, 0.0f, 2.0f))
-                                    scene->markDirty();
-                                if (ImGui::DragFloat("Hair Specular Power",
-                                                     &mesh->m_material.hair_specular_power,
-                                                     1.0f,
-                                                     1.0f,
-                                                     256.0f))
+                                                     10.0f))
                                     scene->markDirty();
                             }
-                            if (ImGui::Checkbox("Subsurface", &mesh->m_material.subsurface_enabled))
-                                scene->markDirty();
-                            if (mesh->m_material.subsurface_enabled)
-                            {
-                                if (ImGui::DragFloat(
-                                        "SSS Radius", &mesh->m_material.subsurface_radius, 0.1f, 0.1f, 10.0f))
-                                    scene->markDirty();
-                                if (ImGui::ColorEdit3("SSS Color", &mesh->m_material.subsurface_color.x))
-                                    scene->markDirty();
-                            }
-                            if (ImGui::ColorEdit3("Emissive", &mesh->m_material.emissive.x))
-                                scene->markDirty();
-                            if (ImGui::DragFloat(
-                                    "Emissive Strength", &mesh->m_material.emissive_strength, 0.01f, 0.0f, 10.0f))
-                                scene->markDirty();
                             ImGui::TreePop();
                         }
                         ImGui::TreePop();
@@ -224,6 +236,154 @@ namespace RealmEngine
         renderTextureSlot("Ambient Occlusion", mat.use_texture_ambient_occlusion, mat.texture_ambient_occlusion);
         renderTextureSlot("Opacity", mat.use_texture_opacity, mat.texture_opacity);
         renderTextureSlot("Emissive", mat.use_texture_emissive, mat.texture_emissive);
+    }
+
+    void PropertiesWidget::renderCustomShaderMaterial(RenderMaterial& mat)
+    {
+        auto scene = m_bridge->getCurrentScene();
+
+        if (ImGui::Checkbox("Custom Shader", &mat.use_custom_shader))
+            scene->markDirty();
+
+        if (!mat.use_custom_shader)
+            return;
+
+        ImGui::Separator();
+        ImGui::Text("Custom Shader");
+
+        // Vertex shader path
+        {
+            char buf[512];
+            strncpy(buf, mat.custom_vert_path.c_str(), sizeof(buf) - 1);
+            buf[sizeof(buf) - 1] = '\0';
+            if (ImGui::InputText("Vertex Shader", buf, sizeof(buf)))
+            {
+                mat.custom_vert_path = buf;
+                scene->markDirty();
+            }
+        }
+
+        // Fragment shader path
+        {
+            char buf[512];
+            strncpy(buf, mat.custom_frag_path.c_str(), sizeof(buf) - 1);
+            buf[sizeof(buf) - 1] = '\0';
+            if (ImGui::InputText("Fragment Shader", buf, sizeof(buf)))
+            {
+                mat.custom_frag_path = buf;
+                scene->markDirty();
+            }
+        }
+
+        // Common properties still useful for custom shaders
+        if (ImGui::DragFloat("Opacity##custom", &mat.opacity, 0.01f, 0.0f, 1.0f))
+            scene->markDirty();
+        if (ImGui::Checkbox("Transparent##custom", &mat.is_transparent))
+            scene->markDirty();
+        if (ImGui::Checkbox("Double Sided##custom", &mat.double_sided))
+            scene->markDirty();
+
+        // Custom parameters
+        ImGui::Separator();
+        ImGui::Text("Custom Parameters");
+
+        static const char* param_type_names[] = {"Float", "Int", "Vec2", "Vec3", "Vec4", "Color3", "Color4"};
+
+        for (size_t p = 0; p < mat.custom_params.size(); ++p)
+        {
+            auto& param = mat.custom_params[p];
+            ImGui::PushID(static_cast<int>(p));
+
+            // Param name
+            {
+                char name_buf[128];
+                strncpy(name_buf, param.name.c_str(), sizeof(name_buf) - 1);
+                name_buf[sizeof(name_buf) - 1] = '\0';
+                ImGui::SetNextItemWidth(120);
+                if (ImGui::InputText("##name", name_buf, sizeof(name_buf)))
+                {
+                    param.name = name_buf;
+                    scene->markDirty();
+                }
+            }
+
+            ImGui::SameLine();
+
+            // Type selector
+            {
+                int type_idx = static_cast<int>(param.type);
+                ImGui::SetNextItemWidth(80);
+                if (ImGui::Combo("##type", &type_idx, param_type_names, IM_ARRAYSIZE(param_type_names)))
+                {
+                    param.type = static_cast<MaterialParamType>(type_idx);
+                    scene->markDirty();
+                }
+            }
+
+            ImGui::SameLine();
+
+            // Value editor
+            bool changed = false;
+            switch (param.type)
+            {
+                case MaterialParamType::Float:
+                    ImGui::SetNextItemWidth(100);
+                    changed = ImGui::DragFloat("##val", &param.values[0], 0.01f);
+                    break;
+                case MaterialParamType::Int:
+                {
+                    int iv = static_cast<int>(param.values[0]);
+                    ImGui::SetNextItemWidth(100);
+                    if (ImGui::DragInt("##val", &iv))
+                    {
+                        param.values[0] = static_cast<float>(iv);
+                        changed         = true;
+                    }
+                    break;
+                }
+                case MaterialParamType::Vec2:
+                    ImGui::SetNextItemWidth(160);
+                    changed = ImGui::DragFloat2("##val", param.values, 0.01f);
+                    break;
+                case MaterialParamType::Vec3:
+                    ImGui::SetNextItemWidth(200);
+                    changed = ImGui::DragFloat3("##val", param.values, 0.01f);
+                    break;
+                case MaterialParamType::Vec4:
+                    ImGui::SetNextItemWidth(240);
+                    changed = ImGui::DragFloat4("##val", param.values, 0.01f);
+                    break;
+                case MaterialParamType::Color3:
+                    changed = ImGui::ColorEdit3("##val", param.values);
+                    break;
+                case MaterialParamType::Color4:
+                    changed = ImGui::ColorEdit4("##val", param.values);
+                    break;
+            }
+            if (changed)
+                scene->markDirty();
+
+            ImGui::SameLine();
+            if (ImGui::Button("X"))
+            {
+                mat.custom_params.erase(mat.custom_params.begin() + static_cast<ptrdiff_t>(p));
+                scene->markDirty();
+                ImGui::PopID();
+                break;
+            }
+
+            ImGui::PopID();
+        }
+
+        if (ImGui::Button("+ Add Parameter"))
+        {
+            MaterialParam param;
+            param.name = "newParam";
+            mat.custom_params.push_back(param);
+            scene->markDirty();
+        }
+
+        ImGui::Separator();
     }
 
     void PropertiesWidget::renderPointLight()

@@ -9,6 +9,7 @@
 #include "renderer/ibl/equirectangular_cubemap.h"
 #include "renderer/ibl/specular_map.h"
 #include "renderer/passes/bloom_pass.h"
+#include "renderer/passes/custom_shader_pass.h"
 #include "renderer/passes/deferred_lighting_pass.h"
 #include "renderer/passes/gbuffer_pass.h"
 #include "renderer/passes/geometry_pass.h"
@@ -118,6 +119,10 @@ namespace RealmEngine
         m_scene_color_source = geometry.get();
         m_pipeline.addPass(std::move(geometry));
 
+        auto custom_shader   = std::make_unique<CustomShaderPass>();
+        m_custom_shader_pass = custom_shader.get();
+        m_pipeline.addPass(std::move(custom_shader));
+
         auto hair   = std::make_unique<HairPass>(sp);
         m_hair_pass = hair.get();
         m_pipeline.addPass(std::move(hair));
@@ -158,6 +163,10 @@ namespace RealmEngine
         // Cross-pass wiring
         m_geometry_pass->setShadowPass(m_shadow_pass);
         m_geometry_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
+
+        m_custom_shader_pass->setSceneColorSource(m_geometry_pass);
+        m_custom_shader_pass->setShadowPass(m_shadow_pass);
+        m_custom_shader_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
         m_hair_pass->setSceneColorSource(m_geometry_pass);
         m_hair_pass->setShadowPass(m_shadow_pass);
@@ -209,6 +218,11 @@ namespace RealmEngine
         m_scene_color_source     = deferred_lighting.get();
         m_pipeline.addPass(std::move(deferred_lighting));
 
+        // Custom shader (forward, renders into lighting framebuffer)
+        auto custom_shader   = std::make_unique<CustomShaderPass>();
+        m_custom_shader_pass = custom_shader.get();
+        m_pipeline.addPass(std::move(custom_shader));
+
         // Hair (forward, renders into lighting framebuffer)
         auto hair   = std::make_unique<HairPass>(sp);
         m_hair_pass = hair.get();
@@ -254,6 +268,10 @@ namespace RealmEngine
         m_deferred_lighting_pass->setShadowPass(m_shadow_pass);
         m_deferred_lighting_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
         m_deferred_lighting_pass->setFullscreenQuad(m_fullscreen_quad.get());
+
+        m_custom_shader_pass->setSceneColorSource(m_deferred_lighting_pass);
+        m_custom_shader_pass->setShadowPass(m_shadow_pass);
+        m_custom_shader_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
         m_hair_pass->setSceneColorSource(m_deferred_lighting_pass);
         m_hair_pass->setShadowPass(m_shadow_pass);

@@ -159,6 +159,65 @@ namespace RealmEngine
         m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
     }
 
+    void RenderMesh::drawCustom(RHIShader& shader)
+    {
+        const RenderMaterial& mat = m_material;
+
+        // Set standard PBR uniforms so custom shaders can reuse them if desired
+        shader.setBool("material.useTextureAlbedo", mat.use_texture_albedo);
+        shader.setVec3("material.albedo", mat.albedo);
+        if (mat.use_texture_albedo && mat.texture_albedo)
+        {
+            mat.texture_albedo->bind(TEXTURE_UNIT_ALBEDO);
+            shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
+        }
+
+        shader.setFloat("material.opacity", mat.opacity);
+        shader.setVec3("material.emissive", mat.emissive);
+        shader.setFloat("material.emissiveStrength", mat.emissive_strength);
+        shader.setFloat("material.metallic", mat.metallic);
+        shader.setFloat("material.roughness", mat.roughness);
+
+        if (mat.use_texture_normal && mat.texture_normal)
+        {
+            mat.texture_normal->bind(TEXTURE_UNIT_NORMAL);
+            shader.setInt("material.textureNormal", TEXTURE_UNIT_NORMAL);
+            shader.setBool("material.useTextureNormal", true);
+        }
+        else
+        {
+            shader.setBool("material.useTextureNormal", false);
+        }
+
+        // Set custom material parameters
+        for (const auto& param : mat.custom_params)
+        {
+            switch (param.type)
+            {
+                case MaterialParamType::Float:
+                    shader.setFloat(param.name, param.values[0]);
+                    break;
+                case MaterialParamType::Int:
+                    shader.setInt(param.name, static_cast<int>(param.values[0]));
+                    break;
+                case MaterialParamType::Vec2:
+                    shader.setVec2(param.name, glm::vec2(param.values[0], param.values[1]));
+                    break;
+                case MaterialParamType::Vec3:
+                case MaterialParamType::Color3:
+                    shader.setVec3(param.name, glm::vec3(param.values[0], param.values[1], param.values[2]));
+                    break;
+                case MaterialParamType::Vec4:
+                case MaterialParamType::Color4:
+                    shader.setVec4(param.name,
+                                   glm::vec4(param.values[0], param.values[1], param.values[2], param.values[3]));
+                    break;
+            }
+        }
+
+        m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
+    }
+
     void RenderMesh::drawShadow([[maybe_unused]] RHIShader& shader)
     {
         m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));

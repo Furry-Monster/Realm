@@ -38,11 +38,13 @@ namespace RealmEngine
         RenderMesh& operator=(RenderMesh&& other) noexcept;
 
         void draw(RHIShader& shader);
+        void drawCustom(RHIShader& shader);
         void drawHair(RHIShader& shader);
         void drawShadow(RHIShader& shader);
 
         bool isHair() const { return m_material.is_hair; }
         bool isTransparent() const { return m_material.is_transparent; }
+        bool hasCustomShader() const { return m_material.hasCustomShader(); }
         int  getTriangleCount() const { return static_cast<int>(m_indices.size()) / 3; }
 
         std::string               m_name;
