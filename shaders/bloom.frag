@@ -37,8 +37,8 @@ void main()
     {
         vec2 sampleOffset = vec2(texelSize.x * i * blurDirection.x, texelSize.y * i * blurDirection.y);
 
-        result += texture(inputColorTexture, textureCoordinates + sampleOffset).rgb * gaussianBlurWeights[i];
-        result += texture(inputColorTexture, textureCoordinates - sampleOffset).rgb * gaussianBlurWeights[i];
+        result += textureLod(inputColorTexture, textureCoordinates + sampleOffset, sampleMipLevel).rgb * gaussianBlurWeights[i];
+        result += textureLod(inputColorTexture, textureCoordinates - sampleOffset, sampleMipLevel).rgb * gaussianBlurWeights[i];
     }
 
     FragColor = vec4(result, 1.0);

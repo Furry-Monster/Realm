@@ -97,6 +97,11 @@ namespace RealmEngine
         }
 
         auto size = file.tellg();
+        if (size < 0)
+        {
+            RE_LOG_ERROR("Failed to determine size of binary file: " + path.string());
+            return std::nullopt;
+        }
         file.seekg(0, std::ios::beg);
 
         std::vector<uint8_t> data(static_cast<size_t>(size));

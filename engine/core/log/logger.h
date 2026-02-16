@@ -46,11 +46,11 @@ namespace RealmEngine
                 case LogLevel::error:
                     m_spd_logger->error(std::forward<TARGS>(args)...);
                     break;
-                case LogLevel::fatal:
-                    m_spd_logger->critical(std::forward<TARGS>(args)...);
+                case LogLevel::fatal: {
                     const std::string fmt_str = fmt::format(std::forward<TARGS>(args)...);
+                    m_spd_logger->critical(fmt_str);
                     throw std::runtime_error(fmt_str);
-                    break;
+                }
             }
         }
 

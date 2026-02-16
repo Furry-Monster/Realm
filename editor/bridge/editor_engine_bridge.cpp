@@ -171,10 +171,7 @@ namespace RealmEngine
         device.clear(ClearFlags::Color | ClearFlags::Depth);
     }
 
-    RHITexture* EditorEngineBridge::getGBufferAlbedoAO() const
-    {
-        return m_engine->getRenderer().getGBufferAlbedoAO();
-    }
+    RHITexture* EditorEngineBridge::getGBufferAlbedoAO() const { return m_engine->getRenderer().getGBufferAlbedoAO(); }
 
     RHITexture* EditorEngineBridge::getGBufferNormalMetallic() const
     {
@@ -186,9 +183,6 @@ namespace RealmEngine
         return m_engine->getRenderer().getGBufferEmissiveRoughness();
     }
 
-    RHITexture* EditorEngineBridge::getGBufferDepth() const
-    {
-        return m_engine->getRenderer().getGBufferDepth();
-    }
+    RHITexture* EditorEngineBridge::getGBufferDepth() const { return m_engine->getRenderer().getGBufferDepth(); }
 
 } // namespace RealmEngine

@@ -91,8 +91,8 @@ namespace RealmEngine
             m_framebuffers[0]->setMipLevel(mip);
             m_framebuffers[1]->setMipLevel(mip);
 
-            // First pass: sample from the PBR bloom buffer at the current mip level -> fb[0]
-            m_framebuffers[0]->bind();
+            // First pass: sample from bloom_tex (fb[0]) -> write to fb[1] to avoid feedback loop
+            m_framebuffers[1]->bind();
             ctx.device->setViewport(0, 0, mip_w, mip_h);
             ctx.device->bindTexture(0, *bloom_tex);
             m_shader->setInt("sampleMipLevel", mip);
@@ -100,7 +100,7 @@ namespace RealmEngine
             m_quad->draw();
 
             // Ping-pong blur iterations
-            uint32_t last_written = 0;
+            uint32_t last_written = 1;
             for (int i = 1; i < m_iterations; ++i)
             {
                 uint32_t src = last_written;
@@ -109,7 +109,7 @@ namespace RealmEngine
                 m_framebuffers[dst]->bind();
                 ctx.device->setViewport(0, 0, mip_w, mip_h);
                 m_shader->setVec2("blurDirection", (i % 2 == 0) ? blur_direction_x : blur_direction_y);
-                m_shader->setInt("sampleMipLevel", 0); // ping-pong buffers: always sample mip 0
+                m_shader->setInt("sampleMipLevel", 0);
                 ctx.device->bindTexture(0, *m_framebuffers[src]->getColorAttachment(0));
                 m_quad->draw();
 

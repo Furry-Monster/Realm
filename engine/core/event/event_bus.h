@@ -79,13 +79,19 @@ namespace RealmEngine
         template<typename E>
         void publish(const E& event) const
         {
-            auto type_key = std::type_index(typeid(E));
-            auto it       = m_handlers.find(type_key);
-            if (it == m_handlers.end())
-                return;
-
-            for (const auto& entry : it->second)
-                entry.func(&event);
+            std::vector<ErasedHandler> snapshot;
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                auto                        type_key = std::type_index(typeid(E));
+                auto                        it       = m_handlers.find(type_key);
+                if (it == m_handlers.end())
+                    return;
+                snapshot.reserve(it->second.size());
+                for (const auto& entry : it->second)
+                    snapshot.push_back(entry.func);
+            }
+            for (const auto& func : snapshot)
+                func(&event);
         }
 
     private:

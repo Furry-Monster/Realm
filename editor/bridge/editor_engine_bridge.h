@@ -41,13 +41,13 @@ namespace RealmEngine
         std::shared_ptr<RHITexture> getTextureForPreview(const std::filesystem::path& path);
         ConfigManager&              getConfig();
 
-        PipelineMode               getPipelineMode() const;
+        PipelineMode getPipelineMode() const;
 
-        ViewportDisplayMode        getViewportDisplayMode() const;
-        void                       setViewportDisplayMode(ViewportDisplayMode mode);
-        void                       setRenderToViewportTexture(bool enable);
-        RHITexture*                getViewportTexture() const;
-        void                       bindDefaultFramebufferForImGui() const;
+        ViewportDisplayMode getViewportDisplayMode() const;
+        void                setViewportDisplayMode(ViewportDisplayMode mode);
+        void                setRenderToViewportTexture(bool enable);
+        RHITexture*         getViewportTexture() const;
+        void                bindDefaultFramebufferForImGui() const;
 
         // G-Buffer texture access (deferred only)
         RHITexture*                getGBufferAlbedoAO() const;

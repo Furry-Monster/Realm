@@ -114,7 +114,12 @@ namespace RealmEngine
         }
         return m_proj_matrix;
     }
-    const glm::mat4& RenderCamera::getViewProjMatrix() const { return m_view_proj_matrix; }
+    const glm::mat4& RenderCamera::getViewProjMatrix() const
+    {
+        if (m_view_mat_dirty || m_proj_mat_dirty)
+            const_cast<RenderCamera*>(this)->update();
+        return m_view_proj_matrix;
+    }
 
     const Frustum& RenderCamera::getFrustum() const { return m_frustum; }
 

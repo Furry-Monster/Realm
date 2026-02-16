@@ -5,9 +5,8 @@
 #include "rhi/rhi_texture.h"
 #include "rhi/rhi_types.h"
 
-#ifndef STB_IMAGE_IMPLEMENTATION
-#  define STB_IMAGE_IMPLEMENTATION
-#endif
+// Sole TU providing the stb_image implementation -- do NOT define STB_IMAGE_IMPLEMENTATION elsewhere
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 namespace RealmEngine
