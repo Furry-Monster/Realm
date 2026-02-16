@@ -19,7 +19,7 @@ namespace RealmEngine
         if (!child)
             return;
 
-        auto old_parent = m_parent.lock();
+        auto old_parent = child->getParent();
         if (old_parent)
             old_parent->removeChild(child);
 

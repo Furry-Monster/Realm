@@ -75,16 +75,17 @@ namespace RealmEngine
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
         {
             if (ImGui::DragFloat3("Position", &tf->position.x, 0.1f))
-            {
-            }
+                scene->markDirty();
 
             glm::vec3 euler_degrees = glm::degrees(tf->getEulerAngles());
             if (ImGui::DragFloat3("Rotation", &euler_degrees.x, 1.0f))
+            {
                 tf->rotation = glm::quat(glm::radians(euler_degrees));
+                scene->markDirty();
+            }
 
             if (ImGui::DragFloat3("Scale", &tf->scale.x, 0.1f))
-            {
-            }
+                scene->markDirty();
         }
     }
 
@@ -249,15 +250,21 @@ namespace RealmEngine
         {
             if (ImGui::Checkbox("Enabled", &pl->enabled))
                 scene->markDirty();
-            ImGui::ColorEdit3("Color", &pl->color.x);
-            ImGui::DragFloat("Intensity", &pl->intensity, 0.1f, 0.0f, 100.0f);
-            ImGui::DragFloat("Range", &pl->range, 1.0f, 0.0f, 1000.0f);
+            if (ImGui::ColorEdit3("Color", &pl->color.x))
+                scene->markDirty();
+            if (ImGui::DragFloat("Intensity", &pl->intensity, 0.1f, 0.0f, 100.0f))
+                scene->markDirty();
+            if (ImGui::DragFloat("Range", &pl->range, 1.0f, 0.0f, 1000.0f))
+                scene->markDirty();
 
             if (ImGui::TreeNode("Attenuation"))
             {
-                ImGui::DragFloat("Constant", &pl->constant, 0.01f, 0.0f, 10.0f);
-                ImGui::DragFloat("Linear", &pl->linear, 0.001f, 0.0f, 1.0f);
-                ImGui::DragFloat("Quadratic", &pl->quadratic, 0.0001f, 0.0f, 1.0f);
+                if (ImGui::DragFloat("Constant", &pl->constant, 0.01f, 0.0f, 10.0f))
+                    scene->markDirty();
+                if (ImGui::DragFloat("Linear", &pl->linear, 0.001f, 0.0f, 1.0f))
+                    scene->markDirty();
+                if (ImGui::DragFloat("Quadratic", &pl->quadratic, 0.0001f, 0.0f, 1.0f))
+                    scene->markDirty();
                 ImGui::TreePop();
             }
         }
@@ -279,17 +286,25 @@ namespace RealmEngine
         {
             if (ImGui::Checkbox("Enabled", &sl->enabled))
                 scene->markDirty();
-            ImGui::ColorEdit3("Color", &sl->color.x);
-            ImGui::DragFloat("Intensity", &sl->intensity, 0.1f, 0.0f, 100.0f);
-            ImGui::DragFloat("Range", &sl->range, 1.0f, 0.0f, 1000.0f);
-            ImGui::DragFloat("Inner Cone Angle", &sl->inner_cone_angle, 1.0f, 0.0f, 180.0f);
-            ImGui::DragFloat("Outer Cone Angle", &sl->outer_cone_angle, 1.0f, 0.0f, 180.0f);
+            if (ImGui::ColorEdit3("Color", &sl->color.x))
+                scene->markDirty();
+            if (ImGui::DragFloat("Intensity", &sl->intensity, 0.1f, 0.0f, 100.0f))
+                scene->markDirty();
+            if (ImGui::DragFloat("Range", &sl->range, 1.0f, 0.0f, 1000.0f))
+                scene->markDirty();
+            if (ImGui::DragFloat("Inner Cone Angle", &sl->inner_cone_angle, 1.0f, 0.0f, 180.0f))
+                scene->markDirty();
+            if (ImGui::DragFloat("Outer Cone Angle", &sl->outer_cone_angle, 1.0f, 0.0f, 180.0f))
+                scene->markDirty();
 
             if (ImGui::TreeNode("Attenuation"))
             {
-                ImGui::DragFloat("Constant", &sl->constant, 0.01f, 0.0f, 10.0f);
-                ImGui::DragFloat("Linear", &sl->linear, 0.001f, 0.0f, 1.0f);
-                ImGui::DragFloat("Quadratic", &sl->quadratic, 0.0001f, 0.0f, 1.0f);
+                if (ImGui::DragFloat("Constant", &sl->constant, 0.01f, 0.0f, 10.0f))
+                    scene->markDirty();
+                if (ImGui::DragFloat("Linear", &sl->linear, 0.001f, 0.0f, 1.0f))
+                    scene->markDirty();
+                if (ImGui::DragFloat("Quadratic", &sl->quadratic, 0.0001f, 0.0f, 1.0f))
+                    scene->markDirty();
                 ImGui::TreePop();
             }
         }
@@ -311,8 +326,10 @@ namespace RealmEngine
         {
             if (ImGui::Checkbox("Enabled", &dl->enabled))
                 scene->markDirty();
-            ImGui::ColorEdit3("Color", &dl->color.x);
-            ImGui::DragFloat("Intensity", &dl->intensity, 0.1f, 0.0f, 100.0f);
+            if (ImGui::ColorEdit3("Color", &dl->color.x))
+                scene->markDirty();
+            if (ImGui::DragFloat("Intensity", &dl->intensity, 0.1f, 0.0f, 100.0f))
+                scene->markDirty();
         }
     }
 
@@ -332,10 +349,14 @@ namespace RealmEngine
         {
             if (ImGui::Checkbox("Enabled", &al->enabled))
                 scene->markDirty();
-            ImGui::ColorEdit3("Color", &al->color.x);
-            ImGui::DragFloat("Intensity", &al->intensity, 0.1f, 0.0f, 100.0f);
-            ImGui::DragFloat("Width", &al->width, 0.1f, 0.0f, 100.0f);
-            ImGui::DragFloat("Height", &al->height, 0.1f, 0.0f, 100.0f);
+            if (ImGui::ColorEdit3("Color", &al->color.x))
+                scene->markDirty();
+            if (ImGui::DragFloat("Intensity", &al->intensity, 0.1f, 0.0f, 100.0f))
+                scene->markDirty();
+            if (ImGui::DragFloat("Width", &al->width, 0.1f, 0.0f, 100.0f))
+                scene->markDirty();
+            if (ImGui::DragFloat("Height", &al->height, 0.1f, 0.0f, 100.0f))
+                scene->markDirty();
         }
     }
 

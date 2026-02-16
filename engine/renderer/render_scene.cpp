@@ -138,7 +138,7 @@ namespace RealmEngine
                     Light light {};
                     light.type             = LightType::Spot;
                     light.position         = getWorldPosition(scene, entity);
-                    light.direction        = -getWorldForward(scene, entity);
+                    light.direction        = getWorldForward(scene, entity);
                     light.color            = sl->color;
                     light.intensity        = sl->intensity;
                     light.constant         = sl->constant;
@@ -161,7 +161,7 @@ namespace RealmEngine
                     Light light {};
                     light.type             = LightType::Area;
                     light.position         = getWorldPosition(scene, entity);
-                    light.direction        = -getWorldForward(scene, entity);
+                    light.direction        = getWorldForward(scene, entity);
                     light.color            = al->color;
                     light.intensity        = al->intensity;
                     light.constant         = 0.0f;
@@ -184,7 +184,7 @@ namespace RealmEngine
                     Light light {};
                     light.type             = LightType::Directional;
                     light.position         = glm::vec3(0.0f);
-                    light.direction        = -getWorldForward(scene, entity);
+                    light.direction        = getWorldForward(scene, entity);
                     light.color            = dl->color;
                     light.intensity        = dl->intensity;
                     light.constant         = 0.0f;
@@ -261,7 +261,7 @@ namespace RealmEngine
             else if (auto* sl = scene.tryGet<SpotLight>(entity))
             {
                 light.position         = getWorldPosition(scene, entity);
-                light.direction        = -getWorldForward(scene, entity);
+                light.direction        = getWorldForward(scene, entity);
                 light.color            = sl->color;
                 light.intensity        = sl->enabled ? sl->intensity : 0.0f;
                 light.constant         = sl->constant;
@@ -274,7 +274,7 @@ namespace RealmEngine
             else if (auto* al = scene.tryGet<AreaLight>(entity))
             {
                 light.position  = getWorldPosition(scene, entity);
-                light.direction = -getWorldForward(scene, entity);
+                light.direction = getWorldForward(scene, entity);
                 light.color     = al->color;
                 light.intensity = al->enabled ? al->intensity : 0.0f;
                 light.width     = al->width;
@@ -282,7 +282,7 @@ namespace RealmEngine
             }
             else if (auto* dl = scene.tryGet<DirectionalLight>(entity))
             {
-                light.direction = -getWorldForward(scene, entity);
+                light.direction = getWorldForward(scene, entity);
                 light.color     = dl->color;
                 light.intensity = dl->enabled ? dl->intensity : 0.0f;
             }

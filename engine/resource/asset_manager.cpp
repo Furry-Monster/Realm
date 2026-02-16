@@ -44,11 +44,10 @@ namespace RealmEngine
         if (meshes.empty())
             return nullptr;
 
-        auto obj = std::make_shared<RenderObject>(std::move(meshes));
-
+        auto                        obj = std::make_shared<RenderObject>(std::move(meshes));
         std::lock_guard<std::mutex> lock(m_model_mutex);
-        m_model_cache[key] = obj;
-        return obj;
+        auto [it, inserted] = m_model_cache.emplace(key, obj);
+        return it->second;
     }
 
     std::shared_ptr<RHITexture> AssetManager::getOrLoadTexture(const std::string& path,
@@ -114,8 +113,8 @@ namespace RealmEngine
 
         std::shared_ptr<RHITexture> shared_texture(std::move(texture));
         std::lock_guard<std::mutex> lock(m_texture_mutex);
-        m_texture_cache[key] = shared_texture;
-        return shared_texture;
+        auto [it, inserted] = m_texture_cache.emplace(key, shared_texture);
+        return it->second;
     }
 
     std::shared_ptr<RHITexture> AssetManager::getOrLoadTextureForPreview(const std::string& full_path,

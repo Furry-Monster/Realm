@@ -12,12 +12,12 @@ in vec3 normal;
 
 struct HairMaterial
 {
-    bool  useTextureAlbedo;
-    bool  useTextureOpacity;
-    bool  useTextureEmissive;
-    vec3  albedo;
+    bool useTextureAlbedo;
+    bool useTextureOpacity;
+    bool useTextureEmissive;
+    vec3 albedo;
     float opacity;
-    vec3  emissive;
+    vec3 emissive;
     float emissiveStrength;
     float specularStrength;
     float specularPower;
@@ -37,17 +37,17 @@ struct LightData
 };
 
 uniform HairMaterial material;
-uniform vec3         cameraPosition;
+uniform vec3 cameraPosition;
 
 layout(std140) uniform LightBlock
 {
-    int       lightCount;
+    int lightCount;
     LightData lights[16];
 };
 
-uniform sampler2D   shadowMap;
-uniform bool        shadowEnabled;
-uniform mat4        lightSpaceMatrix;
+uniform sampler2D shadowMap;
+uniform bool shadowEnabled;
+uniform mat4 lightSpaceMatrix;
 uniform samplerCube diffuseIrradianceMap;
 
 uniform int displayMode;
@@ -60,7 +60,9 @@ float kajiyaKayDiffuse(vec3 T, vec3 L)
 }
 
 // Kajiya-Kay specular: Ks * pow(max(0, T·H), p)
-float kajiyaKaySpecular(vec3 T, vec3 H, float power) { return pow(max(0.0, dot(T, H)), power); }
+float kajiyaKaySpecular(vec3 T, vec3 H, float power) {
+    return pow(max(0.0, dot(T, H)), power);
+}
 
 float calcShadow(vec4 fragPosLightSpace)
 {
@@ -68,13 +70,13 @@ float calcShadow(vec4 fragPosLightSpace)
         return 1.0;
 
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords      = projCoords * 0.5 + 0.5;
+    projCoords = projCoords * 0.5 + 0.5;
     if (projCoords.z > 1.0)
         return 1.0;
 
     float currentDepth = projCoords.z;
-    float bias         = 0.005;
-    float shadow       = currentDepth - bias > texture(shadowMap, projCoords.xy).r ? 1.0 : 0.0;
+    float bias = 0.005;
+    float shadow = currentDepth - bias > texture(shadowMap, projCoords.xy).r ? 1.0 : 0.0;
     return 1.0 - shadow;
 }
 
@@ -122,24 +124,24 @@ void main()
 
     for (int i = 0; i < lightCount && i < 16; ++i)
     {
-        LightData l   = lights[i];
-        int       typ = int(l.position.w);
+        LightData l = lights[i];
+        int typ = int(l.position.w);
 
-        vec3  lightPos   = l.position.xyz;
-        vec3  lightDir   = normalize(l.direction.xyz);
-        vec3  lightColor = l.color.rgb;
-        float intensity  = l.direction.w;
+        vec3 lightPos = l.position.xyz;
+        vec3 lightDir = normalize(l.direction.xyz);
+        vec3 lightColor = l.color.rgb;
+        float intensity = l.direction.w;
         float lightConst = l.color.w;
 
-        vec3  L;
+        vec3 L;
         float attenuation = 1.0;
 
         if (typ == 0)
         {
-            vec3  toLight = lightPos - worldCoordinates;
-            float dist    = length(toLight);
-            L             = normalize(toLight);
-            float range   = l.attenuation.z;
+            vec3 toLight = lightPos - worldCoordinates;
+            float dist = length(toLight);
+            L = normalize(toLight);
+            float range = l.attenuation.z;
             if (dist > range)
                 continue;
             attenuation = 1.0 / (lightConst + l.attenuation.x * dist + l.attenuation.y * dist * dist);
@@ -150,14 +152,14 @@ void main()
         }
         else if (typ == 2)
         {
-            vec3  toLight = lightPos - worldCoordinates;
-            float dist    = length(toLight);
-            L             = normalize(toLight);
-            float range   = l.attenuation.z;
+            vec3 toLight = lightPos - worldCoordinates;
+            float dist = length(toLight);
+            L = normalize(toLight);
+            float range = l.attenuation.z;
             if (dist > range)
                 continue;
-            attenuation    = 1.0 / (lightConst + l.attenuation.x * dist + l.attenuation.y * dist * dist);
-            float theta    = dot(L, -lightDir);
+            attenuation = 1.0 / (lightConst + l.attenuation.x * dist + l.attenuation.y * dist * dist);
+            float theta = dot(L, -lightDir);
             float outerCos = cos(radians(l.spot_area.x));
             float innerCos = cos(radians(l.attenuation.w));
             if (theta < outerCos)
@@ -171,20 +173,25 @@ void main()
 
         vec3 H = normalize(L + v);
 
-        float diffuse  = kajiyaKayDiffuse(T, L);
+        float diffuse = kajiyaKayDiffuse(T, L);
         float specular = kajiyaKaySpecular(T, H, material.specularPower);
 
         vec3 radiance = lightColor * intensity * attenuation *
-                        (albedo * diffuse + material.specularStrength * specular * vec3(1.0));
+                (albedo * diffuse + material.specularStrength * specular * vec3(1.0));
 
-        vec4  fragPosLightSpace = lightSpaceMatrix * vec4(worldCoordinates, 1.0);
-        float shadow            = calcShadow(fragPosLightSpace);
+        // Shadow map is only valid for directional light (type 1)
+        float shadow = 1.0;
+        if (typ == 1)
+        {
+            vec4 fragPosLightSpace = lightSpaceMatrix * vec4(worldCoordinates, 1.0);
+            shadow = calcShadow(fragPosLightSpace);
+        }
         Lo += radiance * shadow;
     }
 
     vec3 irradiance = texture(diffuseIrradianceMap, normal).rgb;
-    vec3 ambient    = irradiance * albedo;
-    vec3 color      = emissive + ambient + Lo;
+    vec3 ambient = irradiance * albedo;
+    vec3 color = emissive + ambient + Lo;
 
     FragColor = vec4(color, alpha);
 }

@@ -91,9 +91,13 @@ namespace RealmEngine
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        auto file_dialog = std::make_shared<FileDialogWidget>();
-        file_dialog->setOnFileSelected([this, file_dialog](const std::filesystem::path& path) {
-            if (file_dialog->getMode() == FileDialogWidget::Mode::Open)
+        auto                            file_dialog = std::make_shared<FileDialogWidget>();
+        std::weak_ptr<FileDialogWidget> weak_dialog = file_dialog;
+        file_dialog->setOnFileSelected([this, weak_dialog](const std::filesystem::path& path) {
+            auto dialog = weak_dialog.lock();
+            if (!dialog)
+                return;
+            if (dialog->getMode() == FileDialogWidget::Mode::Open)
             {
                 auto loaded = m_bridge->loadScene(path.string());
                 if (loaded)

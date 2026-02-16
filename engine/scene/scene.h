@@ -19,10 +19,10 @@ namespace RealmEngine
         Scene();
         ~Scene() noexcept = default;
 
-        Scene(const Scene&)                = delete;
-        Scene& operator=(const Scene&)     = delete;
-        Scene(Scene&&) noexcept            = default;
-        Scene& operator=(Scene&&) noexcept = default;
+        Scene(const Scene&)            = delete;
+        Scene& operator=(const Scene&) = delete;
+        Scene(Scene&& other) noexcept;
+        Scene& operator=(Scene&& other) noexcept;
 
         void tick(float delta_time);
 
@@ -77,6 +77,7 @@ namespace RealmEngine
     private:
         void incrementGeneration() { ++m_generation; }
         void onRenderStructureChanged(entt::registry&, entt::entity);
+        void reconnectSignals();
 
         entt::registry                                m_registry;
         std::unordered_map<std::string, entt::entity> m_name_index;

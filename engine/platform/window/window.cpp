@@ -124,7 +124,15 @@ namespace RealmEngine
 
     Window::Window() = default;
 
-    Window::~Window() noexcept { m_impl.reset(); }
+    Window::~Window() noexcept
+    {
+        if (m_impl)
+        {
+            m_impl->event_bus = nullptr;
+            m_impl.reset();
+            glfwTerminate();
+        }
+    }
 
     void Window::initialize(EventBus& event_bus, const WindowConfig& config)
     {

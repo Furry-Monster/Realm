@@ -427,8 +427,8 @@ namespace RealmEngine
                                    int             dstY1,
                                    BlitMask        mask)
     {
-        GLuint src_fbo = src->getNativeHandle();
-        GLuint dst_fbo = dst->getNativeHandle();
+        GLuint src_fbo = src ? src->getNativeHandle() : 0;
+        GLuint dst_fbo = dst ? dst->getNativeHandle() : 0;
         glBindFramebuffer(GL_READ_FRAMEBUFFER, src_fbo);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_fbo);
 

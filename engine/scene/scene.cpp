@@ -1,5 +1,6 @@
 #include "scene/scene.h"
 
+#include "core/log/log_macros.h"
 #include "scene/components/camera_controller.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
@@ -29,6 +30,42 @@ namespace RealmEngine
         m_registry.on_destroy<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
     }
 
+    void Scene::reconnectSignals()
+    {
+        m_registry.on_construct<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_construct<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_construct<SpotLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_construct<AreaLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_construct<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<SpotLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<AreaLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_registry.on_destroy<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
+    }
+
+    Scene::Scene(Scene&& other) noexcept :
+        m_registry(std::move(other.m_registry)), m_name_index(std::move(other.m_name_index)),
+        m_root(std::move(other.m_root)), m_camera_controller(std::move(other.m_camera_controller)),
+        m_generation(other.m_generation)
+    {
+        reconnectSignals();
+    }
+
+    Scene& Scene::operator=(Scene&& other) noexcept
+    {
+        if (this != &other)
+        {
+            m_registry          = std::move(other.m_registry);
+            m_name_index        = std::move(other.m_name_index);
+            m_root              = std::move(other.m_root);
+            m_camera_controller = std::move(other.m_camera_controller);
+            m_generation        = other.m_generation;
+            reconnectSignals();
+        }
+        return *this;
+    }
+
     void Scene::tick(float delta_time)
     {
         // Run ECS systems each frame
@@ -41,10 +78,16 @@ namespace RealmEngine
 
     Entity Scene::createEntity(const std::string& name)
     {
-        // Return existing entity if name already taken
         auto it = m_name_index.find(name);
         if (it != m_name_index.end())
-            return Entity(it->second, &m_registry);
+        {
+            RE_LOG_WARN("Entity name already taken: " + name + " -- generating unique name");
+            std::string unique_name = name;
+            int         suffix      = 1;
+            while (m_name_index.count(unique_name))
+                unique_name = name + "_" + std::to_string(suffix++);
+            return createEntity(unique_name);
+        }
 
         auto handle = m_registry.create();
         m_registry.emplace<NameTag>(handle, NameTag {name});
@@ -55,10 +98,18 @@ namespace RealmEngine
 
     void Scene::destroyEntity(entt::entity entity)
     {
-        // Remove from name index
         auto* tag = m_registry.try_get<NameTag>(entity);
         if (tag)
             m_name_index.erase(tag->name);
+
+        auto node = findNodeByEntity(entity);
+        if (node)
+        {
+            auto parent = node->getParent();
+            if (parent)
+                parent->removeChild(node);
+            node->clearChildren();
+        }
 
         m_registry.destroy(entity);
         incrementGeneration();

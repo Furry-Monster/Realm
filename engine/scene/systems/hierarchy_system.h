@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <entt/entity/entity.hpp>
 #include <memory>
+#include <unordered_map>
 
 namespace RealmEngine
 {
@@ -21,12 +22,13 @@ namespace RealmEngine
         static void update(Scene& scene);
 
         // Force a full resync on the next update() call
-        static void invalidate();
+        static void invalidate(Scene& scene);
+        static void invalidateAll();
 
     private:
         static void syncNode(Scene& scene, const std::shared_ptr<SceneNode>& node, entt::entity parent_entity);
 
-        static uint64_t s_last_synced_generation;
+        static std::unordered_map<const Scene*, uint64_t> s_synced_generations;
     };
 
 } // namespace RealmEngine
