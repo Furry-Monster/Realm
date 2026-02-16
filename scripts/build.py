@@ -74,16 +74,14 @@ class Builder:
 
         # Run CMake
         try:
-            result = self.config.run_command(
-                cmd, cwd=build_dir, capture_output=not verbose, check=False
-            )
+            if verbose:
+                result = self.config.run_command(cmd, cwd=build_dir, check=False)
+                returncode = result.returncode
+            else:
+                returncode = self.config.run_command_streamed(cmd, cwd=build_dir)
 
-            if result.returncode != 0:
+            if returncode != 0:
                 self.logger.error("CMake configuration failed")
-                if not verbose and result.stdout:
-                    print(result.stdout)
-                if not verbose and result.stderr:
-                    print(result.stderr)
                 return False
 
             self.logger.success("CMake configuration completed")
@@ -131,30 +129,19 @@ class Builder:
         try:
             if verbose:
                 result = self.config.run_command(cmd, cwd=build_dir, check=False)
+                returncode = result.returncode
             else:
-                result = self.config.run_command(
-                    cmd, cwd=build_dir, capture_output=True, check=False
+                _build_keywords = ("error", "warning", "building", "linking", "finished", "failed")
+
+                def _build_filter(line: str) -> bool:
+                    ll = line.lower()
+                    return any(kw in ll for kw in _build_keywords)
+
+                returncode = self.config.run_command_streamed(
+                    cmd, cwd=build_dir, line_filter=_build_filter
                 )
 
-                # Filter output to show only important lines
-                if result.stdout or result.stderr:
-                    output = (result.stdout or "") + (result.stderr or "")
-                    for line in output.splitlines():
-                        line_lower = line.lower()
-                        if any(
-                            keyword in line_lower
-                            for keyword in [
-                                "error",
-                                "warning",
-                                "building",
-                                "linking",
-                                "finished",
-                                "failed",
-                            ]
-                        ):
-                            print(line)
-
-            if result.returncode != 0:
+            if returncode != 0:
                 self.logger.error("Build failed")
                 return False
 

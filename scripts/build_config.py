@@ -242,6 +242,39 @@ class BuildConfig:
                 sys.exit(1)
             raise
 
+    def run_command_streamed(
+        self,
+        cmd: List[str],
+        cwd: Optional[Path] = None,
+        line_filter=None,
+        shell: bool = False,
+    ) -> int:
+        """Run a command with real-time streamed output.
+        line_filter: optional callable(str) -> bool, only prints lines where it returns True.
+        Returns the process exit code.
+        """
+        try:
+            process = subprocess.Popen(
+                cmd,
+                cwd=cwd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding=self.get_encoding(),
+                errors="replace",
+                shell=shell,
+                bufsize=1,
+            )
+            for line in iter(process.stdout.readline, ""):
+                line = line.rstrip("\n\r")
+                if line_filter is None or line_filter(line):
+                    print(line, flush=True)
+            process.wait()
+            return process.returncode
+        except FileNotFoundError:
+            self.logger.error(f"Command not found: {cmd[0]}")
+            raise
+
     def check_cmake(self) -> bool:
         """Check if CMake is available"""
         if not self.find_program("cmake"):
