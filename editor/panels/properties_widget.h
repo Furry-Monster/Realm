@@ -29,6 +29,7 @@ namespace RealmEngine
         void renderRenderable();
         void renderMaterialPreview(const RenderMaterial& mat);
         void renderTextureSlot(const char* label, bool use_tex, const std::shared_ptr<RHITexture>& tex);
+        void renderCustomShaderMaterial(RenderMaterial& mat);
         void renderPointLight();
         void renderSpotLight();
         void renderDirectionalLight();

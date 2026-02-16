@@ -24,9 +24,13 @@
 #endif
 
 #ifdef RE_LOG_VERBOSE
-#  define RE_LOG_SOURCE_LOC " @ " + std::string(RealmEngine::extractFileName(__FILE__)) + ":" + std::to_string(__LINE__)
+#  define RE_LOG_APPEND_SOURCE_LOC(buf)                                                                                \
+      buf += " @ ";                                                                                                    \
+      buf += RealmEngine::extractFileName(__FILE__);                                                                   \
+      buf += ':';                                                                                                      \
+      buf += std::to_string(__LINE__);
 #else
-#  define RE_LOG_SOURCE_LOC ""
+#  define RE_LOG_APPEND_SOURCE_LOC(buf) ((void)0);
 #endif
 
 #define RE_LOG_IMPL(level_value, level_enum, msg)                                                                      \
@@ -35,9 +39,16 @@
         if constexpr ((level_value) >= RE_MIN_LOG_LEVEL)                                                               \
         {                                                                                                              \
             if (RealmEngine::g_logger)                                                                                 \
-                RealmEngine::g_logger->log(level_enum,                                                                 \
-                                           "[" + std::string(RealmEngine::extractClassFunction(RE_PRETTY_FUNCTION)) +  \
-                                               RE_LOG_SOURCE_LOC + "] " + (msg));                                      \
+            {                                                                                                          \
+                std::string _re_log_buf;                                                                               \
+                _re_log_buf.reserve(128);                                                                              \
+                _re_log_buf += '[';                                                                                    \
+                _re_log_buf += RealmEngine::extractClassFunction(RE_PRETTY_FUNCTION);                                  \
+                RE_LOG_APPEND_SOURCE_LOC(_re_log_buf)                                                                  \
+                _re_log_buf += "] ";                                                                                   \
+                _re_log_buf += (msg);                                                                                  \
+                RealmEngine::g_logger->log(level_enum, std::move(_re_log_buf));                                        \
+            }                                                                                                          \
         }                                                                                                              \
     } while (0)
 

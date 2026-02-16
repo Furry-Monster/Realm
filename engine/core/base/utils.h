@@ -9,7 +9,7 @@ namespace RealmEngine
     // XOR encryption key
     static constexpr const char* DEFAULT_ENCRYPTION_KEY = "Elysia";
 
-    inline static std::string xorEncrypt(const std::string& data, const std::string& key)
+    inline std::string xorEncrypt(const std::string& data, const std::string& key)
     {
         if (key.empty())
             return data;
@@ -23,7 +23,7 @@ namespace RealmEngine
         return result;
     }
 
-    inline static std::string xorDecrypt(const std::string& encrypted_data, const std::string& key)
+    inline std::string xorDecrypt(const std::string& encrypted_data, const std::string& key)
     {
         return xorEncrypt(encrypted_data, key);
     }
@@ -32,7 +32,7 @@ namespace RealmEngine
     static constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
     static constexpr uint32_t FNV_PRIME        = 16777619u;
 
-    inline static uint32_t hashString(const std::string& str)
+    inline uint32_t hashString(const std::string& str)
     {
         uint32_t hash = FNV_OFFSET_BASIS;
         for (char c : str)
@@ -46,7 +46,7 @@ namespace RealmEngine
     static constexpr uint64_t FNV_OFFSET_BASIS_64 = 14695981039346656037ull;
     static constexpr uint64_t FNV_PRIME_64        = 1099511628211ull;
 
-    inline static uint64_t hashString64(const std::string& str)
+    inline uint64_t hashString64(const std::string& str)
     {
         uint64_t hash = FNV_OFFSET_BASIS_64;
         for (char c : str)
@@ -57,7 +57,7 @@ namespace RealmEngine
         return hash;
     }
 
-    inline static std::string base64Encode(const std::string& data)
+    inline std::string base64Encode(const std::string& data)
     {
         const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -80,7 +80,7 @@ namespace RealmEngine
         return result;
     }
 
-    inline static std::string base64Decode(const std::string& encoded_data)
+    inline std::string base64Decode(const std::string& encoded_data)
     {
         const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -106,7 +106,7 @@ namespace RealmEngine
         return result;
     }
 
-    inline static std::string obfuscateString(const std::string& str, uint32_t seed = 0x12345678)
+    inline std::string obfuscateString(const std::string& str, uint32_t seed = 0x12345678)
     {
         std::string result;
         result.reserve(str.size());
@@ -118,16 +118,10 @@ namespace RealmEngine
         return result;
     }
 
-    inline static std::string deobfuscateString(const std::string& obfuscated, uint32_t seed = 0x12345678)
+    // XOR-based obfuscation is self-inverse
+    inline std::string deobfuscateString(const std::string& obfuscated, uint32_t seed = 0x12345678)
     {
-        std::string result;
-        result.reserve(obfuscated.size());
-        for (char i : obfuscated)
-        {
-            seed = seed * 1103515245 + 12345;
-            result += static_cast<char>(static_cast<unsigned char>(i) ^ (seed & 0xFF));
-        }
-        return result;
+        return obfuscateString(obfuscated, seed);
     }
 
 } // namespace RealmEngine

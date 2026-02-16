@@ -58,8 +58,8 @@ namespace RealmEngine
             m_renderer = std::make_unique<Renderer>();
             m_renderer->initialize(*m_config, *m_window);
 
-            // Forward framebuffer resize events to the renderer
-            m_event_bus->subscribe<FramebufferResizeEvent>(
+            // Forward framebuffer resize events to the renderer (Engine outlives EventBus)
+            (void)m_event_bus->subscribe<FramebufferResizeEvent>(
                 [this](const FramebufferResizeEvent& e) { m_renderer->onResize(e.width, e.height); });
 
             m_input = std::make_unique<Input>();
@@ -154,8 +154,10 @@ namespace RealmEngine
                                                   gp.camera_move_speed,
                                                   gp.camera_sprint_multiplier);
 
-        m_renderer->getCamera()->setPosition(glm::vec3(0.0f, 1.0f, 3.0f));
-        m_renderer->getCamera()->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+        const RendererConfig& rc = m_config->getRendererConfig();
+        m_renderer->getCamera()->setPosition(
+            glm::vec3(rc.camera_initial_pos_x, rc.camera_initial_pos_y, rc.camera_initial_pos_z));
+        m_renderer->getCamera()->lookAt(glm::vec3(rc.camera_look_at_x, rc.camera_look_at_y, rc.camera_look_at_z));
 
         RE_LOG_INFO("<<< Run in Debug-Mode. >>>");
 
@@ -195,7 +197,18 @@ namespace RealmEngine
         stats.fps            = (m_delta_time > 1e-9) ? (1.0 / m_delta_time) : 0.0;
         stats.draw_calls     = m_renderer->getRenderScene()->getDrawCallCount();
         stats.triangle_count = m_renderer->getRenderScene()->getTriangleCount();
-        stats.memory_rss_kb  = PlatformInfo::getProcessRSSKB();
+
+        // Throttle RSS syscall to ~1Hz
+        static double rss_accumulator = 0.0;
+        static size_t cached_rss      = 0;
+        rss_accumulator += m_delta_time;
+        if (rss_accumulator >= 1.0)
+        {
+            cached_rss      = PlatformInfo::getProcessRSSKB();
+            rss_accumulator = 0.0;
+        }
+        stats.memory_rss_kb = cached_rss;
+
         EditorConsole::instance().setFrameStats(stats);
     }
 

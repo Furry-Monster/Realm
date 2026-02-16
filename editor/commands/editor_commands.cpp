@@ -128,6 +128,55 @@ namespace RealmEngine
             if (parent)
                 parent->removeChild(node);
         }
+        void removeNodeWithUndo(EditorEngineBridge* bridge, EditorContext* context, RegisterUndo registerUndo)
+        {
+            auto scene = bridge->getCurrentScene();
+            auto node  = context->getSelectedNode();
+            if (!scene || !node)
+                return;
+            auto root = scene->getRoot();
+            if (node == root)
+                return;
+            auto parent = node->getParent();
+            if (!parent)
+                return;
+            std::string json = SceneSerializer::serializeNodeToJson(node, *scene);
+            destroyNodeAndSubtree(*scene, node);
+            context->clearSelectedNode();
+            context->clearSelectedEntity();
+            scene->markDirty();
+            if (registerUndo)
+            {
+                auto pasted_storage = std::make_shared<std::shared_ptr<SceneNode>>();
+                auto parent_weak    = std::weak_ptr<SceneNode>(parent);
+                registerUndo(
+                    [pasted_storage, bridge, context, json, parent_weak] {
+                        auto p = parent_weak.lock();
+                        if (!p)
+                            return;
+                        auto pasted = bridge->pasteEntityFromClipboard(json, p);
+                        if (pasted)
+                        {
+                            *pasted_storage = pasted;
+                            context->setSelectedNode(pasted);
+                            if (pasted->hasEntity())
+                                context->setSelectedEntity(pasted->getEntity());
+                        }
+                    },
+                    [pasted_storage, bridge, context] {
+                        if (!*pasted_storage)
+                            return;
+                        auto sc = bridge->getCurrentScene();
+                        if (!sc)
+                            return;
+                        destroyNodeAndSubtree(*sc, *pasted_storage);
+                        context->clearSelectedNode();
+                        context->clearSelectedEntity();
+                        *pasted_storage = nullptr;
+                        sc->markDirty();
+                    });
+            }
+        }
     } // namespace
 
     DeleteEntityCommand::DeleteEntityCommand(EditorEngineBridge& bridge, EditorContext& context) :
@@ -136,54 +185,7 @@ namespace RealmEngine
 
     void DeleteEntityCommand::execute(RegisterUndo registerUndo)
     {
-        auto scene = m_bridge->getCurrentScene();
-        auto node  = m_context->getSelectedNode();
-        if (!scene || !node)
-            return;
-        auto root = scene->getRoot();
-        if (node == root)
-            return;
-        auto parent = node->getParent();
-        if (!parent)
-            return;
-        std::string json = SceneSerializer::serializeNodeToJson(node, *scene);
-        destroyNodeAndSubtree(*scene, node);
-        m_context->clearSelectedNode();
-        m_context->clearSelectedEntity();
-        scene->markDirty();
-        if (registerUndo)
-        {
-            auto  pasted_storage = std::make_shared<std::shared_ptr<SceneNode>>();
-            auto* bridge         = m_bridge;
-            auto* context        = m_context;
-            auto  parent_weak    = std::weak_ptr<SceneNode>(parent);
-            registerUndo(
-                [pasted_storage, bridge, context, json, parent_weak] {
-                    auto p = parent_weak.lock();
-                    if (!p)
-                        return;
-                    auto pasted = bridge->pasteEntityFromClipboard(json, p);
-                    if (pasted)
-                    {
-                        *pasted_storage = pasted;
-                        context->setSelectedNode(pasted);
-                        if (pasted->hasEntity())
-                            context->setSelectedEntity(pasted->getEntity());
-                    }
-                },
-                [pasted_storage, bridge, context] {
-                    if (!*pasted_storage)
-                        return;
-                    auto sc = bridge->getCurrentScene();
-                    if (!sc)
-                        return;
-                    destroyNodeAndSubtree(*sc, *pasted_storage);
-                    context->clearSelectedNode();
-                    context->clearSelectedEntity();
-                    *pasted_storage = nullptr;
-                    sc->markDirty();
-                });
-        }
+        removeNodeWithUndo(m_bridge, m_context, registerUndo);
     }
 
     CopyEntityCommand::CopyEntityCommand(EditorEngineBridge& bridge, EditorContext& context) :
@@ -262,55 +264,8 @@ namespace RealmEngine
 
     void CutEntityCommand::execute(RegisterUndo registerUndo)
     {
-        auto scene = m_bridge->getCurrentScene();
-        auto node  = m_context->getSelectedNode();
-        if (!scene || !node)
-            return;
-        auto root = scene->getRoot();
-        if (node == root)
-            return;
-        auto parent = node->getParent();
-        if (!parent)
-            return;
-        std::string json = SceneSerializer::serializeNodeToJson(node, *scene);
-        m_context->setEntityClipboard(json);
-        destroyNodeAndSubtree(*scene, node);
-        m_context->clearSelectedNode();
-        m_context->clearSelectedEntity();
-        scene->markDirty();
-        if (registerUndo)
-        {
-            auto  pasted_storage = std::make_shared<std::shared_ptr<SceneNode>>();
-            auto* bridge         = m_bridge;
-            auto* context        = m_context;
-            auto  parent_weak    = std::weak_ptr<SceneNode>(parent);
-            registerUndo(
-                [pasted_storage, bridge, context, json, parent_weak] {
-                    auto p = parent_weak.lock();
-                    if (!p)
-                        return;
-                    auto pasted = bridge->pasteEntityFromClipboard(json, p);
-                    if (pasted)
-                    {
-                        *pasted_storage = pasted;
-                        context->setSelectedNode(pasted);
-                        if (pasted->hasEntity())
-                            context->setSelectedEntity(pasted->getEntity());
-                    }
-                },
-                [pasted_storage, bridge, context] {
-                    if (!*pasted_storage)
-                        return;
-                    auto sc = bridge->getCurrentScene();
-                    if (!sc)
-                        return;
-                    destroyNodeAndSubtree(*sc, *pasted_storage);
-                    context->clearSelectedNode();
-                    context->clearSelectedEntity();
-                    *pasted_storage = nullptr;
-                    sc->markDirty();
-                });
-        }
+        CopyEntityCommand(*m_bridge, *m_context).execute(nullptr);
+        removeNodeWithUndo(m_bridge, m_context, registerUndo);
     }
 
     DuplicateEntityCommand::DuplicateEntityCommand(EditorEngineBridge& bridge, EditorContext& context) :

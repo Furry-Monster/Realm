@@ -74,6 +74,7 @@ namespace RealmEngine
         double m_cursor_delta_y {0.0};
         double m_last_cursor_x {0.0};
         double m_last_cursor_y {0.0};
+        bool   m_first_cursor_after_focus {false};
 
         Window* m_window {nullptr};
 

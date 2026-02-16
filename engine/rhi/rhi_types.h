@@ -118,11 +118,11 @@ namespace RealmEngine
 
     struct VertexAttribute
     {
-        uint32_t      location;
-        uint32_t      component_count; // 1-4
-        AttributeType type = AttributeType::Float;
-        size_t        offset;
-        bool          normalized = false;
+        uint32_t      location {0};
+        uint32_t      component_count {3}; // 1-4
+        AttributeType type {AttributeType::Float};
+        size_t        offset {0};
+        bool          normalized {false};
     };
 
     enum class IndexType : uint8_t

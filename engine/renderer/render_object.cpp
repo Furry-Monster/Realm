@@ -8,23 +8,21 @@ namespace RealmEngine
 {
     RenderObject::RenderObject(std::vector<RenderMesh> meshes) : m_meshes(std::move(meshes)) {}
 
-    void RenderObject::setPosition(glm::vec3 position) { m_position = position; }
-
-    glm::vec3 RenderObject::getPosition() const { return m_position; }
-
-    void RenderObject::setScale(glm::vec3 scale) { m_scale = scale; }
-
-    glm::vec3 RenderObject::getScale() const { return m_scale; }
-
-    void RenderObject::setOrientation(glm::quat orientation) { m_orientation = orientation; }
-
-    glm::quat RenderObject::getOrientation() const { return m_orientation; }
-
     bool RenderObject::hasTransparentMeshes() const
     {
         for (const auto& mesh : m_meshes)
         {
-            if (!mesh.isHair() && mesh.isTransparent())
+            if (!mesh.isHair() && !mesh.hasCustomShader() && mesh.isTransparent())
+                return true;
+        }
+        return false;
+    }
+
+    bool RenderObject::hasCustomShaderMeshes() const
+    {
+        for (const auto& mesh : m_meshes)
+        {
+            if (mesh.hasCustomShader())
                 return true;
         }
         return false;
@@ -47,7 +45,7 @@ namespace RealmEngine
     {
         for (auto& mesh : m_meshes)
         {
-            if (!mesh.isHair() && !mesh.isTransparent())
+            if (!mesh.isHair() && !mesh.isTransparent() && !mesh.hasCustomShader())
                 mesh.draw(shader);
         }
     }
@@ -56,7 +54,7 @@ namespace RealmEngine
     {
         for (auto& mesh : m_meshes)
         {
-            if (!mesh.isHair() && mesh.isTransparent())
+            if (!mesh.isHair() && mesh.isTransparent() && !mesh.hasCustomShader())
             {
                 device.setCullFace(mesh.m_material.double_sided ? CullFace::None : CullFace::Back);
                 mesh.draw(shader);
@@ -81,6 +79,24 @@ namespace RealmEngine
     {
         for (auto& mesh : m_meshes)
             mesh.drawShadow(shader);
+    }
+
+    void RenderObject::forEachCustomOpaqueMesh(const std::function<void(RenderMesh&)>& fn)
+    {
+        for (auto& mesh : m_meshes)
+        {
+            if (mesh.hasCustomShader() && !mesh.isHair() && !mesh.isTransparent())
+                fn(mesh);
+        }
+    }
+
+    void RenderObject::forEachCustomTransparentMesh(const std::function<void(RenderMesh&)>& fn)
+    {
+        for (auto& mesh : m_meshes)
+        {
+            if (mesh.hasCustomShader() && !mesh.isHair() && mesh.isTransparent())
+                fn(mesh);
+        }
     }
 
 } // namespace RealmEngine

@@ -14,6 +14,7 @@ namespace RealmEngine
     public:
         HDRTexture(RHIDevice& device, const std::string& path);
 
+        bool              isValid() const { return m_texture != nullptr; }
         RHITexture&       getTexture() { return *m_texture; }
         const RHITexture& getTexture() const { return *m_texture; }
 

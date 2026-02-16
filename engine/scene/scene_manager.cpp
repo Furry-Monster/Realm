@@ -232,10 +232,20 @@ namespace RealmEngine
 
     void SceneManager::removeScene(const std::string& name)
     {
-        if (m_current_scene && m_scenes.find(name) != m_scenes.end() && m_scenes[name] == m_current_scene)
+        auto it = m_scenes.find(name);
+        if (it == m_scenes.end())
+            return;
+
+        bool was_current = (m_current_scene && it->second == m_current_scene);
+        auto old_scene   = m_current_scene;
+
+        if (was_current)
             m_current_scene = nullptr;
 
-        m_scenes.erase(name);
+        m_scenes.erase(it);
+
+        if (was_current && m_on_scene_changed)
+            m_on_scene_changed(old_scene, m_current_scene);
     }
 
     void SceneManager::setOnSceneChanged(SceneChangeCallback callback) { m_on_scene_changed = callback; }

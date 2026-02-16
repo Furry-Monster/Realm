@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -20,17 +21,11 @@ namespace RealmEngine
     public:
         explicit RenderObject(std::vector<RenderMesh> meshes);
 
-        bool   isEmpty() const { return m_meshes.empty(); }
-        size_t getMeshCount() const { return m_meshes.size(); }
-        bool   hasTransparentMeshes() const;
-        int    getTriangleCount(size_t mesh_index) const;
-
-        void      setPosition(glm::vec3 position);
-        glm::vec3 getPosition() const;
-        void      setScale(glm::vec3 scale);
-        glm::vec3 getScale() const;
-        void      setOrientation(glm::quat orientation);
-        glm::quat getOrientation() const;
+        [[nodiscard]] bool   isEmpty() const { return m_meshes.empty(); }
+        [[nodiscard]] size_t getMeshCount() const { return m_meshes.size(); }
+        [[nodiscard]] bool   hasTransparentMeshes() const;
+        [[nodiscard]] bool   hasCustomShaderMeshes() const;
+        [[nodiscard]] int    getTriangleCount(size_t mesh_index) const;
 
         void draw(RHIShader& shader);
         void drawOpaque(RHIShader& shader);
@@ -38,13 +33,14 @@ namespace RealmEngine
         void drawHair(RHIShader& shader);
         void drawShadow(RHIShader& shader);
 
-        RenderMesh*       getMesh(size_t index);
-        const RenderMesh* getMesh(size_t index) const;
+        // Iterate custom shader meshes, callback receives (RenderMesh&)
+        void forEachCustomOpaqueMesh(const std::function<void(RenderMesh&)>& fn);
+        void forEachCustomTransparentMesh(const std::function<void(RenderMesh&)>& fn);
+
+        [[nodiscard]] RenderMesh*       getMesh(size_t index);
+        [[nodiscard]] const RenderMesh* getMesh(size_t index) const;
 
     private:
-        glm::vec3               m_position {glm::vec3(0.0)};
-        glm::vec3               m_scale {glm::vec3(1.0, 1.0, 1.0)};
-        glm::quat               m_orientation {glm::quat(1.0, 0.0, 0.0, 0.0)};
         std::vector<RenderMesh> m_meshes;
     };
 

@@ -12,8 +12,8 @@ namespace RealmEngine
     public:
         virtual ~RHIShader() = default;
 
-        virtual bool isValid() const = 0;
-        virtual void use()           = 0;
+        [[nodiscard]] virtual bool isValid() const = 0;
+        virtual void               use()           = 0;
 
         virtual void setBool(const std::string& name, bool value)             = 0;
         virtual void setInt(const std::string& name, int value)               = 0;
@@ -33,6 +33,7 @@ namespace RealmEngine
             setMat4("model", model);
             setMat4("view", view);
             setMat4("projection", projection);
+            setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         }
 
         virtual void bindUniformBlock(const std::string& name, uint32_t binding_point) = 0;

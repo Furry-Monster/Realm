@@ -1,6 +1,7 @@
 #pragma once
 
 #include <entt/entity/entity.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -75,10 +76,12 @@ namespace RealmEngine
 
     // Editor / Scene events (event-driven editor communication)
 
+    class SceneNode;
+
     struct EntitySelectedEvent
     {
         entt::entity entity {entt::null};
-        void*        selected_node {nullptr}; // std::shared_ptr<SceneNode> as opaque pointer
+        SceneNode*   selected_node {nullptr};
     };
 
     struct SceneChangedEvent

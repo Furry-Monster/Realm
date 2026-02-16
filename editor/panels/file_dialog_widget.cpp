@@ -101,7 +101,7 @@ namespace RealmEngine
                         }
                     }
 
-                    if (ImGui::IsItemClicked())
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                     {
                         if (std::filesystem::is_directory(entry))
                         {
@@ -111,9 +111,7 @@ namespace RealmEngine
                         {
                             m_selected_path = entry;
                             if (m_callback)
-                            {
                                 m_callback(m_selected_path);
-                            }
                             close();
                         }
                     }

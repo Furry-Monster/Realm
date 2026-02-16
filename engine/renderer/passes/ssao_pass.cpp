@@ -33,14 +33,14 @@ namespace RealmEngine
         std::uniform_real_distribution<float> dist(0.0f, 1.0f);
         std::default_random_engine            rng;
 
-        m_kernel.resize(64);
-        for (int i = 0; i < 64; ++i)
+        m_kernel.resize(m_kernel_size);
+        for (int i = 0; i < m_kernel_size; ++i)
         {
             glm::vec3 sample(dist(rng) * 2.0f - 1.0f, dist(rng) * 2.0f - 1.0f, dist(rng));
             sample = glm::normalize(sample);
             sample *= dist(rng);
 
-            float scale = static_cast<float>(i) / 64.0f;
+            float scale = static_cast<float>(i) / static_cast<float>(m_kernel_size);
             scale       = 0.1f + 0.9f * scale * scale;
             sample *= scale;
             m_kernel[i] = sample;

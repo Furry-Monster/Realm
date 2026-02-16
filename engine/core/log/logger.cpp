@@ -50,6 +50,7 @@ namespace RealmEngine
     {
         log(Logger::LogLevel::info, formatLogTag(RE_PRETTY_FUNCTION) + "Stop logging and saving...");
 
+        g_logger = nullptr;
         m_spd_logger->flush();
         spdlog::drop_all();
         m_spd_logger.reset();

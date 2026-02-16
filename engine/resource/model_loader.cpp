@@ -59,7 +59,7 @@ namespace RealmEngine
     ModelLoader::load(const std::string& path, bool flip_textures, RHIDevice& device, AssetManager* asset_mgr)
     {
         Assimp::Importer importer;
-        stbi_set_flip_vertically_on_load(flip_textures);
+        stbi_set_flip_vertically_on_load_thread(flip_textures);
         const aiScene* scene = importer.ReadFile(
             path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
@@ -87,7 +87,7 @@ namespace RealmEngine
 
         RE_LOG_INFO("Loaded " + std::to_string(meshes.size()) + " meshes from model");
 
-        stbi_set_flip_vertically_on_load(true);
+        stbi_set_flip_vertically_on_load_thread(true);
         return meshes;
     }
 
@@ -394,39 +394,39 @@ namespace RealmEngine
         std::shared_ptr<RHITexture>
         textureFromEmbedded(const aiTexture* embedded, aiTextureType type, RHIDevice& device)
         {
-            int            width, height, num_channels;
-            unsigned char* data = nullptr;
+            int                        width, height, num_channels;
+            unsigned char*             stbi_data = nullptr;
+            std::vector<unsigned char> raw_data;
+            unsigned char*             texture_data = nullptr;
 
             if (embedded->mHeight == 0)
             {
-                data = stbi_load_from_memory(reinterpret_cast<const unsigned char*>(embedded->pcData),
-                                             static_cast<int>(embedded->mWidth),
-                                             &width,
-                                             &height,
-                                             &num_channels,
-                                             0);
+                stbi_data    = stbi_load_from_memory(reinterpret_cast<const unsigned char*>(embedded->pcData),
+                                                  static_cast<int>(embedded->mWidth),
+                                                  &width,
+                                                  &height,
+                                                  &num_channels,
+                                                  0);
+                texture_data = stbi_data;
             }
             else
             {
                 width        = static_cast<int>(embedded->mWidth);
                 height       = static_cast<int>(embedded->mHeight);
                 num_channels = 4;
-                size_t size  = static_cast<size_t>(width) * height * 4;
-                data         = static_cast<unsigned char*>(malloc(size));
-                if (data)
+                raw_data.resize(static_cast<size_t>(width) * height * 4);
+                const aiTexel* src = embedded->pcData;
+                for (int i = 0; i < width * height; ++i)
                 {
-                    const aiTexel* src = embedded->pcData;
-                    for (int i = 0; i < width * height; ++i)
-                    {
-                        data[i * 4 + 0] = src[i].r;
-                        data[i * 4 + 1] = src[i].g;
-                        data[i * 4 + 2] = src[i].b;
-                        data[i * 4 + 3] = src[i].a;
-                    }
+                    raw_data[i * 4 + 0] = src[i].r;
+                    raw_data[i * 4 + 1] = src[i].g;
+                    raw_data[i * 4 + 2] = src[i].b;
+                    raw_data[i * 4 + 3] = src[i].a;
                 }
+                texture_data = raw_data.data();
             }
 
-            if (!data)
+            if (!texture_data)
             {
                 RE_LOG_ERROR("Failed to load embedded texture");
                 return nullptr;
@@ -446,7 +446,8 @@ namespace RealmEngine
                     format = is_srgb ? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
                     break;
                 default:
-                    free(data);
+                    if (stbi_data)
+                        stbi_image_free(stbi_data);
                     return nullptr;
             }
 
@@ -460,13 +461,11 @@ namespace RealmEngine
             desc.wrap_s     = TextureWrap::Repeat;
             desc.wrap_t     = TextureWrap::Repeat;
             desc.gen_mips   = true;
-            desc.data       = data;
+            desc.data       = texture_data;
 
             auto tex = device.createTexture(desc);
-            if (embedded->mHeight != 0)
-                free(data);
-            else
-                stbi_image_free(data);
+            if (stbi_data)
+                stbi_image_free(stbi_data);
 
             return tex ? std::shared_ptr<RHITexture>(std::move(tex)) : nullptr;
         }

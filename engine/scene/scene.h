@@ -19,18 +19,18 @@ namespace RealmEngine
         Scene();
         ~Scene() noexcept = default;
 
-        Scene(const Scene&)                = delete;
-        Scene& operator=(const Scene&)     = delete;
-        Scene(Scene&&) noexcept            = default;
-        Scene& operator=(Scene&&) noexcept = default;
+        Scene(const Scene&)            = delete;
+        Scene& operator=(const Scene&) = delete;
+        Scene(Scene&& other) noexcept;
+        Scene& operator=(Scene&& other) noexcept;
 
         void tick(float delta_time);
 
         // Entity management
-        Entity createEntity(const std::string& name);
-        void   destroyEntity(entt::entity entity);
-        Entity findEntity(const std::string& name) const;
-        bool   valid(entt::entity entity) const;
+        Entity               createEntity(const std::string& name);
+        void                 destroyEntity(entt::entity entity);
+        [[nodiscard]] Entity findEntity(const std::string& name) const;
+        [[nodiscard]] bool   valid(entt::entity entity) const;
 
         // Wrap a raw entt::entity handle into an Entity helper
         Entity entity(entt::entity handle) { return Entity(handle, &m_registry); }
@@ -48,12 +48,12 @@ namespace RealmEngine
         const T& get(entt::entity entity) const;
 
         template<typename T>
-        T* tryGet(entt::entity entity);
+        [[nodiscard]] T* tryGet(entt::entity entity);
         template<typename T>
-        const T* tryGet(entt::entity entity) const;
+        [[nodiscard]] const T* tryGet(entt::entity entity) const;
 
         template<typename T>
-        bool has(entt::entity entity) const;
+        [[nodiscard]] bool has(entt::entity entity) const;
 
         template<typename T>
         void remove(entt::entity entity);
@@ -63,8 +63,8 @@ namespace RealmEngine
         const entt::registry& getRegistry() const { return m_registry; }
 
         // Scene hierarchy
-        std::shared_ptr<SceneNode> getRoot() const { return m_root; }
-        std::shared_ptr<SceneNode> findNodeByEntity(entt::entity entity) const;
+        [[nodiscard]] std::shared_ptr<SceneNode> getRoot() const { return m_root; }
+        [[nodiscard]] std::shared_ptr<SceneNode> findNodeByEntity(entt::entity entity) const;
 
         std::shared_ptr<SceneNode> createNode(const std::string& name);
         std::shared_ptr<SceneNode> createNodeWithEntity(const std::string& name);
@@ -77,6 +77,7 @@ namespace RealmEngine
     private:
         void incrementGeneration() { ++m_generation; }
         void onRenderStructureChanged(entt::registry&, entt::entity);
+        void reconnectSignals();
 
         entt::registry                                m_registry;
         std::unordered_map<std::string, entt::entity> m_name_index;
@@ -90,13 +91,17 @@ namespace RealmEngine
     template<typename T, typename... Args>
     T& Scene::emplace(entt::entity entity, Args&&... args)
     {
-        return m_registry.emplace<T>(entity, std::forward<Args>(args)...);
+        auto& comp = m_registry.emplace<T>(entity, std::forward<Args>(args)...);
+        incrementGeneration();
+        return comp;
     }
 
     template<typename T, typename... Args>
     T& Scene::emplaceOrReplace(entt::entity entity, Args&&... args)
     {
-        return m_registry.emplace_or_replace<T>(entity, std::forward<Args>(args)...);
+        auto& comp = m_registry.emplace_or_replace<T>(entity, std::forward<Args>(args)...);
+        incrementGeneration();
+        return comp;
     }
 
     template<typename T>

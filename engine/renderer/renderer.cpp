@@ -9,6 +9,7 @@
 #include "renderer/ibl/equirectangular_cubemap.h"
 #include "renderer/ibl/specular_map.h"
 #include "renderer/passes/bloom_pass.h"
+#include "renderer/passes/custom_shader_pass.h"
 #include "renderer/passes/deferred_lighting_pass.h"
 #include "renderer/passes/gbuffer_pass.h"
 #include "renderer/passes/geometry_pass.h"
@@ -118,6 +119,10 @@ namespace RealmEngine
         m_scene_color_source = geometry.get();
         m_pipeline.addPass(std::move(geometry));
 
+        auto custom_shader   = std::make_unique<CustomShaderPass>();
+        m_custom_shader_pass = custom_shader.get();
+        m_pipeline.addPass(std::move(custom_shader));
+
         auto hair   = std::make_unique<HairPass>(sp);
         m_hair_pass = hair.get();
         m_pipeline.addPass(std::move(hair));
@@ -158,6 +163,10 @@ namespace RealmEngine
         // Cross-pass wiring
         m_geometry_pass->setShadowPass(m_shadow_pass);
         m_geometry_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
+
+        m_custom_shader_pass->setSceneColorSource(m_geometry_pass);
+        m_custom_shader_pass->setShadowPass(m_shadow_pass);
+        m_custom_shader_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
         m_hair_pass->setSceneColorSource(m_geometry_pass);
         m_hair_pass->setShadowPass(m_shadow_pass);
@@ -209,6 +218,11 @@ namespace RealmEngine
         m_scene_color_source     = deferred_lighting.get();
         m_pipeline.addPass(std::move(deferred_lighting));
 
+        // Custom shader (forward, renders into lighting framebuffer)
+        auto custom_shader   = std::make_unique<CustomShaderPass>();
+        m_custom_shader_pass = custom_shader.get();
+        m_pipeline.addPass(std::move(custom_shader));
+
         // Hair (forward, renders into lighting framebuffer)
         auto hair   = std::make_unique<HairPass>(sp);
         m_hair_pass = hair.get();
@@ -254,6 +268,10 @@ namespace RealmEngine
         m_deferred_lighting_pass->setShadowPass(m_shadow_pass);
         m_deferred_lighting_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
         m_deferred_lighting_pass->setFullscreenQuad(m_fullscreen_quad.get());
+
+        m_custom_shader_pass->setSceneColorSource(m_deferred_lighting_pass);
+        m_custom_shader_pass->setShadowPass(m_shadow_pass);
+        m_custom_shader_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
         m_hair_pass->setSceneColorSource(m_deferred_lighting_pass);
         m_hair_pass->setShadowPass(m_shadow_pass);
@@ -406,125 +424,8 @@ namespace RealmEngine
 
     void Renderer::recreateSharedFramebuffers(int width, int height)
     {
-        if (m_pipeline_mode == PipelineMode::Forward)
-        {
-            if (m_geometry_pass)
-            {
-                FramebufferDesc desc;
-                desc.width  = width;
-                desc.height = height;
-
-                FramebufferAttachment color0;
-                color0.format     = TextureFormat::RGBA16F;
-                color0.min_filter = TextureFilter::Linear;
-                color0.mag_filter = TextureFilter::Linear;
-                color0.wrap       = TextureWrap::ClampToEdge;
-
-                desc.color_attachments                = {color0};
-                desc.has_depth                        = true;
-                desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
-                desc.depth_attachment.is_renderbuffer = false;
-
-                m_geometry_pass->setFramebuffer(m_device->createFramebuffer(desc));
-            }
-        }
-        else
-        {
-            if (m_gbuffer_pass)
-            {
-                FramebufferDesc desc;
-                desc.width  = width;
-                desc.height = height;
-
-                FramebufferAttachment rt;
-                rt.format     = TextureFormat::RGBA16F;
-                rt.min_filter = TextureFilter::Nearest;
-                rt.mag_filter = TextureFilter::Nearest;
-                rt.wrap       = TextureWrap::ClampToEdge;
-
-                desc.color_attachments                = {rt, rt, rt};
-                desc.has_depth                        = true;
-                desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
-                desc.depth_attachment.is_renderbuffer = false;
-
-                m_gbuffer_pass->setFramebuffer(m_device->createFramebuffer(desc));
-            }
-
-            if (m_deferred_lighting_pass)
-            {
-                FramebufferDesc desc;
-                desc.width  = width;
-                desc.height = height;
-
-                FramebufferAttachment color0;
-                color0.format     = TextureFormat::RGBA16F;
-                color0.min_filter = TextureFilter::Linear;
-                color0.mag_filter = TextureFilter::Linear;
-                color0.wrap       = TextureWrap::ClampToEdge;
-
-                desc.color_attachments                = {color0};
-                desc.has_depth                        = true;
-                desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
-                desc.depth_attachment.is_renderbuffer = false;
-
-                m_deferred_lighting_pass->setFramebuffer(m_device->createFramebuffer(desc));
-            }
-        }
-
-        if (m_bloom_pass)
-        {
-            auto make_fb = [&]() {
-                FramebufferDesc desc;
-                desc.width  = width;
-                desc.height = height;
-
-                FramebufferAttachment color;
-                color.format           = TextureFormat::RGBA16F;
-                color.min_filter       = TextureFilter::LinearMipmapLinear;
-                color.mag_filter       = TextureFilter::Linear;
-                color.wrap             = TextureWrap::ClampToEdge;
-                color.gen_mips         = true;
-                desc.color_attachments = {color};
-
-                return m_device->createFramebuffer(desc);
-            };
-            m_bloom_pass->setFramebuffers(make_fb(), make_fb());
-        }
-
-        if (m_ssao_pass && m_ssao_blur_pass)
-        {
-            auto make_ao_fb = [&](int w, int h) {
-                FramebufferDesc desc;
-                desc.width  = w;
-                desc.height = h;
-                FramebufferAttachment ao;
-                ao.format              = TextureFormat::R16F;
-                ao.min_filter          = TextureFilter::Linear;
-                ao.mag_filter          = TextureFilter::Linear;
-                ao.wrap                = TextureWrap::ClampToEdge;
-                desc.color_attachments = {ao};
-                return m_device->createFramebuffer(desc);
-            };
-            m_ssao_pass->setFramebuffer(make_ao_fb(width, height));
-            m_ssao_blur_pass->setFramebuffer(make_ao_fb(width, height));
-        }
-
-        if (m_sss_pass)
-        {
-            auto make_sss_fb = [&]() {
-                FramebufferDesc desc;
-                desc.width  = width;
-                desc.height = height;
-                FramebufferAttachment color;
-                color.format           = TextureFormat::RGBA16F;
-                color.min_filter       = TextureFilter::Linear;
-                color.mag_filter       = TextureFilter::Linear;
-                color.wrap             = TextureWrap::ClampToEdge;
-                desc.color_attachments = {color};
-                return m_device->createFramebuffer(desc);
-            };
-            m_sss_pass->setFramebuffers(make_sss_fb(), make_sss_fb());
-        }
+        RendererConfig dummy;
+        createSharedFramebuffers(width, height, dummy);
     }
 
     // ---- Render / Resize / Disposal -----------------------------------------
@@ -636,6 +537,12 @@ namespace RealmEngine
             return nullptr;
         auto* fb = m_gbuffer_pass->getFramebuffer();
         return fb ? fb->getDepthAttachment() : nullptr;
+    }
+
+    void Renderer::reloadCustomShaders()
+    {
+        if (m_custom_shader_pass)
+            m_custom_shader_pass->reloadShaders();
     }
 
     void Renderer::disposal()

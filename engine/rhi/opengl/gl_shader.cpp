@@ -159,69 +159,79 @@ namespace RealmEngine
 
     void GLShader::use() { glUseProgram(m_id); }
 
+    int GLShader::getUniformLocation(const std::string& name)
+    {
+        auto it = m_uniform_cache.find(name);
+        if (it != m_uniform_cache.end())
+            return it->second;
+        int loc               = glGetUniformLocation(m_id, name.c_str());
+        m_uniform_cache[name] = loc;
+        return loc;
+    }
+
     void GLShader::setBool(const std::string& name, bool value)
     {
         RE_ASSERT_SHADER_ACTIVE();
-        glUniform1i(glGetUniformLocation(m_id, name.c_str()), static_cast<int>(value));
+        glUniform1i(getUniformLocation(name), static_cast<int>(value));
     }
 
     void GLShader::setInt(const std::string& name, int value)
     {
         RE_ASSERT_SHADER_ACTIVE();
-        glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+        glUniform1i(getUniformLocation(name), value);
     }
 
     void GLShader::setFloat(const std::string& name, float value)
     {
         RE_ASSERT_SHADER_ACTIVE();
-        glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
+        glUniform1f(getUniformLocation(name), value);
     }
 
     void GLShader::setVec2(const std::string& name, const glm::vec2& value)
     {
         RE_ASSERT_SHADER_ACTIVE();
-        glUniform2f(glGetUniformLocation(m_id, name.c_str()), value.x, value.y);
+        glUniform2f(getUniformLocation(name), value.x, value.y);
     }
 
     void GLShader::setVec3(const std::string& name, const glm::vec3& value)
     {
         RE_ASSERT_SHADER_ACTIVE();
-        glUniform3f(glGetUniformLocation(m_id, name.c_str()), value.x, value.y, value.z);
+        glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
     }
 
     void GLShader::setVec4(const std::string& name, const glm::vec4& value)
     {
         RE_ASSERT_SHADER_ACTIVE();
-        glUniform4f(glGetUniformLocation(m_id, name.c_str()), value.x, value.y, value.z, value.w);
+        glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.w);
     }
 
     void GLShader::setMat3(const std::string& name, const glm::mat3& value)
     {
         RE_ASSERT_SHADER_ACTIVE();
-        glUniformMatrix3fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &value[0][0]);
+        glUniformMatrix3fv(getUniformLocation(name), 1, GL_FALSE, &value[0][0]);
     }
 
     void GLShader::setMat4(const std::string& name, const glm::mat4& value)
     {
         RE_ASSERT_SHADER_ACTIVE();
-        glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &value[0][0]);
+        glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &value[0][0]);
     }
 
     void GLShader::setVec3Array(const std::string& name, const std::vector<glm::vec3>& values)
     {
         if (values.empty())
             return;
-        glUniform3fv(glGetUniformLocation(m_id, name.c_str()), static_cast<GLsizei>(values.size()), &values[0][0]);
+        glUniform3fv(getUniformLocation(name), static_cast<GLsizei>(values.size()), &values[0][0]);
     }
 
     void GLShader::setFloatArray(const std::string& name, const std::vector<float>& values)
     {
-        glUniform1fv(glGetUniformLocation(m_id, name.c_str()), static_cast<GLsizei>(values.size()), values.data());
+        glUniform1fv(getUniformLocation(name), static_cast<GLsizei>(values.size()), values.data());
     }
 
     void GLShader::setIntArray(const std::string& name, const std::vector<int>& values)
     {
-        glUniform1iv(glGetUniformLocation(m_id, name.c_str()), static_cast<GLsizei>(values.size()), values.data());
+        glUniform1iv(getUniformLocation(name), static_cast<GLsizei>(values.size()), values.data());
     }
 
     void GLShader::bindUniformBlock(const std::string& name, uint32_t binding_point)

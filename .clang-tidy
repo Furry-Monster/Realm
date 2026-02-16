@@ -16,6 +16,16 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.ClassMemberPrefix
     value: m_
+  - key: readability-identifier-naming.ClassMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.StaticVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.StaticVariablePrefix
+    value: s_
+  - key: readability-identifier-naming.ClassStaticMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassStaticMemberPrefix
+    value: s_
   - key: readability-identifier-naming.PrivateMemberPrefix
     value: ''
   - key: readability-identifier-naming.ProtectedMemberPrefix
@@ -46,7 +56,7 @@ CheckOptions:
     value: CamelCase
 Checks: >-
   -*,-misc-include-cleaner, misc-throw-by-value-catch-by-reference, misc-misplaced-const, misc-unconventional-assign-operator, misc-redundant-expression, misc-static-assert, misc-unconventional-assign-operator, misc-uniqueptr-reset-release, misc-unused-alias-decls, misc-unused-parameters, misc-unused-using-decls,
-  
+
   modernize-avoid-bind, modernize-loop-convert, modernize-make-shared, modernize-make-unique, modernize-raw-string-literal, modernize-redundant-void-arg, modernize-replace-auto-ptr, modernize-replace-random-shuffle, modernize-use-bool-literals, modernize-use-nullptr, modernize-use-using, modernize-use-equals-default, modernize-use-equals-delete,
 
   performance-faster-string-find, performance-for-range-copy, performance-implicit-conversion-in-loop, performance-inefficient-algorithm, performance-inefficient-vector-operation, performance-move-constructor-init, performance-no-automatic-move, performance-trivially-destructible, performance-unnecessary-copy-initialization,
@@ -69,5 +79,5 @@ Checks: >-
   clang-analyzer-security.insecureAPI.bzero, clang-analyzer-security.insecureAPI.getpw, clang-analyzer-security.insecureAPI.gets, clang-analyzer-security.insecureAPI.mkstemp, clang-analyzer-security.insecureAPI.mktemp, clang-analyzer-security.insecureAPI.rand, clang-analyzer-security.insecureAPI.strcpy, clang-analyzer-unix.Malloc, clang-analyzer-unix.MallocSizeof, clang-analyzer-unix.MismatchedDeallocator, clang-analyzer-unix.Vfork, clang-analyzer-unix.cstring.BadSizeArg,
   clang-analyzer-unix.cstring.NullArg,
 
-  boost-use-to-string, 
+  boost-use-to-string,
 WarningsAsErrors: '*'

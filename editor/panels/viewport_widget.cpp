@@ -12,8 +12,11 @@ namespace RealmEngine
     static const char* displayModeLabels[] =
         {"Lit", "Albedo", "Normals", "Metallic", "Roughness", "Material AO", "Emissive", "SSAO", "Depth"};
 
-    static const char* gbufferPreviewLabels[] =
-        {"Final Output", "GBuffer: Albedo+AO", "GBuffer: Normal+Metallic", "GBuffer: Emissive+Roughness", "GBuffer: Depth"};
+    static const char* gbufferPreviewLabels[] = {"Final Output",
+                                                 "GBuffer: Albedo+AO",
+                                                 "GBuffer: Normal+Metallic",
+                                                 "GBuffer: Emissive+Roughness",
+                                                 "GBuffer: Depth"};
 
     ViewportWidget::ViewportWidget(EditorEngineBridge& bridge) : Widget("Viewport"), m_bridge(&bridge)
     {
@@ -94,11 +97,20 @@ namespace RealmEngine
             RHITexture* gbuf_tex = nullptr;
             switch (m_gbuffer_preview)
             {
-                case 1: gbuf_tex = m_bridge->getGBufferAlbedoAO(); break;
-                case 2: gbuf_tex = m_bridge->getGBufferNormalMetallic(); break;
-                case 3: gbuf_tex = m_bridge->getGBufferEmissiveRoughness(); break;
-                case 4: gbuf_tex = m_bridge->getGBufferDepth(); break;
-                default: break;
+                case 1:
+                    gbuf_tex = m_bridge->getGBufferAlbedoAO();
+                    break;
+                case 2:
+                    gbuf_tex = m_bridge->getGBufferNormalMetallic();
+                    break;
+                case 3:
+                    gbuf_tex = m_bridge->getGBufferEmissiveRoughness();
+                    break;
+                case 4:
+                    gbuf_tex = m_bridge->getGBufferDepth();
+                    break;
+                default:
+                    break;
             }
             drawTexturePreview(gbuf_tex, avail);
         }

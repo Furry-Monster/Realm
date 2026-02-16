@@ -84,6 +84,10 @@ namespace RealmEngine
             case TextureFormat::RGBA16F:
             case TextureFormat::Depth32F:
                 return GL_FLOAT;
+            case TextureFormat::Depth16:
+                return GL_UNSIGNED_SHORT;
+            case TextureFormat::Depth24:
+                return GL_UNSIGNED_INT;
             case TextureFormat::Depth24Stencil8:
                 return GL_UNSIGNED_INT_24_8;
             default:

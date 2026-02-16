@@ -48,6 +48,7 @@ namespace RealmEngine
         glm::mat4 projection = ctx.camera->getProjMatrix();
         glm::mat4 view       = ctx.camera->getViewMatrix();
 
+        // drawOpaque already skips hair, transparent, and custom shader meshes
         for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
         {
             auto&     ro    = ctx.scene->m_render_objects[i];

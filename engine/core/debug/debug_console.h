@@ -43,8 +43,16 @@ namespace RealmEngine
         void pushLog(ConsoleLogLevel level, const std::string& message);
         void clearLogs();
 
-        void              setFrameStats(const FrameStats& stats) { m_frame_stats = stats; }
-        const FrameStats& getFrameStats() const { return m_frame_stats; }
+        void setFrameStats(const FrameStats& stats)
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_frame_stats = stats;
+        }
+        FrameStats getFrameStats() const
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            return m_frame_stats;
+        }
 
         void getLogs(std::deque<ConsoleLogEntry>& out, ConsoleLogLevel min_level) const;
 

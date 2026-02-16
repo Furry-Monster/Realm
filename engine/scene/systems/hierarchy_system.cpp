@@ -6,15 +6,15 @@
 
 namespace RealmEngine
 {
-    uint64_t HierarchySystem::s_last_synced_generation = UINT64_MAX;
+    std::unordered_map<const Scene*, uint64_t> HierarchySystem::s_synced_generations;
 
     void HierarchySystem::update(Scene& scene)
     {
-        // Skip rebuild when the scene hierarchy hasn't changed
         uint64_t current_gen = scene.getGeneration();
-        if (current_gen == s_last_synced_generation)
+        auto     it          = s_synced_generations.find(&scene);
+        if (it != s_synced_generations.end() && it->second == current_gen)
             return;
-        s_last_synced_generation = current_gen;
+        s_synced_generations[&scene] = current_gen;
 
         auto& registry = scene.getRegistry();
 
@@ -30,7 +30,9 @@ namespace RealmEngine
         syncNode(scene, root, entt::null);
     }
 
-    void HierarchySystem::invalidate() { s_last_synced_generation = UINT64_MAX; }
+    void HierarchySystem::invalidate(Scene& scene) { s_synced_generations.erase(&scene); }
+
+    void HierarchySystem::invalidateAll() { s_synced_generations.clear(); }
 
     void HierarchySystem::syncNode(Scene& scene, const std::shared_ptr<SceneNode>& node, entt::entity parent_entity)
     {
