@@ -142,6 +142,8 @@ namespace RealmEngine
         ConfigSerializer::saveToFile(m_engine->getConfig(), path.string());
     }
 
+    void EditorEngineBridge::reloadCustomShaders() { m_engine->getRenderer().reloadCustomShaders(); }
+
     EventBus& EditorEngineBridge::getEventBus() { return m_engine->getEventBus(); }
 
     PipelineMode EditorEngineBridge::getPipelineMode() const { return m_engine->getRenderer().getPipelineMode(); }

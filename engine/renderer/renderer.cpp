@@ -539,6 +539,12 @@ namespace RealmEngine
         return fb ? fb->getDepthAttachment() : nullptr;
     }
 
+    void Renderer::reloadCustomShaders()
+    {
+        if (m_custom_shader_pass)
+            m_custom_shader_pass->reloadShaders();
+    }
+
     void Renderer::disposal()
     {
         m_pipeline.dispose();

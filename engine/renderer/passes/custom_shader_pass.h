@@ -32,6 +32,8 @@ namespace RealmEngine
         void setShadowPass(ShadowPass* sp) { m_shadow_pass = sp; }
         void setIBLTextures(RHITexture* diffuse, RHITexture* prefiltered, RHITexture* brdf);
 
+        void reloadShaders() { m_shader_cache.clear(); }
+
     private:
         void setupEngineUniforms(RHIShader& shader, const RenderContext& ctx);
 

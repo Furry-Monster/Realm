@@ -53,6 +53,10 @@ namespace RealmEngine
         RenderMaterial            m_material;
 
     private:
+        void bindStandardMaterialUniforms(RHIShader& shader);
+        void bindCustomParams(RHIShader& shader);
+        void issueDrawCall();
+
         std::unique_ptr<RHIBuffer>      m_vertex_buffer;
         std::unique_ptr<RHIBuffer>      m_index_buffer;
         std::unique_ptr<RHIVertexInput> m_vertex_input;

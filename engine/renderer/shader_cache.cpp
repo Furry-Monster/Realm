@@ -17,7 +17,11 @@ namespace RealmEngine
             return nullptr;
 
         std::string key = makeKey(vert_path, frag_path);
-        auto        it  = m_cache.find(key);
+
+        if (m_failed.count(key))
+            return nullptr;
+
+        auto it = m_cache.find(key);
         if (it != m_cache.end())
             return it->second.get();
 
@@ -25,6 +29,7 @@ namespace RealmEngine
         if (!shader || !shader->isValid())
         {
             RE_LOG_ERROR("ShaderCache: failed to compile custom shader [" + vert_path + ", " + frag_path + "]");
+            m_failed.insert(key);
             return nullptr;
         }
 
@@ -33,6 +38,17 @@ namespace RealmEngine
         return raw;
     }
 
-    void ShaderCache::clear() { m_cache.clear(); }
+    void ShaderCache::invalidate(const std::string& vert_path, const std::string& frag_path)
+    {
+        std::string key = makeKey(vert_path, frag_path);
+        m_cache.erase(key);
+        m_failed.erase(key);
+    }
+
+    void ShaderCache::clear()
+    {
+        m_cache.clear();
+        m_failed.clear();
+    }
 
 } // namespace RealmEngine

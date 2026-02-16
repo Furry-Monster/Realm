@@ -59,6 +59,8 @@ namespace RealmEngine
 
         PipelineMode getPipelineMode() const { return m_pipeline_mode; }
 
+        void reloadCustomShaders();
+
         ViewportDisplayMode getViewportDisplayMode() const { return m_display_mode; }
         void                setViewportDisplayMode(ViewportDisplayMode mode) { m_display_mode = mode; }
 

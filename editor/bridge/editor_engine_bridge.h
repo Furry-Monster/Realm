@@ -57,6 +57,7 @@ namespace RealmEngine
         void                       saveConfig();
         std::shared_ptr<SceneNode> pasteEntityFromClipboard(const std::string& json, std::shared_ptr<SceneNode> parent);
 
+        void      reloadCustomShaders();
         EventBus& getEventBus();
 
     private:

@@ -383,6 +383,20 @@ namespace RealmEngine
             scene->markDirty();
         }
 
+        ImGui::Spacing();
+        if (ImGui::Button("Reload Shaders"))
+            m_bridge->reloadCustomShaders();
+
+        // Show texture info even in custom shader mode
+        ImGui::Separator();
+        ImGui::Text("Textures (from model)");
+        renderTextureSlot("Albedo", mat.use_texture_albedo, mat.texture_albedo);
+        renderTextureSlot("Normal", mat.use_texture_normal, mat.texture_normal);
+        renderTextureSlot("Metallic/Roughness", mat.use_texture_metallic_roughness, mat.texture_metallic_roughness);
+        renderTextureSlot("Ambient Occlusion", mat.use_texture_ambient_occlusion, mat.texture_ambient_occlusion);
+        renderTextureSlot("Emissive", mat.use_texture_emissive, mat.texture_emissive);
+        renderTextureSlot("Opacity", mat.use_texture_opacity, mat.texture_opacity);
+
         ImGui::Separator();
     }
 
