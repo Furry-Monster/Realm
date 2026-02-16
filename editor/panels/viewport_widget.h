@@ -19,6 +19,7 @@ namespace RealmEngine
 
     private:
         EditorEngineBridge* m_bridge;
+        int                 m_gbuffer_preview {0};
     };
 
 } // namespace RealmEngine

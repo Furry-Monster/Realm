@@ -606,6 +606,38 @@ namespace RealmEngine
         return m_viewport_framebuffer ? m_viewport_framebuffer->getColorAttachment(0) : nullptr;
     }
 
+    RHITexture* Renderer::getGBufferAlbedoAO() const
+    {
+        if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
+            return nullptr;
+        auto* fb = m_gbuffer_pass->getFramebuffer();
+        return fb ? fb->getColorAttachment(0) : nullptr;
+    }
+
+    RHITexture* Renderer::getGBufferNormalMetallic() const
+    {
+        if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
+            return nullptr;
+        auto* fb = m_gbuffer_pass->getFramebuffer();
+        return fb ? fb->getColorAttachment(1) : nullptr;
+    }
+
+    RHITexture* Renderer::getGBufferEmissiveRoughness() const
+    {
+        if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
+            return nullptr;
+        auto* fb = m_gbuffer_pass->getFramebuffer();
+        return fb ? fb->getColorAttachment(2) : nullptr;
+    }
+
+    RHITexture* Renderer::getGBufferDepth() const
+    {
+        if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
+            return nullptr;
+        auto* fb = m_gbuffer_pass->getFramebuffer();
+        return fb ? fb->getDepthAttachment() : nullptr;
+    }
+
     void Renderer::disposal()
     {
         m_pipeline.dispose();

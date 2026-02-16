@@ -64,6 +64,12 @@ namespace RealmEngine
         void        setRenderToViewportTexture(bool enable);
         RHITexture* getViewportTexture() const;
 
+        // G-Buffer texture access (deferred mode only, returns nullptr in forward)
+        RHITexture* getGBufferAlbedoAO() const;
+        RHITexture* getGBufferNormalMetallic() const;
+        RHITexture* getGBufferEmissiveRoughness() const;
+        RHITexture* getGBufferDepth() const;
+
     private:
         void buildForwardPipeline(ConfigManager& config);
         void buildDeferredPipeline(ConfigManager& config);

@@ -166,6 +166,7 @@ namespace RealmEngine
 
     void ConfigSerializer::serializeRendererConfig(const RendererConfig& renderer, nlohmann::json& json)
     {
+        json["pipeline_mode"]        = static_cast<int>(renderer.pipeline_mode);
         json["camera_fov"]           = renderer.camera_fov;
         json["camera_near_plane"]    = renderer.camera_near_plane;
         json["camera_far_plane"]     = renderer.camera_far_plane;
@@ -236,6 +237,8 @@ namespace RealmEngine
 
     void ConfigSerializer::deserializeRendererConfig(RendererConfig& renderer, const nlohmann::json& json)
     {
+        if (json.contains("pipeline_mode"))
+            renderer.pipeline_mode = static_cast<PipelineMode>(json["pipeline_mode"].get<int>());
         if (json.contains("camera_fov"))
             renderer.camera_fov = json["camera_fov"].get<float>();
         if (json.contains("camera_near_plane"))
