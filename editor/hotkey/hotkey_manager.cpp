@@ -29,6 +29,19 @@ namespace RealmEngine
         return true;
     }
 
+    bool HotkeyManager::unregisterHotkey(ImGuiKeyChord chord, ImGuiInputFlags flags)
+    {
+        for (auto it = m_entries.begin(); it != m_entries.end(); ++it)
+        {
+            if (it->chord == chord && it->flags == flags)
+            {
+                m_entries.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
+
     void HotkeyManager::process()
     {
         for (const auto& entry : m_entries)

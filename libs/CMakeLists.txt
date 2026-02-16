@@ -38,7 +38,7 @@ if(NOT TARGET imgui)
     )
     target_include_directories(imgui SYSTEM PUBLIC "${IMGUI_DIR}" "${IMGUI_DIR}/backends")
     target_link_libraries(imgui PUBLIC glfw)
-    target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD IMGUI_HAS_DOCK)
+    target_compile_definitions(imgui PUBLIC IMGUI_HAS_DOCK)
 endif()
 
 # stb

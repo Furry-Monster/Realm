@@ -3,6 +3,7 @@
 #include "core/debug/debug_console.h"
 
 #include <imgui.h>
+#include <cinttypes>
 #include <cstdint>
 #include <cstdio>
 
@@ -64,7 +65,7 @@ namespace RealmEngine
                 uint64_t sec = s % 60;
                 uint64_t ms  = entry.timestamp_ms % 1000;
                 char     buf[32];
-                snprintf(buf, sizeof(buf), "[%02lu:%02lu:%02lu.%03lu] ", h, m, sec, ms);
+                snprintf(buf, sizeof(buf), "[%02" PRIu64 ":%02" PRIu64 ":%02" PRIu64 ".%03" PRIu64 "] ", h, m, sec, ms);
                 ImGui::TextUnformatted(buf);
                 ImGui::SameLine(0, 0);
             }

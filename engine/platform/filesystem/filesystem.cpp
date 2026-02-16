@@ -237,8 +237,13 @@ namespace RealmEngine
         if (ec)
             return 0;
 
-        auto duration = ftime.time_since_epoch();
-        return std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+        // Approximate conversion to Unix epoch via clock difference.
+        // file_time_type::clock epoch is implementation-defined (e.g. 1601 on MSVC).
+        auto file_now = std::filesystem::file_time_type::clock::now();
+        auto sys_now  = std::chrono::system_clock::now();
+        auto delta    = ftime - file_now;
+        auto sys_tp   = sys_now + std::chrono::duration_cast<std::chrono::seconds>(delta);
+        return std::chrono::duration_cast<std::chrono::seconds>(sys_tp.time_since_epoch()).count();
     }
 
 } // namespace RealmEngine

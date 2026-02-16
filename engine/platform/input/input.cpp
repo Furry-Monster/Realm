@@ -28,7 +28,8 @@ namespace RealmEngine
 
         if (cmd == BindableCommand::FOCUS)
         {
-            m_focus = true;
+            m_focus                    = true;
+            m_first_cursor_after_focus = true;
             setCursorHidden(true);
         }
     }
@@ -65,8 +66,15 @@ namespace RealmEngine
     {
         if (m_focus)
         {
-            m_cursor_delta_x = x - m_last_cursor_x;
-            m_cursor_delta_y = y - m_last_cursor_y;
+            if (!m_first_cursor_after_focus)
+            {
+                m_cursor_delta_x = x - m_last_cursor_x;
+                m_cursor_delta_y = y - m_last_cursor_y;
+            }
+            else
+            {
+                m_first_cursor_after_focus = false;
+            }
         }
 
         m_last_cursor_x = x;

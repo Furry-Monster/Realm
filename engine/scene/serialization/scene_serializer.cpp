@@ -190,9 +190,8 @@ namespace RealmEngine
         {
             nlohmann::json c;
             c["type"]     = "Transform";
-            auto euler    = tf->getEulerAngles();
             c["position"] = nlohmann::json::array({tf->position.x, tf->position.y, tf->position.z});
-            c["rotation"] = nlohmann::json::array({euler.x, euler.y, euler.z});
+            c["rotation"] = nlohmann::json::array({tf->rotation.w, tf->rotation.x, tf->rotation.y, tf->rotation.z});
             c["scale"]    = nlohmann::json::array({tf->scale.x, tf->scale.y, tf->scale.z});
             components_json.push_back(c);
         }
@@ -430,10 +429,23 @@ namespace RealmEngine
                     tf.position =
                         glm::vec3(comp_json["position"][0], comp_json["position"][1], comp_json["position"][2]);
 
-                if (comp_json.contains("rotation") && comp_json["rotation"].is_array() &&
-                    comp_json["rotation"].size() == 3)
-                    tf.rotation = glm::quat(
-                        glm::vec3(comp_json["rotation"][0], comp_json["rotation"][1], comp_json["rotation"][2]));
+                if (comp_json.contains("rotation") && comp_json["rotation"].is_array())
+                {
+                    if (comp_json["rotation"].size() == 4)
+                    {
+                        // Quaternion: [w, x, y, z]
+                        tf.rotation = glm::quat(comp_json["rotation"][0],
+                                                comp_json["rotation"][1],
+                                                comp_json["rotation"][2],
+                                                comp_json["rotation"][3]);
+                    }
+                    else if (comp_json["rotation"].size() == 3)
+                    {
+                        // Legacy euler angles fallback
+                        tf.rotation = glm::quat(
+                            glm::vec3(comp_json["rotation"][0], comp_json["rotation"][1], comp_json["rotation"][2]));
+                    }
+                }
 
                 if (comp_json.contains("scale") && comp_json["scale"].is_array() && comp_json["scale"].size() == 3)
                     tf.scale = glm::vec3(comp_json["scale"][0], comp_json["scale"][1], comp_json["scale"][2]);

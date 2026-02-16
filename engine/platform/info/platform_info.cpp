@@ -6,6 +6,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <cstdio>
 #include <string>
 #include <thread>
 
@@ -220,6 +221,25 @@ namespace RealmEngine
     int PlatformInfo::getAvailableMemoryMB()
     {
 #ifdef __linux__
+        // Prefer /proc/meminfo MemAvailable (includes cached/reclaimable)
+        {
+            std::ifstream meminfo("/proc/meminfo");
+            std::string   line;
+            while (std::getline(meminfo, line))
+            {
+                if (line.rfind("MemAvailable:", 0) == 0)
+                {
+                    const char* p = line.c_str() + 13; // skip "MemAvailable:"
+                    while (*p == ' ')
+                        ++p;
+                    char*    end = nullptr;
+                    uint64_t kb  = std::strtoull(p, &end, 10);
+                    if (end != p)
+                        return static_cast<int>(kb / 1024);
+                }
+            }
+        }
+        // Fallback to sysinfo (less accurate)
         struct sysinfo info;
         if (sysinfo(&info) == 0)
         {

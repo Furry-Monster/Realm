@@ -23,6 +23,7 @@ namespace RealmEngine
         /// Returns false if the chord+flags combination is already registered (conflict)
         bool registerHotkey(ImGuiKeyChord chord, Handler handler);
         bool registerHotkey(ImGuiKeyChord chord, Handler handler, ImGuiInputFlags flags);
+        bool unregisterHotkey(ImGuiKeyChord chord, ImGuiInputFlags flags = ImGuiInputFlags_RouteAlways);
         void process();
 
     private:

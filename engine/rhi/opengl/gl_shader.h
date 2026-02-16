@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 
 #include "rhi/rhi_shader.h"
 
@@ -42,8 +43,10 @@ namespace RealmEngine
         uint32_t    compileStage(uint32_t stage_type, const std::string& source, const std::string& path);
         bool        linkProgram(uint32_t vertex, uint32_t fragment, uint32_t geometry = 0);
         std::string loadFile(const std::string& path);
+        int         getUniformLocation(const std::string& name);
 
-        uint32_t m_id {0};
+        uint32_t                                     m_id {0};
+        mutable std::unordered_map<std::string, int> m_uniform_cache;
     };
 
 } // namespace RealmEngine

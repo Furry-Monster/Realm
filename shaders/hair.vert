@@ -16,6 +16,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 lightSpaceMatrix;
+uniform mat3 normalMatrix; // transpose(inverse(mat3(model))), computed on CPU
 
 uniform float layerIndex;
 uniform float layerStep;
@@ -28,7 +29,6 @@ void main()
     worldCoordinates   = (model * vec4(pos, 1.0f)).xyz;
     gl_Position        = projection * view * model * vec4(pos, 1.0f);
 
-    mat3 normalMatrix = transpose(inverse(mat3(model)));
     tangent           = normalize(normalMatrix * aTangent);
     bitangent         = normalize(normalMatrix * aBitangent);
     normal            = normalize(normalMatrix * aNormal);

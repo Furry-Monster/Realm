@@ -37,7 +37,7 @@ namespace RealmEngine
          * @return template<typename E> handle for unsubscribe
          */
         template<typename E>
-        HandlerId subscribe(std::function<void(const E&)> handler)
+        [[nodiscard]] HandlerId subscribe(std::function<void(const E&)> handler)
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             HandlerId                   id       = m_next_id++;

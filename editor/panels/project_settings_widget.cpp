@@ -40,24 +40,30 @@ namespace RealmEngine
         const auto&  cfg  = m_bridge->getConfig().getWindowConfig();
         WindowConfig copy = cfg;
 
-        ImGui::DragInt("Width", &copy.width, 1, 320, 7680);
-        ImGui::DragInt("Height", &copy.height, 1, 240, 4320);
+        bool changed = false;
+        changed |= ImGui::DragInt("Width", &copy.width, 1, 320, 7680);
+        changed |= ImGui::DragInt("Height", &copy.height, 1, 240, 4320);
         char title_buf[256];
         strncpy(title_buf, copy.title.c_str(), sizeof(title_buf) - 1);
         title_buf[sizeof(title_buf) - 1] = '\0';
         if (ImGui::InputText("Title", title_buf, sizeof(title_buf)))
+        {
             copy.title = title_buf;
-        ImGui::Checkbox("Fullscreen", &copy.fullscreen);
-        ImGui::Checkbox("VSync", &copy.vsync);
-        ImGui::DragInt("MSAA Samples", &copy.msaa_samples, 1, 0, 8);
+            changed    = true;
+        }
+        changed |= ImGui::Checkbox("Fullscreen", &copy.fullscreen);
+        changed |= ImGui::Checkbox("VSync", &copy.vsync);
+        changed |= ImGui::DragInt("MSAA Samples", &copy.msaa_samples, 1, 0, 8);
 
         if (copy.msaa_samples != 0 && copy.msaa_samples != 1 && copy.msaa_samples != 2 && copy.msaa_samples != 4 &&
             copy.msaa_samples != 8)
         {
             copy.msaa_samples = 4;
+            changed           = true;
         }
 
-        m_bridge->getConfig().setWindowConfig(copy);
+        if (changed)
+            m_bridge->getConfig().setWindowConfig(copy);
     }
 
     void ProjectSettingsWidget::renderRendererSection()
@@ -65,12 +71,14 @@ namespace RealmEngine
         const auto&    cfg  = m_bridge->getConfig().getRendererConfig();
         RendererConfig copy = cfg;
 
+        bool changed = false;
         {
             static const char* pipelineModeLabels[] = {"Forward", "Deferred"};
             int                pipeline_idx         = static_cast<int>(copy.pipeline_mode);
             if (ImGui::Combo("Pipeline Mode", &pipeline_idx, pipelineModeLabels, 2))
             {
                 copy.pipeline_mode = static_cast<PipelineMode>(pipeline_idx);
+                changed            = true;
             }
             ImGui::SameLine();
             ImGui::TextDisabled("(requires restart)");
@@ -78,25 +86,25 @@ namespace RealmEngine
 
         if (ImGui::TreeNode("Camera"))
         {
-            ImGui::DragFloat("FOV", &copy.camera_fov, 1.0f, 1.0f, 179.0f);
-            ImGui::DragFloat("Near Plane", &copy.camera_near_plane, 0.01f, 0.001f, 10.0f);
-            ImGui::DragFloat("Far Plane", &copy.camera_far_plane, 10.0f, 10.0f, 10000.0f);
+            changed |= ImGui::DragFloat("FOV", &copy.camera_fov, 1.0f, 1.0f, 179.0f);
+            changed |= ImGui::DragFloat("Near Plane", &copy.camera_near_plane, 0.01f, 0.001f, 10.0f);
+            changed |= ImGui::DragFloat("Far Plane", &copy.camera_far_plane, 10.0f, 10.0f, 10000.0f);
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("Post-Processing"))
         {
-            ImGui::Checkbox("SSAO", &copy.ssao_enabled);
-            ImGui::DragFloat("SSAO Radius", &copy.ssao_radius, 0.01f, 0.01f, 2.0f);
-            ImGui::DragFloat("SSAO Bias", &copy.ssao_bias, 0.001f, 0.0f, 0.1f);
-            ImGui::DragFloat("SSAO Power", &copy.ssao_power, 0.1f, 0.5f, 5.0f);
-            ImGui::DragInt("SSAO Kernel Size", &copy.ssao_kernel_size, 1, 16, 64);
+            changed |= ImGui::Checkbox("SSAO", &copy.ssao_enabled);
+            changed |= ImGui::DragFloat("SSAO Radius", &copy.ssao_radius, 0.01f, 0.01f, 2.0f);
+            changed |= ImGui::DragFloat("SSAO Bias", &copy.ssao_bias, 0.001f, 0.0f, 0.1f);
+            changed |= ImGui::DragFloat("SSAO Power", &copy.ssao_power, 0.1f, 0.5f, 5.0f);
+            changed |= ImGui::DragInt("SSAO Kernel Size", &copy.ssao_kernel_size, 1, 16, 64);
             ImGui::Separator();
-            ImGui::Checkbox("Bloom", &copy.bloom_enabled);
-            ImGui::DragFloat("Bloom Intensity", &copy.bloom_intensity, 0.1f, 0.0f, 10.0f);
-            ImGui::DragInt("Bloom Iterations", &copy.bloom_iterations, 1, 1, 32);
-            ImGui::DragFloat("Bloom Brightness Cutoff", &copy.bloom_brightness_cutoff, 0.1f, 0.0f, 10.0f);
-            ImGui::Checkbox("Tonemapping", &copy.tonemapping_enabled);
-            ImGui::DragFloat("Gamma", &copy.gamma_correction_factor, 0.1f, 1.0f, 3.0f);
+            changed |= ImGui::Checkbox("Bloom", &copy.bloom_enabled);
+            changed |= ImGui::DragFloat("Bloom Intensity", &copy.bloom_intensity, 0.1f, 0.0f, 10.0f);
+            changed |= ImGui::DragInt("Bloom Iterations", &copy.bloom_iterations, 1, 1, 32);
+            changed |= ImGui::DragFloat("Bloom Brightness Cutoff", &copy.bloom_brightness_cutoff, 0.1f, 0.0f, 10.0f);
+            changed |= ImGui::Checkbox("Tonemapping", &copy.tonemapping_enabled);
+            changed |= ImGui::DragFloat("Gamma", &copy.gamma_correction_factor, 0.1f, 1.0f, 3.0f);
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("Environment"))
@@ -105,12 +113,16 @@ namespace RealmEngine
             strncpy(hdri_buf, copy.hdri_path.c_str(), sizeof(hdri_buf) - 1);
             hdri_buf[sizeof(hdri_buf) - 1] = '\0';
             if (ImGui::InputText("HDRI Path", hdri_buf, sizeof(hdri_buf)))
+            {
                 copy.hdri_path = hdri_buf;
-            ImGui::ColorEdit4("Clear Color", &copy.clear_color_r);
+                changed        = true;
+            }
+            changed |= ImGui::ColorEdit4("Clear Color", &copy.clear_color_r);
             ImGui::TreePop();
         }
 
-        m_bridge->getConfig().setRendererConfig(copy);
+        if (changed)
+            m_bridge->getConfig().setRendererConfig(copy);
     }
 
     void ProjectSettingsWidget::renderInputSection()
@@ -118,18 +130,23 @@ namespace RealmEngine
         const auto&    cfg  = m_bridge->getConfig().getGamePlayConfig();
         GamePlayConfig copy = cfg;
 
-        ImGui::DragFloat("Camera Move Speed", &copy.camera_move_speed, 0.1f, 0.1f, 100.0f);
-        ImGui::DragFloat("Camera Sprint Multiplier", &copy.camera_sprint_multiplier, 0.1f, 1.0f, 10.0f);
-        ImGui::DragFloat("Camera Mouse Sensitivity", &copy.camera_mouse_sensitivity, 0.01f, 0.01f, 2.0f);
-        ImGui::DragFloat("Max Delta Time", &copy.max_delta_time, 0.01f, 0.01f, 1.0f);
+        bool changed = false;
+        changed |= ImGui::DragFloat("Camera Move Speed", &copy.camera_move_speed, 0.1f, 0.1f, 100.0f);
+        changed |= ImGui::DragFloat("Camera Sprint Multiplier", &copy.camera_sprint_multiplier, 0.1f, 1.0f, 10.0f);
+        changed |= ImGui::DragFloat("Camera Mouse Sensitivity", &copy.camera_mouse_sensitivity, 0.01f, 0.01f, 2.0f);
+        changed |= ImGui::DragFloat("Max Delta Time", &copy.max_delta_time, 0.01f, 0.01f, 1.0f);
 
         char scene_buf[256];
         strncpy(scene_buf, copy.scene_file.c_str(), sizeof(scene_buf) - 1);
         scene_buf[sizeof(scene_buf) - 1] = '\0';
         if (ImGui::InputText("Default Scene File", scene_buf, sizeof(scene_buf)))
+        {
             copy.scene_file = scene_buf;
+            changed         = true;
+        }
 
-        m_bridge->getConfig().setGamePlayConfig(copy);
+        if (changed)
+            m_bridge->getConfig().setGamePlayConfig(copy);
     }
 
     void ProjectSettingsWidget::renderPhysicsSection()
@@ -137,12 +154,14 @@ namespace RealmEngine
         const auto&   cfg  = m_bridge->getConfig().getPhysicsConfig();
         PhysicsConfig copy = cfg;
 
-        ImGui::Checkbox("Physics Enabled", &copy.enabled);
-        ImGui::DragFloat("Gravity", &copy.gravity, 0.1f, -50.0f, 0.0f);
-        ImGui::DragInt("Max Substeps", &copy.max_substeps, 1, 1, 16);
-        ImGui::DragFloat("Fixed Timestep", &copy.fixed_timestep, 0.001f, 0.001f, 0.1f, "%.3f");
+        bool changed = false;
+        changed |= ImGui::Checkbox("Physics Enabled", &copy.enabled);
+        changed |= ImGui::DragFloat("Gravity", &copy.gravity, 0.1f, -50.0f, 0.0f);
+        changed |= ImGui::DragInt("Max Substeps", &copy.max_substeps, 1, 1, 16);
+        changed |= ImGui::DragFloat("Fixed Timestep", &copy.fixed_timestep, 0.001f, 0.001f, 0.1f, "%.3f");
 
-        m_bridge->getConfig().setPhysicsConfig(copy);
+        if (changed)
+            m_bridge->getConfig().setPhysicsConfig(copy);
     }
 
 } // namespace RealmEngine

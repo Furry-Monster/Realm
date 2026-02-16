@@ -62,13 +62,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderTransform()
     {
-        auto scene = m_bridge->getCurrentScene();
-        if (!scene || !m_context->hasSelectedEntity())
-            return;
-        if (!scene->valid(m_context->getSelectedEntity()))
-            return;
-
-        auto* tf = scene->tryGet<Transform>(m_context->getSelectedEntity());
+        auto         scene  = m_bridge->getCurrentScene();
+        entt::entity entity = m_context->getSelectedEntity();
+        auto*        tf     = scene->tryGet<Transform>(entity);
         if (!tf)
             return;
 
@@ -91,13 +87,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderRenderable()
     {
-        auto scene = m_bridge->getCurrentScene();
-        if (!scene || !m_context->hasSelectedEntity())
-            return;
-        if (!scene->valid(m_context->getSelectedEntity()))
-            return;
-
-        auto* r = scene->tryGet<Renderable>(m_context->getSelectedEntity());
+        auto         scene  = m_bridge->getCurrentScene();
+        entt::entity entity = m_context->getSelectedEntity();
+        auto*        r      = scene->tryGet<Renderable>(entity);
         if (!r)
             return;
 
@@ -236,13 +228,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderPointLight()
     {
-        auto scene = m_bridge->getCurrentScene();
-        if (!scene || !m_context->hasSelectedEntity())
-            return;
-        if (!scene->valid(m_context->getSelectedEntity()))
-            return;
-
-        auto* pl = scene->tryGet<PointLight>(m_context->getSelectedEntity());
+        auto         scene  = m_bridge->getCurrentScene();
+        entt::entity entity = m_context->getSelectedEntity();
+        auto*        pl     = scene->tryGet<PointLight>(entity);
         if (!pl)
             return;
 
@@ -272,13 +260,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderSpotLight()
     {
-        auto scene = m_bridge->getCurrentScene();
-        if (!scene || !m_context->hasSelectedEntity())
-            return;
-        if (!scene->valid(m_context->getSelectedEntity()))
-            return;
-
-        auto* sl = scene->tryGet<SpotLight>(m_context->getSelectedEntity());
+        auto         scene  = m_bridge->getCurrentScene();
+        entt::entity entity = m_context->getSelectedEntity();
+        auto*        sl     = scene->tryGet<SpotLight>(entity);
         if (!sl)
             return;
 
@@ -312,13 +296,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderDirectionalLight()
     {
-        auto scene = m_bridge->getCurrentScene();
-        if (!scene || !m_context->hasSelectedEntity())
-            return;
-        if (!scene->valid(m_context->getSelectedEntity()))
-            return;
-
-        auto* dl = scene->tryGet<DirectionalLight>(m_context->getSelectedEntity());
+        auto         scene  = m_bridge->getCurrentScene();
+        entt::entity entity = m_context->getSelectedEntity();
+        auto*        dl     = scene->tryGet<DirectionalLight>(entity);
         if (!dl)
             return;
 
@@ -335,13 +315,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderAreaLight()
     {
-        auto scene = m_bridge->getCurrentScene();
-        if (!scene || !m_context->hasSelectedEntity())
-            return;
-        if (!scene->valid(m_context->getSelectedEntity()))
-            return;
-
-        auto* al = scene->tryGet<AreaLight>(m_context->getSelectedEntity());
+        auto         scene  = m_bridge->getCurrentScene();
+        entt::entity entity = m_context->getSelectedEntity();
+        auto*        al     = scene->tryGet<AreaLight>(entity);
         if (!al)
             return;
 
