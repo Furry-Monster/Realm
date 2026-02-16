@@ -21,7 +21,7 @@
 
 namespace RealmEngine
 {
-    static constexpr int TEX_UNIT_G_ALBEDO_AO       = 0;
+    static constexpr int TEX_UNIT_G_ALBEDO_MODEL_ID = 0;
     static constexpr int TEX_UNIT_G_NORMAL_METALLIC = 1;
     static constexpr int TEX_UNIT_G_EMISSIVE_ROUGH  = 2;
     static constexpr int TEX_UNIT_G_DEPTH           = 3;
@@ -84,8 +84,8 @@ namespace RealmEngine
         if (!albedo_ao || !normal_met || !emiss_rough || !depth_tex)
             return;
 
-        ctx.device->bindTexture(TEX_UNIT_G_ALBEDO_AO, *albedo_ao);
-        m_shader->setInt("gAlbedoAO", TEX_UNIT_G_ALBEDO_AO);
+        ctx.device->bindTexture(TEX_UNIT_G_ALBEDO_MODEL_ID, *albedo_ao);
+        m_shader->setInt("gAlbedoModelID", TEX_UNIT_G_ALBEDO_MODEL_ID);
 
         ctx.device->bindTexture(TEX_UNIT_G_NORMAL_METALLIC, *normal_met);
         m_shader->setInt("gNormalMetallic", TEX_UNIT_G_NORMAL_METALLIC);

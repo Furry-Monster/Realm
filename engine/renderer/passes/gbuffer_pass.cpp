@@ -3,7 +3,10 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "renderer/material.h"
 #include "renderer/render_camera.h"
+#include "renderer/render_mesh.h"
+#include "renderer/render_object.h"
 #include "renderer/render_scene.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
@@ -11,6 +14,16 @@
 
 namespace RealmEngine
 {
+    // Maps ShadingModel to G-Buffer shadingModelID (RT0.a)
+    static int shadingModelToID(ShadingModel model)
+    {
+        switch (model)
+        {
+            case ShadingModel::StandardPBR: return 0;
+            default: return 0;
+        }
+    }
+
     GBufferPass::~GBufferPass() = default;
 
     GBufferPass::GBufferPass(const std::string& shader_path,
@@ -48,14 +61,23 @@ namespace RealmEngine
         glm::mat4 projection = ctx.camera->getProjMatrix();
         glm::mat4 view       = ctx.camera->getViewMatrix();
 
-        // drawOpaque already skips hair, transparent, and custom shader meshes
         for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
         {
             auto&     ro    = ctx.scene->m_render_objects[i];
             glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
                                                                                 glm::mat4(1.0f);
             m_shader->setMVP(model, view, projection);
-            ro->drawOpaque(*m_shader);
+
+            ro->forEachMesh([&](RenderMesh& mesh) {
+                if (!mesh.m_material.isDeferred())
+                    return;
+
+                int model_id = shadingModelToID(mesh.m_material.shading_model);
+                m_shader->setInt("shadingModelID", model_id);
+
+                ctx.device->setCullFace(mesh.m_material.isDoubleSided() ? CullFace::None : CullFace::Back);
+                mesh.draw(*m_shader);
+            });
         }
     }
 

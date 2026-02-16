@@ -6,6 +6,7 @@
 #include "renderer/render_pass.h"
 #include "renderer/scene_color_source.h"
 #include "renderer/shader_cache.h"
+#include "renderer/material.h"
 #include "rhi/rhi_types.h"
 
 namespace RealmEngine
@@ -36,6 +37,14 @@ namespace RealmEngine
         void            setFramebuffer(std::unique_ptr<RHIFramebuffer> fb) { m_framebuffer = std::move(fb); }
         RHIFramebuffer* getFramebuffer() const override { return m_framebuffer.get(); }
 
+        // In deferred mode, only render non-deferred-eligible meshes into the
+        // scene color source's framebuffer (which is owned by DeferredLightingPass).
+        void setDeferredMode(bool deferred, SceneColorSource* src = nullptr)
+        {
+            m_deferred_mode  = deferred;
+            m_scene_color    = src;
+        }
+
         void reloadShaders() { m_shader_cache.clear(); }
 
     private:
@@ -50,6 +59,9 @@ namespace RealmEngine
         std::unique_ptr<RHIBuffer>      m_light_ubo;
 
         ShaderCache m_shader_cache;
+
+        bool              m_deferred_mode {false};
+        SceneColorSource* m_scene_color {nullptr};
 
         ShadowPass* m_shadow_pass {nullptr};
         RHITexture* m_ibl_diffuse {nullptr};

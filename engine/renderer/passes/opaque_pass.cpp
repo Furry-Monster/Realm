@@ -79,13 +79,19 @@ namespace RealmEngine
 
     void OpaquePass::execute(const RenderContext& ctx)
     {
-        if (!m_framebuffer)
+        RHIFramebuffer* target_fb = m_framebuffer.get();
+        if (m_deferred_mode && m_scene_color)
+            target_fb = m_scene_color->getFramebuffer();
+        if (!target_fb)
             return;
 
-        m_framebuffer->bind();
+        target_fb->bind();
         ctx.device->setViewport(0, 0, ctx.viewport_width, ctx.viewport_height);
-        ctx.device->setClearColor(m_clear_r, m_clear_g, m_clear_b, m_clear_a);
-        ctx.device->clear(ClearFlags::Color | ClearFlags::Depth);
+        if (!m_deferred_mode)
+        {
+            ctx.device->setClearColor(m_clear_r, m_clear_g, m_clear_b, m_clear_a);
+            ctx.device->clear(ClearFlags::Color | ClearFlags::Depth);
+        }
         ctx.device->setDepthTest(true);
         ctx.device->setDepthFunc(DepthFunc::Less);
         ctx.device->setBlend(false);
@@ -134,6 +140,10 @@ namespace RealmEngine
 
             ro->forEachMesh([&](RenderMesh& mesh) {
                 if (mesh.m_material.isTransparent())
+                    return;
+
+                // In deferred mode, skip deferred-eligible meshes (handled by GBufferPass)
+                if (m_deferred_mode && mesh.m_material.isDeferred())
                     return;
 
                 RHIShader* shader = resolveShader(mesh.m_material, *ctx.device);

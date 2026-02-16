@@ -245,6 +245,7 @@ namespace RealmEngine
 
         // In deferred mode, OpaquePass renders non-deferred-eligible opaques
         // into the deferred lighting output framebuffer
+        m_opaque_pass->setDeferredMode(true, m_deferred_lighting_pass);
         m_opaque_pass->setShadowPass(m_shadow_pass);
         m_opaque_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
@@ -336,9 +337,8 @@ namespace RealmEngine
                 m_deferred_lighting_pass->setFramebuffer(m_device->createFramebuffer(desc));
             }
 
-            // OpaquePass in deferred mode shares the deferred lighting framebuffer
-            // (for custom/non-deferred opaques rendered forward)
-            m_opaque_pass->setFramebuffer(nullptr);
+            // OpaquePass in deferred mode uses DeferredLightingPass's framebuffer
+            // via setDeferredMode(), no dedicated framebuffer needed.
         }
 
         // Bloom framebuffers

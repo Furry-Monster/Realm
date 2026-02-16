@@ -11,7 +11,7 @@ namespace RealmEngine
     class RHIFramebuffer;
 
     // Deferred G-Buffer pass: writes geometry data into MRT.
-    //   RT0 (RGBA16F): albedo.rgb, materialAO
+    //   RT0 (RGBA16F): albedo.rgb, shadingModelID (0=PBR, 1=Subsurface, 2+=reserved)
     //   RT1 (RGBA16F): worldNormal.xyz, metallic
     //   RT2 (RGBA16F): emissive.rgb, roughness
     //   Depth: Depth24Stencil8
