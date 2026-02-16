@@ -7,6 +7,7 @@
 #include "renderer/render_pipeline.h"
 #include "renderer/render_scene.h"
 #include "renderer/viewport_display_mode.h"
+#include "resource/config_manager.h"
 
 namespace RealmEngine
 {
@@ -21,9 +22,12 @@ namespace RealmEngine
     class Skybox;
     class FullscreenQuad;
     class RHIFramebuffer;
+    class SceneColorSource;
 
     class ShadowPass;
     class GeometryPass;
+    class GBufferPass;
+    class DeferredLightingPass;
     class HairPass;
     class SSAOPass;
     class SSAOBlurPass;
@@ -52,6 +56,8 @@ namespace RealmEngine
         std::shared_ptr<RenderScene>  getRenderScene() const { return m_render_scene; }
         RHIDevice&                    getDevice() { return *m_device; }
 
+        PipelineMode getPipelineMode() const { return m_pipeline_mode; }
+
         ViewportDisplayMode getViewportDisplayMode() const { return m_display_mode; }
         void                setViewportDisplayMode(ViewportDisplayMode mode) { m_display_mode = mode; }
 
@@ -59,16 +65,24 @@ namespace RealmEngine
         RHITexture* getViewportTexture() const;
 
     private:
-        void buildPipeline(ConfigManager& config);
+        void buildForwardPipeline(ConfigManager& config);
+        void buildDeferredPipeline(ConfigManager& config);
         void precomputeIBL(ConfigManager& config);
+        void createSharedFramebuffers(int width, int height, const RendererConfig& rc);
+        void recreateSharedFramebuffers(int width, int height);
 
         // RHI
         std::unique_ptr<RHIDevice> m_device;
 
         // Pipeline
+        PipelineMode   m_pipeline_mode {PipelineMode::Forward};
         RenderPipeline m_pipeline;
 
-        // Non-owning pass pointers for cross-pass wiring
+        // Scene color source -- points to either GeometryPass (forward) or
+        // DeferredLightingPass (deferred). Non-owning; lifetime is the pipeline's.
+        SceneColorSource* m_scene_color_source {nullptr};
+
+        // Non-owning pass pointers for cross-pass wiring (forward)
         ShadowPass*      m_shadow_pass {nullptr};
         GeometryPass*    m_geometry_pass {nullptr};
         HairPass*        m_hair_pass {nullptr};
@@ -79,6 +93,10 @@ namespace RealmEngine
         BloomPass*       m_bloom_pass {nullptr};
         PostProcessPass* m_postprocess_pass {nullptr};
 
+        // Non-owning pass pointers (deferred-specific)
+        GBufferPass*          m_gbuffer_pass {nullptr};
+        DeferredLightingPass* m_deferred_lighting_pass {nullptr};
+
         std::unique_ptr<EquirectangularCubemap> m_ibl_equirect;
         std::unique_ptr<DiffuseIrradianceMap>   m_ibl_diffuse;
         std::unique_ptr<SpecularMap>            m_ibl_specular;
@@ -86,7 +104,6 @@ namespace RealmEngine
         RHITexture*                             m_ibl_prefiltered_tex {nullptr};
         RHITexture*                             m_ibl_brdf_tex {nullptr};
 
-        // Skybox + fullscreen quad (still use GL internally for this phase)
         std::unique_ptr<Skybox>         m_skybox;
         std::unique_ptr<FullscreenQuad> m_fullscreen_quad;
 

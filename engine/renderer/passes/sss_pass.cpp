@@ -1,8 +1,8 @@
 #include "renderer/passes/sss_pass.h"
 
 #include "renderer/fullscreen_quad.h"
-#include "renderer/passes/geometry_pass.h"
 #include "renderer/render_camera.h"
+#include "renderer/scene_color_source.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
@@ -29,10 +29,10 @@ namespace RealmEngine
 
     void SSSPass::execute(const RenderContext& ctx)
     {
-        if (!m_enabled || !m_geometry_pass || !m_quad || !m_framebuffers[0] || !m_framebuffers[1])
+        if (!m_enabled || !m_scene_color || !m_quad || !m_framebuffers[0] || !m_framebuffers[1])
             return;
 
-        auto* geo_fb = m_geometry_pass->getFramebuffer();
+        auto* geo_fb = m_scene_color->getFramebuffer();
         if (!geo_fb)
             return;
 

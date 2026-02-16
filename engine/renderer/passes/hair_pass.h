@@ -11,7 +11,7 @@ namespace RealmEngine
     class RHIShader;
     class RHIBuffer;
     class RHITexture;
-    class GeometryPass;
+    class SceneColorSource;
     class ShadowPass;
 
     class HairPass final : public RenderPass
@@ -24,7 +24,7 @@ namespace RealmEngine
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 
-        void setGeometryPass(GeometryPass* gp) { m_geometry_pass = gp; }
+        void setSceneColorSource(SceneColorSource* src) { m_scene_color = src; }
         void setShadowPass(ShadowPass* sp) { m_shadow_pass = sp; }
         void setIBLTextures(RHITexture* diffuse_irradiance);
 
@@ -34,9 +34,9 @@ namespace RealmEngine
         std::unique_ptr<RHIShader> m_shader;
         std::unique_ptr<RHIBuffer> m_light_ubo;
 
-        GeometryPass* m_geometry_pass {nullptr};
-        ShadowPass*   m_shadow_pass {nullptr};
-        RHITexture*   m_ibl_diffuse {nullptr};
+        SceneColorSource* m_scene_color {nullptr};
+        ShadowPass*       m_shadow_pass {nullptr};
+        RHITexture*       m_ibl_diffuse {nullptr};
     };
 
 } // namespace RealmEngine

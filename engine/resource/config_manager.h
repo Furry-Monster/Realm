@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <string>
 
@@ -22,8 +23,16 @@ namespace RealmEngine
         int         msaa_samples = 4;
     };
 
+    enum class PipelineMode : uint8_t
+    {
+        Forward  = 0,
+        Deferred = 1
+    };
+
     struct RendererConfig
     {
+        PipelineMode pipeline_mode = PipelineMode::Forward;
+
         float camera_fov           = 45.0f;
         float camera_near_plane    = 0.1f;
         float camera_far_plane     = 100.0f;

@@ -3,10 +3,10 @@
 #include <algorithm>
 
 #include "renderer/light.h"
-#include "renderer/passes/geometry_pass.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/render_camera.h"
 #include "renderer/render_scene.h"
+#include "renderer/scene_color_source.h"
 #include "rhi/rhi_buffer.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
@@ -29,10 +29,10 @@ namespace RealmEngine
 
     void HairPass::execute(const RenderContext& ctx)
     {
-        if (!m_geometry_pass || !m_geometry_pass->getFramebuffer())
+        if (!m_scene_color || !m_scene_color->getFramebuffer())
             return;
 
-        auto* fb = m_geometry_pass->getFramebuffer();
+        auto* fb = m_scene_color->getFramebuffer();
         fb->bind();
         ctx.device->setViewport(0, 0, ctx.viewport_width, ctx.viewport_height);
         ctx.device->setDepthTest(true);

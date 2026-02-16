@@ -11,7 +11,7 @@ namespace RealmEngine
     class RHIFramebuffer;
     class RHITexture;
     class Skybox;
-    class GeometryPass;
+    class SceneColorSource;
 
     class SkyboxPass final : public RenderPass
     {
@@ -24,13 +24,13 @@ namespace RealmEngine
         void dispose() override;
 
         void setSkybox(Skybox* skybox) { m_skybox = skybox; }
-        void setGeometryPass(GeometryPass* gp) { m_geometry_pass = gp; }
+        void setSceneColorSource(SceneColorSource* src) { m_scene_color = src; }
 
     private:
         std::string                m_shader_path;
         std::unique_ptr<RHIShader> m_shader;
         Skybox*                    m_skybox {nullptr};
-        GeometryPass*              m_geometry_pass {nullptr};
+        SceneColorSource*          m_scene_color {nullptr};
     };
 
 } // namespace RealmEngine
