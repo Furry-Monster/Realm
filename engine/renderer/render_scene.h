@@ -27,6 +27,8 @@ namespace RealmEngine
 
         void syncFromScene(std::shared_ptr<Scene> scene);
 
+        Scene* getScene() const { return m_cached_scene.get(); }
+
         int getDrawCallCount() const;
         int getTriangleCount() const;
 

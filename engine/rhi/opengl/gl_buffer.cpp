@@ -1,6 +1,6 @@
 #include "rhi/opengl/gl_buffer.h"
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 
 namespace RealmEngine
 {

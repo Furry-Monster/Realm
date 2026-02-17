@@ -2,7 +2,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <glad/gl.h>
+#include <glad/glad.h>
 
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
@@ -172,7 +172,7 @@ namespace RealmEngine
         m_impl->handle.reset(raw);
         glfwMakeContextCurrent(m_impl->handle.get());
 
-        if (!gladLoadGL(glfwGetProcAddress))
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         {
             m_impl->handle.reset();
             glfwTerminate();

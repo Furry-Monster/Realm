@@ -1,6 +1,6 @@
 #include "rhi/opengl/gl_texture.h"
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 
 #include "rhi/opengl/gl_format_utils.h"
 
@@ -67,6 +67,11 @@ namespace RealmEngine
         if (desc.type == TextureType::TextureCube || desc.type == TextureType::Texture2DArray ||
             desc.type == TextureType::Texture3D)
             glTexParameteri(m_target, GL_TEXTURE_WRAP_R, toGLWrap(desc.wrap_r));
+        if (!desc.gen_mips)
+        {
+            glTexParameteri(m_target, GL_TEXTURE_BASE_LEVEL, 0);
+            glTexParameteri(m_target, GL_TEXTURE_MAX_LEVEL, 0);
+        }
 
         if (desc.gen_mips)
             glGenerateMipmap(m_target);

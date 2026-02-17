@@ -57,29 +57,7 @@ namespace RealmEngine
             RE_LOG_ERROR("Failed to load helmet model: " + std::string(e.what()));
         }
 
-        try
-        {
-            auto sphere_node   = scene->createNodeWithEntity("Sphere");
-            auto sphere_entity = scene->findEntity("Sphere");
-
-            auto& transform2    = sphere_entity.emplace<Transform>();
-            transform2.position = glm::vec3(1.0f, 2.0f, 0.0f);
-
-            std::string sphere_path = asset_path + "/sphere/sphere.gltf";
-            auto&       renderable2 = sphere_entity.emplace<Renderable>();
-            renderable2.model_path  = sphere_path;
-            if (m_asset_mgr)
-                loadRenderableModel(renderable2, device, *m_asset_mgr);
-            else
-                loadRenderableModel(renderable2, device);
-
-            scene->getRoot()->addChild(sphere_node);
-        }
-        catch (const std::exception& e)
-        {
-            RE_LOG_ERROR("Failed to load sphere model: " + std::string(e.what()));
-        }
-
+        // PBR convention: light color 0-1 (RGB tint), intensity in arbitrary units
         // Point light 1 - main white light from above
         {
             auto  light1_node   = scene->createNodeWithEntity("PointLight1");
@@ -87,8 +65,8 @@ namespace RealmEngine
             auto& t             = light1_entity.emplace<Transform>();
             t.position          = glm::vec3(0.0f, 10.0f, 0.0f);
             auto& pl            = light1_entity.emplace<PointLight>();
-            pl.color            = glm::vec3(200.0f, 200.0f, 200.0f);
-            pl.intensity        = 1.0f;
+            pl.color            = glm::vec3(1.0f, 1.0f, 1.0f);
+            pl.intensity        = 5.0f;
             pl.range            = 50.0f;
             scene->getRoot()->addChild(light1_node);
         }
@@ -100,8 +78,8 @@ namespace RealmEngine
             auto& t             = light2_entity.emplace<Transform>();
             t.position          = glm::vec3(-5.0f, 3.0f, 0.0f);
             auto& pl            = light2_entity.emplace<PointLight>();
-            pl.color            = glm::vec3(200.0f, 50.0f, 50.0f);
-            pl.intensity        = 0.8f;
+            pl.color            = glm::vec3(1.0f, 0.2f, 0.2f);
+            pl.intensity        = 4.0f;
             pl.range            = 30.0f;
             scene->getRoot()->addChild(light2_node);
         }
@@ -113,8 +91,8 @@ namespace RealmEngine
             auto& t             = light3_entity.emplace<Transform>();
             t.position          = glm::vec3(5.0f, 3.0f, 0.0f);
             auto& pl            = light3_entity.emplace<PointLight>();
-            pl.color            = glm::vec3(50.0f, 50.0f, 200.0f);
-            pl.intensity        = 0.8f;
+            pl.color            = glm::vec3(0.2f, 0.2f, 1.0f);
+            pl.intensity        = 4.0f;
             pl.range            = 30.0f;
             scene->getRoot()->addChild(light3_node);
         }
@@ -132,8 +110,8 @@ namespace RealmEngine
             if (glm::length(axis) > 0.001f)
                 t.rotation = glm::angleAxis(angle, glm::normalize(axis));
             auto& dl     = dir_entity.emplace<DirectionalLight>();
-            dl.color     = glm::vec3(255.0f, 250.0f, 200.0f);
-            dl.intensity = 0.5f;
+            dl.color     = glm::vec3(1.0f, 0.98f, 0.78f);
+            dl.intensity = 3.0f;
             scene->getRoot()->addChild(dir_node);
         }
 
@@ -152,8 +130,8 @@ namespace RealmEngine
             if (glm::length(spot_axis) > 0.001f)
                 t.rotation = glm::angleAxis(spot_angle, glm::normalize(spot_axis));
             auto& sl            = spot_entity.emplace<SpotLight>();
-            sl.color            = glm::vec3(200.0f, 200.0f, 150.0f);
-            sl.intensity        = 1.2f;
+            sl.color            = glm::vec3(1.0f, 1.0f, 0.9f);
+            sl.intensity        = 6.0f;
             sl.range            = 20.0f;
             sl.inner_cone_angle = 15.0f;
             sl.outer_cone_angle = 30.0f;

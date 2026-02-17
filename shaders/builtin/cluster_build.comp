@@ -1,0 +1,83 @@
+#version 450 core
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+struct ClusterAABB
+{
+    vec4 minBounds;
+    vec4 maxBounds;
+};
+
+layout(std430, binding = 2) writeonly buffer ClusterAABBBuffer
+{
+    ClusterAABB clusters[];
+};
+
+uniform mat4 invProjection;
+uniform float nearPlane;
+uniform float farPlane;
+
+const uint CLUSTER_X = 16;
+const uint CLUSTER_Y = 9;
+const uint CLUSTER_Z = 24;
+
+// Reconstruct view-space position from NDC xy and a linear depth
+vec4 clipToView(vec4 clip)
+{
+    vec4 view = invProjection * clip;
+    return view / view.w;
+}
+
+vec3 screenToView(vec2 screenUV, float depth)
+{
+    // screenUV in [0,1], depth in NDC [-1,1]
+    vec4 clip = vec4(screenUV * 2.0 - 1.0, depth, 1.0);
+    return clipToView(clip).xyz;
+}
+
+void main()
+{
+    uint x = gl_WorkGroupID.x;
+    uint y = gl_WorkGroupID.y;
+    uint z = gl_WorkGroupID.z;
+
+    // Normalized tile coordinates [0,1]
+    float tileNearU = float(x) / float(CLUSTER_X);
+    float tileFarU  = float(x + 1) / float(CLUSTER_X);
+    float tileNearV = float(y) / float(CLUSTER_Y);
+    float tileFarV  = float(y + 1) / float(CLUSTER_Y);
+
+    // Exponential depth slicing for better near-field precision
+    float sliceNear = nearPlane * pow(farPlane / nearPlane, float(z) / float(CLUSTER_Z));
+    float sliceFar  = nearPlane * pow(farPlane / nearPlane, float(z + 1) / float(CLUSTER_Z));
+
+    // Convert linear depth to NDC depth for reconstruction
+    // For perspective: ndc_z = (far+near)/(far-near) + (2*far*near)/(far-near) * (1/z_view)
+    // but simpler: project near/far of slice to NDC via the four corners
+
+    // Compute AABB by finding min/max of all 8 corners in view space
+    vec3 minBounds = vec3(1e30);
+    vec3 maxBounds = vec3(-1e30);
+
+    for (int i = 0; i < 8; ++i)
+    {
+        float u = (i & 1) == 0 ? tileNearU : tileFarU;
+        float v = (i & 2) == 0 ? tileNearV : tileFarV;
+        float d = (i & 4) == 0 ? sliceNear : sliceFar;
+
+        // Convert linear depth to NDC
+        // z_ndc = (-proj[2][2] * (-d) + proj[3][2]) / d  -- but we can just use inverse proj
+        // Simpler: place point at screen UV, project to near plane, then scale by depth
+        vec3 viewNear = screenToView(vec2(u, v), -1.0);
+        // viewNear is on the near plane; scale to desired depth
+        // viewNear.z is negative (OpenGL convention), d is positive
+        vec3 point = viewNear * (d / (-viewNear.z));
+
+        minBounds = min(minBounds, point);
+        maxBounds = max(maxBounds, point);
+    }
+
+    uint idx = x + y * CLUSTER_X + z * CLUSTER_X * CLUSTER_Y;
+    clusters[idx].minBounds = vec4(minBounds, 0.0);
+    clusters[idx].maxBounds = vec4(maxBounds, 0.0);
+}

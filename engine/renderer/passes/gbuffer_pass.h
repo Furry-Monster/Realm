@@ -9,6 +9,7 @@ namespace RealmEngine
 {
     class RHIShader;
     class RHIFramebuffer;
+    class RHITexture;
 
     // Deferred G-Buffer pass: writes geometry data into MRT.
     //   RT0 (RGBA16F): albedo.rgb, shadingModelID (0=PBR, 1=Subsurface, 2+=reserved)
@@ -34,6 +35,7 @@ namespace RealmEngine
 
         std::unique_ptr<RHIShader>      m_shader;
         std::unique_ptr<RHIFramebuffer> m_framebuffer;
+        std::unique_ptr<RHITexture>     m_default_white;
     };
 
 } // namespace RealmEngine

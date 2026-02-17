@@ -1,6 +1,7 @@
 #include "rhi/opengl/gl_device.h"
 
-#include <glad/gl.h>
+#include <cstring>
+#include <glad/glad.h>
 #include <string>
 
 #include "core/log/log_macros.h"
@@ -25,6 +26,10 @@ namespace RealmEngine
                                            [[maybe_unused]] const void* user_param)
     {
         if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+            return;
+        // Suppress NVIDIA 131204 "texture object (0) does not have a defined base level" -
+        // driver warning when unit 0 has default texture; harmless with proper fallback sampling
+        if (id == 131204 && message && std::strstr(message, "defined base level"))
             return;
 
         std::string src_str;

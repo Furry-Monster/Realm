@@ -8,6 +8,7 @@
 
 #include "renderer/fullscreen_quad.h"
 #include "renderer/light.h"
+#include "renderer/light_probe_data.h"
 #include "renderer/material.h"
 #include "renderer/passes/gbuffer_pass.h"
 #include "renderer/passes/csm_shadow_pass.h"
@@ -18,6 +19,7 @@
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
 #include "rhi/rhi_texture.h"
+#include "scene/scene.h"
 
 namespace RealmEngine
 {
@@ -36,12 +38,18 @@ namespace RealmEngine
         RenderPass("deferred_lighting"), m_shader_path(shader_path)
     {}
 
+    // Probe SSBO layout: int probeCount + padding(12) + ProbeInfo[N]
+    // ProbeInfo: vec4 positionRadius + vec4 sh[9] = 10 * 16 = 160 bytes
+    static constexpr size_t PROBE_SSBO_SIZE = 16 + LightProbeGPUData::MAX_ACTIVE_PROBES * 160;
+
     void DeferredLightingPass::init(RHIDevice& device)
     {
         m_shader = device.createShader(m_shader_path + "/builtin/deferred_lighting.vert",
                                        m_shader_path + "/builtin/deferred_lighting.frag");
-        m_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
-        m_light_ubo = device.createBuffer(BufferType::Uniform, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
+        m_shader->bindShaderStorageBlock("LightBuffer", 1);
+        m_shader->bindShaderStorageBlock("ProbeBuffer", 5);
+        m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
+        m_probe_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, PROBE_SSBO_SIZE);
     }
 
     void DeferredLightingPass::execute(const RenderContext& ctx)
@@ -54,7 +62,7 @@ namespace RealmEngine
             return;
 
         // Blit G-Buffer depth into the lighting framebuffer so downstream passes
-        // (SSAO, SkyboxPass depth-test, etc.) can read scene depth from it.
+        // (GTAO, SkyboxPass depth-test, etc.) can read scene depth from it.
         ctx.device->blitFramebuffer(gbuf,
                                     m_framebuffer.get(),
                                     0,
@@ -120,9 +128,9 @@ namespace RealmEngine
                 data[i].attenuation = glm::vec4(l.linear, l.quadratic, l.range, l.inner_cone_angle);
                 data[i].spot_area   = glm::vec4(l.outer_cone_angle, l.width, l.height, 0.0f);
             }
-            m_light_ubo->setSubData(&count_i, 0, sizeof(int));
-            m_light_ubo->setSubData(data, 16, MAX_LIGHTS * sizeof(LightData));
-            m_light_ubo->bindBase(LIGHT_UBO_BINDING_POINT);
+            m_light_ssbo->setSubData(&count_i, 0, sizeof(int));
+            m_light_ssbo->setSubData(data, 16, count * sizeof(LightData));
+            m_light_ssbo->bindBase(1);
         }
 
         // IBL textures
@@ -169,6 +177,30 @@ namespace RealmEngine
             m_shader->setBool("shadowEnabled", false);
         }
 
+        // Light probes
+        bool probes_active = false;
+        Scene* ecs_scene = ctx.scene ? ctx.scene->getScene() : nullptr;
+        if (ecs_scene && m_probe_ssbo)
+        {
+            LightProbeGPUData probe_data;
+            probe_data.collectFromScene(*ecs_scene);
+
+            if (probe_data.probe_count > 0)
+            {
+                m_probe_ssbo->setSubData(&probe_data.probe_count, 0, sizeof(int));
+                m_probe_ssbo->setSubData(probe_data.probes.data(), 16,
+                                         probe_data.probes.size() * sizeof(LightProbeGPUData::ProbeInfo));
+                probes_active = true;
+            }
+            else
+            {
+                int zero = 0;
+                m_probe_ssbo->setSubData(&zero, 0, sizeof(int));
+            }
+            m_probe_ssbo->bindBase(5);
+        }
+        m_shader->setBool("probesEnabled", probes_active);
+
         m_shader->setInt("displayMode", static_cast<int>(ctx.display_mode));
 
         m_quad->draw();
@@ -180,7 +212,8 @@ namespace RealmEngine
     {
         m_framebuffer.reset();
         m_shader.reset();
-        m_light_ubo.reset();
+        m_light_ssbo.reset();
+        m_probe_ssbo.reset();
     }
 
     void DeferredLightingPass::setIBLTextures(RHITexture* diffuse_irradiance,

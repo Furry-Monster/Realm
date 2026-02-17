@@ -19,9 +19,9 @@ namespace RealmEngine
     static constexpr int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
     static constexpr int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
     static constexpr int TEXTURE_UNIT_SHADOW_MAP             = 13;
-    static constexpr int TEXTURE_UNIT_SSAO_DEPTH             = 14;
-    static constexpr int TEXTURE_UNIT_SSAO_NOISE             = 15;
-    static constexpr int TEXTURE_UNIT_SSAO_RESULT            = 16;
+    static constexpr int TEXTURE_UNIT_GTAO_DEPTH             = 14;
+    static constexpr int TEXTURE_UNIT_GTAO_NOISE             = 15;
+    static constexpr int TEXTURE_UNIT_GTAO_RESULT            = 16;
 
     enum class ShadingModel : uint8_t
     {

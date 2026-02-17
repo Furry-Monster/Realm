@@ -4,6 +4,7 @@
 #include "../include/brdf.glsl"
 #include "../include/lighting.glsl"
 #include "../include/shadow.glsl"
+#include "../include/sh_lighting.glsl"
 
 layout(location = 0) out vec4 FragColor;
 
@@ -38,14 +39,25 @@ vec3 reconstructWorldPosition(vec2 uv, float depth)
     return worldPos.xyz;
 }
 
+uniform bool probesEnabled;
+
 vec3 computeIBL(vec3 albedo, vec3 n, vec3 v, vec3 r,
-                float metallic, float roughness, vec3 f0)
+                float metallic, float roughness, vec3 f0, vec3 worldPos)
 {
     vec3 kSpecular = fresnelSchlickRoughness(max(dot(n, v), 0.0), f0, roughness);
     vec3 kDiffuse  = (1.0 - kSpecular) * (1.0 - metallic);
 
     vec3 irradiance = texture(diffuseIrradianceMap, n).rgb;
-    vec3 diffuse    = irradiance * albedo;
+
+    if (probesEnabled)
+    {
+        vec3 probeIrr = evaluateProbeIrradiance(worldPos, n);
+        // Blend: probe data overrides IBL diffuse where available
+        float probeWeight = (probeCount > 0) ? 1.0 : 0.0;
+        irradiance = mix(irradiance, probeIrr, probeWeight);
+    }
+
+    vec3 diffuse = irradiance * albedo;
 
     vec3  prefilteredColor = textureLod(prefilteredEnvMap, r, roughness * PREFILTERED_ENV_MAP_LOD).rgb;
     float NdotV = max(dot(n, v), 0.0);
@@ -76,7 +88,7 @@ vec3 shadePBR(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
                                false, 0.0, vec3(1.0));
     }
 
-    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0);
+    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0, worldPos);
     return emissive + ambient + Lo;
 }
 
@@ -97,12 +109,11 @@ vec3 shadeSubsurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
         if (lightType == 1)
             radiance *= calculateShadow(worldPos, n, l, viewMatrix);
 
-        // SSS enabled with default wrap parameters
         Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0,
                                true, 1.0, vec3(1.0));
     }
 
-    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0);
+    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0, worldPos);
     return emissive + ambient + Lo;
 }
 

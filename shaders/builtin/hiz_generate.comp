@@ -1,0 +1,43 @@
+#version 450 core
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+// Mip 0 pass: sample from depth texture
+uniform sampler2D uDepthTexture;
+
+// Mip N>0 pass: read from previous mip via image load
+layout(r32f, binding = 0) readonly  uniform image2D uSrcImage;
+layout(r32f, binding = 1) writeonly uniform image2D uDstImage;
+
+// -1 = mip 0 copy from depth texture, >0 = downsample from previous mip
+uniform int uMipLevel;
+uniform int uSrcWidth;
+uniform int uSrcHeight;
+
+void main()
+{
+    ivec2 dst_coord = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 dst_size  = imageSize(uDstImage);
+
+    if (dst_coord.x >= dst_size.x || dst_coord.y >= dst_size.y)
+        return;
+
+    if (uMipLevel <= 0)
+    {
+        // Mip 0: copy from depth texture via texelFetch
+        float d = texelFetch(uDepthTexture, dst_coord, 0).r;
+        imageStore(uDstImage, dst_coord, vec4(d));
+        return;
+    }
+
+    // Downsample: max of 2x2 texels from the previous mip level
+    ivec2 src_coord = dst_coord * 2;
+
+    float d00 = imageLoad(uSrcImage, src_coord).r;
+    float d10 = imageLoad(uSrcImage, min(src_coord + ivec2(1, 0), ivec2(uSrcWidth - 1, uSrcHeight - 1))).r;
+    float d01 = imageLoad(uSrcImage, min(src_coord + ivec2(0, 1), ivec2(uSrcWidth - 1, uSrcHeight - 1))).r;
+    float d11 = imageLoad(uSrcImage, min(src_coord + ivec2(1, 1), ivec2(uSrcWidth - 1, uSrcHeight - 1))).r;
+
+    float max_depth = max(max(d00, d10), max(d01, d11));
+    imageStore(uDstImage, dst_coord, vec4(max_depth));
+}

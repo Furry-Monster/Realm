@@ -5,6 +5,7 @@
 #include "../include/brdf.glsl"
 #include "../include/lighting.glsl"
 #include "../include/shadow.glsl"
+#include "../include/sh_lighting.glsl"
 
 layout(location = 0) out vec4 FragColor;
 
@@ -25,6 +26,7 @@ uniform sampler2D brdfConvolutionMap;
 // Viewport display mode: 0=lit, 1=albedo, 2=normals, 3=metallic, 4=roughness, 5=materialAO, 6=emissive
 uniform int displayMode;
 uniform bool isTransparentPass;
+uniform bool probesEnabled;
 
 void main()
 {
@@ -66,7 +68,13 @@ void main()
 
     vec3 diffAlbedo = s.sssEnabled ? s.albedo * s.sssColor : s.albedo;
     vec3 irradiance = texture(diffuseIrradianceMap, s.normal).rgb;
-    vec3 diffuse    = irradiance * diffAlbedo;
+    if (probesEnabled)
+    {
+        vec3 probeIrr = evaluateProbeIrradiance(worldCoordinates, s.normal);
+        float probeWeight = (probeCount > 0) ? 1.0 : 0.0;
+        irradiance = mix(irradiance, probeIrr, probeWeight);
+    }
+    vec3 diffuse = irradiance * diffAlbedo;
 
     vec3  prefilteredColor = textureLod(prefilteredEnvMap, r, s.roughness * PREFILTERED_ENV_MAP_LOD).rgb;
     vec2  brdf             = texture(brdfConvolutionMap, vec2(max(dot(s.normal, v), 0.0), s.roughness)).rg;

@@ -438,7 +438,7 @@ namespace RealmEngine
         {
             if (ImGui::Checkbox("Enabled", &pl->enabled))
                 scene->markDirty();
-            if (ImGui::ColorEdit3("Color", &pl->color.x))
+            if (ImGui::ColorEdit3("Color", &pl->color.x, ImGuiColorEditFlags_Float))
                 scene->markDirty();
             if (ImGui::DragFloat("Intensity", &pl->intensity, 0.1f, 0.0f, 100.0f))
                 scene->markDirty();
@@ -470,7 +470,7 @@ namespace RealmEngine
         {
             if (ImGui::Checkbox("Enabled", &sl->enabled))
                 scene->markDirty();
-            if (ImGui::ColorEdit3("Color", &sl->color.x))
+            if (ImGui::ColorEdit3("Color", &sl->color.x, ImGuiColorEditFlags_Float))
                 scene->markDirty();
             if (ImGui::DragFloat("Intensity", &sl->intensity, 0.1f, 0.0f, 100.0f))
                 scene->markDirty();
@@ -506,7 +506,7 @@ namespace RealmEngine
         {
             if (ImGui::Checkbox("Enabled", &dl->enabled))
                 scene->markDirty();
-            if (ImGui::ColorEdit3("Color", &dl->color.x))
+            if (ImGui::ColorEdit3("Color", &dl->color.x, ImGuiColorEditFlags_Float))
                 scene->markDirty();
             if (ImGui::DragFloat("Intensity", &dl->intensity, 0.1f, 0.0f, 100.0f))
                 scene->markDirty();
@@ -525,7 +525,7 @@ namespace RealmEngine
         {
             if (ImGui::Checkbox("Enabled", &al->enabled))
                 scene->markDirty();
-            if (ImGui::ColorEdit3("Color", &al->color.x))
+            if (ImGui::ColorEdit3("Color", &al->color.x, ImGuiColorEditFlags_Float))
                 scene->markDirty();
             if (ImGui::DragFloat("Intensity", &al->intensity, 0.1f, 0.0f, 100.0f))
                 scene->markDirty();

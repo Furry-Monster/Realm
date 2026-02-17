@@ -4,6 +4,7 @@
 #include "../include/material_input.glsl"
 #include "../include/lighting.glsl"
 #include "../include/shadow.glsl"
+#include "../include/sh_lighting.glsl"
 
 layout(location = 0) out vec4 FragColor;
 
@@ -73,6 +74,11 @@ void main()
     }
 
     vec3 irradiance = texture(diffuseIrradianceMap, normal).rgb;
+    if (probeCount > 0)
+    {
+        vec3 probeIrr = evaluateProbeIrradiance(worldCoordinates, normal);
+        irradiance = probeIrr;
+    }
     vec3 ambient = irradiance * s.albedo;
     vec3 color = s.emissive + ambient + Lo;
 

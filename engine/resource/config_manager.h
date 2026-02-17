@@ -43,12 +43,12 @@ namespace RealmEngine
         float camera_look_at_y     = 0.0f;
         float camera_look_at_z     = 0.0f;
 
-        bool  ssao_enabled     = true;
-        float ssao_radius      = 0.5f;
-        float ssao_bias        = 0.025f;
-        float ssao_power       = 2.0f;
-        int   ssao_kernel_size = 64;
-        int   ssao_noise_size  = 4;
+        bool  ao_enabled         = true;
+        float ao_radius          = 0.4f;
+        float ao_power           = 1.2f;
+        float ao_intensity       = 0.6f;
+        int   gtao_num_directions = 6;
+        int   gtao_num_steps     = 6;
 
         bool  bloom_enabled           = true;
         float bloom_intensity         = 1.0f;

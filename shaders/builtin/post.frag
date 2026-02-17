@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 out vec4 FragColor;
 in vec2  textureCoordinates;
@@ -9,6 +9,7 @@ uniform sampler2D ssaoTexture;
 uniform sampler2D depthTexture;
 uniform bool      ssaoEnabled;
 uniform float     ssaoPower;
+uniform float     ssaoIntensity;
 uniform bool      bloomEnabled;
 uniform float     bloomIntensity;
 uniform int       bloomMaxMip;
@@ -37,11 +38,14 @@ void main()
 
     if (ssaoEnabled)
     {
-        // Apply AO: C' = C · AO^p (p controls contrast)
+        // AO factor: mix(1, ao^power, intensity) to avoid over-darkening
         float depth = texture(depthTexture, textureCoordinates).r;
         float ao    = texture(ssaoTexture, textureCoordinates).r;
         if (depth < 1.0)
-            color *= pow(ao, ssaoPower);
+        {
+            float aoFactor = mix(1.0, pow(ao, ssaoPower), ssaoIntensity);
+            color *= aoFactor;
+        }
     }
 
     if (bloomEnabled)

@@ -1,6 +1,6 @@
 #include "rhi/opengl/gl_vertex_input.h"
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 
 #include "rhi/rhi_buffer.h"
 

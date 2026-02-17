@@ -19,7 +19,7 @@ namespace RealmEngine
 
     // Deferred lighting pass: reads G-Buffer, computes PBR lighting with IBL,
     // writes HDR result to a single RGBA16F + Depth framebuffer that is
-    // compatible with all downstream passes (SSAO, Bloom, PostProcess, etc.).
+    // compatible with all downstream passes (GTAO, Bloom, PostProcess, etc.).
     class DeferredLightingPass final
         : public RenderPass
         , public SceneColorSource
@@ -46,7 +46,8 @@ namespace RealmEngine
 
         std::unique_ptr<RHIShader>      m_shader;
         std::unique_ptr<RHIFramebuffer> m_framebuffer;
-        std::unique_ptr<RHIBuffer>      m_light_ubo;
+        std::unique_ptr<RHIBuffer>      m_light_ssbo;
+        std::unique_ptr<RHIBuffer>      m_probe_ssbo;
 
         GBufferPass*    m_gbuffer_pass {nullptr};
         CSMShadowPass*  m_shadow_pass {nullptr};

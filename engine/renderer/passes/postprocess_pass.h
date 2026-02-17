@@ -11,7 +11,7 @@ namespace RealmEngine
     class FullscreenQuad;
     class SceneColorSource;
     class BloomPass;
-    class SSAOBlurPass;
+    class GTAOBlurPass;
 
     class PostProcessPass final : public RenderPass
     {
@@ -19,8 +19,9 @@ namespace RealmEngine
         PostProcessPass(const std::string& shader_path,
                         bool               tonemapping,
                         float              gamma,
-                        bool               ssao_enabled = false,
-                        float              ssao_power   = 2.0f);
+                        bool               ao_enabled = false,
+                        float              ao_power   = 1.2f,
+                        float              ao_intensity = 0.6f);
         ~PostProcessPass() override;
 
         void init(RHIDevice& device) override;
@@ -29,19 +30,20 @@ namespace RealmEngine
 
         void setSceneColorSource(SceneColorSource* src) { m_scene_color = src; }
         void setBloomPass(BloomPass* bp) { m_bloom_pass = bp; }
-        void setSSAOBlurPass(SSAOBlurPass* pass) { m_ssao_blur_pass = pass; }
+        void setGTAOBlurPass(GTAOBlurPass* pass) { m_gtao_blur_pass = pass; }
         void setFullscreenQuad(FullscreenQuad* quad) { m_quad = quad; }
 
     private:
         std::string                m_shader_path;
         bool                       m_tonemapping;
         float                      m_gamma;
-        bool                       m_ssao_enabled;
-        float                      m_ssao_power;
+        bool                       m_ao_enabled;
+        float                      m_ao_power;
+        float                      m_ao_intensity;
         std::unique_ptr<RHIShader> m_shader;
         SceneColorSource*          m_scene_color {nullptr};
         BloomPass*                 m_bloom_pass {nullptr};
-        SSAOBlurPass*              m_ssao_blur_pass {nullptr};
+        GTAOBlurPass*              m_gtao_blur_pass {nullptr};
         FullscreenQuad*            m_quad {nullptr};
     };
 

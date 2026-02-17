@@ -1,8 +1,8 @@
-#include "renderer/passes/ssao_blur_pass.h"
+#include "renderer/passes/gtao_blur_pass.h"
 
 #include "renderer/fullscreen_quad.h"
 #include "renderer/material.h"
-#include "renderer/passes/ssao_pass.h"
+#include "renderer/passes/gtao_pass.h"
 #include "renderer/scene_color_source.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
@@ -11,25 +11,26 @@
 
 namespace RealmEngine
 {
-    SSAOBlurPass::~SSAOBlurPass() = default;
+    GTAOBlurPass::~GTAOBlurPass() = default;
 
-    SSAOBlurPass::SSAOBlurPass(const std::string& shader_path) : RenderPass("ssao_blur"), m_shader_path(shader_path) {}
+    GTAOBlurPass::GTAOBlurPass(const std::string& shader_path) :
+        RenderPass("gtao_blur"), m_shader_path(shader_path) {}
 
-    void SSAOBlurPass::init(RHIDevice& device)
+    void GTAOBlurPass::init(RHIDevice& device)
     {
-        m_shader =
-            device.createShader(m_shader_path + "/builtin/ssao_blur.vert", m_shader_path + "/builtin/ssao_blur.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/gtao_blur.vert",
+                                       m_shader_path + "/builtin/gtao_blur.frag");
     }
 
-    void SSAOBlurPass::execute(const RenderContext& ctx)
+    void GTAOBlurPass::execute(const RenderContext& ctx)
     {
-        if (!m_ssao_pass || !m_ssao_pass->isEnabled() || !m_quad || !m_framebuffer)
+        if (!m_gtao_pass || !m_gtao_pass->isEnabled() || !m_quad || !m_framebuffer)
             return;
 
-        RHITexture* ssao_tex  = m_ssao_pass->getResultTexture();
+        RHITexture* gtao_tex  = m_gtao_pass->getResultTexture();
         auto*       geo_fb    = m_scene_color ? m_scene_color->getFramebuffer() : nullptr;
         RHITexture* depth_tex = geo_fb ? geo_fb->getDepthAttachment() : nullptr;
-        if (!ssao_tex || !depth_tex)
+        if (!gtao_tex || !depth_tex)
             return;
 
         m_framebuffer->bind();
@@ -39,10 +40,10 @@ namespace RealmEngine
 
         m_shader->use();
 
-        ctx.device->bindTexture(TEXTURE_UNIT_SSAO_RESULT, *ssao_tex);
-        m_shader->setInt("ssaoTexture", TEXTURE_UNIT_SSAO_RESULT);
-        ctx.device->bindTexture(TEXTURE_UNIT_SSAO_DEPTH, *depth_tex);
-        m_shader->setInt("depthTexture", TEXTURE_UNIT_SSAO_DEPTH);
+        ctx.device->bindTexture(TEXTURE_UNIT_GTAO_RESULT, *gtao_tex);
+        m_shader->setInt("gtaoTexture", TEXTURE_UNIT_GTAO_RESULT);
+        ctx.device->bindTexture(TEXTURE_UNIT_GTAO_DEPTH, *depth_tex);
+        m_shader->setInt("depthTexture", TEXTURE_UNIT_GTAO_DEPTH);
         m_shader->setVec2(
             "texelSize",
             glm::vec2(1.0f / static_cast<float>(ctx.viewport_width), 1.0f / static_cast<float>(ctx.viewport_height)));
@@ -52,13 +53,13 @@ namespace RealmEngine
         ctx.device->setDepthTest(true);
     }
 
-    void SSAOBlurPass::dispose()
+    void GTAOBlurPass::dispose()
     {
         m_framebuffer.reset();
         m_shader.reset();
     }
 
-    RHITexture* SSAOBlurPass::getResultTexture() const
+    RHITexture* GTAOBlurPass::getResultTexture() const
     {
         return m_framebuffer ? m_framebuffer->getColorAttachment(0) : nullptr;
     }
