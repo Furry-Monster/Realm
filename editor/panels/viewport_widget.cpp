@@ -5,6 +5,7 @@
 #include "resource/config_manager.h"
 #include "rhi/rhi_texture.h"
 
+#include <glad/gl.h>
 #include <imgui.h>
 
 namespace RealmEngine
@@ -23,7 +24,10 @@ namespace RealmEngine
         m_bridge->setRenderToViewportTexture(true);
     }
 
-    static void drawTexturePreview(RHITexture* tex, ImVec2 avail)
+    static void disableBlendCB(const ImDrawList*, const ImDrawCmd*) { glDisable(GL_BLEND); }
+    static void enableBlendCB(const ImDrawList*, const ImDrawCmd*) { glEnable(GL_BLEND); }
+
+    static void drawTexturePreview(RHITexture* tex, ImVec2 avail, bool force_opaque = false)
     {
         if (!tex)
         {
@@ -44,7 +48,18 @@ namespace RealmEngine
         ImVec2 display_size(w * scale, h * scale);
 
         ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
-        ImGui::Image(tid, display_size, ImVec2(0, 1), ImVec2(1, 0));
+
+        if (force_opaque)
+        {
+            ImDrawList* dl = ImGui::GetWindowDrawList();
+            dl->AddCallback(disableBlendCB, nullptr);
+            ImGui::Image(tid, display_size, ImVec2(0, 1), ImVec2(1, 0));
+            dl->AddCallback(enableBlendCB, nullptr);
+        }
+        else
+        {
+            ImGui::Image(tid, display_size, ImVec2(0, 1), ImVec2(1, 0));
+        }
     }
 
     void ViewportWidget::render()
@@ -112,7 +127,7 @@ namespace RealmEngine
                 default:
                     break;
             }
-            drawTexturePreview(gbuf_tex, avail);
+            drawTexturePreview(gbuf_tex, avail, true);
         }
 
         ImGui::End();
