@@ -23,7 +23,7 @@ namespace RealmEngine
 
     void ShadowPass::init(RHIDevice& device)
     {
-        m_shader = device.createShader(m_shader_path + "/shadow.vert", m_shader_path + "/shadow.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/shadow.vert", m_shader_path + "/builtin/shadow.frag");
 
         FramebufferDesc desc;
         desc.width                       = m_resolution;

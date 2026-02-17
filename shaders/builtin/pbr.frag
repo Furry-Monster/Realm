@@ -1,10 +1,10 @@
 #version 330 core
 
-#include "include/common.glsl"
-#include "include/material_input.glsl"
-#include "include/brdf.glsl"
-#include "include/lighting.glsl"
-#include "include/shadow.glsl"
+#include "../include/common.glsl"
+#include "../include/material_input.glsl"
+#include "../include/brdf.glsl"
+#include "../include/lighting.glsl"
+#include "../include/shadow.glsl"
 
 layout(location = 0) out vec4 FragColor;
 

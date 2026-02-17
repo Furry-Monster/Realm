@@ -39,8 +39,8 @@ namespace RealmEngine
 
     void GBufferPass::init(RHIDevice& device)
     {
-        m_shader =
-            device.createShader(m_shader_path + "/deferred_gbuffer.vert", m_shader_path + "/deferred_gbuffer.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/deferred_gbuffer.vert",
+                                       m_shader_path + "/builtin/deferred_gbuffer.frag");
     }
 
     void GBufferPass::execute(const RenderContext& ctx)

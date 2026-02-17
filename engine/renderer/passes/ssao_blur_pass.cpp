@@ -17,7 +17,8 @@ namespace RealmEngine
 
     void SSAOBlurPass::init(RHIDevice& device)
     {
-        m_shader = device.createShader(m_shader_path + "/ssao_blur.vert", m_shader_path + "/ssao_blur.frag");
+        m_shader =
+            device.createShader(m_shader_path + "/builtin/ssao_blur.vert", m_shader_path + "/builtin/ssao_blur.frag");
     }
 
     void SSAOBlurPass::execute(const RenderContext& ctx)

@@ -26,7 +26,7 @@ namespace RealmEngine
 
     void OpaquePass::init(RHIDevice& device)
     {
-        m_pbr_shader = device.createShader(m_shader_path + "/pbr.vert", m_shader_path + "/pbr.frag");
+        m_pbr_shader = device.createShader(m_shader_path + "/builtin/pbr.vert", m_shader_path + "/builtin/pbr.frag");
         m_pbr_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
         m_light_ubo = device.createBuffer(BufferType::Uniform, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
     }

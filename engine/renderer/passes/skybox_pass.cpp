@@ -15,7 +15,7 @@ namespace RealmEngine
 
     void SkyboxPass::init(RHIDevice& device)
     {
-        m_shader = device.createShader(m_shader_path + "/skybox.vert", m_shader_path + "/skybox.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/skybox.vert", m_shader_path + "/builtin/skybox.frag");
     }
 
     void SkyboxPass::execute(const RenderContext& ctx)

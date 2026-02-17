@@ -1,5 +1,6 @@
 #include "renderer/passes/ssao_pass.h"
 
+#include <cstddef>
 #include <random>
 
 #include "renderer/fullscreen_quad.h"
@@ -33,8 +34,9 @@ namespace RealmEngine
         std::uniform_real_distribution<float> dist(0.0f, 1.0f);
         std::default_random_engine            rng;
 
-        m_kernel.resize(m_kernel_size);
-        for (int i = 0; i < m_kernel_size; ++i)
+        const size_t kernel_size_t = static_cast<size_t>(m_kernel_size);
+        m_kernel.resize(kernel_size_t);
+        for (size_t i = 0; i < kernel_size_t; ++i)
         {
             glm::vec3 sample(dist(rng) * 2.0f - 1.0f, dist(rng) * 2.0f - 1.0f, dist(rng));
             sample = glm::normalize(sample);
@@ -49,11 +51,12 @@ namespace RealmEngine
 
     void SSAOPass::generateNoiseTexture(RHIDevice& device)
     {
-        std::vector<glm::vec3>                noise(m_noise_size * m_noise_size);
+        const size_t                          noise_size_t = static_cast<size_t>(m_noise_size);
+        std::vector<glm::vec3>                noise(noise_size_t * noise_size_t);
         std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
         std::default_random_engine            rng;
 
-        for (int i = 0; i < m_noise_size * m_noise_size; ++i)
+        for (size_t i = 0; i < noise_size_t * noise_size_t; ++i)
             noise[i] = glm::vec3(dist(rng), dist(rng), 0.0f);
 
         TextureDesc td;
@@ -70,7 +73,7 @@ namespace RealmEngine
 
     void SSAOPass::init(RHIDevice& device)
     {
-        m_shader = device.createShader(m_shader_path + "/ssao.vert", m_shader_path + "/ssao.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/ssao.vert", m_shader_path + "/builtin/ssao.frag");
         generateNoiseTexture(device);
     }
 

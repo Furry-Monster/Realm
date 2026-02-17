@@ -38,8 +38,8 @@ namespace RealmEngine
 
     void DeferredLightingPass::init(RHIDevice& device)
     {
-        m_shader =
-            device.createShader(m_shader_path + "/deferred_lighting.vert", m_shader_path + "/deferred_lighting.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/deferred_lighting.vert",
+                                       m_shader_path + "/builtin/deferred_lighting.frag");
         m_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
         m_light_ubo = device.createBuffer(BufferType::Uniform, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
     }

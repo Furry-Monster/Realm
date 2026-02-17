@@ -1,6 +1,6 @@
 #version 330 core
 
-#include "include/material_input.glsl"
+#include "../include/material_input.glsl"
 
 // G-Buffer MRT layout:
 //   RT0 (RGBA16F): albedo.rgb, shadingModelID

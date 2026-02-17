@@ -24,7 +24,7 @@ namespace RealmEngine
 
     void PostProcessPass::init(RHIDevice& device)
     {
-        m_shader = device.createShader(m_shader_path + "/post.vert", m_shader_path + "/post.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/post.vert", m_shader_path + "/builtin/post.frag");
     }
 
     void PostProcessPass::execute(const RenderContext& ctx)
