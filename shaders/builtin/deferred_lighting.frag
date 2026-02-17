@@ -1,0 +1,148 @@
+#version 330 core
+
+#include "../include/common.glsl"
+#include "../include/brdf.glsl"
+#include "../include/lighting.glsl"
+#include "../include/shadow.glsl"
+
+layout(location = 0) out vec4 FragColor;
+
+in vec2 textureCoordinates;
+
+// G-Buffer inputs (RT0.a = shadingModelID)
+uniform sampler2D gAlbedoModelID;
+uniform sampler2D gNormalMetallic;
+uniform sampler2D gEmissiveRoughness;
+uniform sampler2D gDepth;
+
+// Camera
+uniform vec3 cameraPosition;
+uniform mat4 invView;
+uniform mat4 invProjection;
+
+// IBL
+uniform samplerCube diffuseIrradianceMap;
+uniform samplerCube prefilteredEnvMap;
+uniform sampler2D brdfConvolutionMap;
+
+// Viewport display mode
+uniform int displayMode;
+
+vec3 reconstructWorldPosition(vec2 uv, float depth)
+{
+    vec4 ndc = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec4 viewPos = invProjection * ndc;
+    viewPos /= viewPos.w;
+    vec4 worldPos = invView * viewPos;
+    return worldPos.xyz;
+}
+
+vec3 computeIBL(vec3 albedo, vec3 n, vec3 v, vec3 r,
+                float metallic, float roughness, vec3 f0)
+{
+    vec3 kSpecular = fresnelSchlickRoughness(max(dot(n, v), 0.0), f0, roughness);
+    vec3 kDiffuse  = (1.0 - kSpecular) * (1.0 - metallic);
+
+    vec3 irradiance = texture(diffuseIrradianceMap, n).rgb;
+    vec3 diffuse    = irradiance * albedo;
+
+    vec3  prefilteredColor = textureLod(prefilteredEnvMap, r, roughness * PREFILTERED_ENV_MAP_LOD).rgb;
+    float NdotV = max(dot(n, v), 0.0);
+    vec2  brdf  = texture(brdfConvolutionMap, vec2(NdotV, roughness)).rg;
+    vec3  specular = prefilteredColor * (kSpecular * brdf.x + brdf.y);
+
+    return kDiffuse * diffuse + specular;
+}
+
+// Standard PBR shading (shadingModelID = 0)
+vec3 shadePBR(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
+              float metallic, float roughness, vec3 emissive, vec3 r)
+{
+    vec3 f0 = mix(vec3(0.04), albedo, metallic);
+    vec3 Lo = vec3(0.0);
+
+    vec4 fragPosLS = lightSpaceMatrix * vec4(worldPos, 1.0);
+
+    for (int i = 0; i < lightCount; i++)
+    {
+        vec3 l, radiance;
+        if (!evaluateLight(i, worldPos, l, radiance))
+            continue;
+
+        int lightType = int(lights[i].position.w);
+        if (lightType == 1)
+            radiance *= calculateShadow(fragPosLS, n, l);
+
+        Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0,
+                               false, 0.0, vec3(1.0));
+    }
+
+    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0);
+    return emissive + ambient + Lo;
+}
+
+// Subsurface shading (shadingModelID = 1): PBR + subsurface wrap diffuse
+vec3 shadeSubsurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
+                     float metallic, float roughness, vec3 emissive, vec3 r)
+{
+    vec3 f0 = mix(vec3(0.04), albedo, metallic);
+    vec3 Lo = vec3(0.0);
+
+    vec4 fragPosLS = lightSpaceMatrix * vec4(worldPos, 1.0);
+
+    for (int i = 0; i < lightCount; i++)
+    {
+        vec3 l, radiance;
+        if (!evaluateLight(i, worldPos, l, radiance))
+            continue;
+
+        int lightType = int(lights[i].position.w);
+        if (lightType == 1)
+            radiance *= calculateShadow(fragPosLS, n, l);
+
+        // SSS enabled with default wrap parameters
+        Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0,
+                               true, 1.0, vec3(1.0));
+    }
+
+    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0);
+    return emissive + ambient + Lo;
+}
+
+void main()
+{
+    vec4  albedoModelID = texture(gAlbedoModelID, textureCoordinates);
+    vec4  normalMet     = texture(gNormalMetallic, textureCoordinates);
+    vec4  emissRough    = texture(gEmissiveRoughness, textureCoordinates);
+    float depth         = texture(gDepth, textureCoordinates).r;
+
+    if (depth >= 1.0)
+        discard;
+
+    vec3  albedo    = albedoModelID.rgb;
+    int   modelID   = int(albedoModelID.a + 0.5);
+    vec3  n         = normalize(normalMet.xyz);
+    float metallic  = normalMet.w;
+    vec3  emissive  = emissRough.rgb;
+    float roughness = emissRough.w;
+
+    vec3 worldPos = reconstructWorldPosition(textureCoordinates, depth);
+    vec3 v = normalize(cameraPosition - worldPos);
+    vec3 r = reflect(-v, n);
+
+    // Debug display modes
+    if (displayMode == 1) { FragColor = vec4(albedo, 1.0); return; }
+    if (displayMode == 2) { FragColor = vec4(n * 0.5 + 0.5, 1.0); return; }
+    if (displayMode == 3) { FragColor = vec4(vec3(metallic), 1.0); return; }
+    if (displayMode == 4) { FragColor = vec4(vec3(roughness), 1.0); return; }
+    if (displayMode == 5) { FragColor = vec4(vec3(1.0), 1.0); return; }
+    if (displayMode == 6) { FragColor = vec4(emissive, 1.0); return; }
+
+    vec3 color;
+    if (modelID == 1)
+        color = shadeSubsurface(albedo, n, v, worldPos, metallic, roughness, emissive, r);
+    else
+        color = shadePBR(albedo, n, v, worldPos, metallic, roughness, emissive, r);
+
+    FragColor = vec4(color, 0.0);
+}

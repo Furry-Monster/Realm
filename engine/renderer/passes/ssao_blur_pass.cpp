@@ -1,8 +1,8 @@
 #include "renderer/passes/ssao_blur_pass.h"
 
 #include "renderer/fullscreen_quad.h"
+#include "renderer/material.h"
 #include "renderer/passes/ssao_pass.h"
-#include "renderer/render_material.h"
 #include "renderer/scene_color_source.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
@@ -17,7 +17,8 @@ namespace RealmEngine
 
     void SSAOBlurPass::init(RHIDevice& device)
     {
-        m_shader = device.createShader(m_shader_path + "/ssao_blur.vert", m_shader_path + "/ssao_blur.frag");
+        m_shader =
+            device.createShader(m_shader_path + "/builtin/ssao_blur.vert", m_shader_path + "/builtin/ssao_blur.frag");
     }
 
     void SSAOBlurPass::execute(const RenderContext& ctx)

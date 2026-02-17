@@ -8,10 +8,10 @@
 
 #include "renderer/fullscreen_quad.h"
 #include "renderer/light.h"
+#include "renderer/material.h"
 #include "renderer/passes/gbuffer_pass.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/render_camera.h"
-#include "renderer/render_material.h"
 #include "renderer/render_scene.h"
 #include "rhi/rhi_buffer.h"
 #include "rhi/rhi_device.h"
@@ -21,7 +21,7 @@
 
 namespace RealmEngine
 {
-    static constexpr int TEX_UNIT_G_ALBEDO_AO       = 0;
+    static constexpr int TEX_UNIT_G_ALBEDO_MODEL_ID = 0;
     static constexpr int TEX_UNIT_G_NORMAL_METALLIC = 1;
     static constexpr int TEX_UNIT_G_EMISSIVE_ROUGH  = 2;
     static constexpr int TEX_UNIT_G_DEPTH           = 3;
@@ -38,8 +38,8 @@ namespace RealmEngine
 
     void DeferredLightingPass::init(RHIDevice& device)
     {
-        m_shader =
-            device.createShader(m_shader_path + "/deferred_lighting.vert", m_shader_path + "/deferred_lighting.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/deferred_lighting.vert",
+                                       m_shader_path + "/builtin/deferred_lighting.frag");
         m_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
         m_light_ubo = device.createBuffer(BufferType::Uniform, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
     }
@@ -84,8 +84,8 @@ namespace RealmEngine
         if (!albedo_ao || !normal_met || !emiss_rough || !depth_tex)
             return;
 
-        ctx.device->bindTexture(TEX_UNIT_G_ALBEDO_AO, *albedo_ao);
-        m_shader->setInt("gAlbedoAO", TEX_UNIT_G_ALBEDO_AO);
+        ctx.device->bindTexture(TEX_UNIT_G_ALBEDO_MODEL_ID, *albedo_ao);
+        m_shader->setInt("gAlbedoModelID", TEX_UNIT_G_ALBEDO_MODEL_ID);
 
         ctx.device->bindTexture(TEX_UNIT_G_NORMAL_METALLIC, *normal_met);
         m_shader->setInt("gNormalMetallic", TEX_UNIT_G_NORMAL_METALLIC);

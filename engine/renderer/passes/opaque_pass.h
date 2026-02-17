@@ -5,6 +5,7 @@
 
 #include "renderer/render_pass.h"
 #include "renderer/scene_color_source.h"
+#include "renderer/shader_cache.h"
 #include "rhi/rhi_types.h"
 
 namespace RealmEngine
@@ -14,38 +15,54 @@ namespace RealmEngine
     class RHIBuffer;
     class RHITexture;
     class ShadowPass;
+    class RenderMesh;
+    class Material;
 
-    // Main PBR geometry pass (forward): renders all objects into HDR + bloom framebuffers.
-    class GeometryPass final
+    class OpaquePass final
         : public RenderPass
         , public SceneColorSource
     {
     public:
-        GeometryPass(const std::string& shader_path, float clear_r, float clear_g, float clear_b, float clear_a);
-        ~GeometryPass() override;
+        OpaquePass(const std::string& shader_path, float clear_r, float clear_g, float clear_b, float clear_a);
+        ~OpaquePass() override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 
-        // External dependencies set by Renderer after construction
         void setShadowPass(ShadowPass* shadow) { m_shadow_pass = shadow; }
-        void setIBLTextures(RHITexture* diffuse_irradiance, RHITexture* prefiltered_env, RHITexture* brdf_lut);
+        void setIBLTextures(RHITexture* diffuse, RHITexture* prefiltered, RHITexture* brdf);
 
         void            setFramebuffer(std::unique_ptr<RHIFramebuffer> fb) { m_framebuffer = std::move(fb); }
         RHIFramebuffer* getFramebuffer() const override { return m_framebuffer.get(); }
 
+        // In deferred mode, only render non-deferred-eligible meshes into the
+        // scene color source's framebuffer (which is owned by DeferredLightingPass).
+        void setDeferredMode(bool deferred, SceneColorSource* src = nullptr)
+        {
+            m_deferred_mode = deferred;
+            m_scene_color   = src;
+        }
+
+        void reloadShaders() { m_shader_cache.clear(); }
+
     private:
+        RHIShader* resolveShader(const Material& mat, RHIDevice& device);
+        void       setupEngineUniforms(RHIShader& shader, const RenderContext& ctx);
+
         std::string m_shader_path;
         float       m_clear_r, m_clear_g, m_clear_b, m_clear_a;
 
-        std::unique_ptr<RHIShader>      m_shader;
+        std::unique_ptr<RHIShader>      m_pbr_shader;
         std::unique_ptr<RHIFramebuffer> m_framebuffer;
         std::unique_ptr<RHIBuffer>      m_light_ubo;
 
-        ShadowPass* m_shadow_pass {nullptr};
+        ShaderCache m_shader_cache;
 
-        // IBL textures (non-owning, managed by Renderer)
+        bool              m_deferred_mode {false};
+        SceneColorSource* m_scene_color {nullptr};
+
+        ShadowPass* m_shadow_pass {nullptr};
         RHITexture* m_ibl_diffuse {nullptr};
         RHITexture* m_ibl_prefiltered {nullptr};
         RHITexture* m_ibl_brdf {nullptr};

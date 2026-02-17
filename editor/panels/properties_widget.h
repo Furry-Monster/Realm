@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "renderer/render_material.h"
+#include "renderer/material.h"
 #include "rhi/rhi_texture.h"
 #include "widget.h"
 
@@ -27,9 +27,11 @@ namespace RealmEngine
     private:
         void renderTransform();
         void renderRenderable();
-        void renderMaterialPreview(const RenderMaterial& mat);
-        void renderTextureSlot(const char* label, bool use_tex, const std::shared_ptr<RHITexture>& tex);
-        void renderCustomShaderMaterial(RenderMaterial& mat);
+        void renderMaterialEditor(Material& mat);
+        void renderTextureSlot(const char*            label,
+                               const std::string&     use_key,
+                               const std::string&     tex_key,
+                               MaterialPropertyBlock& props);
         void renderPointLight();
         void renderSpotLight();
         void renderDirectionalLight();

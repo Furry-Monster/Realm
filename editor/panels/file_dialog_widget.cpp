@@ -222,9 +222,8 @@ namespace RealmEngine
                           });
             }
         }
-        catch (const std::filesystem::filesystem_error& e)
+        catch (const std::filesystem::filesystem_error&)
         {
-            // Handle error silently or log it
         }
     }
 

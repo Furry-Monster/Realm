@@ -1,5 +1,6 @@
 #include "rhi/opengl/gl_shader.h"
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
@@ -20,13 +21,75 @@ namespace RealmEngine
             std::stringstream ss;
             ss << file.rdbuf();
             file.close();
-            return ss.str();
+
+            std::string source   = ss.str();
+            std::string base_dir = std::filesystem::path(path).parent_path().string();
+
+            std::unordered_set<std::string> included;
+            included.insert(std::filesystem::canonical(path).string());
+            return resolveIncludes(source, base_dir, included);
         }
         catch (const std::ifstream::failure&)
         {
             RE_LOG_ERROR("Failed to read shader file: " + path);
             return {};
         }
+    }
+
+    // Recursively resolve #include "path" directives
+    std::string GLShader::resolveIncludes(const std::string&               source,
+                                          const std::string&               base_dir,
+                                          std::unordered_set<std::string>& included)
+    {
+        std::istringstream stream(source);
+        std::ostringstream result;
+        std::string        line;
+
+        while (std::getline(stream, line))
+        {
+            // Match: #include "relative/path.glsl"
+            auto pos = line.find("#include");
+            if (pos != std::string::npos)
+            {
+                auto q1 = line.find('"', pos);
+                auto q2 = line.find('"', q1 + 1);
+                if (q1 != std::string::npos && q2 != std::string::npos)
+                {
+                    std::string           inc_path  = line.substr(q1 + 1, q2 - q1 - 1);
+                    std::filesystem::path full_path = std::filesystem::path(base_dir) / inc_path;
+
+                    try
+                    {
+                        std::string canonical = std::filesystem::canonical(full_path).string();
+                        if (included.count(canonical))
+                        {
+                            result << "// [include guard] " << inc_path << "\n";
+                            continue;
+                        }
+                        included.insert(canonical);
+
+                        std::ifstream inc_file(canonical);
+                        if (inc_file.is_open())
+                        {
+                            std::stringstream ss;
+                            ss << inc_file.rdbuf();
+                            std::string inc_dir = std::filesystem::path(canonical).parent_path().string();
+                            result << resolveIncludes(ss.str(), inc_dir, included);
+                            continue;
+                        }
+                    }
+                    catch (const std::filesystem::filesystem_error&)
+                    {}
+
+                    RE_LOG_ERROR("Failed to resolve shader include: " + inc_path + " (from " + base_dir + ")");
+                    result << "// [include failed] " << inc_path << "\n";
+                    continue;
+                }
+            }
+            result << line << "\n";
+        }
+
+        return result.str();
     }
 
     uint32_t GLShader::compileStage(uint32_t stage_type, const std::string& source, const std::string& path)

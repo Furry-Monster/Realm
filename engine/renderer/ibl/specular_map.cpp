@@ -18,8 +18,8 @@ namespace RealmEngine
     SpecularMap::SpecularMap(RHIDevice& device, const std::string& engine_root, RHITexture* environment_cubemap) :
         m_environment_cubemap(environment_cubemap)
     {
-        std::string prefilter_vert = engine_root + "/shaders/ibl/specularenv.vert";
-        std::string prefilter_frag = engine_root + "/shaders/ibl/specularenv.frag";
+        std::string prefilter_vert = engine_root + "/shaders/builtin/ibl/specularenv.vert";
+        std::string prefilter_frag = engine_root + "/shaders/builtin/ibl/specularenv.frag";
         m_prefilter_shader         = device.createShader(prefilter_vert, prefilter_frag);
 
         FramebufferDesc prefilter_desc;
@@ -36,8 +36,8 @@ namespace RealmEngine
         prefilter_desc.depth_attachment.is_renderbuffer = true;
         m_prefilter_framebuffer                         = device.createFramebuffer(prefilter_desc);
 
-        std::string brdf_vert = engine_root + "/shaders/ibl/brdfconvolution.vert";
-        std::string brdf_frag = engine_root + "/shaders/ibl/brdfconvolution.frag";
+        std::string brdf_vert = engine_root + "/shaders/builtin/ibl/brdfconvolution.vert";
+        std::string brdf_frag = engine_root + "/shaders/builtin/ibl/brdfconvolution.frag";
         m_brdf_shader         = device.createShader(brdf_vert, brdf_frag);
 
         FramebufferDesc brdf_desc;

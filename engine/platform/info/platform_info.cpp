@@ -21,8 +21,8 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
-#  include <psapi.h> // psapi must be included before windows.h ,idk why...
 #  include <windows.h>
+#  include <psapi.h>
 #elif defined(__APPLE__)
 #  include <mach/mach.h>
 #  include <sys/sysctl.h>
@@ -55,17 +55,17 @@ namespace RealmEngine
             return std::string(info.release);
         return "Unknown";
 #elif defined(_WIN32)
-        HKEY  hKey;
+        HKEY  h_key;
         DWORD size;
         char  buffer[256];
 
-        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &hKey) ==
+        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, R"(SOFTWARE\Microsoft\Windows NT\CurrentVersion)", 0, KEY_READ, &h_key) ==
             ERROR_SUCCESS)
         {
             std::string version;
 
             size = sizeof(buffer);
-            if (RegQueryValueExA(hKey, "ProductName", nullptr, nullptr, reinterpret_cast<LPBYTE>(buffer), &size) ==
+            if (RegQueryValueExA(h_key, "ProductName", nullptr, nullptr, reinterpret_cast<LPBYTE>(buffer), &size) ==
                 ERROR_SUCCESS)
             {
                 version = buffer;
@@ -73,13 +73,13 @@ namespace RealmEngine
 
             size = sizeof(buffer);
             if (RegQueryValueExA(
-                    hKey, "CurrentBuildNumber", nullptr, nullptr, reinterpret_cast<LPBYTE>(buffer), &size) ==
+                    h_key, "CurrentBuildNumber", nullptr, nullptr, reinterpret_cast<LPBYTE>(buffer), &size) ==
                 ERROR_SUCCESS)
             {
                 version += " (Build " + std::string(buffer) + ")";
             }
 
-            RegCloseKey(hKey);
+            RegCloseKey(h_key);
             return version.empty() ? std::string("Unknown") : version;
         }
         return "Unknown";
@@ -116,22 +116,22 @@ namespace RealmEngine
         }
         return "Unknown";
 #elif defined(_WIN32)
-        HKEY  hKey;
+        HKEY  h_key;
         char  cpu_name[256];
         DWORD buffer_size = sizeof(cpu_name);
 
         if (RegOpenKeyExA(
-                HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_READ, &hKey) ==
+                HKEY_LOCAL_MACHINE, R"(HARDWARE\DESCRIPTION\System\CentralProcessor\0)", 0, KEY_READ, &h_key) ==
             ERROR_SUCCESS)
         {
             if (RegQueryValueExA(
-                    hKey, "ProcessorNameString", nullptr, nullptr, reinterpret_cast<LPBYTE>(cpu_name), &buffer_size) ==
+                    h_key, "ProcessorNameString", nullptr, nullptr, reinterpret_cast<LPBYTE>(cpu_name), &buffer_size) ==
                 ERROR_SUCCESS)
             {
-                RegCloseKey(hKey);
+                RegCloseKey(h_key);
                 return std::string(cpu_name);
             }
-            RegCloseKey(hKey);
+            RegCloseKey(h_key);
         }
         return "Unknown";
 #elif defined(__APPLE__)
@@ -207,8 +207,7 @@ namespace RealmEngine
             return static_cast<size_t>(pmc.WorkingSetSize / 1024);
         return 0;
 #elif defined(__APPLE__)
-        struct task_basic_info info
-        {};
+        struct task_basic_info info {};
         mach_msg_type_number_t count = TASK_BASIC_INFO_COUNT;
         if (task_info(mach_task_self(), TASK_BASIC_INFO, reinterpret_cast<task_info_t>(&info), &count) == KERN_SUCCESS)
             return static_cast<size_t>(info.resident_size / 1024);

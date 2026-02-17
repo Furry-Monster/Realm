@@ -207,6 +207,21 @@ class BuildConfig:
         except:
             return "utf-8"
 
+    def get_build_output_encoding(self) -> Optional[str]:
+        if self.platform != Platform.WINDOWS:
+            return None
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+            cp = kernel32.GetConsoleOutputCP()
+            if cp == 0:
+                return "gbk"
+            if cp == 65001:
+                return "utf-8"
+            return f"cp{cp}"
+        except Exception:
+            return "gbk"
+
     def run_command(
         self,
         cmd: List[str],
@@ -214,8 +229,10 @@ class BuildConfig:
         check: bool = True,
         capture_output: bool = False,
         shell: bool = False,
+        encoding: Optional[str] = None,
     ) -> subprocess.CompletedProcess:
-        """Run a command with proper error handling"""
+        """Run a command with proper error handling."""
+        enc = encoding or self.get_encoding()
         try:
             return subprocess.run(
                 cmd,
@@ -223,7 +240,7 @@ class BuildConfig:
                 check=check,
                 capture_output=capture_output,
                 text=True,
-                encoding=self.get_encoding(),
+                encoding=enc,
                 errors="replace",
                 shell=shell,
             )
@@ -248,11 +265,14 @@ class BuildConfig:
         cwd: Optional[Path] = None,
         line_filter=None,
         shell: bool = False,
+        encoding: Optional[str] = None,
     ) -> int:
         """Run a command with real-time streamed output.
         line_filter: optional callable(str) -> bool, only prints lines where it returns True.
+        encoding: use for build tools on Windows to avoid mojibake (e.g. 'gbk' for MSVC).
         Returns the process exit code.
         """
+        enc = encoding or self.get_encoding()
         try:
             process = subprocess.Popen(
                 cmd,
@@ -260,7 +280,7 @@ class BuildConfig:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
-                encoding=self.get_encoding(),
+                encoding=enc,
                 errors="replace",
                 shell=shell,
                 bufsize=1,

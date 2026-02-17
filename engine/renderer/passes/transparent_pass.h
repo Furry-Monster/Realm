@@ -9,20 +9,19 @@
 
 namespace RealmEngine
 {
+    class RHIShader;
     class RHIBuffer;
     class RHITexture;
-    class RHIShader;
     class SceneColorSource;
     class ShadowPass;
+    class RenderMesh;
+    class Material;
 
-    // Forward pass that renders meshes using per-material custom shaders.
-    // Works in both Forward and Deferred pipelines by rendering into the
-    // scene color source's framebuffer (same depth buffer).
-    class CustomShaderPass final : public RenderPass
+    class TransparentPass final : public RenderPass
     {
     public:
-        CustomShaderPass();
-        ~CustomShaderPass() override;
+        explicit TransparentPass(const std::string& shader_path);
+        ~TransparentPass() override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;
@@ -35,11 +34,15 @@ namespace RealmEngine
         void reloadShaders() { m_shader_cache.clear(); }
 
     private:
-        void setupEngineUniforms(RHIShader& shader, const RenderContext& ctx);
+        RHIShader* resolveShader(const Material& mat, RHIDevice& device);
+        void       setupEngineUniforms(RHIShader& shader, const RenderContext& ctx);
+
+        std::string m_shader_path;
+
+        std::unique_ptr<RHIShader> m_pbr_shader;
+        std::unique_ptr<RHIBuffer> m_light_ubo;
 
         ShaderCache m_shader_cache;
-
-        std::unique_ptr<RHIBuffer> m_light_ubo;
 
         SceneColorSource* m_scene_color {nullptr};
         ShadowPass*       m_shadow_pass {nullptr};

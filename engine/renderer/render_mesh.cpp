@@ -23,7 +23,7 @@ namespace RealmEngine
 
     RenderMesh::RenderMesh(std::vector<RenderVertex> vertices,
                            std::vector<unsigned int> indices,
-                           RenderMaterial            material,
+                           Material                  material,
                            RHIDevice&                device,
                            const std::string&        name) :
         m_name(name), m_vertices(std::move(vertices)), m_indices(std::move(indices)), m_material(std::move(material))
@@ -60,151 +60,15 @@ namespace RealmEngine
         return *this;
     }
 
-    void RenderMesh::bindStandardMaterialUniforms(RHIShader& shader)
-    {
-        const RenderMaterial& mat = m_material;
-
-        shader.setBool("material.useTextureAlbedo", mat.use_texture_albedo);
-        shader.setVec3("material.albedo", mat.albedo);
-        if (mat.use_texture_albedo && mat.texture_albedo)
-        {
-            mat.texture_albedo->bind(TEXTURE_UNIT_ALBEDO);
-            shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
-        }
-
-        shader.setBool("material.useTextureOpacity", mat.use_texture_opacity);
-        shader.setFloat("material.opacity", mat.opacity);
-        shader.setFloat("material.alphaCutout", mat.alpha_cutout);
-        if (mat.use_texture_opacity && mat.texture_opacity)
-        {
-            mat.texture_opacity->bind(TEXTURE_UNIT_OPACITY);
-            shader.setInt("material.textureOpacity", TEXTURE_UNIT_OPACITY);
-        }
-
-        shader.setBool("material.useTextureMetallicRoughness", mat.use_texture_metallic_roughness);
-        shader.setFloat("material.metallic", mat.metallic);
-        shader.setFloat("material.roughness", mat.roughness);
-        if (mat.use_texture_metallic_roughness && mat.texture_metallic_roughness)
-        {
-            mat.texture_metallic_roughness->bind(TEXTURE_UNIT_METALLIC_ROUGHNESS);
-            shader.setInt("material.textureMetallicRoughness", TEXTURE_UNIT_METALLIC_ROUGHNESS);
-        }
-
-        shader.setBool("material.useTextureNormal", mat.use_texture_normal);
-        if (mat.use_texture_normal && mat.texture_normal)
-        {
-            mat.texture_normal->bind(TEXTURE_UNIT_NORMAL);
-            shader.setInt("material.textureNormal", TEXTURE_UNIT_NORMAL);
-        }
-
-        shader.setBool("material.useTextureAmbientOcclusion", mat.use_texture_ambient_occlusion);
-        shader.setFloat("material.ambientOcclusion", mat.ambient_occlusion);
-        if (mat.use_texture_ambient_occlusion && mat.texture_ambient_occlusion)
-        {
-            mat.texture_ambient_occlusion->bind(TEXTURE_UNIT_AMBIENT_OCCLUSION);
-            shader.setInt("material.textureAmbientOcclusion", TEXTURE_UNIT_AMBIENT_OCCLUSION);
-        }
-
-        shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);
-        shader.setVec3("material.emissive", mat.emissive);
-        shader.setFloat("material.emissiveStrength", mat.emissive_strength);
-        if (mat.use_texture_emissive && mat.texture_emissive)
-        {
-            mat.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
-            shader.setInt("material.textureEmissive", TEXTURE_UNIT_EMISSIVE);
-        }
-
-        shader.setBool("material.subsurfaceEnabled", mat.subsurface_enabled);
-        shader.setFloat("material.subsurfaceRadius", mat.subsurface_radius);
-        shader.setVec3("material.subsurfaceColor", mat.subsurface_color);
-    }
-
-    void RenderMesh::bindCustomParams(RHIShader& shader)
-    {
-        for (const auto& param : m_material.custom_params)
-        {
-            switch (param.type)
-            {
-                case MaterialParamType::Float:
-                    shader.setFloat(param.name, param.values[0]);
-                    break;
-                case MaterialParamType::Int:
-                    shader.setInt(param.name, static_cast<int>(param.values[0]));
-                    break;
-                case MaterialParamType::Vec2:
-                    shader.setVec2(param.name, glm::vec2(param.values[0], param.values[1]));
-                    break;
-                case MaterialParamType::Vec3:
-                case MaterialParamType::Color3:
-                    shader.setVec3(param.name, glm::vec3(param.values[0], param.values[1], param.values[2]));
-                    break;
-                case MaterialParamType::Vec4:
-                case MaterialParamType::Color4:
-                    shader.setVec4(param.name,
-                                   glm::vec4(param.values[0], param.values[1], param.values[2], param.values[3]));
-                    break;
-            }
-        }
-    }
-
-    void RenderMesh::issueDrawCall()
-    {
-        m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
-    }
-
     void RenderMesh::draw(RHIShader& shader)
     {
-        bindStandardMaterialUniforms(shader);
-        issueDrawCall();
-    }
-
-    void RenderMesh::drawHair(RHIShader& shader)
-    {
-        if (!m_material.is_hair)
-            return;
-
-        const RenderMaterial& mat = m_material;
-
-        shader.setBool("material.useTextureAlbedo", mat.use_texture_albedo);
-        shader.setVec3("material.albedo", mat.albedo);
-        if (mat.use_texture_albedo && mat.texture_albedo)
-        {
-            mat.texture_albedo->bind(TEXTURE_UNIT_ALBEDO);
-            shader.setInt("material.textureAlbedo", TEXTURE_UNIT_ALBEDO);
-        }
-
-        shader.setBool("material.useTextureOpacity", mat.use_texture_opacity);
-        shader.setFloat("material.opacity", mat.opacity);
-        if (mat.use_texture_opacity && mat.texture_opacity)
-        {
-            mat.texture_opacity->bind(TEXTURE_UNIT_OPACITY);
-            shader.setInt("material.textureOpacity", TEXTURE_UNIT_OPACITY);
-        }
-
-        shader.setBool("material.useTextureEmissive", mat.use_texture_emissive);
-        shader.setVec3("material.emissive", mat.emissive);
-        shader.setFloat("material.emissiveStrength", mat.emissive_strength);
-        if (mat.use_texture_emissive && mat.texture_emissive)
-        {
-            mat.texture_emissive->bind(TEXTURE_UNIT_EMISSIVE);
-            shader.setInt("material.textureEmissive", TEXTURE_UNIT_EMISSIVE);
-        }
-
-        shader.setFloat("material.specularStrength", mat.hair_specular_strength);
-        shader.setFloat("material.specularPower", mat.hair_specular_power);
-
-        issueDrawCall();
-    }
-
-    void RenderMesh::drawCustom(RHIShader& shader)
-    {
-        bindStandardMaterialUniforms(shader);
-        bindCustomParams(shader);
-        issueDrawCall();
+        m_material.properties.applyToShader(shader);
+        m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
     }
 
     void RenderMesh::drawShadow([[maybe_unused]] RHIShader& shader)
     {
         m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
     }
+
 } // namespace RealmEngine

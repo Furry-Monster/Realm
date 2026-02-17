@@ -16,8 +16,8 @@ namespace RealmEngine
                                                    const std::string& engine_root,
                                                    const std::string& hdri_path)
     {
-        std::string vert_path = engine_root + "/shaders/ibl/hdricube.vert";
-        std::string frag_path = engine_root + "/shaders/ibl/hdricube.frag";
+        std::string vert_path = engine_root + "/shaders/builtin/ibl/hdricube.vert";
+        std::string frag_path = engine_root + "/shaders/builtin/ibl/hdricube.frag";
 
         m_hdri_shader = device.createShader(vert_path, frag_path);
         if (!m_hdri_shader || !m_hdri_shader->isValid())

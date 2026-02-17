@@ -19,8 +19,8 @@ namespace RealmEngine
                                                RHITexture*        environment_cubemap) :
         m_environment_cubemap(environment_cubemap)
     {
-        std::string vert_path = engine_root + "/shaders/ibl/diffuseirradiance.vert";
-        std::string frag_path = engine_root + "/shaders/ibl/diffuseirradiance.frag";
+        std::string vert_path = engine_root + "/shaders/builtin/ibl/diffuseirradiance.vert";
+        std::string frag_path = engine_root + "/shaders/builtin/ibl/diffuseirradiance.frag";
 
         m_shader = device.createShader(vert_path, frag_path);
         if (!m_shader || !m_shader->isValid())

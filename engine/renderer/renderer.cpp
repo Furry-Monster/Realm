@@ -9,17 +9,15 @@
 #include "renderer/ibl/equirectangular_cubemap.h"
 #include "renderer/ibl/specular_map.h"
 #include "renderer/passes/bloom_pass.h"
-#include "renderer/passes/custom_shader_pass.h"
 #include "renderer/passes/deferred_lighting_pass.h"
 #include "renderer/passes/gbuffer_pass.h"
-#include "renderer/passes/geometry_pass.h"
-#include "renderer/passes/hair_pass.h"
+#include "renderer/passes/opaque_pass.h"
 #include "renderer/passes/postprocess_pass.h"
 #include "renderer/passes/shadow_pass.h"
 #include "renderer/passes/skybox_pass.h"
 #include "renderer/passes/ssao_blur_pass.h"
 #include "renderer/passes/ssao_pass.h"
-#include "renderer/passes/sss_pass.h"
+#include "renderer/passes/transparent_pass.h"
 #include "renderer/scene_color_source.h"
 #include "renderer/skybox.h"
 #include "resource/config_manager.h"
@@ -113,19 +111,15 @@ namespace RealmEngine
         m_shadow_pass = shadow.get();
         m_pipeline.addPass(std::move(shadow));
 
-        auto geometry =
-            std::make_unique<GeometryPass>(sp, rc.clear_color_r, rc.clear_color_g, rc.clear_color_b, rc.clear_color_a);
-        m_geometry_pass      = geometry.get();
-        m_scene_color_source = geometry.get();
-        m_pipeline.addPass(std::move(geometry));
+        auto opaque =
+            std::make_unique<OpaquePass>(sp, rc.clear_color_r, rc.clear_color_g, rc.clear_color_b, rc.clear_color_a);
+        m_opaque_pass        = opaque.get();
+        m_scene_color_source = opaque.get();
+        m_pipeline.addPass(std::move(opaque));
 
-        auto custom_shader   = std::make_unique<CustomShaderPass>();
-        m_custom_shader_pass = custom_shader.get();
-        m_pipeline.addPass(std::move(custom_shader));
-
-        auto hair   = std::make_unique<HairPass>(sp);
-        m_hair_pass = hair.get();
-        m_pipeline.addPass(std::move(hair));
+        auto transparent   = std::make_unique<TransparentPass>(sp);
+        m_transparent_pass = transparent.get();
+        m_pipeline.addPass(std::move(transparent));
 
         auto ssao = std::make_unique<SSAOPass>(
             sp, rc.ssao_enabled, rc.ssao_radius, rc.ssao_bias, rc.ssao_kernel_size, rc.ssao_noise_size);
@@ -135,10 +129,6 @@ namespace RealmEngine
         auto ssao_blur   = std::make_unique<SSAOBlurPass>(sp);
         m_ssao_blur_pass = ssao_blur.get();
         m_pipeline.addPass(std::move(ssao_blur));
-
-        auto sss   = std::make_unique<SSSPass>(sp, rc.sss_enabled, rc.sss_radius, rc.sss_samples);
-        m_sss_pass = sss.get();
-        m_pipeline.addPass(std::move(sss));
 
         auto skybox   = std::make_unique<SkyboxPass>(sp);
         m_skybox_pass = skybox.get();
@@ -161,34 +151,27 @@ namespace RealmEngine
         m_pipeline.initialize(*m_device);
 
         // Cross-pass wiring
-        m_geometry_pass->setShadowPass(m_shadow_pass);
-        m_geometry_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
+        m_opaque_pass->setShadowPass(m_shadow_pass);
+        m_opaque_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
-        m_custom_shader_pass->setSceneColorSource(m_geometry_pass);
-        m_custom_shader_pass->setShadowPass(m_shadow_pass);
-        m_custom_shader_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
-
-        m_hair_pass->setSceneColorSource(m_geometry_pass);
-        m_hair_pass->setShadowPass(m_shadow_pass);
-        m_hair_pass->setIBLTextures(m_ibl_diffuse_tex);
+        m_transparent_pass->setSceneColorSource(m_opaque_pass);
+        m_transparent_pass->setShadowPass(m_shadow_pass);
+        m_transparent_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
         // Framebuffers
         createSharedFramebuffers(m_window->getWidth(), m_window->getHeight(), rc);
 
-        m_ssao_pass->setSceneColorSource(m_geometry_pass);
+        m_ssao_pass->setSceneColorSource(m_opaque_pass);
         m_ssao_pass->setFullscreenQuad(m_fullscreen_quad.get());
         m_ssao_blur_pass->setSSAOPass(m_ssao_pass);
-        m_ssao_blur_pass->setSceneColorSource(m_geometry_pass);
+        m_ssao_blur_pass->setSceneColorSource(m_opaque_pass);
         m_ssao_blur_pass->setFullscreenQuad(m_fullscreen_quad.get());
 
-        m_sss_pass->setSceneColorSource(m_geometry_pass);
-        m_sss_pass->setFullscreenQuad(m_fullscreen_quad.get());
-
         m_skybox_pass->setSkybox(m_skybox.get());
-        m_skybox_pass->setSceneColorSource(m_geometry_pass);
-        m_bloom_pass->setSceneColorSource(m_geometry_pass);
+        m_skybox_pass->setSceneColorSource(m_opaque_pass);
+        m_bloom_pass->setSceneColorSource(m_opaque_pass);
         m_bloom_pass->setFullscreenQuad(m_fullscreen_quad.get());
-        m_postprocess_pass->setSceneColorSource(m_geometry_pass);
+        m_postprocess_pass->setSceneColorSource(m_opaque_pass);
         m_postprocess_pass->setBloomPass(m_bloom_pass);
         m_postprocess_pass->setSSAOBlurPass(m_ssao_blur_pass);
         m_postprocess_pass->setFullscreenQuad(m_fullscreen_quad.get());
@@ -201,34 +184,30 @@ namespace RealmEngine
         const RendererConfig& rc = config.getRendererConfig();
         std::string           sp = m_shader_path.generic_string();
 
-        // Shadow
         auto shadow   = std::make_unique<ShadowPass>(sp, 2048);
         m_shadow_pass = shadow.get();
         m_pipeline.addPass(std::move(shadow));
 
-        // G-Buffer
         auto gbuffer =
             std::make_unique<GBufferPass>(sp, rc.clear_color_r, rc.clear_color_g, rc.clear_color_b, rc.clear_color_a);
         m_gbuffer_pass = gbuffer.get();
         m_pipeline.addPass(std::move(gbuffer));
 
-        // Deferred lighting
         auto deferred_lighting   = std::make_unique<DeferredLightingPass>(sp);
         m_deferred_lighting_pass = deferred_lighting.get();
         m_scene_color_source     = deferred_lighting.get();
         m_pipeline.addPass(std::move(deferred_lighting));
 
-        // Custom shader (forward, renders into lighting framebuffer)
-        auto custom_shader   = std::make_unique<CustomShaderPass>();
-        m_custom_shader_pass = custom_shader.get();
-        m_pipeline.addPass(std::move(custom_shader));
+        // Forward passes for non-deferred materials (custom, transparent)
+        auto opaque =
+            std::make_unique<OpaquePass>(sp, rc.clear_color_r, rc.clear_color_g, rc.clear_color_b, rc.clear_color_a);
+        m_opaque_pass = opaque.get();
+        m_pipeline.addPass(std::move(opaque));
 
-        // Hair (forward, renders into lighting framebuffer)
-        auto hair   = std::make_unique<HairPass>(sp);
-        m_hair_pass = hair.get();
-        m_pipeline.addPass(std::move(hair));
+        auto transparent   = std::make_unique<TransparentPass>(sp);
+        m_transparent_pass = transparent.get();
+        m_pipeline.addPass(std::move(transparent));
 
-        // SSAO
         auto ssao = std::make_unique<SSAOPass>(
             sp, rc.ssao_enabled, rc.ssao_radius, rc.ssao_bias, rc.ssao_kernel_size, rc.ssao_noise_size);
         m_ssao_pass = ssao.get();
@@ -238,14 +217,10 @@ namespace RealmEngine
         m_ssao_blur_pass = ssao_blur.get();
         m_pipeline.addPass(std::move(ssao_blur));
 
-        // SSS is forward-only, skip in deferred
-
-        // Skybox
         auto skybox   = std::make_unique<SkyboxPass>(sp);
         m_skybox_pass = skybox.get();
         m_pipeline.addPass(std::move(skybox));
 
-        // Bloom
         auto bloom   = std::make_unique<BloomPass>(sp,
                                                  rc.bloom_enabled,
                                                  rc.bloom_intensity,
@@ -255,7 +230,6 @@ namespace RealmEngine
         m_bloom_pass = bloom.get();
         m_pipeline.addPass(std::move(bloom));
 
-        // Post-process
         auto post = std::make_unique<PostProcessPass>(
             sp, rc.tonemapping_enabled, rc.gamma_correction_factor, rc.ssao_enabled, rc.ssao_power);
         m_postprocess_pass = post.get();
@@ -269,13 +243,15 @@ namespace RealmEngine
         m_deferred_lighting_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
         m_deferred_lighting_pass->setFullscreenQuad(m_fullscreen_quad.get());
 
-        m_custom_shader_pass->setSceneColorSource(m_deferred_lighting_pass);
-        m_custom_shader_pass->setShadowPass(m_shadow_pass);
-        m_custom_shader_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
+        // In deferred mode, OpaquePass renders non-deferred-eligible opaques
+        // into the deferred lighting output framebuffer
+        m_opaque_pass->setDeferredMode(true, m_deferred_lighting_pass);
+        m_opaque_pass->setShadowPass(m_shadow_pass);
+        m_opaque_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
-        m_hair_pass->setSceneColorSource(m_deferred_lighting_pass);
-        m_hair_pass->setShadowPass(m_shadow_pass);
-        m_hair_pass->setIBLTextures(m_ibl_diffuse_tex);
+        m_transparent_pass->setSceneColorSource(m_deferred_lighting_pass);
+        m_transparent_pass->setShadowPass(m_shadow_pass);
+        m_transparent_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
 
         // Framebuffers
         createSharedFramebuffers(m_window->getWidth(), m_window->getHeight(), rc);
@@ -302,7 +278,6 @@ namespace RealmEngine
     {
         if (m_pipeline_mode == PipelineMode::Forward)
         {
-            // Geometry pass framebuffer: RGBA16F + Depth24Stencil8
             FramebufferDesc desc;
             desc.width  = width;
             desc.height = height;
@@ -318,7 +293,7 @@ namespace RealmEngine
             desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
             desc.depth_attachment.is_renderbuffer = false;
 
-            m_geometry_pass->setFramebuffer(m_device->createFramebuffer(desc));
+            m_opaque_pass->setFramebuffer(m_device->createFramebuffer(desc));
         }
         else
         {
@@ -342,7 +317,7 @@ namespace RealmEngine
                 m_gbuffer_pass->setFramebuffer(m_device->createFramebuffer(desc));
             }
 
-            // Deferred lighting output: RGBA16F + Depth24Stencil8
+            // Deferred lighting output
             {
                 FramebufferDesc desc;
                 desc.width  = width;
@@ -361,6 +336,9 @@ namespace RealmEngine
 
                 m_deferred_lighting_pass->setFramebuffer(m_device->createFramebuffer(desc));
             }
+
+            // OpaquePass in deferred mode uses DeferredLightingPass's framebuffer
+            // via setDeferredMode(), no dedicated framebuffer needed.
         }
 
         // Bloom framebuffers
@@ -401,24 +379,6 @@ namespace RealmEngine
             };
             m_ssao_pass->setFramebuffer(make_ao_fb(width, height));
             m_ssao_blur_pass->setFramebuffer(make_ao_fb(width, height));
-        }
-
-        // SSS framebuffers (forward only)
-        if (m_sss_pass)
-        {
-            auto make_sss_fb = [&]() {
-                FramebufferDesc desc;
-                desc.width  = width;
-                desc.height = height;
-                FramebufferAttachment color;
-                color.format           = TextureFormat::RGBA16F;
-                color.min_filter       = TextureFilter::Linear;
-                color.mag_filter       = TextureFilter::Linear;
-                color.wrap             = TextureWrap::ClampToEdge;
-                desc.color_attachments = {color};
-                return m_device->createFramebuffer(desc);
-            };
-            m_sss_pass->setFramebuffers(make_sss_fb(), make_sss_fb());
         }
     }
 
@@ -507,7 +467,7 @@ namespace RealmEngine
         return m_viewport_framebuffer ? m_viewport_framebuffer->getColorAttachment(0) : nullptr;
     }
 
-    RHITexture* Renderer::getGBufferAlbedoAO() const
+    RHITexture* Renderer::getGBufferAlbedoModelID() const
     {
         if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
             return nullptr;
@@ -541,8 +501,10 @@ namespace RealmEngine
 
     void Renderer::reloadCustomShaders()
     {
-        if (m_custom_shader_pass)
-            m_custom_shader_pass->reloadShaders();
+        if (m_opaque_pass)
+            m_opaque_pass->reloadShaders();
+        if (m_transparent_pass)
+            m_transparent_pass->reloadShaders();
     }
 
     void Renderer::disposal()

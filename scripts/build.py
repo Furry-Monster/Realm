@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from typing import Optional
 
-from build_config import BuildConfig, BuildType, get_build_config
+from build_config import BuildConfig, BuildType, Platform, get_build_config
 
 
 class Builder:
@@ -72,13 +72,17 @@ class Builder:
         if verbose:
             cmd.append("-DCMAKE_VERBOSE_MAKEFILE=ON")
 
-        # Run CMake
+        build_enc = self.config.get_build_output_encoding()
         try:
             if verbose:
-                result = self.config.run_command(cmd, cwd=build_dir, check=False)
+                result = self.config.run_command(
+                    cmd, cwd=build_dir, check=False, encoding=build_enc
+                )
                 returncode = result.returncode
             else:
-                returncode = self.config.run_command_streamed(cmd, cwd=build_dir)
+                returncode = self.config.run_command_streamed(
+                    cmd, cwd=build_dir, encoding=build_enc
+                )
 
             if returncode != 0:
                 self.logger.error("CMake configuration failed")
@@ -126,9 +130,12 @@ class Builder:
                 cmd.extend(["-j", str(jobs)])
 
         # Run build
+        build_enc = self.config.get_build_output_encoding()
         try:
             if verbose:
-                result = self.config.run_command(cmd, cwd=build_dir, check=False)
+                result = self.config.run_command(
+                    cmd, cwd=build_dir, check=False, encoding=build_enc
+                )
                 returncode = result.returncode
             else:
                 _build_keywords = ("error", "warning", "building", "linking", "finished", "failed")
@@ -138,7 +145,7 @@ class Builder:
                     return any(kw in ll for kw in _build_keywords)
 
                 returncode = self.config.run_command_streamed(
-                    cmd, cwd=build_dir, line_filter=_build_filter
+                    cmd, cwd=build_dir, line_filter=_build_filter, encoding=build_enc
                 )
 
             if returncode != 0:
