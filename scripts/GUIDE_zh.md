@@ -132,6 +132,11 @@ python scripts/lint.py -v
 ```bash
 python build.py --configure
 ```
+仅生成 clangd 补全所需数据（只配置不编译）：
+```bash
+python scripts/clangd.py
+```
+若希望使用 VS (MSVC) 工具链：在「适用于 VS 的 x64 本机工具命令提示」或「Developer Command Prompt for VS」中执行上述命令即可，脚本会使用 Ninja 并自动选用环境中的 `cl.exe`，生成的 `compile_commands.json` 与 VS 构建一致。
 
 ## 清理构建产物
 
