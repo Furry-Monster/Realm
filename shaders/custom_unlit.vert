@@ -19,8 +19,8 @@ uniform mat3 normalMatrix;
 
 void main()
 {
-    texCoords = aTextureCoordinates;
-    worldPos = (model * vec4(aPos, 1.0)).xyz;
-    normal = normalize(normalMatrix * aNormal);
+    texCoords   = aTextureCoordinates;
+    worldPos    = (model * vec4(aPos, 1.0)).xyz;
+    normal      = normalize(normalMatrix * aNormal);
     gl_Position = projection * view * vec4(worldPos, 1.0);
 }

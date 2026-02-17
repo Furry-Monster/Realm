@@ -9,7 +9,7 @@ struct LightData
 
 layout(std430, binding = 1) readonly buffer LightBuffer
 {
-    int lightCount;
+    int       lightCount;
     LightData lights[];
 };
 
@@ -46,35 +46,36 @@ ivec3 getClusterIndex(vec2 screenUV, float viewDepth, float nearPlane, float far
 // Returns false if the fragment is out of range.
 bool evaluateLight(int idx, vec3 worldPos, out vec3 l, out vec3 radiance)
 {
-    int   lightType     = int(lights[idx].position.w);
-    vec3  lightPos      = lights[idx].position.xyz;
-    vec3  lightDir      = lights[idx].direction.xyz;
-    float intensity     = lights[idx].direction.w;
-    vec3  lightColor    = lights[idx].color.rgb;
-    float lightConst    = lights[idx].color.w;
-    float lightLinear   = lights[idx].attenuation.x;
-    float lightQuad     = lights[idx].attenuation.y;
-    float lightRange    = lights[idx].attenuation.z;
-    float innerCone     = lights[idx].attenuation.w;
-    float outerCone     = lights[idx].spot_area.x;
+    int   lightType   = int(lights[idx].position.w);
+    vec3  lightPos    = lights[idx].position.xyz;
+    vec3  lightDir    = lights[idx].direction.xyz;
+    float intensity   = lights[idx].direction.w;
+    vec3  lightColor  = lights[idx].color.rgb;
+    float lightConst  = lights[idx].color.w;
+    float lightLinear = lights[idx].attenuation.x;
+    float lightQuad   = lights[idx].attenuation.y;
+    float lightRange  = lights[idx].attenuation.z;
+    float innerCone   = lights[idx].attenuation.w;
+    float outerCone   = lights[idx].spot_area.x;
 
     radiance = vec3(0.0);
-    l = vec3(0.0);
+    l        = vec3(0.0);
 
     // Point (0)
     if (lightType == 0)
     {
         vec3  d    = lightPos - worldPos;
         float dist = length(d);
-        if (dist > lightRange) return false;
-        l = normalize(d);
+        if (dist > lightRange)
+            return false;
+        l           = normalize(d);
         float atten = 1.0 / (lightConst + lightLinear * dist + lightQuad * dist * dist);
-        radiance = lightColor * intensity * atten;
+        radiance    = lightColor * intensity * atten;
     }
     // Directional (1)
     else if (lightType == 1)
     {
-        l = normalize(-lightDir);
+        l        = normalize(-lightDir);
         radiance = lightColor * intensity;
     }
     // Spot (2)
@@ -82,26 +83,28 @@ bool evaluateLight(int idx, vec3 worldPos, out vec3 l, out vec3 radiance)
     {
         vec3  d    = lightPos - worldPos;
         float dist = length(d);
-        if (dist > lightRange) return false;
+        if (dist > lightRange)
+            return false;
         l = normalize(d);
 
-        float theta   = dot(l, -normalize(lightDir));
-        float innerC  = cos(radians(innerCone));
-        float outerC  = cos(radians(outerCone));
-        float spot    = clamp((theta - outerC) / (innerC - outerC), 0.0, 1.0);
-        if (spot <= 0.0) return false;
+        float theta  = dot(l, -normalize(lightDir));
+        float innerC = cos(radians(innerCone));
+        float outerC = cos(radians(outerCone));
+        float spot   = clamp((theta - outerC) / (innerC - outerC), 0.0, 1.0);
+        if (spot <= 0.0)
+            return false;
 
         float atten = 1.0 / (lightConst + lightLinear * dist + lightQuad * dist * dist);
-        radiance = lightColor * intensity * atten * spot;
+        radiance    = lightColor * intensity * atten * spot;
     }
     // Area (3)
     else if (lightType == 3)
     {
-        vec3  d    = lightPos - worldPos;
-        float dist = length(d);
-        l = normalize(d);
+        vec3  d     = lightPos - worldPos;
+        float dist  = length(d);
+        l           = normalize(d);
         float atten = 1.0 / (dist * dist);
-        radiance = lightColor * intensity * atten;
+        radiance    = lightColor * intensity * atten;
     }
 
     return length(radiance) > 0.0;

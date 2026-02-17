@@ -1,21 +1,27 @@
 uniform sampler2DArray shadowMapArray;
-uniform bool shadowEnabled;
-uniform int cascadeCount;
-uniform mat4 cascadeVP[4];
-uniform float cascadeSplits[4]; // far depth of each cascade in view space
-uniform float lightSize;        // virtual light size for PCSS
+uniform bool           shadowEnabled;
+uniform int            cascadeCount;
+uniform mat4           cascadeVP[4];
+uniform float          cascadeSplits[4]; // far depth of each cascade in view space
+uniform float          lightSize;        // virtual light size for PCSS
 
 // Poisson disk 16-tap sampling
-const vec2 poissonDisk[16] = vec2[](
-    vec2(-0.613392,  0.617481), vec2( 0.170019, -0.040254),
-    vec2(-0.299417,  0.791925), vec2( 0.645680,  0.493210),
-    vec2(-0.651784,  0.717887), vec2( 0.421003,  0.027070),
-    vec2(-0.817194, -0.271096), vec2(-0.705374, -0.668203),
-    vec2( 0.977050, -0.108615), vec2( 0.063326,  0.142369),
-    vec2( 0.203528,  0.214331), vec2(-0.667531,  0.326090),
-    vec2(-0.098422, -0.295755), vec2(-0.885922,  0.215369),
-    vec2( 0.566637,  0.605213), vec2( 0.039766, -0.396100)
-);
+const vec2 poissonDisk[16] = vec2[](vec2(-0.613392, 0.617481),
+                                    vec2(0.170019, -0.040254),
+                                    vec2(-0.299417, 0.791925),
+                                    vec2(0.645680, 0.493210),
+                                    vec2(-0.651784, 0.717887),
+                                    vec2(0.421003, 0.027070),
+                                    vec2(-0.817194, -0.271096),
+                                    vec2(-0.705374, -0.668203),
+                                    vec2(0.977050, -0.108615),
+                                    vec2(0.063326, 0.142369),
+                                    vec2(0.203528, 0.214331),
+                                    vec2(-0.667531, 0.326090),
+                                    vec2(-0.098422, -0.295755),
+                                    vec2(-0.885922, 0.215369),
+                                    vec2(0.566637, 0.605213),
+                                    vec2(0.039766, -0.396100));
 
 vec2 rotatePoissonSample(vec2 v, float angle)
 {
@@ -37,10 +43,10 @@ int selectCascade(float viewDepth)
 // Blocker search for PCSS: returns average blocker depth, or -1 if no blockers
 float blockerSearch(vec3 projCoords, int cascade, float searchRadius)
 {
-    float blockerSum = 0.0;
+    float blockerSum   = 0.0;
     int   blockerCount = 0;
-    vec2  texel = 1.0 / vec2(textureSize(shadowMapArray, 0).xy);
-    float angle = fract(dot(projCoords.xy, vec2(12.9898, 78.233)) * 43758.5453) * 6.28318;
+    vec2  texel        = 1.0 / vec2(textureSize(shadowMapArray, 0).xy);
+    float angle        = fract(dot(projCoords.xy, vec2(12.9898, 78.233)) * 43758.5453) * 6.28318;
 
     for (int i = 0; i < 16; ++i)
     {
@@ -79,7 +85,7 @@ float pcssShadow(vec3 projCoords, int cascade, float bias)
     if (avgBlockerDepth < 0.0)
         return 1.0;
     // Penumbra estimation: w_penumbra = lightSize * (d_receiver - d_blocker) / d_blocker
-    float penumbra = lightSize * (projCoords.z - avgBlockerDepth) / avgBlockerDepth;
+    float penumbra     = lightSize * (projCoords.z - avgBlockerDepth) / avgBlockerDepth;
     float filterRadius = max(penumbra * 20.0, 1.0);
     return pcfFilter(projCoords, cascade, filterRadius);
 }
@@ -104,7 +110,7 @@ float calculateShadow(vec3 worldPos, vec3 n, vec3 l, mat4 viewMatrix)
     // Project into cascade light space
     vec4 lsPos = cascadeVP[cascade] * vec4(worldPos, 1.0);
     vec3 proj  = lsPos.xyz / lsPos.w;
-    proj = proj * 0.5 + 0.5;
+    proj       = proj * 0.5 + 0.5;
 
     if (proj.x < 0.0 || proj.x > 1.0 || proj.y < 0.0 || proj.y > 1.0 || proj.z > 1.0)
         return 1.0;
@@ -121,9 +127,9 @@ float calculateShadow(vec3 worldPos, vec3 n, vec3 l, mat4 viewMatrix)
     float fade = smoothstep(cascadeSplits[cascade] * 0.9, cascadeSplits[cascade], viewDepth);
     if (cascade < cascadeCount - 1)
     {
-        vec4  lsNext = cascadeVP[cascade + 1] * vec4(worldPos, 1.0);
-        vec3  projNext = lsNext.xyz / lsNext.w;
-        projNext = projNext * 0.5 + 0.5;
+        vec4 lsNext   = cascadeVP[cascade + 1] * vec4(worldPos, 1.0);
+        vec3 projNext = lsNext.xyz / lsNext.w;
+        projNext      = projNext * 0.5 + 0.5;
 
         float shadowNext;
         if (lightSize > 0.0)

@@ -1,6 +1,6 @@
 #version 450 core
 
-in vec2 textureCoordinates;
+in vec2  textureCoordinates;
 out vec4 FragColor;
 
 uniform sampler2D uSceneColor;
@@ -34,10 +34,7 @@ vec3 projectToScreen(vec3 viewPos)
     return vec3(ndc.xy * 0.5 + 0.5, ndc.z * 0.5 + 0.5);
 }
 
-float readHiZDepth(vec2 uv, int mip)
-{
-    return textureLod(uHiZDepth, uv, float(mip)).r;
-}
+float readHiZDepth(vec2 uv, int mip) { return textureLod(uHiZDepth, uv, float(mip)).r; }
 
 // Hi-Z accelerated screen-space ray march.
 // Returns: vec4(hitUV.xy, hitDepth, confidence)
@@ -54,15 +51,15 @@ vec4 hiZTrace(vec3 rayOrigin, vec3 rayDir)
         return vec4(0.0);
 
     // Scale so the larger component steps one pixel.
-    vec2 pixelStep = rayScreen.xy * uScreenSize;
+    vec2  pixelStep = rayScreen.xy * uScreenSize;
     float stepScale = 1.0 / max(abs(pixelStep.x), abs(pixelStep.y));
-    vec3 stepDir = rayScreen * stepScale;
+    vec3  stepDir   = rayScreen * stepScale;
 
     // Start at mip 0 for initial precision, then jump to coarser mips.
-    int mip = 0;
+    int mip    = 0;
     int maxMip = uHiZMipCount - 1;
 
-    vec3 pos = startScreen + stepDir * 2.0; // step past origin
+    vec3  pos      = startScreen + stepDir * 2.0; // step past origin
     float stepSize = 2.0;
 
     for (int i = 0; i < uMaxSteps; ++i)
@@ -81,12 +78,12 @@ vec4 hiZTrace(vec3 rayOrigin, vec3 rayDir)
             if (mip == 0)
             {
                 // Final hit: compute confidence.
-                float depthDiff = abs(pos.z - sceneDepth);
+                float depthDiff  = abs(pos.z - sceneDepth);
                 float confidence = 1.0 - smoothstep(0.0, 0.005, depthDiff);
 
                 // Fade at screen edges.
-                vec2 edgeFade = smoothstep(vec2(0.0), vec2(0.05), pos.xy) *
-                                (1.0 - smoothstep(vec2(0.95), vec2(1.0), pos.xy));
+                vec2 edgeFade =
+                    smoothstep(vec2(0.0), vec2(0.05), pos.xy) * (1.0 - smoothstep(vec2(0.95), vec2(1.0), pos.xy));
                 confidence *= edgeFade.x * edgeFade.y;
 
                 return vec4(pos.xy, sceneDepth, confidence);
@@ -100,7 +97,7 @@ vec4 hiZTrace(vec3 rayOrigin, vec3 rayDir)
         else
         {
             // No hit: advance and try coarser mip.
-            mip = min(mip + 1, maxMip);
+            mip      = min(mip + 1, maxMip);
             stepSize = max(stepSize, float(1 << mip));
         }
 
@@ -121,9 +118,9 @@ void main()
         return;
     }
 
-    vec4 normalMetallic = texture(uNormalMetallic, textureCoordinates);
-    vec3 worldNormal    = normalize(normalMetallic.xyz * 2.0 - 1.0);
-    float metallic      = normalMetallic.a;
+    vec4  normalMetallic = texture(uNormalMetallic, textureCoordinates);
+    vec3  worldNormal    = normalize(normalMetallic.xyz * 2.0 - 1.0);
+    float metallic       = normalMetallic.a;
 
     vec4  emissiveRough = texture(uEmissiveRoughness, textureCoordinates);
     float roughness     = emissiveRough.a;
@@ -141,7 +138,7 @@ void main()
     vec3 viewDir    = normalize(viewPos);
     vec3 reflectDir = reflect(viewDir, viewNormal);
 
-    vec4 hitResult = hiZTrace(viewPos, reflectDir);
+    vec4  hitResult  = hiZTrace(viewPos, reflectDir);
     float confidence = hitResult.w;
 
     if (confidence <= 0.0)

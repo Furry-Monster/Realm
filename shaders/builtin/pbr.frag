@@ -21,10 +21,10 @@ uniform mat4 view;
 // IBL precomputed maps
 uniform samplerCube diffuseIrradianceMap;
 uniform samplerCube prefilteredEnvMap;
-uniform sampler2D brdfConvolutionMap;
+uniform sampler2D   brdfConvolutionMap;
 
 // Viewport display mode: 0=lit, 1=albedo, 2=normals, 3=metallic, 4=roughness, 5=materialAO, 6=emissive
-uniform int displayMode;
+uniform int  displayMode;
 uniform bool isTransparentPass;
 uniform bool probesEnabled;
 
@@ -57,9 +57,8 @@ void main()
         if (int(lights[i].position.w) == 1 && shadowEnabled)
             radiance *= calculateShadow(worldCoordinates, s.normal, l, view);
 
-        Lo += cookTorranceBRDF(l, radiance, s.normal, v,
-                               s.albedo, s.metallic, s.roughness, f0,
-                               s.sssEnabled, s.sssRadius, s.sssColor);
+        Lo += cookTorranceBRDF(
+            l, radiance, s.normal, v, s.albedo, s.metallic, s.roughness, f0, s.sssEnabled, s.sssRadius, s.sssColor);
     }
 
     // IBL (indirect lighting)
@@ -70,15 +69,15 @@ void main()
     vec3 irradiance = texture(diffuseIrradianceMap, s.normal).rgb;
     if (probesEnabled)
     {
-        vec3 probeIrr = evaluateProbeIrradiance(worldCoordinates, s.normal);
+        vec3  probeIrr    = evaluateProbeIrradiance(worldCoordinates, s.normal);
         float probeWeight = (probeCount > 0) ? 1.0 : 0.0;
-        irradiance = mix(irradiance, probeIrr, probeWeight);
+        irradiance        = mix(irradiance, probeIrr, probeWeight);
     }
     vec3 diffuse = irradiance * diffAlbedo;
 
-    vec3  prefilteredColor = textureLod(prefilteredEnvMap, r, s.roughness * PREFILTERED_ENV_MAP_LOD).rgb;
-    vec2  brdf             = texture(brdfConvolutionMap, vec2(max(dot(s.normal, v), 0.0), s.roughness)).rg;
-    vec3  specular         = prefilteredColor * (kS * brdf.x + brdf.y);
+    vec3 prefilteredColor = textureLod(prefilteredEnvMap, r, s.roughness * PREFILTERED_ENV_MAP_LOD).rgb;
+    vec2 brdf             = texture(brdfConvolutionMap, vec2(max(dot(s.normal, v), 0.0), s.roughness)).rg;
+    vec3 specular         = prefilteredColor * (kS * brdf.x + brdf.y);
 
     vec3 ambient = (kD * diffuse + specular) * s.ao;
     vec3 color   = s.emissive + ambient + Lo;
@@ -87,12 +86,36 @@ void main()
     float outAlpha = isTransparentPass ? s.alpha : sssMask;
 
     // Debug display modes
-    if (displayMode == 1) { FragColor = vec4(s.albedo, 1.0); return; }
-    if (displayMode == 2) { FragColor = vec4(s.normal * 0.5 + 0.5, 1.0); return; }
-    if (displayMode == 3) { FragColor = vec4(vec3(s.metallic), 1.0); return; }
-    if (displayMode == 4) { FragColor = vec4(vec3(s.roughness), 1.0); return; }
-    if (displayMode == 5) { FragColor = vec4(vec3(s.ao), 1.0); return; }
-    if (displayMode == 6) { FragColor = vec4(s.emissive, 1.0); return; }
+    if (displayMode == 1)
+    {
+        FragColor = vec4(s.albedo, 1.0);
+        return;
+    }
+    if (displayMode == 2)
+    {
+        FragColor = vec4(s.normal * 0.5 + 0.5, 1.0);
+        return;
+    }
+    if (displayMode == 3)
+    {
+        FragColor = vec4(vec3(s.metallic), 1.0);
+        return;
+    }
+    if (displayMode == 4)
+    {
+        FragColor = vec4(vec3(s.roughness), 1.0);
+        return;
+    }
+    if (displayMode == 5)
+    {
+        FragColor = vec4(vec3(s.ao), 1.0);
+        return;
+    }
+    if (displayMode == 6)
+    {
+        FragColor = vec4(s.emissive, 1.0);
+        return;
+    }
 
     FragColor = vec4(color, outAlpha);
 }

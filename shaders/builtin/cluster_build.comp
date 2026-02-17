@@ -8,12 +8,9 @@ struct ClusterAABB
     vec4 maxBounds;
 };
 
-layout(std430, binding = 2) writeonly buffer ClusterAABBBuffer
-{
-    ClusterAABB clusters[];
-};
+layout(std430, binding = 2) writeonly buffer ClusterAABBBuffer { ClusterAABB clusters[]; };
 
-uniform mat4 invProjection;
+uniform mat4  invProjection;
 uniform float nearPlane;
 uniform float farPlane;
 
@@ -77,7 +74,7 @@ void main()
         maxBounds = max(maxBounds, point);
     }
 
-    uint idx = x + y * CLUSTER_X + z * CLUSTER_X * CLUSTER_Y;
+    uint idx                = x + y * CLUSTER_X + z * CLUSTER_X * CLUSTER_Y;
     clusters[idx].minBounds = vec4(minBounds, 0.0);
     clusters[idx].maxBounds = vec4(maxBounds, 0.0);
 }

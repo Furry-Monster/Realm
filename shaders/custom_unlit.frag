@@ -21,15 +21,15 @@ uniform vec3 cameraPosition;
 // need to declare the ones we actually read.
 struct Material
 {
-    vec3 albedo;
-    float opacity;
-    bool useTextureAlbedo;
+    vec3      albedo;
+    float     opacity;
+    bool      useTextureAlbedo;
     sampler2D textureAlbedo;
 };
 uniform Material material;
 
 // Custom material parameters (defined per-material in editor)
-uniform vec3 baseColor; // Color3 param
+uniform vec3  baseColor;  // Color3 param
 uniform float brightness; // Float  param
 
 void main()

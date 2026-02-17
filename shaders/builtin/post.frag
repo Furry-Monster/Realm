@@ -23,13 +23,13 @@ void main()
 {
     if (displayMode == 7)
     {
-        float ao = texture(aoTexture, textureCoordinates).r;
+        float ao  = texture(aoTexture, textureCoordinates).r;
         FragColor = vec4(vec3(ao), 1.0);
         return;
     }
     if (displayMode == 8)
     {
-        float d = texture(depthTexture, textureCoordinates).r;
+        float d   = texture(depthTexture, textureCoordinates).r;
         FragColor = vec4(vec3(d), 1.0);
         return;
     }

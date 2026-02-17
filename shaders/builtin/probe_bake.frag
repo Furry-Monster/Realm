@@ -12,7 +12,7 @@ uniform vec3 cameraPosition;
 
 void main()
 {
-    vec3 n = normalize(worldNormal);
+    vec3 n  = normalize(worldNormal);
     vec3 Lo = vec3(0.0);
 
     for (int i = 0; i < lightCount; ++i)

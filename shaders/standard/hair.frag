@@ -14,10 +14,10 @@ in vec3 tangent;
 in vec3 bitangent;
 in vec3 normal;
 
-uniform vec3 cameraPosition;
-uniform mat4 view;
+uniform vec3        cameraPosition;
+uniform mat4        view;
 uniform samplerCube diffuseIrradianceMap;
-uniform int displayMode;
+uniform int         displayMode;
 
 // Hair-specific uniforms (set via MaterialPropertyBlock)
 uniform float layerIndex;
@@ -31,9 +31,7 @@ float kajiyaKayDiffuse(vec3 T, vec3 L)
 }
 
 // Kajiya-Kay specular: Ks * pow(max(0, T.H), p)
-float kajiyaKaySpecular(vec3 T, vec3 H, float power) {
-    return pow(max(0.0, dot(T, H)), power);
-}
+float kajiyaKaySpecular(vec3 T, vec3 H, float power) { return pow(max(0.0, dot(T, H)), power); }
 
 void main()
 {
@@ -42,8 +40,16 @@ void main()
     if (s.alpha < 0.01)
         discard;
 
-    if (displayMode == 1) { FragColor = vec4(s.albedo, s.alpha); return; }
-    if (displayMode == 6) { FragColor = vec4(s.emissive, s.alpha); return; }
+    if (displayMode == 1)
+    {
+        FragColor = vec4(s.albedo, s.alpha);
+        return;
+    }
+    if (displayMode == 6)
+    {
+        FragColor = vec4(s.emissive, s.alpha);
+        return;
+    }
 
     vec3 v = normalize(cameraPosition - worldCoordinates);
     vec3 T = tangent;
@@ -52,7 +58,7 @@ void main()
     T = normalize(T);
 
     // Hair-specific material properties
-    float specStrength = material.roughness;   // reused: lower roughness = more specular
+    float specStrength = material.roughness; // reused: lower roughness = more specular
     float specPower    = 64.0;
 
     vec3 Lo = vec3(0.0);
@@ -66,7 +72,7 @@ void main()
         if (int(lights[i].position.w) == 1 && shadowEnabled)
             radiance *= calculateShadow(worldCoordinates, normal, l, view);
 
-        vec3 H = normalize(l + v);
+        vec3  H    = normalize(l + v);
         float diff = kajiyaKayDiffuse(T, l);
         float spec = kajiyaKaySpecular(T, H, specPower);
 
@@ -77,10 +83,10 @@ void main()
     if (probeCount > 0)
     {
         vec3 probeIrr = evaluateProbeIrradiance(worldCoordinates, normal);
-        irradiance = probeIrr;
+        irradiance    = probeIrr;
     }
     vec3 ambient = irradiance * s.albedo;
-    vec3 color = s.emissive + ambient + Lo;
+    vec3 color   = s.emissive + ambient + Lo;
 
     FragColor = vec4(color, s.alpha);
 }

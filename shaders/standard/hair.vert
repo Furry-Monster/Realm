@@ -29,7 +29,7 @@ void main()
     worldCoordinates   = (model * vec4(pos, 1.0f)).xyz;
     gl_Position        = projection * view * model * vec4(pos, 1.0f);
 
-    tangent           = normalize(normalMatrix * aTangent);
-    bitangent         = normalize(normalMatrix * aBitangent);
-    normal            = normalize(normalMatrix * aNormal);
+    tangent   = normalize(normalMatrix * aTangent);
+    bitangent = normalize(normalMatrix * aBitangent);
+    normal    = normalize(normalMatrix * aNormal);
 }

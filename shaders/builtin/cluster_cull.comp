@@ -19,14 +19,11 @@ struct ClusterAABB
 
 layout(std430, binding = 1) readonly buffer LightBuffer
 {
-    int lightCount;
+    int       lightCount;
     LightData lights[];
 };
 
-layout(std430, binding = 2) readonly buffer ClusterAABBBuffer
-{
-    ClusterAABB clusters[];
-};
+layout(std430, binding = 2) readonly buffer ClusterAABBBuffer { ClusterAABB clusters[]; };
 
 layout(std430, binding = 3) buffer LightIndexBuffer
 {
@@ -41,16 +38,16 @@ layout(std430, binding = 4) writeonly buffer LightGridBuffer
 
 uniform mat4 viewMatrix;
 
-const uint CLUSTER_X = 16;
-const uint CLUSTER_Y = 9;
-const uint CLUSTER_Z = 24;
+const uint CLUSTER_X              = 16;
+const uint CLUSTER_Y              = 9;
+const uint CLUSTER_Z              = 24;
 const uint MAX_LIGHTS_PER_CLUSTER = 100;
 
 bool sphereAABBIntersect(vec3 center, float radius, vec3 aabbMin, vec3 aabbMax)
 {
     // Closest point on AABB to sphere center
     vec3 closest = clamp(center, aabbMin, aabbMax);
-    vec3 diff = closest - center;
+    vec3 diff    = closest - center;
     return dot(diff, diff) <= (radius * radius);
 }
 
@@ -70,8 +67,8 @@ void main()
 
     for (int i = 0; i < lightCount && visibleCount < MAX_LIGHTS_PER_CLUSTER; ++i)
     {
-        int lightType = int(lights[i].position.w);
-        float range   = lights[i].attenuation.z;
+        int   lightType = int(lights[i].position.w);
+        float range     = lights[i].attenuation.z;
 
         // Directional (type 1): affects every cluster
         if (lightType == 1)

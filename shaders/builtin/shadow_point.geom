@@ -5,7 +5,7 @@ layout(triangle_strip, max_vertices = 18) out;
 
 uniform mat4 shadowMatrices[6];
 
-in vec4 fragPos[];
+in vec4  fragPos[];
 out vec4 gFragPos;
 
 void main()

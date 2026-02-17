@@ -16,7 +16,7 @@ in vec2  textureCoordinates;
 //         2
 //         3
 //         4
-// Separable Gaussian: G(x) �?exp(-x²/(2σ²)), 5-tap weights [0..4] for offsets 0,±1,±2
+// Separable Gaussian: G(x) �?exp(-x²/(2σ²)), 5-tap weights [0..4] for offsets 0,±1,±2
 const float gaussianBlurWeights[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
 uniform sampler2D inputColorTexture;
@@ -37,8 +37,10 @@ void main()
     {
         vec2 sampleOffset = vec2(texelSize.x * i * blurDirection.x, texelSize.y * i * blurDirection.y);
 
-        result += textureLod(inputColorTexture, textureCoordinates + sampleOffset, sampleMipLevel).rgb * gaussianBlurWeights[i];
-        result += textureLod(inputColorTexture, textureCoordinates - sampleOffset, sampleMipLevel).rgb * gaussianBlurWeights[i];
+        result += textureLod(inputColorTexture, textureCoordinates + sampleOffset, sampleMipLevel).rgb *
+                  gaussianBlurWeights[i];
+        result += textureLod(inputColorTexture, textureCoordinates - sampleOffset, sampleMipLevel).rgb *
+                  gaussianBlurWeights[i];
     }
 
     FragColor = vec4(result, 1.0);

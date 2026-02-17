@@ -45,12 +45,12 @@ namespace RealmEngine
             const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
             if (vendor && std::strstr(vendor, "Intel"))
             {
-                static bool once = true;
-                if (once)
+                static bool s_once = true;
+                if (s_once)
                 {
-                    once = false;
-                    RE_LOG_WARN(
-                        "[GL] Suppressing recurring Intel Mesa glDrawArrays GL_INVALID_OPERATION (known driver quirk).");
+                    s_once = false;
+                    RE_LOG_WARN("[GL] Suppressing recurring Intel Mesa glDrawArrays GL_INVALID_OPERATION (known driver "
+                                "quirk).");
                 }
                 return;
             }

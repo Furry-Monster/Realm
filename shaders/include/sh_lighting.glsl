@@ -8,7 +8,7 @@ struct ProbeData
 
 layout(std430, binding = 5) readonly buffer ProbeBuffer
 {
-    int probeCount;
+    int       probeCount;
     ProbeData probeList[];
 };
 

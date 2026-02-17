@@ -23,9 +23,9 @@ uniform mat4 view;
 
 uniform samplerCube diffuseIrradianceMap;
 uniform samplerCube prefilteredEnvMap;
-uniform sampler2D brdfConvolutionMap;
+uniform sampler2D   brdfConvolutionMap;
 
-uniform int displayMode;
+uniform int  displayMode;
 uniform bool isTransparentPass;
 uniform bool probesEnabled;
 
@@ -35,7 +35,8 @@ void main()
 
     if (isTransparentPass)
     {
-        if (s.alpha < 0.01) discard;
+        if (s.alpha < 0.01)
+            discard;
     }
     else if (s.alpha < material.alphaCutout)
         discard;
@@ -59,9 +60,8 @@ void main()
         if (int(lights[i].position.w) == 1 && shadowEnabled)
             radiance *= calculateShadow(worldCoordinates, s.normal, l, view);
 
-        Lo += cookTorranceBRDF(l, radiance, s.normal, v,
-                               s.albedo, s.metallic, s.roughness, f0,
-                               sssOn, sssRadius, sssColor);
+        Lo += cookTorranceBRDF(
+            l, radiance, s.normal, v, s.albedo, s.metallic, s.roughness, f0, sssOn, sssRadius, sssColor);
     }
 
     vec3 kS = fresnelSchlickRoughness(max(dot(s.normal, v), 0.0), f0, s.roughness);
@@ -71,23 +71,31 @@ void main()
     vec3 irradiance = texture(diffuseIrradianceMap, s.normal).rgb;
     if (probesEnabled)
     {
-        vec3 probeIrr = evaluateProbeIrradiance(worldCoordinates, s.normal);
+        vec3  probeIrr    = evaluateProbeIrradiance(worldCoordinates, s.normal);
         float probeWeight = (probeCount > 0) ? 1.0 : 0.0;
-        irradiance = mix(irradiance, probeIrr, probeWeight);
+        irradiance        = mix(irradiance, probeIrr, probeWeight);
     }
     vec3 diffuse = irradiance * diffAlbedo;
 
-    vec3  prefilteredColor = textureLod(prefilteredEnvMap, r, s.roughness * PREFILTERED_ENV_MAP_LOD).rgb;
-    vec2  brdf             = texture(brdfConvolutionMap, vec2(max(dot(s.normal, v), 0.0), s.roughness)).rg;
-    vec3  specular         = prefilteredColor * (kS * brdf.x + brdf.y);
+    vec3 prefilteredColor = textureLod(prefilteredEnvMap, r, s.roughness * PREFILTERED_ENV_MAP_LOD).rgb;
+    vec2 brdf             = texture(brdfConvolutionMap, vec2(max(dot(s.normal, v), 0.0), s.roughness)).rg;
+    vec3 specular         = prefilteredColor * (kS * brdf.x + brdf.y);
 
     vec3 ambient = (kD * diffuse + specular) * s.ao;
     vec3 color   = s.emissive + ambient + Lo;
 
     float outAlpha = isTransparentPass ? s.alpha : 1.0;
 
-    if (displayMode == 1) { FragColor = vec4(s.albedo, 1.0); return; }
-    if (displayMode == 2) { FragColor = vec4(s.normal * 0.5 + 0.5, 1.0); return; }
+    if (displayMode == 1)
+    {
+        FragColor = vec4(s.albedo, 1.0);
+        return;
+    }
+    if (displayMode == 2)
+    {
+        FragColor = vec4(s.normal * 0.5 + 0.5, 1.0);
+        return;
+    }
 
     FragColor = vec4(color, outAlpha);
 }

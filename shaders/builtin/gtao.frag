@@ -15,9 +15,9 @@ uniform float radius;
 uniform int   numDirections;
 uniform int   numSteps;
 
-const float PI       = 3.14159265359;
-const float TWO_PI   = 6.28318530718;
-const float HALF_PI  = 1.57079632679;
+const float PI             = 3.14159265359;
+const float TWO_PI         = 6.28318530718;
+const float HALF_PI        = 1.57079632679;
 const float FALLOFF_ALBEDO = 0.2; // default albedo for multi-bounce approximation
 
 vec3 reconstructViewPos(vec2 uv, float depth)
@@ -34,8 +34,7 @@ float integrateArc(float h1, float h2, float n)
     float sinN = sin(n);
     float cosN = cos(n);
     // Integral: 0.25 * (-cos(2h - n) + cos(n) + 2h*sin(n))
-    return 0.25 * (-cos(2.0 * h1 - n) + cosN + 2.0 * h1 * sinN)
-         + 0.25 * (-cos(2.0 * h2 - n) + cosN + 2.0 * h2 * sinN);
+    return 0.25 * (-cos(2.0 * h1 - n) + cosN + 2.0 * h1 * sinN) + 0.25 * (-cos(2.0 * h2 - n) + cosN + 2.0 * h2 * sinN);
 }
 
 void main()
@@ -57,21 +56,21 @@ void main()
     vec3 viewDir = normalize(-viewPos);
 
     // Noise: (cos(angle), sin(angle), step_jitter)
-    vec2 noiseUV = textureCoordinates * noiseScale;
-    vec3 noise   = texture(noiseTexture, noiseUV).xyz;
-    float rotAngle  = atan(noise.y, noise.x);
+    vec2  noiseUV    = textureCoordinates * noiseScale;
+    vec3  noise      = texture(noiseTexture, noiseUV).xyz;
+    float rotAngle   = atan(noise.y, noise.x);
     float stepJitter = noise.z;
 
     // Screen-space step radius: project world-space radius to pixels
     float screenRadius = (radius * projection[1][1]) / (-viewPos.z * 2.0);
-    screenRadius = max(screenRadius, 3.0);
+    screenRadius       = max(screenRadius, 3.0);
 
-    float ao = 0.0;
+    float ao        = 0.0;
     float angleStep = TWO_PI / float(numDirections);
 
     for (int dir = 0; dir < numDirections; ++dir)
     {
-        float phi = angleStep * (float(dir) + 0.5) + rotAngle;
+        float phi      = angleStep * (float(dir) + 0.5) + rotAngle;
         vec2  sliceDir = vec2(cos(phi), sin(phi));
 
         // Project normal onto the slice plane defined by (sliceDir, viewDir)
@@ -94,7 +93,8 @@ void main()
         for (int step = 0; step < numSteps; ++step)
         {
             float marchDist = (float(step) + stepJitter) * stepSize;
-            if (marchDist < 1.0) marchDist = 1.0;
+            if (marchDist < 1.0)
+                marchDist = 1.0;
 
             // Positive direction
             vec2 sampleUV1 = textureCoordinates + sliceDir * marchDist * texelSize;
@@ -103,15 +103,15 @@ void main()
                 float sampleDepth1 = texture(depthTexture, sampleUV1).r;
                 if (sampleDepth1 < 1.0)
                 {
-                    vec3 samplePos1 = reconstructViewPos(sampleUV1, sampleDepth1);
-                    vec3 horizon1   = samplePos1 - viewPos;
-                    float dist1     = length(horizon1);
+                    vec3  samplePos1 = reconstructViewPos(sampleUV1, sampleDepth1);
+                    vec3  horizon1   = samplePos1 - viewPos;
+                    float dist1      = length(horizon1);
                     if (dist1 > 1e-6 && dist1 < radius)
                     {
                         float elevAngle = asin(clamp(dot(normalize(horizon1), viewDir), -1.0, 1.0));
                         // Falloff: attenuate far samples
                         float falloff = 1.0 - (dist1 / radius) * (dist1 / radius);
-                        elevAngle = mix(-HALF_PI, elevAngle, falloff);
+                        elevAngle     = mix(-HALF_PI, elevAngle, falloff);
                         horizonAngle2 = max(horizonAngle2, elevAngle);
                     }
                 }
@@ -124,15 +124,15 @@ void main()
                 float sampleDepth2 = texture(depthTexture, sampleUV2).r;
                 if (sampleDepth2 < 1.0)
                 {
-                    vec3 samplePos2 = reconstructViewPos(sampleUV2, sampleDepth2);
-                    vec3 horizon2   = samplePos2 - viewPos;
-                    float dist2     = length(horizon2);
+                    vec3  samplePos2 = reconstructViewPos(sampleUV2, sampleDepth2);
+                    vec3  horizon2   = samplePos2 - viewPos;
+                    float dist2      = length(horizon2);
                     if (dist2 > 1e-6 && dist2 < radius)
                     {
                         float elevAngle = asin(clamp(dot(normalize(horizon2), viewDir), -1.0, 1.0));
-                        float falloff = 1.0 - (dist2 / radius) * (dist2 / radius);
-                        elevAngle = mix(-HALF_PI, elevAngle, falloff);
-                        horizonAngle1 = max(horizonAngle1, elevAngle);
+                        float falloff   = 1.0 - (dist2 / radius) * (dist2 / radius);
+                        elevAngle       = mix(-HALF_PI, elevAngle, falloff);
+                        horizonAngle1   = max(horizonAngle1, elevAngle);
                     }
                 }
             }
@@ -149,7 +149,7 @@ void main()
 
     // Multi-bounce approximation: ao_mb = ao / (1 - ao * (1 - albedo))
     float aoMultiBounce = ao / (1.0 - ao * (1.0 - FALLOFF_ALBEDO));
-    aoMultiBounce = clamp(aoMultiBounce, 0.0, 1.0);
+    aoMultiBounce       = clamp(aoMultiBounce, 0.0, 1.0);
 
     FragColor = aoMultiBounce;
 }

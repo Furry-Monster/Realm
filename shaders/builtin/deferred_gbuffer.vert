@@ -20,10 +20,10 @@ uniform mat3 normalMatrix; // transpose(inverse(mat3(model))), computed on CPU
 void main()
 {
     textureCoordinates = aTextureCoordinates;
-    worldPosition = (model * vec4(aPos, 1.0f)).xyz;
-    gl_Position = projection * view * model * vec4(aPos, 1.0f);
+    worldPosition      = (model * vec4(aPos, 1.0f)).xyz;
+    gl_Position        = projection * view * model * vec4(aPos, 1.0f);
 
-    tangent = normalize(normalMatrix * aTangent);
+    tangent   = normalize(normalMatrix * aTangent);
     bitangent = normalize(normalMatrix * aBitangent);
-    normal = normalize(normalMatrix * aNormal);
+    normal    = normalize(normalMatrix * aNormal);
 }
