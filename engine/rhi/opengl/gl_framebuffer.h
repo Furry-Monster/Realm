@@ -28,6 +28,7 @@ namespace RealmEngine
 
         void setMipLevel(int level) override;
         void setCubeFace(int face) override;
+        void setLayer(int layer) override;
 
         uint32_t getNativeHandle() const override { return m_fbo; }
 
@@ -43,6 +44,7 @@ namespace RealmEngine
         FramebufferDesc                         m_desc;
         int                                     m_mip_level {0};
         int                                     m_cube_face {0};
+        int                                     m_layer {-1}; // -1 = not an array layer
     };
 
 } // namespace RealmEngine

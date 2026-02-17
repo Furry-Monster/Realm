@@ -10,7 +10,7 @@
 #include "renderer/light.h"
 #include "renderer/material.h"
 #include "renderer/passes/gbuffer_pass.h"
-#include "renderer/passes/shadow_pass.h"
+#include "renderer/passes/csm_shadow_pass.h"
 #include "renderer/render_camera.h"
 #include "renderer/render_scene.h"
 #include "rhi/rhi_buffer.h"
@@ -142,21 +142,30 @@ namespace RealmEngine
             m_shader->setInt("brdfConvolutionMap", TEX_UNIT_IBL_BRDF);
         }
 
-        // Shadow
+        // Shadow (CSM)
         if (m_shadow_pass && m_shadow_pass->isShadowEnabled())
         {
             auto* shadow_depth = m_shadow_pass->getFramebuffer()->getDepthAttachment();
             if (shadow_depth)
             {
                 ctx.device->bindTexture(TEX_UNIT_SHADOW, *shadow_depth);
-                m_shader->setInt("shadowMap", TEX_UNIT_SHADOW);
+                m_shader->setInt("shadowMapArray", TEX_UNIT_SHADOW);
             }
-            m_shader->setMat4("lightSpaceMatrix", m_shadow_pass->getLightSpaceMatrix());
+            auto& cascades = m_shadow_pass->getCascades();
+            m_shader->setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
+            std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
+            for (int c = 0; c < CSMShadowPass::CASCADE_COUNT; ++c)
+            {
+                m_shader->setMat4("cascadeVP[" + std::to_string(c) + "]", cascades[c].light_view_proj);
+                splits[c] = cascades[c].split_depth;
+            }
+            m_shader->setFloatArray("cascadeSplits", splits);
+            m_shader->setFloat("lightSize", m_shadow_pass->getLightSize());
+            m_shader->setMat4("viewMatrix", view);
             m_shader->setBool("shadowEnabled", true);
         }
         else
         {
-            m_shader->setMat4("lightSpaceMatrix", glm::mat4(1.0f));
             m_shader->setBool("shadowEnabled", false);
         }
 

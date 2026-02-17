@@ -145,6 +145,14 @@ namespace RealmEngine
         return shader;
     }
 
+    std::unique_ptr<RHIShader> GLDevice::createComputeShader(const std::string& compute_path)
+    {
+        auto shader = std::make_unique<GLShader>(compute_path, GLShader::ComputeTag{});
+        if (!shader->isValid())
+            return nullptr;
+        return shader;
+    }
+
     std::unique_ptr<RHIFramebuffer> GLDevice::createFramebuffer(const FramebufferDesc& desc)
     {
         return std::make_unique<GLFramebuffer>(desc);
@@ -453,6 +461,31 @@ namespace RealmEngine
     // ----- Texture helpers -----------------------------------------------
 
     void GLDevice::bindTexture(uint32_t unit, RHITexture& texture) { texture.bind(unit); }
+
+    // ----- Compute -------------------------------------------------------
+
+    void GLDevice::dispatchCompute(uint32_t groups_x, uint32_t groups_y, uint32_t groups_z)
+    {
+        glDispatchCompute(groups_x, groups_y, groups_z);
+    }
+
+    void GLDevice::memoryBarrier(BarrierFlags flags)
+    {
+        GLbitfield bits = 0;
+        if (flags & BarrierFlags::ShaderStorage)
+            bits |= GL_SHADER_STORAGE_BARRIER_BIT;
+        if (flags & BarrierFlags::ImageAccess)
+            bits |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+        if (flags & BarrierFlags::TextureFetch)
+            bits |= GL_TEXTURE_FETCH_BARRIER_BIT;
+        if (flags & BarrierFlags::BufferUpdate)
+            bits |= GL_BUFFER_UPDATE_BARRIER_BIT;
+        if (flags & BarrierFlags::Framebuffer)
+            bits |= GL_FRAMEBUFFER_BARRIER_BIT;
+        if (flags == BarrierFlags::All)
+            bits = GL_ALL_BARRIER_BITS;
+        glMemoryBarrier(bits);
+    }
 
     // ----- Misc ----------------------------------------------------------
 

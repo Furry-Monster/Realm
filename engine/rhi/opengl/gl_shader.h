@@ -14,6 +14,11 @@ namespace RealmEngine
     public:
         GLShader(const std::string& vertex_path, const std::string& fragment_path);
         GLShader(const std::string& vertex_path, const std::string& geometry_path, const std::string& fragment_path);
+
+        // Compute shader constructor
+        struct ComputeTag {};
+        GLShader(const std::string& compute_path, ComputeTag);
+
         ~GLShader() override;
 
         GLShader(const GLShader&)            = delete;
@@ -37,6 +42,7 @@ namespace RealmEngine
         void setIntArray(const std::string& name, const std::vector<int>& values) override;
 
         void bindUniformBlock(const std::string& name, uint32_t binding_point) override;
+        void bindShaderStorageBlock(const std::string& name, uint32_t binding_point) override;
 
         uint32_t getNativeHandle() const { return m_id; }
 

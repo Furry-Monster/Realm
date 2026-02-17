@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 #include "../include/common.glsl"
 #include "../include/brdf.glsl"
@@ -27,6 +27,7 @@ uniform sampler2D brdfConvolutionMap;
 
 // Viewport display mode
 uniform int displayMode;
+uniform mat4 viewMatrix;
 
 vec3 reconstructWorldPosition(vec2 uv, float depth)
 {
@@ -61,8 +62,6 @@ vec3 shadePBR(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
     vec3 f0 = mix(vec3(0.04), albedo, metallic);
     vec3 Lo = vec3(0.0);
 
-    vec4 fragPosLS = lightSpaceMatrix * vec4(worldPos, 1.0);
-
     for (int i = 0; i < lightCount; i++)
     {
         vec3 l, radiance;
@@ -71,7 +70,7 @@ vec3 shadePBR(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
 
         int lightType = int(lights[i].position.w);
         if (lightType == 1)
-            radiance *= calculateShadow(fragPosLS, n, l);
+            radiance *= calculateShadow(worldPos, n, l, viewMatrix);
 
         Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0,
                                false, 0.0, vec3(1.0));
@@ -88,8 +87,6 @@ vec3 shadeSubsurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
     vec3 f0 = mix(vec3(0.04), albedo, metallic);
     vec3 Lo = vec3(0.0);
 
-    vec4 fragPosLS = lightSpaceMatrix * vec4(worldPos, 1.0);
-
     for (int i = 0; i < lightCount; i++)
     {
         vec3 l, radiance;
@@ -98,7 +95,7 @@ vec3 shadeSubsurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
 
         int lightType = int(lights[i].position.w);
         if (lightType == 1)
-            radiance *= calculateShadow(fragPosLS, n, l);
+            radiance *= calculateShadow(worldPos, n, l, viewMatrix);
 
         // SSS enabled with default wrap parameters
         Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0,

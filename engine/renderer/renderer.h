@@ -24,7 +24,7 @@ namespace RealmEngine
     class RHIFramebuffer;
     class SceneColorSource;
 
-    class ShadowPass;
+    class CSMShadowPass;
     class OpaquePass;
     class TransparentPass;
     class GBufferPass;
@@ -84,7 +84,7 @@ namespace RealmEngine
 
         SceneColorSource* m_scene_color_source {nullptr};
 
-        ShadowPass*      m_shadow_pass {nullptr};
+        CSMShadowPass*   m_shadow_pass {nullptr};
         OpaquePass*      m_opaque_pass {nullptr};
         TransparentPass* m_transparent_pass {nullptr};
         SSAOPass*        m_ssao_pass {nullptr};

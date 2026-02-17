@@ -37,6 +37,7 @@ namespace RealmEngine
         }
 
         virtual void bindUniformBlock(const std::string& name, uint32_t binding_point) = 0;
+        virtual void bindShaderStorageBlock(const std::string& name, uint32_t binding_point) = 0;
     };
 
 } // namespace RealmEngine

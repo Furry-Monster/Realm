@@ -14,7 +14,7 @@ namespace RealmEngine
     class RHIFramebuffer;
     class RHIBuffer;
     class RHITexture;
-    class ShadowPass;
+    class CSMShadowPass;
     class RenderMesh;
     class Material;
 
@@ -30,7 +30,7 @@ namespace RealmEngine
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 
-        void setShadowPass(ShadowPass* shadow) { m_shadow_pass = shadow; }
+        void setShadowPass(CSMShadowPass* shadow) { m_shadow_pass = shadow; }
         void setIBLTextures(RHITexture* diffuse, RHITexture* prefiltered, RHITexture* brdf);
 
         void            setFramebuffer(std::unique_ptr<RHIFramebuffer> fb) { m_framebuffer = std::move(fb); }
@@ -62,7 +62,7 @@ namespace RealmEngine
         bool              m_deferred_mode {false};
         SceneColorSource* m_scene_color {nullptr};
 
-        ShadowPass* m_shadow_pass {nullptr};
+        CSMShadowPass* m_shadow_pass {nullptr};
         RHITexture* m_ibl_diffuse {nullptr};
         RHITexture* m_ibl_prefiltered {nullptr};
         RHITexture* m_ibl_brdf {nullptr};

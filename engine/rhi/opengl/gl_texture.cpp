@@ -13,6 +13,7 @@ namespace RealmEngine
         m_format = desc.format;
         m_width  = desc.width;
         m_height = desc.height;
+        m_depth  = desc.depth;
         m_target = toGLTarget(desc.type);
         m_owned  = true;
 
@@ -27,7 +28,7 @@ namespace RealmEngine
         {
             glTexImage2D(GL_TEXTURE_2D, 0, internal_fmt, m_width, m_height, 0, pixel_fmt, pixel_type, desc.data);
         }
-        else // TextureCube
+        else if (desc.type == TextureType::TextureCube)
         {
             for (int face = 0; face < 6; ++face)
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face,
@@ -40,12 +41,31 @@ namespace RealmEngine
                              pixel_type,
                              nullptr);
         }
+        else if (desc.type == TextureType::Texture2DArray)
+        {
+            glTexImage3D(GL_TEXTURE_2D_ARRAY,
+                         0,
+                         internal_fmt,
+                         m_width,
+                         m_height,
+                         m_depth,
+                         0,
+                         pixel_fmt,
+                         pixel_type,
+                         desc.data);
+        }
+        else if (desc.type == TextureType::Texture3D)
+        {
+            glTexImage3D(
+                GL_TEXTURE_3D, 0, internal_fmt, m_width, m_height, m_depth, 0, pixel_fmt, pixel_type, desc.data);
+        }
 
         glTexParameteri(m_target, GL_TEXTURE_MIN_FILTER, toGLFilter(desc.min_filter));
         glTexParameteri(m_target, GL_TEXTURE_MAG_FILTER, toGLFilter(desc.mag_filter));
         glTexParameteri(m_target, GL_TEXTURE_WRAP_S, toGLWrap(desc.wrap_s));
         glTexParameteri(m_target, GL_TEXTURE_WRAP_T, toGLWrap(desc.wrap_t));
-        if (desc.type == TextureType::TextureCube)
+        if (desc.type == TextureType::TextureCube || desc.type == TextureType::Texture2DArray ||
+            desc.type == TextureType::Texture3D)
             glTexParameteri(m_target, GL_TEXTURE_WRAP_R, toGLWrap(desc.wrap_r));
 
         if (desc.gen_mips)
@@ -112,12 +132,27 @@ namespace RealmEngine
                              pixel_type,
                              nullptr);
         }
+        else if (m_type == TextureType::Texture2DArray)
+        {
+            glTexImage3D(
+                GL_TEXTURE_2D_ARRAY, 0, internal_fmt, width, height, m_depth, 0, pixel_fmt, pixel_type, nullptr);
+        }
+        else if (m_type == TextureType::Texture3D)
+        {
+            glTexImage3D(GL_TEXTURE_3D, 0, internal_fmt, width, height, m_depth, 0, pixel_fmt, pixel_type, nullptr);
+        }
         else
         {
             glTexImage2D(GL_TEXTURE_2D, 0, internal_fmt, width, height, 0, pixel_fmt, pixel_type, nullptr);
         }
 
         glBindTexture(m_target, 0);
+    }
+
+    void GLTexture::bindImage(uint32_t unit, int level, bool layered, TextureAccess access)
+    {
+        glBindImageTexture(
+            unit, m_id, level, layered ? GL_TRUE : GL_FALSE, 0, toGLAccess(access), toGLInternalFormat(m_format));
     }
 
 } // namespace RealmEngine

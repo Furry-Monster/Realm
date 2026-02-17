@@ -13,7 +13,7 @@
 #include "renderer/passes/gbuffer_pass.h"
 #include "renderer/passes/opaque_pass.h"
 #include "renderer/passes/postprocess_pass.h"
-#include "renderer/passes/shadow_pass.h"
+#include "renderer/passes/csm_shadow_pass.h"
 #include "renderer/passes/skybox_pass.h"
 #include "renderer/passes/ssao_blur_pass.h"
 #include "renderer/passes/ssao_pass.h"
@@ -107,7 +107,7 @@ namespace RealmEngine
         const RendererConfig& rc = config.getRendererConfig();
         std::string           sp = m_shader_path.generic_string();
 
-        auto shadow   = std::make_unique<ShadowPass>(sp, 2048);
+        auto shadow   = std::make_unique<CSMShadowPass>(sp, 2048);
         m_shadow_pass = shadow.get();
         m_pipeline.addPass(std::move(shadow));
 
@@ -184,7 +184,7 @@ namespace RealmEngine
         const RendererConfig& rc = config.getRendererConfig();
         std::string           sp = m_shader_path.generic_string();
 
-        auto shadow   = std::make_unique<ShadowPass>(sp, 2048);
+        auto shadow   = std::make_unique<CSMShadowPass>(sp, 2048);
         m_shadow_pass = shadow.get();
         m_pipeline.addPass(std::move(shadow));
 

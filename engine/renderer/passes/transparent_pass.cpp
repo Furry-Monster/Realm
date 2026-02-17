@@ -4,7 +4,7 @@
 
 #include "renderer/light.h"
 #include "renderer/material.h"
-#include "renderer/passes/shadow_pass.h"
+#include "renderer/passes/csm_shadow_pass.h"
 #include "renderer/render_camera.h"
 #include "renderer/render_mesh.h"
 #include "renderer/render_object.h"
@@ -65,14 +65,22 @@ namespace RealmEngine
             if (depth)
             {
                 ctx.device->bindTexture(TEXTURE_UNIT_SHADOW_MAP, *depth);
-                shader.setInt("shadowMap", TEXTURE_UNIT_SHADOW_MAP);
+                shader.setInt("shadowMapArray", TEXTURE_UNIT_SHADOW_MAP);
             }
-            shader.setMat4("lightSpaceMatrix", m_shadow_pass->getLightSpaceMatrix());
+            auto& cascades = m_shadow_pass->getCascades();
+            shader.setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
+            std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
+            for (int c = 0; c < CSMShadowPass::CASCADE_COUNT; ++c)
+            {
+                shader.setMat4("cascadeVP[" + std::to_string(c) + "]", cascades[c].light_view_proj);
+                splits[c] = cascades[c].split_depth;
+            }
+            shader.setFloatArray("cascadeSplits", splits);
+            shader.setFloat("lightSize", m_shadow_pass->getLightSize());
             shader.setBool("shadowEnabled", true);
         }
         else
         {
-            shader.setMat4("lightSpaceMatrix", glm::mat4(1.0f));
             shader.setBool("shadowEnabled", false);
         }
     }

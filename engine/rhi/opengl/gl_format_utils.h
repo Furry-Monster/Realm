@@ -34,6 +34,16 @@ namespace RealmEngine
                 return GL_RGB16F;
             case TextureFormat::RGBA16F:
                 return GL_RGBA16F;
+            case TextureFormat::R32F:
+                return GL_R32F;
+            case TextureFormat::RG32F:
+                return GL_RG32F;
+            case TextureFormat::RGBA32F:
+                return GL_RGBA32F;
+            case TextureFormat::R32UI:
+                return GL_R32UI;
+            case TextureFormat::RG16UI:
+                return GL_RG16UI;
             case TextureFormat::Depth16:
                 return GL_DEPTH_COMPONENT16;
             case TextureFormat::Depth24:
@@ -52,10 +62,16 @@ namespace RealmEngine
         {
             case TextureFormat::R8:
             case TextureFormat::R16F:
+            case TextureFormat::R32F:
                 return GL_RED;
+            case TextureFormat::R32UI:
+                return GL_RED_INTEGER;
             case TextureFormat::RG8:
             case TextureFormat::RG16F:
+            case TextureFormat::RG32F:
                 return GL_RG;
+            case TextureFormat::RG16UI:
+                return GL_RG_INTEGER;
             case TextureFormat::RGB8:
             case TextureFormat::SRGB8:
             case TextureFormat::RGB16F:
@@ -63,6 +79,7 @@ namespace RealmEngine
             case TextureFormat::RGBA8:
             case TextureFormat::SRGBA8:
             case TextureFormat::RGBA16F:
+            case TextureFormat::RGBA32F:
                 return GL_RGBA;
             case TextureFormat::Depth16:
             case TextureFormat::Depth24:
@@ -82,8 +99,14 @@ namespace RealmEngine
             case TextureFormat::RG16F:
             case TextureFormat::RGB16F:
             case TextureFormat::RGBA16F:
+            case TextureFormat::R32F:
+            case TextureFormat::RG32F:
+            case TextureFormat::RGBA32F:
             case TextureFormat::Depth32F:
                 return GL_FLOAT;
+            case TextureFormat::R32UI:
+                return GL_UNSIGNED_INT;
+            case TextureFormat::RG16UI:
             case TextureFormat::Depth16:
                 return GL_UNSIGNED_SHORT;
             case TextureFormat::Depth24:
@@ -133,7 +156,31 @@ namespace RealmEngine
 
     inline GLenum toGLTarget(TextureType type)
     {
-        return (type == TextureType::TextureCube) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
+        switch (type)
+        {
+            case TextureType::TextureCube:
+                return GL_TEXTURE_CUBE_MAP;
+            case TextureType::Texture2DArray:
+                return GL_TEXTURE_2D_ARRAY;
+            case TextureType::Texture3D:
+                return GL_TEXTURE_3D;
+            default:
+                return GL_TEXTURE_2D;
+        }
+    }
+
+    inline GLenum toGLAccess(TextureAccess access)
+    {
+        switch (access)
+        {
+            case TextureAccess::ReadOnly:
+                return GL_READ_ONLY;
+            case TextureAccess::WriteOnly:
+                return GL_WRITE_ONLY;
+            case TextureAccess::ReadWrite:
+                return GL_READ_WRITE;
+        }
+        return GL_READ_WRITE;
     }
 
 } // namespace RealmEngine

@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 // Subsurface scattering shader -- wraps standard PBR with SSS always enabled.
 // Uses the same Cook-Torrance BRDF but with wrap diffuse lighting.
@@ -16,9 +16,9 @@ in vec2 textureCoordinates;
 in vec3 tangent;
 in vec3 bitangent;
 in vec3 normal;
-in vec4 fragPosLightSpace;
 
 uniform vec3 cameraPosition;
+uniform mat4 view;
 
 uniform samplerCube diffuseIrradianceMap;
 uniform samplerCube prefilteredEnvMap;
@@ -55,7 +55,7 @@ void main()
             continue;
 
         if (int(lights[i].position.w) == 1 && shadowEnabled)
-            radiance *= calculateShadow(fragPosLightSpace, s.normal, l);
+            radiance *= calculateShadow(worldCoordinates, s.normal, l, view);
 
         Lo += cookTorranceBRDF(l, radiance, s.normal, v,
                                s.albedo, s.metallic, s.roughness, f0,

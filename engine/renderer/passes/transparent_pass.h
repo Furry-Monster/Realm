@@ -13,7 +13,7 @@ namespace RealmEngine
     class RHIBuffer;
     class RHITexture;
     class SceneColorSource;
-    class ShadowPass;
+    class CSMShadowPass;
     class RenderMesh;
     class Material;
 
@@ -28,7 +28,7 @@ namespace RealmEngine
         void dispose() override;
 
         void setSceneColorSource(SceneColorSource* src) { m_scene_color = src; }
-        void setShadowPass(ShadowPass* sp) { m_shadow_pass = sp; }
+        void setShadowPass(CSMShadowPass* sp) { m_shadow_pass = sp; }
         void setIBLTextures(RHITexture* diffuse, RHITexture* prefiltered, RHITexture* brdf);
 
         void reloadShaders() { m_shader_cache.clear(); }
@@ -45,7 +45,7 @@ namespace RealmEngine
         ShaderCache m_shader_cache;
 
         SceneColorSource* m_scene_color {nullptr};
-        ShadowPass*       m_shadow_pass {nullptr};
+        CSMShadowPass*    m_shadow_pass {nullptr};
         RHITexture*       m_ibl_diffuse {nullptr};
         RHITexture*       m_ibl_prefiltered {nullptr};
         RHITexture*       m_ibl_brdf {nullptr};
