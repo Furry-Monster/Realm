@@ -85,12 +85,6 @@ namespace RealmEngine
         }
     }
 
-    void SceneNode::forEachChild(std::function<void(std::shared_ptr<SceneNode>)> func)
-    {
-        for (auto& child : m_children)
-            func(child);
-    }
-
     void SceneNode::forEachChild(std::function<void(const std::shared_ptr<SceneNode>&)> func) const
     {
         for (const auto& child : m_children)

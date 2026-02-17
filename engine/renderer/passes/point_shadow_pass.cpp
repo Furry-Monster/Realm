@@ -69,10 +69,11 @@ namespace RealmEngine
         };
         std::vector<Candidate> candidates;
 
-        glm::vec3 cam_pos = ctx.camera->getPosition();
-        for (size_t i = 0; i < ctx.scene->m_lights.size(); ++i)
+        const auto& lights  = ctx.scene->getLights();
+        glm::vec3   cam_pos = ctx.camera->getPosition();
+        for (size_t i = 0; i < lights.size(); ++i)
         {
-            auto& light = ctx.scene->m_lights[i];
+            auto& light = lights[i];
             if (light.type != LightType::Point)
                 continue;
             float dist = glm::length(light.position - cam_pos);
@@ -125,14 +126,14 @@ namespace RealmEngine
                 ctx.device->clear(ClearFlags::Color | ClearFlags::Depth);
                 ctx.device->setCullFace(CullFace::Front);
 
-                for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+                const auto& objects  = ctx.scene->getRenderObjects();
+                const auto& matrices = ctx.scene->getRenderModelMatrices();
+                for (size_t i = 0; i < objects.size(); ++i)
                 {
-                    auto&     ro    = ctx.scene->m_render_objects[i];
-                    glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size())
-                                          ? ctx.scene->m_render_model_matrices[i]
-                                          : glm::mat4(1.0f);
+                    auto&     ro    = *objects[i];
+                    glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
                     m_shader->setMat4("model", model);
-                    ro->drawShadow(*m_shader);
+                    ro.drawShadow(*m_shader);
                 }
             }
         }

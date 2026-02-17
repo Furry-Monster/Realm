@@ -71,13 +71,13 @@ namespace RealmEngine
 
         // Upload light data into SSBO
         {
-            size_t count   = std::min(ctx.scene->m_lights.size(), MAX_LIGHTS);
+            size_t count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
             int    count_i = static_cast<int>(count);
 
             std::vector<LightData> data(count);
             for (size_t i = 0; i < count; ++i)
             {
-                auto& l          = ctx.scene->m_lights[i];
+                auto& l          = ctx.scene->getLights()[i];
                 data[i].position    = glm::vec4(l.position, static_cast<float>(static_cast<int>(l.type)));
                 data[i].direction   = glm::vec4(l.direction, l.intensity);
                 data[i].color       = glm::vec4(l.color, l.constant);

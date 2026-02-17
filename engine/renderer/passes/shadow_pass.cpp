@@ -1,10 +1,8 @@
 #include "renderer/passes/shadow_pass.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <optional>
 
 #include "renderer/light.h"
 #include "renderer/render_camera.h"
@@ -40,17 +38,7 @@ namespace RealmEngine
 
     void ShadowPass::execute(const RenderContext& ctx)
     {
-        // Find directional light
-        std::optional<std::reference_wrapper<Light>> directional_light;
-        for (auto& light : ctx.scene->m_lights)
-        {
-            if (light.type == LightType::Directional)
-            {
-                directional_light = std::ref(light);
-                break;
-            }
-        }
-
+        auto directional_light = ctx.scene->findDirectionalLight();
         if (!directional_light.has_value())
         {
             m_shadow_enabled = false;
@@ -68,7 +56,7 @@ namespace RealmEngine
         static constexpr float SHADOW_FAR     = 50.0f;
         static constexpr float SHADOW_FRUSTUM = 20.0f;
 
-        Light&    light = directional_light->get();
+        const Light& light = directional_light->get();
         glm::mat4 light_proj =
             glm::ortho(-SHADOW_FRUSTUM, SHADOW_FRUSTUM, -SHADOW_FRUSTUM, SHADOW_FRUSTUM, SHADOW_NEAR, SHADOW_FAR);
         glm::vec3 light_dir    = glm::normalize(light.direction);
@@ -81,15 +69,17 @@ namespace RealmEngine
         m_light_space_matrix = light_proj * light_view;
         m_shadow_enabled     = true;
 
-        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+        const auto& objects = ctx.scene->getRenderObjects();
+        const auto& matrices = ctx.scene->getRenderModelMatrices();
+        for (size_t i = 0; i < objects.size(); ++i)
         {
-            auto&     ro    = ctx.scene->m_render_objects[i];
-            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
+            auto&     ro    = *objects[i];
+            glm::mat4 model = (i < matrices.size()) ? matrices[i] :
                                                                                 glm::mat4(1.0f);
 
             m_shader->setMat4("lightSpaceMatrix", m_light_space_matrix);
             m_shader->setMat4("model", model);
-            ro->drawShadow(*m_shader);
+            ro.drawShadow(*m_shader);
         }
 
         ctx.device->setCullFace(CullFace::Back);

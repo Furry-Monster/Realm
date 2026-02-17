@@ -65,12 +65,12 @@ namespace RealmEngine
         // Upload light data for the bake shader
         if (m_light_ssbo)
         {
-            size_t    count   = std::min(scene.m_lights.size(), MAX_LIGHTS);
+            size_t    count   = std::min(scene.getLights().size(), MAX_LIGHTS);
             int       count_i = static_cast<int>(count);
             LightData data[MAX_LIGHTS] {};
             for (size_t i = 0; i < count; ++i)
             {
-                auto& l             = scene.m_lights[i];
+                auto& l             = scene.getLights()[i];
                 data[i].position    = glm::vec4(l.position, static_cast<float>(static_cast<int>(l.type)));
                 data[i].direction   = glm::vec4(l.direction, l.intensity);
                 data[i].color       = glm::vec4(l.color, l.constant);
@@ -114,14 +114,15 @@ namespace RealmEngine
             m_device.clear(ClearFlags::Color | ClearFlags::Depth);
             m_device.setDepthTest(true);
 
-            for (size_t i = 0; i < scene.m_render_objects.size(); ++i)
+            const auto& objects  = scene.getRenderObjects();
+            const auto& matrices = scene.getRenderModelMatrices();
+            for (size_t i = 0; i < objects.size(); ++i)
             {
-                auto&     ro    = scene.m_render_objects[i];
-                glm::mat4 model = (i < scene.m_render_model_matrices.size())
-                                      ? scene.m_render_model_matrices[i]
+                auto&     ro    = *objects[i];
+                glm::mat4 model = (i < matrices.size()) ? matrices[i]
                                       : glm::mat4(1.0f);
                 m_shader->setMVP(model, views[face], projection);
-                ro->drawShadow(*m_shader);
+                ro.drawShadow(*m_shader);
             }
         }
 

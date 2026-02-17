@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <cstring>
 #include <string>
 
@@ -25,34 +24,6 @@ namespace RealmEngine
     inline std::string xorDecrypt(const std::string& encrypted_data, const std::string& key)
     {
         return xorEncrypt(encrypted_data, key);
-    }
-
-    inline constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
-    inline constexpr uint32_t FNV_PRIME        = 16777619u;
-
-    inline uint32_t hashString(const std::string& str)
-    {
-        uint32_t hash = FNV_OFFSET_BASIS;
-        for (char c : str)
-        {
-            hash ^= static_cast<uint32_t>(c);
-            hash *= FNV_PRIME;
-        }
-        return hash;
-    }
-
-    inline constexpr uint64_t FNV_OFFSET_BASIS_64 = 14695981039346656037ull;
-    inline constexpr uint64_t FNV_PRIME_64        = 1099511628211ull;
-
-    inline uint64_t hashString64(const std::string& str)
-    {
-        uint64_t hash = FNV_OFFSET_BASIS_64;
-        for (char c : str)
-        {
-            hash ^= static_cast<uint64_t>(c);
-            hash *= FNV_PRIME_64;
-        }
-        return hash;
     }
 
     inline std::string base64Encode(const std::string& data)
@@ -102,24 +73,6 @@ namespace RealmEngine
             }
         }
         return result;
-    }
-
-    inline std::string obfuscateString(const std::string& str, uint32_t seed = 0x12345678)
-    {
-        std::string result;
-        result.reserve(str.size());
-        for (char i : str)
-        {
-            seed = seed * 1103515245 + 12345;
-            result += static_cast<char>(static_cast<unsigned char>(i) ^ (seed & 0xFF));
-        }
-        return result;
-    }
-
-    // XOR-based obfuscation is self-inverse
-    inline std::string deobfuscateString(const std::string& obfuscated, uint32_t seed = 0x12345678)
-    {
-        return obfuscateString(obfuscated, seed);
     }
 
 } // namespace RealmEngine

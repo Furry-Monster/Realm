@@ -73,10 +73,18 @@ namespace RealmEngine
 
         LightProbeBaker* getLightProbeBaker() const { return m_probe_baker.get(); }
 
-        RHITexture* getGBufferAlbedoModelID() const;
-        RHITexture* getGBufferNormalMetallic() const;
-        RHITexture* getGBufferEmissiveRoughness() const;
-        RHITexture* getGBufferDepth() const;
+        enum class GBufferSlot
+        {
+            AlbedoModelID,
+            NormalMetallic,
+            EmissiveRoughness,
+            Depth
+        };
+        RHITexture* getGBufferTexture(GBufferSlot slot) const;
+        RHITexture* getGBufferAlbedoModelID() const { return getGBufferTexture(GBufferSlot::AlbedoModelID); }
+        RHITexture* getGBufferNormalMetallic() const { return getGBufferTexture(GBufferSlot::NormalMetallic); }
+        RHITexture* getGBufferEmissiveRoughness() const { return getGBufferTexture(GBufferSlot::EmissiveRoughness); }
+        RHITexture* getGBufferDepth() const { return getGBufferTexture(GBufferSlot::Depth); }
 
     private:
         void buildForwardPipeline(ConfigManager& config);

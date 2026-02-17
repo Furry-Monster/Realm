@@ -129,12 +129,12 @@ namespace RealmEngine
 
         // Upload light data
         {
-            size_t    count   = std::min(ctx.scene->m_lights.size(), MAX_LIGHTS);
+            size_t    count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
             int       count_i = static_cast<int>(count);
             LightData data[MAX_LIGHTS] {};
             for (size_t i = 0; i < count; ++i)
             {
-                auto& l             = ctx.scene->m_lights[i];
+                auto& l             = ctx.scene->getLights()[i];
                 data[i].position    = glm::vec4(l.position, static_cast<float>(static_cast<int>(l.type)));
                 data[i].direction   = glm::vec4(l.direction, l.intensity);
                 data[i].color       = glm::vec4(l.color, l.constant);
@@ -178,16 +178,17 @@ namespace RealmEngine
         };
         std::vector<DrawCmd> commands;
 
-        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+        const auto& objects  = ctx.scene->getRenderObjects();
+        const auto& matrices = ctx.scene->getRenderModelMatrices();
+        for (size_t i = 0; i < objects.size(); ++i)
         {
-            auto& ro = ctx.scene->m_render_objects[i];
-            if (!ro)
+            if (!objects[i])
                 continue;
 
-            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
-                                                                                glm::mat4(1.0f);
+            auto&     ro    = *objects[i];
+            glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
 
-            ro->forEachMesh([&](RenderMesh& mesh) {
+            ro.forEachMesh([&](RenderMesh& mesh) {
                 if (mesh.m_material.isTransparent())
                     return;
 

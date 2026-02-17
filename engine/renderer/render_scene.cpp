@@ -289,4 +289,14 @@ namespace RealmEngine
         }
     }
 
+    std::optional<std::reference_wrapper<const Light>> RenderScene::findDirectionalLight() const
+    {
+        for (const Light& light : m_lights)
+        {
+            if (light.type == LightType::Directional)
+                return std::cref(light);
+        }
+        return std::nullopt;
+    }
+
 } // namespace RealmEngine

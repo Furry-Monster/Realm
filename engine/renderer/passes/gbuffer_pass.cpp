@@ -76,14 +76,15 @@ namespace RealmEngine
         glm::mat4 projection = ctx.camera->getProjMatrix();
         glm::mat4 view       = ctx.camera->getViewMatrix();
 
-        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+        const auto& objects  = ctx.scene->getRenderObjects();
+        const auto& matrices = ctx.scene->getRenderModelMatrices();
+        for (size_t i = 0; i < objects.size(); ++i)
         {
-            auto&     ro    = ctx.scene->m_render_objects[i];
-            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
-                                                                                glm::mat4(1.0f);
+            auto&     ro    = *objects[i];
+            glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
             m_shader->setMVP(model, view, projection);
 
-            ro->forEachMesh([&](RenderMesh& mesh) {
+            ro.forEachMesh([&](RenderMesh& mesh) {
                 if (!mesh.m_material.isDeferred())
                     return;
 

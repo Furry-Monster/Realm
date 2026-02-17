@@ -140,13 +140,13 @@ namespace RealmEngine
         glm::mat4 light_proj = glm::ortho(min_x, max_x, min_y, max_y, min_z, max_z);
 
         // Texel snapping: round the origin to shadow map texel grid
-        glm::mat4 shadow_matrix = light_proj * light_view;
-        glm::vec4 origin        = shadow_matrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        float     texel_size    = 2.0f * (max_x - min_x) / static_cast<float>(m_resolution);
-        origin.x = std::round(origin.x / texel_size) * texel_size;
-        origin.y = std::round(origin.y / texel_size) * texel_size;
-        glm::vec4 rounded_origin = shadow_matrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        glm::vec4 offset         = origin - rounded_origin;
+        glm::mat4 shadow_matrix   = light_proj * light_view;
+        glm::vec4 origin_ndc      = shadow_matrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        float     texel_size      = 2.0f * (max_x - min_x) / static_cast<float>(m_resolution);
+        glm::vec4 origin_rounded  = origin_ndc;
+        origin_rounded.x           = std::round(origin_ndc.x / texel_size) * texel_size;
+        origin_rounded.y          = std::round(origin_ndc.y / texel_size) * texel_size;
+        glm::vec4 offset          = origin_rounded - origin_ndc;
         light_proj[3][0] += offset.x;
         light_proj[3][1] += offset.y;
 
@@ -156,16 +156,7 @@ namespace RealmEngine
 
     void CSMShadowPass::execute(const RenderContext& ctx)
     {
-        std::optional<std::reference_wrapper<Light>> directional_light;
-        for (auto& light : ctx.scene->m_lights)
-        {
-            if (light.type == LightType::Directional)
-            {
-                directional_light = std::ref(light);
-                break;
-            }
-        }
-
+        auto directional_light = ctx.scene->findDirectionalLight();
         if (!directional_light.has_value())
         {
             m_shadow_enabled = false;
@@ -173,7 +164,7 @@ namespace RealmEngine
         }
 
         m_shadow_enabled = true;
-        Light&    light     = directional_light->get();
+        const Light& light = directional_light->get();
         glm::vec3 light_dir = glm::normalize(light.direction);
 
         computeCascadeSplits(ctx.camera->getNearPlane(), ctx.camera->getFarPlane());
@@ -195,14 +186,15 @@ namespace RealmEngine
             m_shader->use();
             m_shader->setMat4("lightSpaceMatrix", m_cascades[c].light_view_proj);
 
-            for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+            const auto& objects = ctx.scene->getRenderObjects();
+            const auto& matrices = ctx.scene->getRenderModelMatrices();
+            for (size_t i = 0; i < objects.size(); ++i)
             {
-                auto&     ro    = ctx.scene->m_render_objects[i];
-                glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size())
-                                      ? ctx.scene->m_render_model_matrices[i]
+                auto&     ro    = *objects[i];
+                glm::mat4 model = (i < matrices.size()) ? matrices[i]
                                       : glm::mat4(1.0f);
                 m_shader->setMat4("model", model);
-                ro->drawShadow(*m_shader);
+                ro.drawShadow(*m_shader);
             }
         }
 

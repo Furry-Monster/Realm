@@ -544,36 +544,26 @@ namespace RealmEngine
         return m_viewport_framebuffer ? m_viewport_framebuffer->getColorAttachment(0) : nullptr;
     }
 
-    RHITexture* Renderer::getGBufferAlbedoModelID() const
+    RHITexture* Renderer::getGBufferTexture(GBufferSlot slot) const
     {
         if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
             return nullptr;
         auto* fb = m_gbuffer_pass->getFramebuffer();
-        return fb ? fb->getColorAttachment(0) : nullptr;
-    }
-
-    RHITexture* Renderer::getGBufferNormalMetallic() const
-    {
-        if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
+        if (!fb)
             return nullptr;
-        auto* fb = m_gbuffer_pass->getFramebuffer();
-        return fb ? fb->getColorAttachment(1) : nullptr;
-    }
-
-    RHITexture* Renderer::getGBufferEmissiveRoughness() const
-    {
-        if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
-            return nullptr;
-        auto* fb = m_gbuffer_pass->getFramebuffer();
-        return fb ? fb->getColorAttachment(2) : nullptr;
-    }
-
-    RHITexture* Renderer::getGBufferDepth() const
-    {
-        if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
-            return nullptr;
-        auto* fb = m_gbuffer_pass->getFramebuffer();
-        return fb ? fb->getDepthAttachment() : nullptr;
+        switch (slot)
+        {
+            case GBufferSlot::AlbedoModelID:
+                return fb->getColorAttachment(0);
+            case GBufferSlot::NormalMetallic:
+                return fb->getColorAttachment(1);
+            case GBufferSlot::EmissiveRoughness:
+                return fb->getColorAttachment(2);
+            case GBufferSlot::Depth:
+                return fb->getDepthAttachment();
+            default:
+                return nullptr;
+        }
     }
 
     void Renderer::reloadCustomShaders()
@@ -590,8 +580,8 @@ namespace RealmEngine
 
         if (m_render_scene)
         {
-            m_render_scene->m_render_objects.clear();
-            m_render_scene->m_render_model_matrices.clear();
+            m_render_scene->getRenderObjects().clear();
+            m_render_scene->getRenderModelMatrices().clear();
         }
 
         m_scene_color_source = nullptr;
