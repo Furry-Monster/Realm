@@ -22,7 +22,7 @@ namespace RealmEngine
     class PointShadowPass final : public RenderPass
     {
     public:
-        static constexpr int MAX_POINT_SHADOWS = 4;
+        static constexpr size_t MAX_POINT_SHADOWS = 4;
 
         explicit PointShadowPass(const std::string& shader_path, int resolution = 1024);
         ~PointShadowPass() override;

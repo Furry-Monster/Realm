@@ -1,6 +1,7 @@
 #include "renderer/passes/opaque_pass.h"
 
 #include <algorithm>
+#include <cstddef>
 
 #include "renderer/light.h"
 #include "renderer/light_probe_data.h"
@@ -85,12 +86,12 @@ namespace RealmEngine
                 ctx.device->bindTexture(TEXTURE_UNIT_SHADOW_MAP, *depth);
                 shader.setInt("shadowMapArray", TEXTURE_UNIT_SHADOW_MAP);
             }
-            auto& cascades = m_shadow_pass->getCascades();
+            const auto& cascades = m_shadow_pass->getCascades();
             shader.setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
             std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
-            for (int c = 0; c < CSMShadowPass::CASCADE_COUNT; ++c)
+            for (size_t c = 0; c < static_cast<size_t>(CSMShadowPass::CASCADE_COUNT); ++c)
             {
-                shader.setMat4("cascadeVP[" + std::to_string(c) + "]", cascades[c].light_view_proj);
+                shader.setMat4("cascadeVP[" + std::to_string(static_cast<int>(c)) + "]", cascades[c].light_view_proj);
                 splits[c] = cascades[c].split_depth;
             }
             shader.setFloatArray("cascadeSplits", splits);

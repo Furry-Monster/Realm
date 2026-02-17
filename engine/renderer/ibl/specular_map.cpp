@@ -23,8 +23,8 @@ namespace RealmEngine
         m_prefilter_shader         = device.createShader(prefilter_vert, prefilter_frag);
 
         FramebufferDesc prefilter_desc;
-        prefilter_desc.width  = m_prefilter_width;
-        prefilter_desc.height = m_prefilter_height;
+        prefilter_desc.width  = PREFILTER_WIDTH;
+        prefilter_desc.height = PREFILTER_HEIGHT;
         FramebufferAttachment prefilter_color;
         prefilter_color.format                          = TextureFormat::RGB16F;
         prefilter_color.is_cubemap                      = true;
@@ -41,8 +41,8 @@ namespace RealmEngine
         m_brdf_shader         = device.createShader(brdf_vert, brdf_frag);
 
         FramebufferDesc brdf_desc;
-        brdf_desc.width  = m_brdf_width;
-        brdf_desc.height = m_brdf_height;
+        brdf_desc.width  = BRDF_WIDTH;
+        brdf_desc.height = BRDF_HEIGHT;
         FramebufferAttachment brdf_color;
         brdf_color.format                          = TextureFormat::RG16F;
         brdf_desc.color_attachments                = {brdf_color};
@@ -78,14 +78,14 @@ namespace RealmEngine
         m_prefilter_shader->setInt("environmentCubemap", 0);
         device.bindTexture(0, *m_environment_cubemap);
 
-        for (unsigned int mip = 0; mip < m_prefilter_mip_levels; mip++)
+        for (unsigned int mip = 0; mip < PREFILTER_MIP_LEVELS; mip++)
         {
             m_prefilter_framebuffer->setMipLevel(static_cast<int>(mip));
-            int w = std::max(1, m_prefilter_width >> mip);
-            int h = std::max(1, m_prefilter_height >> mip);
+            int w = std::max(1, PREFILTER_WIDTH >> mip);
+            int h = std::max(1, PREFILTER_HEIGHT >> mip);
             device.setViewport(0, 0, w, h);
 
-            float roughness = static_cast<float>(mip) / static_cast<float>(m_prefilter_mip_levels - 1);
+            float roughness = static_cast<float>(mip) / static_cast<float>(PREFILTER_MIP_LEVELS - 1);
             m_prefilter_shader->setFloat("roughness", roughness);
 
             for (int i = 0; i < 6; i++)
@@ -110,7 +110,7 @@ namespace RealmEngine
 
         m_brdf_framebuffer->bind();
         m_brdf_shader->use();
-        device.setViewport(0, 0, m_brdf_width, m_brdf_height);
+        device.setViewport(0, 0, BRDF_WIDTH, BRDF_HEIGHT);
         device.clear(ClearFlags::Color | ClearFlags::Depth);
         quad_mesh.vertex_input->draw(PrimitiveType::Triangles,
                                      static_cast<uint32_t>(PrimitiveVertices::k_fullscreen_quad_vertex_count));

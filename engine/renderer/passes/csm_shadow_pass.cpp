@@ -1,10 +1,12 @@
 #include "renderer/passes/csm_shadow_pass.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include <algorithm>
 #include <cmath>
-#include <glm/gtc/matrix_transform.hpp>
+#include <cstddef>
 #include <limits>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "renderer/light.h"
 #include "renderer/render_camera.h"
@@ -45,7 +47,7 @@ namespace RealmEngine
         float ratio = far_plane / near_plane;
 
         m_split_distances[0] = near_plane;
-        for (int i = 1; i <= CASCADE_COUNT; ++i)
+        for (size_t i = 1; i <= static_cast<size_t>(CASCADE_COUNT); ++i)
         {
             float p              = static_cast<float>(i) / static_cast<float>(CASCADE_COUNT);
             float log            = near_plane * std::pow(ratio, p);
@@ -55,7 +57,7 @@ namespace RealmEngine
         }
     }
 
-    void CSMShadowPass::computeCascadeMatrix(int              cascade_index,
+    void CSMShadowPass::computeCascadeMatrix(size_t           cascade_index,
                                              const glm::mat4& view,
                                              const glm::mat4& proj,
                                              const glm::vec3& light_dir)
@@ -166,7 +168,7 @@ namespace RealmEngine
 
         computeCascadeSplits(ctx.camera->getNearPlane(), ctx.camera->getFarPlane());
 
-        for (int c = 0; c < CASCADE_COUNT; ++c)
+        for (size_t c = 0; c < static_cast<size_t>(CASCADE_COUNT); ++c)
         {
             computeCascadeMatrix(c, ctx.camera->getViewMatrix(), ctx.camera->getProjMatrix(), light_dir);
         }
@@ -174,9 +176,9 @@ namespace RealmEngine
         m_framebuffer->bind();
         ctx.device->setCullFace(CullFace::Front);
 
-        for (int c = 0; c < CASCADE_COUNT; ++c)
+        for (size_t c = 0; c < static_cast<size_t>(CASCADE_COUNT); ++c)
         {
-            m_framebuffer->setLayer(c);
+            m_framebuffer->setLayer(static_cast<int>(c));
             ctx.device->setViewport(0, 0, m_resolution, m_resolution);
             ctx.device->clear(ClearFlags::Depth);
 

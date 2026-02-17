@@ -1,6 +1,7 @@
 #include "renderer/passes/deferred_lighting_pass.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 
 #include <glm/gtc/matrix_inverse.hpp>
@@ -164,12 +165,13 @@ namespace RealmEngine
                 ctx.device->bindTexture(TEX_UNIT_SHADOW, *shadow_depth);
                 m_shader->setInt("shadowMapArray", TEX_UNIT_SHADOW);
             }
-            auto& cascades = m_shadow_pass->getCascades();
+            const auto& cascades = m_shadow_pass->getCascades();
             m_shader->setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
             std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
-            for (int c = 0; c < CSMShadowPass::CASCADE_COUNT; ++c)
+            for (size_t c = 0; c < static_cast<size_t>(CSMShadowPass::CASCADE_COUNT); ++c)
             {
-                m_shader->setMat4("cascadeVP[" + std::to_string(c) + "]", cascades[c].light_view_proj);
+                m_shader->setMat4("cascadeVP[" + std::to_string(static_cast<int>(c)) + "]",
+                                  cascades[c].light_view_proj);
                 splits[c] = cascades[c].split_depth;
             }
             m_shader->setFloatArray("cascadeSplits", splits);

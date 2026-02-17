@@ -169,18 +169,18 @@ namespace RealmEngine
         auto& props = mat.properties;
 
         // Shading Model
-        static const char* shading_names[] = {"Standard PBR", "Unlit", "Custom"};
-        int                sm              = static_cast<int>(mat.shading_model);
-        if (ImGui::Combo("Shading Model", &sm, shading_names, IM_ARRAYSIZE(shading_names)))
+        static const char* s_shading_names[] = {"Standard PBR", "Unlit", "Custom"};
+        int                sm                = static_cast<int>(mat.shading_model);
+        if (ImGui::Combo("Shading Model", &sm, s_shading_names, IM_ARRAYSIZE(s_shading_names)))
         {
             mat.shading_model = static_cast<ShadingModel>(sm);
             scene->markDirty();
         }
 
         // Blend Mode
-        static const char* blend_names[] = {"Opaque", "Alpha Test", "Transparent"};
-        int                bm            = static_cast<int>(mat.blend_mode);
-        if (ImGui::Combo("Blend Mode", &bm, blend_names, IM_ARRAYSIZE(blend_names)))
+        static const char* s_blend_names[] = {"Opaque", "Alpha Test", "Transparent"};
+        int                bm              = static_cast<int>(mat.blend_mode);
+        if (ImGui::Combo("Blend Mode", &bm, s_blend_names, IM_ARRAYSIZE(s_blend_names)))
         {
             mat.blend_mode = static_cast<BlendMode>(bm);
             scene->markDirty();
@@ -196,9 +196,9 @@ namespace RealmEngine
         }
 
         // Render Face
-        static const char* face_names[] = {"Front", "Back", "Both"};
-        int                rf           = static_cast<int>(mat.render_face);
-        if (ImGui::Combo("Render Face", &rf, face_names, IM_ARRAYSIZE(face_names)))
+        static const char* s_face_names[] = {"Front", "Back", "Both"};
+        int                rf             = static_cast<int>(mat.render_face);
+        if (ImGui::Combo("Render Face", &rf, s_face_names, IM_ARRAYSIZE(s_face_names)))
         {
             mat.render_face = static_cast<RenderFace>(rf);
             scene->markDirty();
@@ -329,7 +329,7 @@ namespace RealmEngine
             ImGui::Separator();
             ImGui::Text("Properties");
 
-            static const char* type_names[] = {"Bool", "Float", "Int", "Vec2", "Vec3", "Vec4", "Texture2D"};
+            static const char* s_type_names[] = {"Bool", "Float", "Int", "Vec2", "Vec3", "Vec4", "Texture2D"};
 
             auto& all_props = props.getProperties();
             for (size_t p = 0; p < all_props.size(); ++p)
@@ -354,7 +354,7 @@ namespace RealmEngine
 
                 int type_idx = static_cast<int>(prop.type);
                 ImGui::SetNextItemWidth(80);
-                if (ImGui::Combo("##type", &type_idx, type_names, IM_ARRAYSIZE(type_names)))
+                if (ImGui::Combo("##type", &type_idx, s_type_names, IM_ARRAYSIZE(s_type_names)))
                 {
                     prop.type = static_cast<PropType>(type_idx);
                     scene->markDirty();

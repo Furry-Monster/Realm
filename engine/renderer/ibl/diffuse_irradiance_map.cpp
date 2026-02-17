@@ -27,8 +27,8 @@ namespace RealmEngine
             return;
 
         FramebufferDesc desc;
-        desc.width  = m_width;
-        desc.height = m_height;
+        desc.width  = WIDTH;
+        desc.height = HEIGHT;
         FramebufferAttachment color;
         color.format                          = TextureFormat::RGB16F;
         color.is_cubemap                      = true;
@@ -61,7 +61,7 @@ namespace RealmEngine
 
         auto cube_mesh = createIblCubeMesh(device);
 
-        device.setViewport(0, 0, m_width, m_height);
+        device.setViewport(0, 0, WIDTH, HEIGHT);
         m_framebuffer->bind();
         m_shader->use();
         m_shader->setInt("environmentCubemap", 0);

@@ -26,8 +26,8 @@ namespace RealmEngine
         m_hdri_cube = std::make_unique<HDRICube>(device, hdri_path);
 
         FramebufferDesc desc;
-        desc.width  = m_cubemap_width;
-        desc.height = m_cubemap_height;
+        desc.width  = WIDTH;
+        desc.height = HEIGHT;
         FramebufferAttachment color;
         color.format                          = TextureFormat::RGB16F;
         color.is_cubemap                      = true;
@@ -59,7 +59,7 @@ namespace RealmEngine
                                      glm::lookAt(origin, -unit_z, -unit_y)};
         glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
 
-        device.setViewport(0, 0, m_cubemap_width, m_cubemap_height);
+        device.setViewport(0, 0, WIDTH, HEIGHT);
         m_framebuffer->bind();
         m_hdri_shader->use();
 

@@ -19,8 +19,8 @@ namespace RealmEngine
         RHITexture* getCubemapTexture() const;
 
     private:
-        static constexpr int m_width  = 32;
-        static constexpr int m_height = 32;
+        static constexpr int WIDTH  = 32;
+        static constexpr int HEIGHT = 32;
 
         RHITexture*                     m_environment_cubemap;
         std::unique_ptr<RHIShader>      m_shader;

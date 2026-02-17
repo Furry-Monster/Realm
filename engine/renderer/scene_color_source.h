@@ -4,7 +4,10 @@ namespace RealmEngine
 {
     class RHIFramebuffer;
 
-    // Abstraction over the pass that produces the main HDR scene color + depth.
+    /**
+     * @brief
+     * Abstraction over the pass that produces the main HDR scene color + depth.
+     */
     class SceneColorSource
     {
     public:

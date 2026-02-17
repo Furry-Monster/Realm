@@ -38,7 +38,7 @@ namespace RealmEngine
 
     private:
         void computeCascadeSplits(float near_plane, float far_plane);
-        void computeCascadeMatrix(int              cascade_index,
+        void computeCascadeMatrix(size_t           cascade_index,
                                   const glm::mat4& view,
                                   const glm::mat4& proj,
                                   const glm::vec3& light_dir);

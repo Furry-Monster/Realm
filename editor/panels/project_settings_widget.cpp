@@ -73,9 +73,9 @@ namespace RealmEngine
 
         bool changed = false;
         {
-            static const char* pipelineModeLabels[] = {"Forward", "Deferred"};
-            int                pipeline_idx         = static_cast<int>(copy.pipeline_mode);
-            if (ImGui::Combo("Pipeline Mode", &pipeline_idx, pipelineModeLabels, 2))
+            static const char* s_pipeline_mode_labels[] = {"Forward", "Deferred"};
+            int                pipeline_idx             = static_cast<int>(copy.pipeline_mode);
+            if (ImGui::Combo("Pipeline Mode", &pipeline_idx, s_pipeline_mode_labels, 2))
             {
                 copy.pipeline_mode = static_cast<PipelineMode>(pipeline_idx);
                 changed            = true;
@@ -118,9 +118,9 @@ namespace RealmEngine
             changed |= ImGui::DragFloat("Bloom Intensity", &copy.bloom_intensity, 0.1f, 0.0f, 10.0f);
             changed |= ImGui::DragInt("Bloom Iterations", &copy.bloom_iterations, 1, 1, 32);
             {
-                static const char* bloomDirLabels[] = {"Both", "Horizontal", "Vertical"};
-                int                dir_idx          = copy.bloom_direction;
-                if (ImGui::Combo("Bloom Direction", &dir_idx, bloomDirLabels, 3))
+                static const char* s_bloom_dir_labels[] = {"Both", "Horizontal", "Vertical"};
+                int                dir_idx              = copy.bloom_direction;
+                if (ImGui::Combo("Bloom Direction", &dir_idx, s_bloom_dir_labels, 3))
                 {
                     copy.bloom_direction = dir_idx;
                     changed              = true;

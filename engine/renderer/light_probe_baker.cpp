@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "renderer/light.h"
@@ -196,7 +197,7 @@ namespace RealmEngine
 
                     glm::vec3 color = m_pixel_buffer[face * res * res + y * res + x];
 
-                    for (int k = 0; k < 9; ++k)
+                    for (size_t k = 0; k < 9; ++k)
                         coeffs[k] += color * basis[k](dir) * solid_angle;
                 }
             }
@@ -206,7 +207,7 @@ namespace RealmEngine
         static constexpr float PI     = 3.14159265358979323846f;
         static constexpr float A_l[3] = {PI, 2.0f * PI / 3.0f, PI / 4.0f};
 
-        for (int k = 0; k < 9; ++k)
+        for (size_t k = 0; k < 9; ++k)
         {
             int band = (k < 1) ? 0 : (k < 4) ? 1 : 2;
             coeffs[k] *= A_l[band];

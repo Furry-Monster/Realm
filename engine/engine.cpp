@@ -231,15 +231,15 @@ namespace RealmEngine
         stats.triangle_count = m_renderer->getRenderScene()->getTriangleCount();
 
         // Throttle RSS syscall to ~1Hz
-        static double rss_accumulator = 0.0;
-        static size_t cached_rss      = 0;
-        rss_accumulator += m_delta_time;
-        if (rss_accumulator >= 1.0)
+        static double s_rss_accumulator = 0.0;
+        static size_t s_cached_rss      = 0;
+        s_rss_accumulator += m_delta_time;
+        if (s_rss_accumulator >= 1.0)
         {
-            cached_rss      = PlatformInfo::getProcessRSSKB();
-            rss_accumulator = 0.0;
+            s_cached_rss      = PlatformInfo::getProcessRSSKB();
+            s_rss_accumulator = 0.0;
         }
-        stats.memory_rss_kb = cached_rss;
+        stats.memory_rss_kb = s_cached_rss;
 
         EditorConsole::instance().setFrameStats(stats);
     }

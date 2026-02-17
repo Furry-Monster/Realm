@@ -9,6 +9,7 @@
 #include "core/log/log_macros.h"
 #include "resource/config_manager.h"
 
+#include <cstddef>
 #include <string>
 
 namespace RealmEngine
@@ -88,7 +89,7 @@ namespace RealmEngine
         if (self && self->event_bus)
         {
             DropEvent event;
-            event.paths.reserve(count);
+            event.paths.reserve(static_cast<size_t>(count));
             for (int i = 0; i < count; ++i)
                 event.paths.emplace_back(paths[i]);
             self->event_bus->publish(event);
@@ -172,7 +173,7 @@ namespace RealmEngine
         m_impl->handle.reset(raw);
         glfwMakeContextCurrent(m_impl->handle.get());
 
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
         {
             m_impl->handle.reset();
             glfwTerminate();

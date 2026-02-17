@@ -22,7 +22,7 @@ namespace RealmEngine
     class SpotShadowPass final : public RenderPass
     {
     public:
-        static constexpr int MAX_SPOT_SHADOWS = 4;
+        static constexpr size_t MAX_SPOT_SHADOWS = 4;
 
         explicit SpotShadowPass(const std::string& shader_path, int resolution = 1024);
         ~SpotShadowPass() override;

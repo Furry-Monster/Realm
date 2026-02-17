@@ -20,8 +20,8 @@ namespace RealmEngine
 
     const char* MenuBarWidget::panelShortcut(size_t one_based_index)
     {
-        static const char* shortcuts[] = {nullptr, "F1", "F2", "F3", "F4", "F5", "F6"};
-        return (one_based_index >= 1 && one_based_index <= 6) ? shortcuts[one_based_index] : nullptr;
+        static const char* s_shortcuts[] = {nullptr, "F1", "F2", "F3", "F4", "F5", "F6"};
+        return (one_based_index >= 1 && one_based_index <= 6) ? s_shortcuts[one_based_index] : nullptr;
     }
 
     void MenuBarWidget::render()

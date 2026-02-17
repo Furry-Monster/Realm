@@ -21,8 +21,8 @@ namespace RealmEngine
         RHITexture* getCubemapTexture() const;
 
     private:
-        static constexpr int m_cubemap_width  = 512;
-        static constexpr int m_cubemap_height = 512;
+        static constexpr int WIDTH  = 512;
+        static constexpr int HEIGHT = 512;
 
         std::unique_ptr<RHIShader>      m_hdri_shader;
         std::unique_ptr<HDRICube>       m_hdri_cube;

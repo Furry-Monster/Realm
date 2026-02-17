@@ -1,6 +1,7 @@
 #include "renderer/passes/point_shadow_pass.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "renderer/light.h"
@@ -24,7 +25,7 @@ namespace RealmEngine
                                        m_shader_path + "/builtin/shadow_point.geom",
                                        m_shader_path + "/builtin/shadow_point.frag");
 
-        for (int i = 0; i < MAX_POINT_SHADOWS; ++i)
+        for (size_t i = 0; i < MAX_POINT_SHADOWS; ++i)
         {
             FramebufferDesc desc;
             desc.width  = m_resolution;
@@ -73,7 +74,7 @@ namespace RealmEngine
         glm::vec3   cam_pos = ctx.camera->getPosition();
         for (size_t i = 0; i < lights.size(); ++i)
         {
-            auto& light = lights[i];
+            const auto& light = lights[i];
             if (light.type != LightType::Point)
                 continue;
             float dist = glm::length(light.position - cam_pos);
@@ -84,9 +85,9 @@ namespace RealmEngine
             return a.distance < b.distance;
         });
 
-        int shadow_count = std::min(static_cast<int>(candidates.size()), MAX_POINT_SHADOWS);
+        size_t shadow_count = std::min(candidates.size(), MAX_POINT_SHADOWS);
 
-        for (int s = 0; s < shadow_count; ++s)
+        for (size_t s = 0; s < shadow_count; ++s)
         {
             auto& c = candidates[s];
 
@@ -144,7 +145,7 @@ namespace RealmEngine
     RHIFramebuffer* PointShadowPass::getFramebuffer(int index) const
     {
         if (index >= 0 && index < static_cast<int>(m_framebuffers.size()))
-            return m_framebuffers[index].get();
+            return m_framebuffers[static_cast<size_t>(index)].get();
         return nullptr;
     }
 

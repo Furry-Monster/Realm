@@ -80,9 +80,9 @@ namespace RealmEngine
         }
         io.FontGlobalScale = m_context->getPreferences().font_scale;
 
-        static std::string ini_path_storage;
-        ini_path_storage = (m_bridge->getConfigRootFolder() / "imgui.ini").string();
-        io.IniFilename   = ini_path_storage.c_str();
+        static std::string s_ini_path_storage;
+        s_ini_path_storage = (m_bridge->getConfigRootFolder() / "imgui.ini").string();
+        io.IniFilename     = s_ini_path_storage.c_str();
 
         ImGuiStyle& style = ImGui::GetStyle();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

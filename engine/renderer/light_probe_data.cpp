@@ -5,6 +5,8 @@
 #include "scene/components/world_transform.h"
 #include "scene/scene.h"
 
+#include <cstddef>
+
 namespace RealmEngine
 {
     void LightProbeGPUData::collectFromScene(Scene& scene)
@@ -33,7 +35,7 @@ namespace RealmEngine
             ProbeInfo info {};
             info.position_radius = glm::vec4(position, lp.influence_radius);
 
-            for (int i = 0; i < 9; ++i)
+            for (size_t i = 0; i < 9; ++i)
                 info.sh[i] = glm::vec4(lp.sh_coefficients[i], 0.0f);
 
             probes.push_back(info);
