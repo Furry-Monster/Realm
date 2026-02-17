@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <entt/entity/entity.hpp>
 #include <functional>
 #include <memory>

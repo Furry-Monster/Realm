@@ -145,8 +145,9 @@ namespace RealmEngine
                 return nullptr;
             }
 
-            std::vector<unsigned char> ldr_data(static_cast<size_t>(width) * height * 4);
-            for (int i = 0; i < width * height * 4; ++i)
+            const size_t               ldr_data_size = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
+            std::vector<unsigned char> ldr_data(ldr_data_size);
+            for (size_t i = 0; i < ldr_data_size; ++i)
             {
                 float v     = data[i];
                 v           = v / (1.0f + v);

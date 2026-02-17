@@ -495,12 +495,13 @@ namespace RealmEngine
             }
             else
             {
-                width        = static_cast<int>(embedded->mWidth);
-                height       = static_cast<int>(embedded->mHeight);
-                num_channels = 4;
-                raw_data.resize(static_cast<size_t>(width) * height * 4);
+                width             = static_cast<int>(embedded->mWidth);
+                height            = static_cast<int>(embedded->mHeight);
+                num_channels      = 4;
+                size_t resolution = static_cast<size_t>(width) * static_cast<size_t>(height);
+                raw_data.resize(resolution * 4);
                 const aiTexel* src = embedded->pcData;
-                for (int i = 0; i < width * height; ++i)
+                for (size_t i = 0; i < resolution; ++i)
                 {
                     raw_data[i * 4 + 0] = src[i].r;
                     raw_data[i * 4 + 1] = src[i].g;

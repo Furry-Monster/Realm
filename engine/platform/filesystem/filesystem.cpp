@@ -38,7 +38,7 @@ namespace RealmEngine
         RE_LOG_WARN("readlink(/proc/self/exe) failed, falling back to cwd");
 #elif defined(_WIN32)
         wchar_t buffer[MAX_PATH];
-        DWORD   len = GetModuleFileNameW(NULL, buffer, MAX_PATH);
+        DWORD   len = GetModuleFileNameW(nullptr, buffer, MAX_PATH);
         if (len > 0 && len < MAX_PATH)
             return std::filesystem::path(buffer);
 
@@ -46,7 +46,7 @@ namespace RealmEngine
         if (len == MAX_PATH || GetLastError() == ERROR_INSUFFICIENT_BUFFER)
         {
             std::vector<wchar_t> big_buffer(32768);
-            len = GetModuleFileNameW(NULL, big_buffer.data(), static_cast<DWORD>(big_buffer.size()));
+            len = GetModuleFileNameW(nullptr, big_buffer.data(), static_cast<DWORD>(big_buffer.size()));
             if (len > 0 && len < big_buffer.size())
                 return std::filesystem::path(big_buffer.data(), big_buffer.data() + len);
         }
