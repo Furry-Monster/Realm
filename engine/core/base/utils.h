@@ -6,8 +6,7 @@
 
 namespace RealmEngine
 {
-    // XOR encryption key
-    static constexpr const char* DEFAULT_ENCRYPTION_KEY = "Elysia";
+    inline constexpr const char* DEFAULT_ENCRYPTION_KEY = "Elysia";
 
     inline std::string xorEncrypt(const std::string& data, const std::string& key)
     {
@@ -28,9 +27,8 @@ namespace RealmEngine
         return xorEncrypt(encrypted_data, key);
     }
 
-    // FNV-1a hash constants
-    static constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
-    static constexpr uint32_t FNV_PRIME        = 16777619u;
+    inline constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
+    inline constexpr uint32_t FNV_PRIME        = 16777619u;
 
     inline uint32_t hashString(const std::string& str)
     {
@@ -43,8 +41,8 @@ namespace RealmEngine
         return hash;
     }
 
-    static constexpr uint64_t FNV_OFFSET_BASIS_64 = 14695981039346656037ull;
-    static constexpr uint64_t FNV_PRIME_64        = 1099511628211ull;
+    inline constexpr uint64_t FNV_OFFSET_BASIS_64 = 14695981039346656037ull;
+    inline constexpr uint64_t FNV_PRIME_64        = 1099511628211ull;
 
     inline uint64_t hashString64(const std::string& str)
     {

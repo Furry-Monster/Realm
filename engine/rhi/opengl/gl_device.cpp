@@ -31,6 +31,14 @@ namespace RealmEngine
         // driver warning when unit 0 has default texture; harmless with proper fallback sampling
         if (id == 131204 && message && std::strstr(message, "defined base level"))
             return;
+        // Suppress 131170 "driver allocated storage for renderbuffer" - informational only
+        if (id == 131169)
+            return;
+        // Suppress 131218 "vertex shader recompiled based on GL state" - driver quirk;
+        // we bind VAO before glUseProgram; some recompilation may still occur with FBO/cascade switches
+        if (id == 131218 && message && std::strstr(message, "recompiled"))
+            return;
+
 
         std::string src_str;
         switch (source)

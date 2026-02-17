@@ -11,17 +11,12 @@ namespace RealmEngine
         IblFullscreenQuadMesh mesh;
     };
 
-    FullscreenQuad::FullscreenQuad(RHIDevice& device)
+    FullscreenQuad::FullscreenQuad(RHIDevice& device) : m_impl(std::make_unique<Impl>())
     {
-        m_impl       = new Impl;
         m_impl->mesh = createIblFullscreenQuadMesh(device);
     }
 
-    FullscreenQuad::~FullscreenQuad()
-    {
-        delete m_impl;
-        m_impl = nullptr;
-    }
+    FullscreenQuad::~FullscreenQuad() = default;
 
     void FullscreenQuad::draw() const
     {

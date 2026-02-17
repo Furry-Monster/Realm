@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "renderer/light.h"
-#include "renderer/material.h"
 #include "renderer/light_probe_data.h"
 #include "renderer/material.h"
 #include "renderer/passes/csm_shadow_pass.h"
