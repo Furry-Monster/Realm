@@ -207,6 +207,21 @@ class BuildConfig:
         except:
             return "utf-8"
 
+    def get_build_output_encoding(self) -> Optional[str]:
+        if self.platform != Platform.WINDOWS:
+            return None
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+            cp = kernel32.GetConsoleOutputCP()
+            if cp == 0:
+                return "gbk"
+            if cp == 65001:
+                return "utf-8"
+            return f"cp{cp}"
+        except Exception:
+            return "gbk"
+
     def run_command(
         self,
         cmd: List[str],

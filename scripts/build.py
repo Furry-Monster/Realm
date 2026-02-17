@@ -72,8 +72,7 @@ class Builder:
         if verbose:
             cmd.append("-DCMAKE_VERBOSE_MAKEFILE=ON")
 
-        # Run CMake 
-        build_enc = "gbk" if self.config.platform == Platform.WINDOWS else None
+        build_enc = self.config.get_build_output_encoding()
         try:
             if verbose:
                 result = self.config.run_command(
@@ -131,7 +130,7 @@ class Builder:
                 cmd.extend(["-j", str(jobs)])
 
         # Run build
-        build_enc = "gbk" if self.config.platform == Platform.WINDOWS else None
+        build_enc = self.config.get_build_output_encoding()
         try:
             if verbose:
                 result = self.config.run_command(
