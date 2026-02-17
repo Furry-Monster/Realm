@@ -27,10 +27,11 @@ namespace RealmEngine
     static constexpr int TEX_UNIT_G_NORMAL_METALLIC = 1;
     static constexpr int TEX_UNIT_G_EMISSIVE_ROUGH  = 2;
     static constexpr int TEX_UNIT_G_DEPTH           = 3;
-    static constexpr int TEX_UNIT_SHADOW            = 4;
-    static constexpr int TEX_UNIT_IBL_DIFFUSE       = 5;
-    static constexpr int TEX_UNIT_IBL_PREFILTERED   = 6;
-    static constexpr int TEX_UNIT_IBL_BRDF          = 7;
+    static constexpr int TEX_UNIT_G_AO              = 4;
+    static constexpr int TEX_UNIT_SHADOW            = 5;
+    static constexpr int TEX_UNIT_IBL_DIFFUSE       = 6;
+    static constexpr int TEX_UNIT_IBL_PREFILTERED   = 7;
+    static constexpr int TEX_UNIT_IBL_BRDF         = 8;
 
     DeferredLightingPass::~DeferredLightingPass() = default;
 
@@ -87,9 +88,10 @@ namespace RealmEngine
         auto* albedo_ao   = gbuf->getColorAttachment(0);
         auto* normal_met  = gbuf->getColorAttachment(1);
         auto* emiss_rough = gbuf->getColorAttachment(2);
+        auto* ao_tex      = gbuf->getColorAttachment(3);
         auto* depth_tex   = gbuf->getDepthAttachment();
 
-        if (!albedo_ao || !normal_met || !emiss_rough || !depth_tex)
+        if (!albedo_ao || !normal_met || !emiss_rough || !ao_tex || !depth_tex)
             return;
 
         ctx.device->bindTexture(TEX_UNIT_G_ALBEDO_MODEL_ID, *albedo_ao);
@@ -100,6 +102,9 @@ namespace RealmEngine
 
         ctx.device->bindTexture(TEX_UNIT_G_EMISSIVE_ROUGH, *emiss_rough);
         m_shader->setInt("gEmissiveRoughness", TEX_UNIT_G_EMISSIVE_ROUGH);
+
+        ctx.device->bindTexture(TEX_UNIT_G_AO, *ao_tex);
+        m_shader->setInt("gAO", TEX_UNIT_G_AO);
 
         ctx.device->bindTexture(TEX_UNIT_G_DEPTH, *depth_tex);
         m_shader->setInt("gDepth", TEX_UNIT_G_DEPTH);

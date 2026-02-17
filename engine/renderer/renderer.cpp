@@ -352,7 +352,7 @@ namespace RealmEngine
         }
         else
         {
-            // G-Buffer: 3 color RTs + Depth
+            // G-Buffer: 4 color RTs (albedo+modelID, normal+metallic, emissive+roughness, ao) + Depth
             {
                 FramebufferDesc desc;
                 desc.width  = width;
@@ -364,7 +364,7 @@ namespace RealmEngine
                 rt.mag_filter = TextureFilter::Nearest;
                 rt.wrap       = TextureWrap::ClampToEdge;
 
-                desc.color_attachments                = {rt, rt, rt};
+                desc.color_attachments                = {rt, rt, rt, rt};
                 desc.has_depth                        = true;
                 desc.depth_attachment.format          = TextureFormat::Depth24Stencil8;
                 desc.depth_attachment.is_renderbuffer = false;

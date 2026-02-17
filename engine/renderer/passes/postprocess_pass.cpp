@@ -91,13 +91,13 @@ namespace RealmEngine
         m_shader->setFloat("bloomIntensity", bloom_intensity);
         m_shader->setInt("bloomMaxMip", m_bloom_pass ? m_bloom_pass->getMaxMipLevel() : 0);
 
-        m_shader->setBool("ssaoEnabled", ao_on);
-        m_shader->setFloat("ssaoPower", m_ao_power);
-        m_shader->setFloat("ssaoIntensity", m_ao_intensity);
+        m_shader->setBool("aoEnabled", ao_on);
+        m_shader->setFloat("aoPower", m_ao_power);
+        m_shader->setFloat("aoIntensity", m_ao_intensity);
         if (ao_on)
         {
             ctx.device->bindTexture(2, *ao_tex);
-            m_shader->setInt("ssaoTexture", 2);
+            m_shader->setInt("aoTexture", 2);
         }
         if (depth_tex && (ao_on || display_mode == 8))
         {

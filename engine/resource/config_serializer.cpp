@@ -188,9 +188,6 @@ namespace RealmEngine
         json["bloom_iterations"]        = renderer.bloom_iterations;
         json["bloom_direction"]         = renderer.bloom_direction;
         json["bloom_brightness_cutoff"] = renderer.bloom_brightness_cutoff;
-        json["sss_enabled"]             = renderer.sss_enabled;
-        json["sss_radius"]              = renderer.sss_radius;
-        json["sss_samples"]             = renderer.sss_samples;
         json["tonemapping_enabled"]     = renderer.tonemapping_enabled;
         json["gamma_correction_factor"] = renderer.gamma_correction_factor;
         json["hdri_path"]               = renderer.hdri_path;
@@ -290,12 +287,6 @@ namespace RealmEngine
             renderer.bloom_direction = json["bloom_direction"].get<int>();
         if (json.contains("bloom_brightness_cutoff"))
             renderer.bloom_brightness_cutoff = json["bloom_brightness_cutoff"].get<float>();
-        if (json.contains("sss_enabled"))
-            renderer.sss_enabled = json["sss_enabled"].get<bool>();
-        if (json.contains("sss_radius"))
-            renderer.sss_radius = json["sss_radius"].get<float>();
-        if (json.contains("sss_samples"))
-            renderer.sss_samples = json["sss_samples"].get<int>();
         if (json.contains("tonemapping_enabled"))
             renderer.tonemapping_enabled = json["tonemapping_enabled"].get<bool>();
         if (json.contains("gamma_correction_factor"))

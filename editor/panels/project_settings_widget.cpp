@@ -129,10 +129,6 @@ namespace RealmEngine
             changed |= ImGui::DragFloat("Bloom Brightness Cutoff", &copy.bloom_brightness_cutoff, 0.1f, 0.0f, 10.0f);
             changed |= ImGui::Checkbox("Tonemapping", &copy.tonemapping_enabled);
             changed |= ImGui::DragFloat("Gamma", &copy.gamma_correction_factor, 0.1f, 1.0f, 3.0f);
-            ImGui::Separator();
-            changed |= ImGui::Checkbox("SSS", &copy.sss_enabled);
-            changed |= ImGui::DragFloat("SSS Radius", &copy.sss_radius, 0.1f, 0.1f, 10.0f);
-            changed |= ImGui::DragInt("SSS Samples", &copy.sss_samples, 1, 4, 32);
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("Environment"))

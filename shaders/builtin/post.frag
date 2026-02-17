@@ -5,25 +5,25 @@ in vec2  textureCoordinates;
 
 uniform sampler2D colorTexture;
 uniform sampler2D bloomTexture;
-uniform sampler2D ssaoTexture;
+uniform sampler2D aoTexture;
 uniform sampler2D depthTexture;
-uniform bool      ssaoEnabled;
-uniform float     ssaoPower;
-uniform float     ssaoIntensity;
+uniform bool      aoEnabled;
+uniform float     aoPower;
+uniform float     aoIntensity;
 uniform bool      bloomEnabled;
 uniform float     bloomIntensity;
 uniform int       bloomMaxMip;
 uniform bool      tonemappingEnabled;
 uniform float     gammaCorrectionFactor;
 
-// 0=lit, 7=ssao, 8=depth (modes 1-6 from geometry pass)
+// 0=lit, 7=ao, 8=depth (modes 1-6 from geometry pass)
 uniform int displayMode;
 
 void main()
 {
     if (displayMode == 7)
     {
-        float ao = texture(ssaoTexture, textureCoordinates).r;
+        float ao = texture(aoTexture, textureCoordinates).r;
         FragColor = vec4(vec3(ao), 1.0);
         return;
     }
@@ -36,14 +36,14 @@ void main()
 
     vec3 color = texture(colorTexture, textureCoordinates).rgb;
 
-    if (ssaoEnabled)
+    if (aoEnabled)
     {
         // AO factor: mix(1, ao^power, intensity) to avoid over-darkening
         float depth = texture(depthTexture, textureCoordinates).r;
-        float ao    = texture(ssaoTexture, textureCoordinates).r;
+        float ao    = texture(aoTexture, textureCoordinates).r;
         if (depth < 1.0)
         {
-            float aoFactor = mix(1.0, pow(ao, ssaoPower), ssaoIntensity);
+            float aoFactor = mix(1.0, pow(ao, aoPower), aoIntensity);
             color *= aoFactor;
         }
     }
