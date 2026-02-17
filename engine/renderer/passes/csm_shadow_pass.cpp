@@ -3,10 +3,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 #include <limits>
-#include <optional>
 
 #include "renderer/light.h"
 #include "renderer/render_camera.h"

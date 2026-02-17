@@ -1,10 +1,10 @@
 #include "resource/config_manager.h"
 
+#include <filesystem>
+
 #include "core/log/log_macros.h"
 #include "platform/filesystem/filesystem.h"
 #include "resource/config_serializer.h"
-
-#include <filesystem>
 
 namespace RealmEngine
 {
