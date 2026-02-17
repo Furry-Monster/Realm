@@ -184,7 +184,7 @@ namespace RealmEngine
     {
         m_input->tick();
         m_window->pollEvents();
-        m_scene->getCurrentOrNewScene()->tick(m_delta_time);
+        m_scene->getCurrentOrNewScene()->tick(static_cast<float>(m_delta_time));
     }
 
     void Engine::renderTick()
