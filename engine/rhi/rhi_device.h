@@ -33,6 +33,8 @@ namespace RealmEngine
                                                         const std::string& geometry_path,
                                                         const std::string& fragment_path) = 0;
 
+        virtual std::unique_ptr<RHIShader> createComputeShader(const std::string& compute_path) = 0;
+
         virtual std::unique_ptr<RHIFramebuffer> createFramebuffer(const FramebufferDesc& desc) = 0;
 
         virtual std::unique_ptr<RHIVertexInput>
@@ -86,6 +88,11 @@ namespace RealmEngine
         // ----- Texture helpers (bind texture to unit) ---------------------
 
         virtual void bindTexture(uint32_t unit, RHITexture& texture) = 0;
+
+        // ----- Compute dispatch -----------------------------------------------
+
+        virtual void dispatchCompute(uint32_t groups_x, uint32_t groups_y, uint32_t groups_z) = 0;
+        virtual void memoryBarrier(BarrierFlags flags) = 0;
 
         // ----- Misc -------------------------------------------------------
 

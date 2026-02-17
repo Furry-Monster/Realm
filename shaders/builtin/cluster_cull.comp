@@ -1,0 +1,103 @@
+#version 450 core
+
+layout(local_size_x = 16, local_size_y = 9, local_size_z = 1) in;
+
+struct LightData
+{
+    vec4 position;    // xyz = position, w = type
+    vec4 direction;   // xyz = direction, w = intensity
+    vec4 color;       // rgb = color, w = constant
+    vec4 attenuation; // x = linear, y = quadratic, z = range, w = inner_cone_angle
+    vec4 spot_area;   // x = outer_cone_angle, y = width, z = height, w = padding
+};
+
+struct ClusterAABB
+{
+    vec4 minBounds;
+    vec4 maxBounds;
+};
+
+layout(std430, binding = 1) readonly buffer LightBuffer
+{
+    int lightCount;
+    LightData lights[];
+};
+
+layout(std430, binding = 2) readonly buffer ClusterAABBBuffer
+{
+    ClusterAABB clusters[];
+};
+
+layout(std430, binding = 3) buffer LightIndexBuffer
+{
+    uint globalIndexCount;
+    uint lightIndices[];
+};
+
+layout(std430, binding = 4) writeonly buffer LightGridBuffer
+{
+    uvec2 lightGrid[]; // x = offset, y = count
+};
+
+uniform mat4 viewMatrix;
+
+const uint CLUSTER_X = 16;
+const uint CLUSTER_Y = 9;
+const uint CLUSTER_Z = 24;
+const uint MAX_LIGHTS_PER_CLUSTER = 100;
+
+bool sphereAABBIntersect(vec3 center, float radius, vec3 aabbMin, vec3 aabbMax)
+{
+    // Closest point on AABB to sphere center
+    vec3 closest = clamp(center, aabbMin, aabbMax);
+    vec3 diff = closest - center;
+    return dot(diff, diff) <= (radius * radius);
+}
+
+void main()
+{
+    uint x = gl_LocalInvocationID.x;
+    uint y = gl_LocalInvocationID.y;
+    uint z = gl_WorkGroupID.z;
+
+    uint clusterIdx = x + y * CLUSTER_X + z * CLUSTER_X * CLUSTER_Y;
+
+    vec3 aabbMin = clusters[clusterIdx].minBounds.xyz;
+    vec3 aabbMax = clusters[clusterIdx].maxBounds.xyz;
+
+    uint visibleCount = 0;
+    uint visibleIndices[MAX_LIGHTS_PER_CLUSTER];
+
+    for (int i = 0; i < lightCount && visibleCount < MAX_LIGHTS_PER_CLUSTER; ++i)
+    {
+        int lightType = int(lights[i].position.w);
+        float range   = lights[i].attenuation.z;
+
+        // Directional (type 1): affects every cluster
+        if (lightType == 1)
+        {
+            visibleIndices[visibleCount++] = uint(i);
+            continue;
+        }
+
+        // Transform light position to view space
+        vec3 worldPos = lights[i].position.xyz;
+        vec3 viewPos  = (viewMatrix * vec4(worldPos, 1.0)).xyz;
+
+        // Point (type 0) and Spot (type 2): sphere-AABB test
+        if (sphereAABBIntersect(viewPos, range, aabbMin, aabbMax))
+        {
+            visibleIndices[visibleCount++] = uint(i);
+        }
+    }
+
+    // Allocate space in the global index list
+    uint offset = atomicAdd(globalIndexCount, visibleCount);
+
+    // Write indices to global list
+    for (uint i = 0; i < visibleCount; ++i)
+        lightIndices[offset + i] = visibleIndices[i];
+
+    // Write grid entry
+    lightGrid[clusterIdx] = uvec2(offset, visibleCount);
+}

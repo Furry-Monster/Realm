@@ -23,6 +23,7 @@ namespace RealmEngine
         void unbind(uint32_t unit = 0) override;
         void generateMipmaps() override;
         void resize(int width, int height) override;
+        void bindImage(uint32_t unit, int level, bool layered, TextureAccess access) override;
 
         uint32_t getNativeHandle() const override { return m_id; }
 

@@ -2,7 +2,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <glad/gl.h>
+#include <glad/glad.h>
 
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
@@ -151,8 +151,8 @@ namespace RealmEngine
         }
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifndef NDEBUG
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -172,7 +172,7 @@ namespace RealmEngine
         m_impl->handle.reset(raw);
         glfwMakeContextCurrent(m_impl->handle.get());
 
-        if (!gladLoadGL(glfwGetProcAddress))
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         {
             m_impl->handle.reset();
             glfwTerminate();

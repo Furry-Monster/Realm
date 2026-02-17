@@ -1,23 +1,22 @@
-#version 330 core
+#version 450 core
 
 out float FragColor;
 
 in vec2 textureCoordinates;
 
-uniform sampler2D ssaoTexture;
+uniform sampler2D gtaoTexture;
 uniform sampler2D depthTexture;
 uniform vec2      texelSize;
 
-// Bilateral: w = w_d · w_s, AO_out = Σ(AO_i · w_i) / Σ w_i
-// w_d = exp(-|d_c - d_s|·k), w_s = exp(-||r||²/(2σ²))
 void main()
 {
     float centerDepth = texture(depthTexture, textureCoordinates).r;
-    float centerAO    = texture(ssaoTexture, textureCoordinates).r;
+    float centerAO    = texture(gtaoTexture, textureCoordinates).r;
 
     float totalWeight = 0.0;
     float totalAO     = 0.0;
 
+    // 5x5 bilateral blur: spatial gaussian + depth-aware edge preservation
     for (int x = -2; x <= 2; ++x)
     {
         for (int y = -2; y <= 2; ++y)
@@ -26,11 +25,13 @@ void main()
             vec2 uv     = textureCoordinates + offset;
 
             float sampleDepth = texture(depthTexture, uv).r;
-            float sampleAO    = texture(ssaoTexture, uv).r;
+            float sampleAO    = texture(gtaoTexture, uv).r;
 
+            // w_depth = exp(-|d_c - d_s| * k)
             float depthDiff   = abs(centerDepth - sampleDepth);
             float depthWeight = exp(-depthDiff * 10.0);
 
+            // w_spatial = exp(-||offset||^2 / (2 * sigma^2))
             float dist          = length(vec2(x, y));
             float spatialWeight = exp(-dist * dist / 2.0);
 

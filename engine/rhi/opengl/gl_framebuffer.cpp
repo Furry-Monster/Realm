@@ -1,6 +1,6 @@
 #include "rhi/opengl/gl_framebuffer.h"
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 #include <algorithm>
 
 #include "core/log/log_macros.h"
@@ -34,11 +34,18 @@ namespace RealmEngine
         {
             auto& att = m_desc.color_attachments[i];
 
+            TextureType tex_type = TextureType::Texture2D;
+            if (att.is_cubemap)
+                tex_type = TextureType::TextureCube;
+            else if (att.is_array)
+                tex_type = TextureType::Texture2DArray;
+
             TextureDesc td;
-            td.type       = att.is_cubemap ? TextureType::TextureCube : TextureType::Texture2D;
+            td.type       = tex_type;
             td.format     = att.format;
             td.width      = m_width;
             td.height     = m_height;
+            td.depth      = att.layers;
             td.min_filter = att.min_filter;
             td.mag_filter = att.mag_filter;
             td.wrap_s     = att.wrap;
@@ -46,11 +53,20 @@ namespace RealmEngine
             td.wrap_r     = att.wrap;
             td.gen_mips   = att.gen_mips;
 
-            auto   tex = std::make_unique<GLTexture>(td);
-            GLenum attach_target =
-                att.is_cubemap ? static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + m_cube_face) : GL_TEXTURE_2D;
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attach_target, tex->getNativeHandle(), m_mip_level);
+            auto tex = std::make_unique<GLTexture>(td);
+            if (att.is_array)
+            {
+                // Attach first layer by default; use setLayer() to change
+                glFramebufferTextureLayer(
+                    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, tex->getNativeHandle(), m_mip_level, 0);
+            }
+            else
+            {
+                GLenum attach_target =
+                    att.is_cubemap ? static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + m_cube_face) : GL_TEXTURE_2D;
+                glFramebufferTexture2D(
+                    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attach_target, tex->getNativeHandle(), m_mip_level);
+            }
             m_color_textures.push_back(std::move(tex));
             draw_buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
         }
@@ -77,21 +93,34 @@ namespace RealmEngine
             else
             {
                 TextureDesc td;
-                td.type       = TextureType::Texture2D;
+                td.type       = datt.is_array ? TextureType::Texture2DArray : TextureType::Texture2D;
                 td.format     = datt.format;
                 td.width      = m_width;
                 td.height     = m_height;
+                td.depth      = datt.layers;
                 td.min_filter = datt.min_filter;
                 td.mag_filter = datt.mag_filter;
                 td.wrap_s     = datt.wrap;
                 td.wrap_t     = datt.wrap;
 
                 m_depth_texture = std::make_unique<GLTexture>(td);
-                glFramebufferTexture2D(GL_FRAMEBUFFER,
-                                       depthAttachmentType(datt.format),
-                                       GL_TEXTURE_2D,
-                                       m_depth_texture->getNativeHandle(),
-                                       0);
+                if (datt.is_array)
+                {
+                    // Attach whole texture; use setLayer() to select specific layer for rendering
+                    glFramebufferTextureLayer(GL_FRAMEBUFFER,
+                                             depthAttachmentType(datt.format),
+                                             m_depth_texture->getNativeHandle(),
+                                             0,
+                                             0);
+                }
+                else
+                {
+                    glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                           depthAttachmentType(datt.format),
+                                           GL_TEXTURE_2D,
+                                           m_depth_texture->getNativeHandle(),
+                                           0);
+                }
             }
         }
 
@@ -171,16 +200,62 @@ namespace RealmEngine
         updateColorAttachments();
     }
 
+    void GLFramebuffer::setLayer(int layer)
+    {
+        m_layer = layer;
+        glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+
+        // Re-attach color textures at specified layer
+        for (uint32_t i = 0; i < m_color_textures.size(); ++i)
+        {
+            if (i < m_desc.color_attachments.size() && m_desc.color_attachments[i].is_array)
+            {
+                glFramebufferTextureLayer(GL_FRAMEBUFFER,
+                                         GL_COLOR_ATTACHMENT0 + i,
+                                         m_color_textures[i]->getNativeHandle(),
+                                         m_mip_level,
+                                         layer);
+            }
+        }
+
+        // Re-attach depth at specified layer
+        if (m_depth_texture && m_desc.has_depth && m_desc.depth_attachment.is_array)
+        {
+            glFramebufferTextureLayer(GL_FRAMEBUFFER,
+                                     depthAttachmentType(m_desc.depth_attachment.format),
+                                     m_depth_texture->getNativeHandle(),
+                                     0,
+                                     layer);
+        }
+    }
+
     void GLFramebuffer::updateColorAttachments()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         for (uint32_t i = 0; i < m_color_textures.size(); ++i)
         {
-            bool   is_cubemap = (i < m_desc.color_attachments.size()) && m_desc.color_attachments[i].is_cubemap;
-            GLenum target =
-                is_cubemap ? static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + m_cube_face) : GL_TEXTURE_2D;
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, m_color_textures[i]->getNativeHandle(), m_mip_level);
+            if (i >= m_desc.color_attachments.size())
+                continue;
+            auto& att = m_desc.color_attachments[i];
+            if (att.is_array)
+            {
+                int layer = (m_layer >= 0) ? m_layer : 0;
+                glFramebufferTextureLayer(GL_FRAMEBUFFER,
+                                         GL_COLOR_ATTACHMENT0 + i,
+                                         m_color_textures[i]->getNativeHandle(),
+                                         m_mip_level,
+                                         layer);
+            }
+            else
+            {
+                GLenum target =
+                    att.is_cubemap ? static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + m_cube_face) : GL_TEXTURE_2D;
+                glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                       GL_COLOR_ATTACHMENT0 + i,
+                                       target,
+                                       m_color_textures[i]->getNativeHandle(),
+                                       m_mip_level);
+            }
         }
     }
 

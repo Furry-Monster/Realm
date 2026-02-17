@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 #include "core/log/log_macros.h"
 
 namespace RealmEngine
@@ -196,6 +196,39 @@ namespace RealmEngine
         glDeleteShader(fs);
     }
 
+    GLShader::GLShader(const std::string& compute_path, ComputeTag)
+    {
+        auto cs_src = loadFile(compute_path);
+        if (cs_src.empty())
+        {
+            m_id = 0;
+            return;
+        }
+
+        uint32_t cs = compileStage(GL_COMPUTE_SHADER, cs_src, compute_path);
+        if (cs == 0)
+        {
+            m_id = 0;
+            return;
+        }
+
+        m_id = glCreateProgram();
+        glAttachShader(m_id, cs);
+        glLinkProgram(m_id);
+
+        int  success;
+        char info[512];
+        glGetProgramiv(m_id, GL_LINK_STATUS, &success);
+        if (!success)
+        {
+            glGetProgramInfoLog(m_id, 512, nullptr, info);
+            RE_LOG_ERROR("Compute shader link failed: " + std::string(info));
+            glDeleteProgram(m_id);
+            m_id = 0;
+        }
+        glDeleteShader(cs);
+    }
+
     GLShader::~GLShader()
     {
         if (m_id != 0)
@@ -302,6 +335,13 @@ namespace RealmEngine
         uint32_t idx = glGetUniformBlockIndex(m_id, name.c_str());
         if (idx != GL_INVALID_INDEX)
             glUniformBlockBinding(m_id, idx, binding_point);
+    }
+
+    void GLShader::bindShaderStorageBlock(const std::string& name, uint32_t binding_point)
+    {
+        uint32_t idx = glGetProgramResourceIndex(m_id, GL_SHADER_STORAGE_BLOCK, name.c_str());
+        if (idx != GL_INVALID_INDEX)
+            glShaderStorageBlockBinding(m_id, idx, binding_point);
     }
 
 } // namespace RealmEngine

@@ -15,11 +15,15 @@
 #include "platform/info/platform_info.h"
 #include "platform/input/input.h"
 #include "platform/window/window.h"
+#include "renderer/light_probe_baker.h"
 #include "renderer/renderer.h"
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
 #include "rhi/rhi_device.h"
 #include "scene/components/camera_controller.h"
+#include "scene/components/lighting/light_probe.h"
+#include "scene/components/transform.h"
+#include "scene/components/world_transform.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
 
@@ -189,7 +193,36 @@ namespace RealmEngine
 
     void Engine::renderTick()
     {
-        m_renderer->getRenderScene()->syncFromScene(m_scene->getCurrentScene());
+        auto scene = m_scene->getCurrentScene();
+        m_renderer->getRenderScene()->syncFromScene(scene);
+
+        if (scene && m_renderer->getLightProbeBaker())
+        {
+            auto& registry = scene->getRegistry();
+            auto  view     = registry.view<LightProbe>();
+
+            for (auto entity : view)
+            {
+                auto& lp = view.get<LightProbe>(entity);
+                if (!lp.needs_update)
+                    continue;
+
+                glm::vec3 pos {0.0f};
+                if (auto* wt = scene->tryGet<WorldTransform>(entity))
+                    pos = glm::vec3(wt->matrix[3]);
+                else if (auto* t = scene->tryGet<Transform>(entity))
+                    pos = t->position;
+
+                auto result =
+                    m_renderer->getLightProbeBaker()->bake(pos, *m_renderer->getRenderScene());
+                if (result.success)
+                {
+                    lp.sh_coefficients = result.sh_coefficients;
+                    lp.needs_update    = false;
+                }
+            }
+        }
+
         m_renderer->render();
 
         FrameStats stats {};

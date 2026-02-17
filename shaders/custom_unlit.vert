@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 // Engine vertex attributes (same layout as all RealmEngine meshes)
 layout(location = 0) in vec3 aPos;

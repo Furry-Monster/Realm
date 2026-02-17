@@ -1,11 +1,13 @@
-#version 330 core
+#version 450 core
 
-in vec3 fragWorldPos;
+in vec4 gFragPos;
 
-uniform vec3 lightPos;
+uniform vec3  lightPos;
 uniform float farPlane;
 
 void main()
 {
-    gl_FragDepth = length(fragWorldPos - lightPos) / farPlane;
+    float dist = length(gFragPos.xyz - lightPos);
+    // Normalize to [0,1] range
+    gl_FragDepth = dist / farPlane;
 }

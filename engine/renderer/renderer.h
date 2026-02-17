@@ -24,13 +24,19 @@ namespace RealmEngine
     class RHIFramebuffer;
     class SceneColorSource;
 
-    class ShadowPass;
+    class LightProbeBaker;
+    class CSMShadowPass;
     class OpaquePass;
     class TransparentPass;
     class GBufferPass;
     class DeferredLightingPass;
-    class SSAOPass;
-    class SSAOBlurPass;
+    class PointShadowPass;
+    class SpotShadowPass;
+    class ClusteredLightCullPass;
+    class GTAOPass;
+    class GTAOBlurPass;
+    class HiZPass;
+    class SSRPass;
     class SkyboxPass;
     class BloomPass;
     class PostProcessPass;
@@ -65,10 +71,20 @@ namespace RealmEngine
         void        setRenderToViewportTexture(bool enable);
         RHITexture* getViewportTexture() const;
 
-        RHITexture* getGBufferAlbedoModelID() const;
-        RHITexture* getGBufferNormalMetallic() const;
-        RHITexture* getGBufferEmissiveRoughness() const;
-        RHITexture* getGBufferDepth() const;
+        LightProbeBaker* getLightProbeBaker() const { return m_probe_baker.get(); }
+
+        enum class GBufferSlot
+        {
+            AlbedoModelID,
+            NormalMetallic,
+            EmissiveRoughness,
+            Depth
+        };
+        RHITexture* getGBufferTexture(GBufferSlot slot) const;
+        RHITexture* getGBufferAlbedoModelID() const { return getGBufferTexture(GBufferSlot::AlbedoModelID); }
+        RHITexture* getGBufferNormalMetallic() const { return getGBufferTexture(GBufferSlot::NormalMetallic); }
+        RHITexture* getGBufferEmissiveRoughness() const { return getGBufferTexture(GBufferSlot::EmissiveRoughness); }
+        RHITexture* getGBufferDepth() const { return getGBufferTexture(GBufferSlot::Depth); }
 
     private:
         void buildForwardPipeline(ConfigManager& config);
@@ -84,11 +100,16 @@ namespace RealmEngine
 
         SceneColorSource* m_scene_color_source {nullptr};
 
-        ShadowPass*      m_shadow_pass {nullptr};
+        CSMShadowPass*   m_shadow_pass {nullptr};
+        PointShadowPass* m_point_shadow_pass {nullptr};
+        SpotShadowPass*  m_spot_shadow_pass {nullptr};
         OpaquePass*      m_opaque_pass {nullptr};
         TransparentPass* m_transparent_pass {nullptr};
-        SSAOPass*        m_ssao_pass {nullptr};
-        SSAOBlurPass*    m_ssao_blur_pass {nullptr};
+        ClusteredLightCullPass* m_cluster_cull_pass {nullptr};
+        GTAOPass*        m_gtao_pass {nullptr};
+        GTAOBlurPass*    m_gtao_blur_pass {nullptr};
+        HiZPass*         m_hiz_pass {nullptr};
+        SSRPass*         m_ssr_pass {nullptr};
         SkyboxPass*      m_skybox_pass {nullptr};
         BloomPass*       m_bloom_pass {nullptr};
         PostProcessPass* m_postprocess_pass {nullptr};
@@ -103,8 +124,10 @@ namespace RealmEngine
         RHITexture*                             m_ibl_prefiltered_tex {nullptr};
         RHITexture*                             m_ibl_brdf_tex {nullptr};
 
-        std::unique_ptr<Skybox>         m_skybox;
-        std::unique_ptr<FullscreenQuad> m_fullscreen_quad;
+        std::unique_ptr<LightProbeBaker> m_probe_baker;
+        std::unique_ptr<Skybox>          m_skybox;
+        std::unique_ptr<FullscreenQuad>  m_fullscreen_quad;
+        std::unique_ptr<RHITexture>      m_default_white;
 
         Window*                       m_window {nullptr};
         std::shared_ptr<RenderScene>  m_render_scene;

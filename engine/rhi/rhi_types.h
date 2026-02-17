@@ -12,7 +12,8 @@ namespace RealmEngine
     {
         Vertex,
         Index,
-        Uniform
+        Uniform,
+        ShaderStorage
     };
 
     enum class BufferUsage : uint8_t
@@ -36,6 +37,11 @@ namespace RealmEngine
         RG16F,
         RGB16F,
         RGBA16F,
+        R32F,
+        RG32F,
+        RGBA32F,
+        R32UI,
+        RG16UI,
         Depth16,
         Depth24,
         Depth32F,
@@ -45,7 +51,9 @@ namespace RealmEngine
     enum class TextureType : uint8_t
     {
         Texture2D,
-        TextureCube
+        TextureCube,
+        Texture2DArray,
+        Texture3D
     };
 
     enum class TextureWrap : uint8_t
@@ -66,12 +74,20 @@ namespace RealmEngine
         LinearMipmapLinear
     };
 
+    enum class TextureAccess : uint8_t
+    {
+        ReadOnly,
+        WriteOnly,
+        ReadWrite
+    };
+
     struct TextureDesc
     {
         TextureType   type       = TextureType::Texture2D;
         TextureFormat format     = TextureFormat::RGBA8;
         int           width      = 0;
         int           height     = 0;
+        int           depth      = 0; // layers for Texture2DArray, depth for Texture3D
         TextureFilter min_filter = TextureFilter::Linear;
         TextureFilter mag_filter = TextureFilter::Linear;
         TextureWrap   wrap_s     = TextureWrap::ClampToEdge;
@@ -92,6 +108,8 @@ namespace RealmEngine
         bool          is_renderbuffer = false; // depth/stencil only
         bool          gen_mips        = false;
         bool          is_cubemap      = false; // color attachment is cubemap (for IBL)
+        bool          is_array        = false; // Texture2DArray (for CSM, shadow atlas)
+        int           layers          = 0;     // layer count when is_array == true
     };
 
     struct FramebufferDesc
@@ -259,5 +277,27 @@ namespace RealmEngine
         Line,
         Point
     };
+
+    // ---- Memory barrier flags (for compute shaders) ----------------------
+
+    enum class BarrierFlags : uint32_t
+    {
+        ShaderStorage   = 1u << 0,
+        ImageAccess     = 1u << 1,
+        TextureFetch    = 1u << 2,
+        BufferUpdate    = 1u << 3,
+        Framebuffer     = 1u << 4,
+        All             = 0xFFFFFFFF
+    };
+
+    inline BarrierFlags operator|(BarrierFlags a, BarrierFlags b)
+    {
+        return static_cast<BarrierFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+
+    inline bool operator&(BarrierFlags a, BarrierFlags b)
+    {
+        return (static_cast<uint32_t>(a) & static_cast<uint32_t>(b)) != 0;
+    }
 
 } // namespace RealmEngine

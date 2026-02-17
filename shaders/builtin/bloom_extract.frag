@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 #define GREYSCALE_WEIGHT_VECTOR vec3(0.2126, 0.7152, 0.0722)
 

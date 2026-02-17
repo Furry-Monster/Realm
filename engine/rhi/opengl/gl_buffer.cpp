@@ -1,6 +1,6 @@
 #include "rhi/opengl/gl_buffer.h"
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 
 namespace RealmEngine
 {
@@ -16,6 +16,8 @@ namespace RealmEngine
                     return GL_ELEMENT_ARRAY_BUFFER;
                 case BufferType::Uniform:
                     return GL_UNIFORM_BUFFER;
+                case BufferType::ShaderStorage:
+                    return GL_SHADER_STORAGE_BUFFER;
             }
             return GL_ARRAY_BUFFER;
         }

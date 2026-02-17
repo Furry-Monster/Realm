@@ -5,13 +5,13 @@
 #include "resource/config_manager.h"
 #include "rhi/rhi_texture.h"
 
-#include <glad/gl.h>
+#include <glad/glad.h>
 #include <imgui.h>
 
 namespace RealmEngine
 {
     static const char* displayModeLabels[] =
-        {"Lit", "Albedo", "Normals", "Metallic", "Roughness", "Material AO", "Emissive", "SSAO", "Depth"};
+        {"Lit", "Albedo", "Normals", "Metallic", "Roughness", "Material AO", "Emissive", "AO", "Depth"};
 
     static const char* gbufferPreviewLabels[] = {"Final Output",
                                                  "GBuffer: Albedo+AO",

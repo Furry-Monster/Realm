@@ -11,6 +11,8 @@
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
+#include "rhi/rhi_texture.h"
+#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {
@@ -41,6 +43,17 @@ namespace RealmEngine
     {
         m_shader = device.createShader(m_shader_path + "/builtin/deferred_gbuffer.vert",
                                        m_shader_path + "/builtin/deferred_gbuffer.frag");
+
+        uint8_t white[] = {255, 255, 255, 255};
+        TextureDesc td;
+        td.type       = TextureType::Texture2D;
+        td.format     = TextureFormat::RGBA8;
+        td.width      = 1;
+        td.height     = 1;
+        td.data       = white;
+        td.min_filter = TextureFilter::Nearest;
+        td.mag_filter = TextureFilter::Nearest;
+        m_default_white = device.createTexture(td);
     }
 
     void GBufferPass::execute(const RenderContext& ctx)
@@ -63,16 +76,20 @@ namespace RealmEngine
         glm::mat4 projection = ctx.camera->getProjMatrix();
         glm::mat4 view       = ctx.camera->getViewMatrix();
 
-        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+        const auto& objects  = ctx.scene->getRenderObjects();
+        const auto& matrices = ctx.scene->getRenderModelMatrices();
+        for (size_t i = 0; i < objects.size(); ++i)
         {
-            auto&     ro    = ctx.scene->m_render_objects[i];
-            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
-                                                                                glm::mat4(1.0f);
+            auto&     ro    = *objects[i];
+            glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
             m_shader->setMVP(model, view, projection);
 
-            ro->forEachMesh([&](RenderMesh& mesh) {
+            ro.forEachMesh([&](RenderMesh& mesh) {
                 if (!mesh.m_material.isDeferred())
                     return;
+
+                for (int u = TEXTURE_UNIT_ALBEDO; u <= TEXTURE_UNIT_OPACITY; ++u)
+                    ctx.device->bindTexture(u, *m_default_white);
 
                 int model_id = shadingModelToID(mesh.m_material.shading_model);
                 m_shader->setInt("shadingModelID", model_id);
@@ -87,6 +104,7 @@ namespace RealmEngine
     {
         m_framebuffer.reset();
         m_shader.reset();
+        m_default_white.reset();
     }
 
 } // namespace RealmEngine

@@ -89,19 +89,43 @@ namespace RealmEngine
             changed |= ImGui::DragFloat("FOV", &copy.camera_fov, 1.0f, 1.0f, 179.0f);
             changed |= ImGui::DragFloat("Near Plane", &copy.camera_near_plane, 0.01f, 0.001f, 10.0f);
             changed |= ImGui::DragFloat("Far Plane", &copy.camera_far_plane, 10.0f, 10.0f, 10000.0f);
+            if (ImGui::TreeNode("Initial Position"))
+            {
+                changed |= ImGui::DragFloat("Pos X", &copy.camera_initial_pos_x, 0.1f, -1000.0f, 1000.0f);
+                changed |= ImGui::DragFloat("Pos Y", &copy.camera_initial_pos_y, 0.1f, -1000.0f, 1000.0f);
+                changed |= ImGui::DragFloat("Pos Z", &copy.camera_initial_pos_z, 0.1f, -1000.0f, 1000.0f);
+                ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Initial Look At"))
+            {
+                changed |= ImGui::DragFloat("Look X", &copy.camera_look_at_x, 0.1f, -1000.0f, 1000.0f);
+                changed |= ImGui::DragFloat("Look Y", &copy.camera_look_at_y, 0.1f, -1000.0f, 1000.0f);
+                changed |= ImGui::DragFloat("Look Z", &copy.camera_look_at_z, 0.1f, -1000.0f, 1000.0f);
+                ImGui::TreePop();
+            }
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("Post-Processing"))
         {
-            changed |= ImGui::Checkbox("SSAO", &copy.ssao_enabled);
-            changed |= ImGui::DragFloat("SSAO Radius", &copy.ssao_radius, 0.01f, 0.01f, 2.0f);
-            changed |= ImGui::DragFloat("SSAO Bias", &copy.ssao_bias, 0.001f, 0.0f, 0.1f);
-            changed |= ImGui::DragFloat("SSAO Power", &copy.ssao_power, 0.1f, 0.5f, 5.0f);
-            changed |= ImGui::DragInt("SSAO Kernel Size", &copy.ssao_kernel_size, 1, 16, 64);
+            changed |= ImGui::Checkbox("GTAO", &copy.ao_enabled);
+            changed |= ImGui::DragFloat("GTAO Radius", &copy.ao_radius, 0.01f, 0.01f, 2.0f);
+            changed |= ImGui::DragFloat("GTAO Power", &copy.ao_power, 0.1f, 0.5f, 5.0f);
+            changed |= ImGui::DragFloat("GTAO Intensity", &copy.ao_intensity, 0.05f, 0.0f, 1.0f);
+            changed |= ImGui::DragInt("GTAO Num Directions", &copy.gtao_num_directions, 1, 4, 8);
+            changed |= ImGui::DragInt("GTAO Num Steps", &copy.gtao_num_steps, 1, 4, 8);
             ImGui::Separator();
             changed |= ImGui::Checkbox("Bloom", &copy.bloom_enabled);
             changed |= ImGui::DragFloat("Bloom Intensity", &copy.bloom_intensity, 0.1f, 0.0f, 10.0f);
             changed |= ImGui::DragInt("Bloom Iterations", &copy.bloom_iterations, 1, 1, 32);
+            {
+                static const char* bloomDirLabels[] = {"Both", "Horizontal", "Vertical"};
+                int               dir_idx          = copy.bloom_direction;
+                if (ImGui::Combo("Bloom Direction", &dir_idx, bloomDirLabels, 3))
+                {
+                    copy.bloom_direction = dir_idx;
+                    changed              = true;
+                }
+            }
             changed |= ImGui::DragFloat("Bloom Brightness Cutoff", &copy.bloom_brightness_cutoff, 0.1f, 0.0f, 10.0f);
             changed |= ImGui::Checkbox("Tonemapping", &copy.tonemapping_enabled);
             changed |= ImGui::DragFloat("Gamma", &copy.gamma_correction_factor, 0.1f, 1.0f, 3.0f);

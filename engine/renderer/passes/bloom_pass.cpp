@@ -11,6 +11,11 @@
 
 namespace RealmEngine
 {
+    namespace
+    {
+        constexpr int k_bloom_max_mip = 5;
+    }
+
     BloomPass::~BloomPass() = default;
 
     BloomPass::BloomPass(const std::string& shader_path,
@@ -82,8 +87,7 @@ namespace RealmEngine
 
         m_shader->use();
 
-        static constexpr int BLOOM_MAX_MIP = 5;
-        for (int mip = 0; mip <= BLOOM_MAX_MIP; ++mip)
+        for (int mip = 0; mip <= k_bloom_max_mip; ++mip)
         {
             int mip_w = std::max(1, base_w >> mip);
             int mip_h = std::max(1, base_h >> mip);
@@ -140,10 +144,6 @@ namespace RealmEngine
         return m_framebuffers[m_result_idx] ? m_framebuffers[m_result_idx]->getColorAttachment(0) : nullptr;
     }
 
-    int BloomPass::getMaxMipLevel() const
-    {
-        static constexpr int BLOOM_MAX_MIP = 5;
-        return BLOOM_MAX_MIP;
-    }
+    int BloomPass::getMaxMipLevel() const { return k_bloom_max_mip; }
 
 } // namespace RealmEngine

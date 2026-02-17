@@ -8,6 +8,7 @@
 #include "resource/asset_manager.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
+#include "scene/components/lighting/light_probe.h"
 #include "scene/components/lighting/point.h"
 #include "scene/components/lighting/spot.h"
 #include "scene/components/renderable.h"
@@ -33,131 +34,134 @@ namespace RealmEngine
         auto scene      = std::make_shared<Scene>();
         auto asset_path = m_asset_folder.generic_string();
 
-        try
-        {
-            auto helmet_node   = scene->createNodeWithEntity("Helmet");
-            auto helmet_entity = scene->findEntity("Helmet");
+        auto loadModelAt = [this, &scene, &device, asset_path](
+                               const std::string& name, const std::string& rel_path,
+                               const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scale) {
+            try
+            {
+                auto node   = scene->createNodeWithEntity(name);
+                auto entity = scene->findEntity(name);
+                auto& t     = entity.emplace<Transform>();
+                t.position  = pos;
+                t.rotation  = rot;
+                t.scale     = scale;
+                auto& r     = entity.emplace<Renderable>();
+                r.model_path = asset_path + "/" + rel_path;
+                if (m_asset_mgr)
+                    loadRenderableModel(r, device, *m_asset_mgr);
+                else
+                    loadRenderableModel(r, device);
+                scene->getRoot()->addChild(node);
+                return true;
+            }
+            catch (const std::exception& e)
+            {
+                RE_LOG_ERROR("Failed to load " + name + ": " + std::string(e.what()));
+                return false;
+            }
+        };
 
-            auto& transform1    = helmet_entity.emplace<Transform>();
-            transform1.position = glm::vec3(0.0f, 0.0f, 0.0f);
-            transform1.rotation = glm::angleAxis(glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
+        loadModelAt("Helmet", "helmet/DamagedHelmet.gltf", glm::vec3(0.0f, 0.0f, 0.0f),
+                    glm::angleAxis(glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)),
+                    glm::vec3(1.0f));
 
-            std::string helmet_path = asset_path + "/helmet/DamagedHelmet.gltf";
-            auto&       renderable1 = helmet_entity.emplace<Renderable>();
-            renderable1.model_path  = helmet_path;
-            if (m_asset_mgr)
-                loadRenderableModel(renderable1, device, *m_asset_mgr);
-            else
-                loadRenderableModel(renderable1, device);
+        loadModelAt("Cian", "Cian/Cian.gltf", glm::vec3(-3.5f, 0.0f, 0.0f),
+                    glm::angleAxis(glm::half_pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)),
+                    glm::vec3(1.5f));
 
-            scene->getRoot()->addChild(helmet_node);
-        }
-        catch (const std::exception& e)
-        {
-            RE_LOG_ERROR("Failed to load helmet model: " + std::string(e.what()));
-        }
-
-        try
-        {
-            auto sphere_node   = scene->createNodeWithEntity("Sphere");
-            auto sphere_entity = scene->findEntity("Sphere");
-
-            auto& transform2    = sphere_entity.emplace<Transform>();
-            transform2.position = glm::vec3(1.0f, 2.0f, 0.0f);
-
-            std::string sphere_path = asset_path + "/sphere/sphere.gltf";
-            auto&       renderable2 = sphere_entity.emplace<Renderable>();
-            renderable2.model_path  = sphere_path;
-            if (m_asset_mgr)
-                loadRenderableModel(renderable2, device, *m_asset_mgr);
-            else
-                loadRenderableModel(renderable2, device);
-
-            scene->getRoot()->addChild(sphere_node);
-        }
-        catch (const std::exception& e)
-        {
-            RE_LOG_ERROR("Failed to load sphere model: " + std::string(e.what()));
-        }
-
-        // Point light 1 - main white light from above
-        {
-            auto  light1_node   = scene->createNodeWithEntity("PointLight1");
-            auto  light1_entity = scene->findEntity("PointLight1");
-            auto& t             = light1_entity.emplace<Transform>();
-            t.position          = glm::vec3(0.0f, 10.0f, 0.0f);
-            auto& pl            = light1_entity.emplace<PointLight>();
-            pl.color            = glm::vec3(200.0f, 200.0f, 200.0f);
-            pl.intensity        = 1.0f;
-            pl.range            = 50.0f;
-            scene->getRoot()->addChild(light1_node);
-        }
-
-        // Point light 2 - red light from left
-        {
-            auto  light2_node   = scene->createNodeWithEntity("PointLight2");
-            auto  light2_entity = scene->findEntity("PointLight2");
-            auto& t             = light2_entity.emplace<Transform>();
-            t.position          = glm::vec3(-5.0f, 3.0f, 0.0f);
-            auto& pl            = light2_entity.emplace<PointLight>();
-            pl.color            = glm::vec3(200.0f, 50.0f, 50.0f);
-            pl.intensity        = 0.8f;
-            pl.range            = 30.0f;
-            scene->getRoot()->addChild(light2_node);
-        }
-
-        // Point light 3 - blue light from right
-        {
-            auto  light3_node   = scene->createNodeWithEntity("PointLight3");
-            auto  light3_entity = scene->findEntity("PointLight3");
-            auto& t             = light3_entity.emplace<Transform>();
-            t.position          = glm::vec3(5.0f, 3.0f, 0.0f);
-            auto& pl            = light3_entity.emplace<PointLight>();
-            pl.color            = glm::vec3(50.0f, 50.0f, 200.0f);
-            pl.intensity        = 0.8f;
-            pl.range            = 30.0f;
-            scene->getRoot()->addChild(light3_node);
-        }
-
-        // Directional light - sun-like from top-right
-        {
-            auto  dir_node            = scene->createNodeWithEntity("DirectionalLight");
-            auto  dir_entity          = scene->findEntity("DirectionalLight");
-            auto& t                   = dir_entity.emplace<Transform>();
-            t.position                = glm::vec3(0.0f, 0.0f, 0.0f);
-            glm::vec3 dir_forward     = glm::normalize(glm::vec3(-1.0f, -1.0f, 0.0f));
-            glm::vec3 default_forward = glm::vec3(0.0f, 0.0f, -1.0f);
-            glm::vec3 axis            = glm::cross(default_forward, dir_forward);
-            float     angle           = glm::acos(glm::dot(default_forward, dir_forward));
+        auto setLightDir = [](Transform& t, const glm::vec3& forward) {
+            glm::vec3 def_fwd(0.0f, 0.0f, -1.0f);
+            glm::vec3 axis = glm::cross(def_fwd, forward);
             if (glm::length(axis) > 0.001f)
-                t.rotation = glm::angleAxis(angle, glm::normalize(axis));
-            auto& dl     = dir_entity.emplace<DirectionalLight>();
-            dl.color     = glm::vec3(255.0f, 250.0f, 200.0f);
-            dl.intensity = 0.5f;
-            scene->getRoot()->addChild(dir_node);
+                t.rotation = glm::angleAxis(glm::acos(glm::clamp(glm::dot(def_fwd, forward), -1.0f, 1.0f)),
+                                            glm::normalize(axis));
+        };
+
+        {
+            auto  n = scene->createNodeWithEntity("PointLight1");
+            auto  e = scene->findEntity("PointLight1");
+            auto& t = e.emplace<Transform>();
+            t.position = glm::vec3(0.0f, 9.0f, 0.0f);
+            auto& pl = e.emplace<PointLight>();
+            pl.color    = glm::vec3(1.0f, 1.0f, 1.0f);
+            pl.intensity = 5.0f;
+            pl.range    = 50.0f;
+            scene->getRoot()->addChild(n);
         }
 
-        // Spot light - focused from front
         {
-            auto      spot_node       = scene->createNodeWithEntity("SpotLight");
-            auto      spot_entity     = scene->findEntity("SpotLight");
-            auto&     t               = spot_entity.emplace<Transform>();
-            glm::vec3 spot_position   = glm::vec3(0.0f, 5.0f, 8.0f);
-            t.position                = spot_position;
-            glm::vec3 default_forward = glm::vec3(0.0f, 0.0f, -1.0f);
-            glm::vec3 spot_target     = glm::vec3(0.0f, 0.0f, 0.0f);
-            glm::vec3 spot_forward    = glm::normalize(spot_target - spot_position);
-            glm::vec3 spot_axis       = glm::cross(default_forward, spot_forward);
-            float     spot_angle      = glm::acos(glm::dot(default_forward, spot_forward));
-            if (glm::length(spot_axis) > 0.001f)
-                t.rotation = glm::angleAxis(spot_angle, glm::normalize(spot_axis));
-            auto& sl            = spot_entity.emplace<SpotLight>();
-            sl.color            = glm::vec3(200.0f, 200.0f, 150.0f);
-            sl.intensity        = 1.2f;
-            sl.range            = 20.0f;
-            sl.inner_cone_angle = 15.0f;
-            sl.outer_cone_angle = 30.0f;
-            scene->getRoot()->addChild(spot_node);
+            auto  n = scene->createNodeWithEntity("PointLight2");
+            auto  e = scene->findEntity("PointLight2");
+            auto& t = e.emplace<Transform>();
+            t.position = glm::vec3(-5.0f, 4.0f, 2.0f);
+            auto& pl = e.emplace<PointLight>();
+            pl.color    = glm::vec3(1.0f, 0.25f, 0.2f);
+            pl.intensity = 5.0f;
+            pl.range    = 35.0f;
+            scene->getRoot()->addChild(n);
+        }
+
+        {
+            auto  n = scene->createNodeWithEntity("PointLight3");
+            auto  e = scene->findEntity("PointLight3");
+            auto& t = e.emplace<Transform>();
+            t.position = glm::vec3(5.0f, 4.0f, 2.0f);
+            auto& pl = e.emplace<PointLight>();
+            pl.color    = glm::vec3(0.2f, 0.3f, 1.0f);
+            pl.intensity = 5.0f;
+            pl.range    = 35.0f;
+            scene->getRoot()->addChild(n);
+        }
+
+        {
+            auto  n = scene->createNodeWithEntity("DirectionalLight");
+            auto  e = scene->findEntity("DirectionalLight");
+            auto& t = e.emplace<Transform>();
+            setLightDir(t, glm::normalize(glm::vec3(-1.0f, -1.2f, -0.5f)));
+            auto& dl = e.emplace<DirectionalLight>();
+            dl.color    = glm::vec3(1.0f, 0.98f, 0.88f);
+            dl.intensity = 3.5f;
+            scene->getRoot()->addChild(n);
+        }
+
+        {
+            auto  n = scene->createNodeWithEntity("SpotLight");
+            auto  e = scene->findEntity("SpotLight");
+            auto& t = e.emplace<Transform>();
+            t.position = glm::vec3(0.0f, 5.0f, 10.0f);
+            setLightDir(t, glm::normalize(glm::vec3(0.0f, -0.5f, -1.0f)));
+            auto& sl = e.emplace<SpotLight>();
+            sl.color           = glm::vec3(1.0f, 1.0f, 0.95f);
+            sl.intensity       = 8.0f;
+            sl.range           = 25.0f;
+            sl.inner_cone_angle = 12.0f;
+            sl.outer_cone_angle = 28.0f;
+            scene->getRoot()->addChild(n);
+        }
+
+        {
+            auto  n = scene->createNodeWithEntity("AreaLight");
+            auto  e = scene->findEntity("AreaLight");
+            auto& t = e.emplace<Transform>();
+            t.position = glm::vec3(0.0f, 7.0f, 2.0f);
+            setLightDir(t, glm::vec3(0.0f, -1.0f, 0.0f));
+            auto& al = e.emplace<AreaLight>();
+            al.color    = glm::vec3(0.95f, 1.0f, 1.0f);
+            al.intensity = 3.0f;
+            al.width    = 2.5f;
+            al.height   = 2.5f;
+            scene->getRoot()->addChild(n);
+        }
+
+        {
+            auto  n = scene->createNodeWithEntity("LightProbe");
+            auto  e = scene->findEntity("LightProbe");
+            auto& t = e.emplace<Transform>();
+            t.position = glm::vec3(0.0f, 1.0f, 0.0f);
+            auto& lp  = e.emplace<LightProbe>();
+            lp.influence_radius = 15.0f;
+            lp.needs_update     = true;
+            scene->getRoot()->addChild(n);
         }
 
         return scene;

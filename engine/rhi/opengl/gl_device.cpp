@@ -1,6 +1,7 @@
 #include "rhi/opengl/gl_device.h"
 
-#include <glad/gl.h>
+#include <cstring>
+#include <glad/glad.h>
 #include <string>
 
 #include "core/log/log_macros.h"
@@ -26,6 +27,18 @@ namespace RealmEngine
     {
         if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
             return;
+        // Suppress NVIDIA 131204 "texture object (0) does not have a defined base level" -
+        // driver warning when unit 0 has default texture; harmless with proper fallback sampling
+        if (id == 131204 && message && std::strstr(message, "defined base level"))
+            return;
+        // Suppress 131170 "driver allocated storage for renderbuffer" - informational only
+        if (id == 131169)
+            return;
+        // Suppress 131218 "vertex shader recompiled based on GL state" - driver quirk;
+        // we bind VAO before glUseProgram; some recompilation may still occur with FBO/cascade switches
+        if (id == 131218 && message && std::strstr(message, "recompiled"))
+            return;
+
 
         std::string src_str;
         switch (source)
@@ -140,6 +153,14 @@ namespace RealmEngine
                                                       const std::string& fragment_path)
     {
         auto shader = std::make_unique<GLShader>(vertex_path, geometry_path, fragment_path);
+        if (!shader->isValid())
+            return nullptr;
+        return shader;
+    }
+
+    std::unique_ptr<RHIShader> GLDevice::createComputeShader(const std::string& compute_path)
+    {
+        auto shader = std::make_unique<GLShader>(compute_path, GLShader::ComputeTag{});
         if (!shader->isValid())
             return nullptr;
         return shader;
@@ -453,6 +474,31 @@ namespace RealmEngine
     // ----- Texture helpers -----------------------------------------------
 
     void GLDevice::bindTexture(uint32_t unit, RHITexture& texture) { texture.bind(unit); }
+
+    // ----- Compute -------------------------------------------------------
+
+    void GLDevice::dispatchCompute(uint32_t groups_x, uint32_t groups_y, uint32_t groups_z)
+    {
+        glDispatchCompute(groups_x, groups_y, groups_z);
+    }
+
+    void GLDevice::memoryBarrier(BarrierFlags flags)
+    {
+        GLbitfield bits = 0;
+        if (flags & BarrierFlags::ShaderStorage)
+            bits |= GL_SHADER_STORAGE_BARRIER_BIT;
+        if (flags & BarrierFlags::ImageAccess)
+            bits |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+        if (flags & BarrierFlags::TextureFetch)
+            bits |= GL_TEXTURE_FETCH_BARRIER_BIT;
+        if (flags & BarrierFlags::BufferUpdate)
+            bits |= GL_BUFFER_UPDATE_BARRIER_BIT;
+        if (flags & BarrierFlags::Framebuffer)
+            bits |= GL_FRAMEBUFFER_BARRIER_BIT;
+        if (flags == BarrierFlags::All)
+            bits = GL_ALL_BARRIER_BITS;
+        glMemoryBarrier(bits);
+    }
 
     // ----- Misc ----------------------------------------------------------
 

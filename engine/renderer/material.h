@@ -7,21 +7,20 @@
 
 namespace RealmEngine
 {
-    // Texture unit bindings (shared convention for standard shaders)
-    static constexpr int TEXTURE_UNIT_ALBEDO                 = 0;
-    static constexpr int TEXTURE_UNIT_METALLIC_ROUGHNESS     = 1;
-    static constexpr int TEXTURE_UNIT_NORMAL                 = 2;
-    static constexpr int TEXTURE_UNIT_AMBIENT_OCCLUSION      = 3;
-    static constexpr int TEXTURE_UNIT_EMISSIVE               = 4;
-    static constexpr int TEXTURE_UNIT_OPACITY                = 5;
-    static constexpr int TEXTURE_UNIT_CUSTOM_BASE            = 6;
-    static constexpr int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10;
-    static constexpr int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
-    static constexpr int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
-    static constexpr int TEXTURE_UNIT_SHADOW_MAP             = 13;
-    static constexpr int TEXTURE_UNIT_SSAO_DEPTH             = 14;
-    static constexpr int TEXTURE_UNIT_SSAO_NOISE             = 15;
-    static constexpr int TEXTURE_UNIT_SSAO_RESULT            = 16;
+    inline constexpr int TEXTURE_UNIT_ALBEDO                 = 0;
+    inline constexpr int TEXTURE_UNIT_METALLIC_ROUGHNESS     = 1;
+    inline constexpr int TEXTURE_UNIT_NORMAL                 = 2;
+    inline constexpr int TEXTURE_UNIT_AMBIENT_OCCLUSION      = 3;
+    inline constexpr int TEXTURE_UNIT_EMISSIVE               = 4;
+    inline constexpr int TEXTURE_UNIT_OPACITY                = 5;
+    inline constexpr int TEXTURE_UNIT_CUSTOM_BASE            = 6;
+    inline constexpr int TEXTURE_UNIT_DIFFUSE_IRRADIANCE_MAP = 10;
+    inline constexpr int TEXTURE_UNIT_PREFILTERED_ENV_MAP    = 11;
+    inline constexpr int TEXTURE_UNIT_BRDF_CONVOLUTION_MAP   = 12;
+    inline constexpr int TEXTURE_UNIT_SHADOW_MAP             = 13;
+    inline constexpr int TEXTURE_UNIT_GTAO_DEPTH             = 14;
+    inline constexpr int TEXTURE_UNIT_GTAO_NOISE             = 15;
+    inline constexpr int TEXTURE_UNIT_GTAO_RESULT            = 16;
 
     enum class ShadingModel : uint8_t
     {

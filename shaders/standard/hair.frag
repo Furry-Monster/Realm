@@ -1,9 +1,10 @@
-#version 330 core
+#version 450 core
 
 #include "../include/common.glsl"
 #include "../include/material_input.glsl"
 #include "../include/lighting.glsl"
 #include "../include/shadow.glsl"
+#include "../include/sh_lighting.glsl"
 
 layout(location = 0) out vec4 FragColor;
 
@@ -14,6 +15,7 @@ in vec3 bitangent;
 in vec3 normal;
 
 uniform vec3 cameraPosition;
+uniform mat4 view;
 uniform samplerCube diffuseIrradianceMap;
 uniform int displayMode;
 
@@ -62,10 +64,7 @@ void main()
 
         // Directional light shadow
         if (int(lights[i].position.w) == 1 && shadowEnabled)
-        {
-            vec4 fragPosLS = lightSpaceMatrix * vec4(worldCoordinates, 1.0);
-            radiance *= calculateShadow(fragPosLS, normal, l);
-        }
+            radiance *= calculateShadow(worldCoordinates, normal, l, view);
 
         vec3 H = normalize(l + v);
         float diff = kajiyaKayDiffuse(T, l);
@@ -75,6 +74,11 @@ void main()
     }
 
     vec3 irradiance = texture(diffuseIrradianceMap, normal).rgb;
+    if (probeCount > 0)
+    {
+        vec3 probeIrr = evaluateProbeIrradiance(worldCoordinates, normal);
+        irradiance = probeIrr;
+    }
     vec3 ambient = irradiance * s.albedo;
     vec3 color = s.emissive + ambient + Lo;
 

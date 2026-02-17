@@ -7,11 +7,40 @@ struct LightData
     vec4 spot_area;   // x = outer_cone_angle, y = width, z = height, w = padding
 };
 
-layout(std140) uniform LightBlock
+layout(std430, binding = 1) readonly buffer LightBuffer
 {
     int lightCount;
-    LightData lights[16];
+    LightData lights[];
 };
+
+layout(std430, binding = 4) readonly buffer LightGrid
+{
+    uvec2 clusterGrid[]; // x = offset, y = count
+};
+
+layout(std430, binding = 3) readonly buffer LightIndices
+{
+    uint globalIndexCount;
+    uint lightIndices[];
+};
+
+uniform ivec3 clusterDimensions; // (16, 9, 24)
+
+// Map screen UV + view-space depth to a cluster index
+ivec3 getClusterIndex(vec2 screenUV, float viewDepth, float nearPlane, float farPlane)
+{
+    int x = int(screenUV.x * float(clusterDimensions.x));
+    int y = int(screenUV.y * float(clusterDimensions.y));
+
+    // Exponential depth slicing (inverse of: slice = near * pow(far/near, z/Z))
+    int z = int(log(viewDepth / nearPlane) / log(farPlane / nearPlane) * float(clusterDimensions.z));
+
+    x = clamp(x, 0, clusterDimensions.x - 1);
+    y = clamp(y, 0, clusterDimensions.y - 1);
+    z = clamp(z, 0, clusterDimensions.z - 1);
+
+    return ivec3(x, y, z);
+}
 
 // Compute light direction and radiance for a single light.
 // Returns false if the fragment is out of range.

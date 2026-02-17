@@ -3,8 +3,10 @@
 #include <algorithm>
 
 #include "renderer/light.h"
+#include "renderer/light_probe_data.h"
 #include "renderer/material.h"
-#include "renderer/passes/shadow_pass.h"
+#include "rhi/rhi_types.h"
+#include "renderer/passes/csm_shadow_pass.h"
 #include "renderer/render_camera.h"
 #include "renderer/render_mesh.h"
 #include "renderer/render_object.h"
@@ -14,6 +16,7 @@
 #include "rhi/rhi_framebuffer.h"
 #include "rhi/rhi_shader.h"
 #include "rhi/rhi_texture.h"
+#include "scene/scene.h"
 
 namespace RealmEngine
 {
@@ -24,11 +27,26 @@ namespace RealmEngine
 
     OpaquePass::~OpaquePass() = default;
 
+    static constexpr size_t PROBE_SSBO_SIZE = 16 + LightProbeGPUData::MAX_ACTIVE_PROBES * 160;
+
     void OpaquePass::init(RHIDevice& device)
     {
         m_pbr_shader = device.createShader(m_shader_path + "/builtin/pbr.vert", m_shader_path + "/builtin/pbr.frag");
-        m_pbr_shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
-        m_light_ubo = device.createBuffer(BufferType::Uniform, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
+        m_pbr_shader->bindShaderStorageBlock("LightBuffer", 1);
+        m_pbr_shader->bindShaderStorageBlock("ProbeBuffer", 5);
+        m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
+        m_probe_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, PROBE_SSBO_SIZE);
+
+        uint8_t white[] = {255, 255, 255, 255};
+        TextureDesc td;
+        td.type       = TextureType::Texture2D;
+        td.format     = TextureFormat::RGBA8;
+        td.width      = 1;
+        td.height     = 1;
+        td.data       = white;
+        td.min_filter = TextureFilter::Nearest;
+        td.mag_filter = TextureFilter::Nearest;
+        m_default_white = device.createTexture(td);
     }
 
     RHIShader* OpaquePass::resolveShader(const Material& mat, RHIDevice& device)
@@ -65,14 +83,22 @@ namespace RealmEngine
             if (depth)
             {
                 ctx.device->bindTexture(TEXTURE_UNIT_SHADOW_MAP, *depth);
-                shader.setInt("shadowMap", TEXTURE_UNIT_SHADOW_MAP);
+                shader.setInt("shadowMapArray", TEXTURE_UNIT_SHADOW_MAP);
             }
-            shader.setMat4("lightSpaceMatrix", m_shadow_pass->getLightSpaceMatrix());
+            auto& cascades = m_shadow_pass->getCascades();
+            shader.setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
+            std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
+            for (int c = 0; c < CSMShadowPass::CASCADE_COUNT; ++c)
+            {
+                shader.setMat4("cascadeVP[" + std::to_string(c) + "]", cascades[c].light_view_proj);
+                splits[c] = cascades[c].split_depth;
+            }
+            shader.setFloatArray("cascadeSplits", splits);
+            shader.setFloat("lightSize", m_shadow_pass->getLightSize());
             shader.setBool("shadowEnabled", true);
         }
         else
         {
-            shader.setMat4("lightSpaceMatrix", glm::mat4(1.0f));
             shader.setBool("shadowEnabled", false);
         }
     }
@@ -103,21 +129,44 @@ namespace RealmEngine
 
         // Upload light data
         {
-            size_t    count   = std::min(ctx.scene->m_lights.size(), MAX_LIGHTS);
+            size_t    count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
             int       count_i = static_cast<int>(count);
             LightData data[MAX_LIGHTS] {};
             for (size_t i = 0; i < count; ++i)
             {
-                auto& l             = ctx.scene->m_lights[i];
+                auto& l             = ctx.scene->getLights()[i];
                 data[i].position    = glm::vec4(l.position, static_cast<float>(static_cast<int>(l.type)));
                 data[i].direction   = glm::vec4(l.direction, l.intensity);
                 data[i].color       = glm::vec4(l.color, l.constant);
                 data[i].attenuation = glm::vec4(l.linear, l.quadratic, l.range, l.inner_cone_angle);
                 data[i].spot_area   = glm::vec4(l.outer_cone_angle, l.width, l.height, 0.0f);
             }
-            m_light_ubo->setSubData(&count_i, 0, sizeof(int));
-            m_light_ubo->setSubData(data, 16, MAX_LIGHTS * sizeof(LightData));
-            m_light_ubo->bindBase(LIGHT_UBO_BINDING_POINT);
+            m_light_ssbo->setSubData(&count_i, 0, sizeof(int));
+            m_light_ssbo->setSubData(data, 16, count * sizeof(LightData));
+            m_light_ssbo->bindBase(1);
+        }
+
+        // Upload probe data
+        bool probes_active = false;
+        Scene* ecs_scene = ctx.scene ? ctx.scene->getScene() : nullptr;
+        if (ecs_scene && m_probe_ssbo)
+        {
+            LightProbeGPUData probe_data;
+            probe_data.collectFromScene(*ecs_scene);
+
+            if (probe_data.probe_count > 0)
+            {
+                m_probe_ssbo->setSubData(&probe_data.probe_count, 0, sizeof(int));
+                m_probe_ssbo->setSubData(probe_data.probes.data(), 16,
+                                         probe_data.probes.size() * sizeof(LightProbeGPUData::ProbeInfo));
+                probes_active = true;
+            }
+            else
+            {
+                int zero = 0;
+                m_probe_ssbo->setSubData(&zero, 0, sizeof(int));
+            }
+            m_probe_ssbo->bindBase(5);
         }
 
         // Collect opaque draw commands grouped by shader
@@ -129,16 +178,17 @@ namespace RealmEngine
         };
         std::vector<DrawCmd> commands;
 
-        for (size_t i = 0; i < ctx.scene->m_render_objects.size(); ++i)
+        const auto& objects  = ctx.scene->getRenderObjects();
+        const auto& matrices = ctx.scene->getRenderModelMatrices();
+        for (size_t i = 0; i < objects.size(); ++i)
         {
-            auto& ro = ctx.scene->m_render_objects[i];
-            if (!ro)
+            if (!objects[i])
                 continue;
 
-            glm::mat4 model = (i < ctx.scene->m_render_model_matrices.size()) ? ctx.scene->m_render_model_matrices[i] :
-                                                                                glm::mat4(1.0f);
+            auto&     ro    = *objects[i];
+            glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
 
-            ro->forEachMesh([&](RenderMesh& mesh) {
+            ro.forEachMesh([&](RenderMesh& mesh) {
                 if (mesh.m_material.isTransparent())
                     return;
 
@@ -166,11 +216,16 @@ namespace RealmEngine
             if (cmd.shader != active_shader)
             {
                 cmd.shader->use();
-                cmd.shader->bindUniformBlock("LightBlock", LIGHT_UBO_BINDING_POINT);
+                cmd.shader->bindShaderStorageBlock("LightBuffer", 1);
+                cmd.shader->bindShaderStorageBlock("ProbeBuffer", 5);
                 setupEngineUniforms(*cmd.shader, ctx);
                 cmd.shader->setBool("isTransparentPass", false);
+                cmd.shader->setBool("probesEnabled", probes_active);
                 active_shader = cmd.shader;
             }
+
+            for (int u = TEXTURE_UNIT_ALBEDO; u <= TEXTURE_UNIT_OPACITY; ++u)
+                ctx.device->bindTexture(u, *m_default_white);
 
             const Material& mat = cmd.mesh->m_material;
             ctx.device->setCullFace(mat.isDoubleSided() ? CullFace::None : CullFace::Back);
@@ -184,7 +239,9 @@ namespace RealmEngine
     {
         m_framebuffer.reset();
         m_pbr_shader.reset();
-        m_light_ubo.reset();
+        m_light_ssbo.reset();
+        m_probe_ssbo.reset();
+        m_default_white.reset();
         m_shader_cache.clear();
     }
 

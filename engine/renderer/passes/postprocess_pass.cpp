@@ -2,7 +2,7 @@
 
 #include "renderer/fullscreen_quad.h"
 #include "renderer/passes/bloom_pass.h"
-#include "renderer/passes/ssao_blur_pass.h"
+#include "renderer/passes/gtao_blur_pass.h"
 #include "renderer/scene_color_source.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_framebuffer.h"
@@ -16,10 +16,11 @@ namespace RealmEngine
     PostProcessPass::PostProcessPass(const std::string& shader_path,
                                      bool               tonemapping,
                                      float              gamma,
-                                     bool               ssao_enabled,
-                                     float              ssao_power) :
+                                     bool               ao_enabled,
+                                     float              ao_power,
+                                     float              ao_intensity) :
         RenderPass("postprocess"), m_shader_path(shader_path), m_tonemapping(tonemapping), m_gamma(gamma),
-        m_ssao_enabled(ssao_enabled), m_ssao_power(ssao_power)
+        m_ao_enabled(ao_enabled), m_ao_power(ao_power), m_ao_intensity(ao_intensity)
     {}
 
     void PostProcessPass::init(RHIDevice& device)
@@ -52,10 +53,14 @@ namespace RealmEngine
         m_shader->setBool("tonemappingEnabled", m_tonemapping);
         m_shader->setFloat("gammaCorrectionFactor", m_gamma);
 
-        auto* depth_tex    = geo_fb->getDepthAttachment();
-        bool  ssao_on      = m_ssao_enabled && m_ssao_blur_pass && m_ssao_blur_pass->getResultTexture() && depth_tex;
-        int   display_mode = static_cast<int>(ctx.display_mode);
-        if (display_mode == 7 && !ssao_on)
+        auto* depth_tex = geo_fb->getDepthAttachment();
+
+        RHITexture* ao_tex = (m_gtao_blur_pass && m_gtao_blur_pass->getResultTexture())
+                                 ? m_gtao_blur_pass->getResultTexture()
+                                 : nullptr;
+        bool ao_on = m_ao_enabled && ao_tex && depth_tex;
+        int display_mode = static_cast<int>(ctx.display_mode);
+        if (display_mode == 7 && !ao_on)
             display_mode = 0;
         m_shader->setInt("displayMode", display_mode);
 
@@ -86,14 +91,15 @@ namespace RealmEngine
         m_shader->setFloat("bloomIntensity", bloom_intensity);
         m_shader->setInt("bloomMaxMip", m_bloom_pass ? m_bloom_pass->getMaxMipLevel() : 0);
 
-        m_shader->setBool("ssaoEnabled", ssao_on);
-        m_shader->setFloat("ssaoPower", m_ssao_power);
-        if (ssao_on)
+        m_shader->setBool("aoEnabled", ao_on);
+        m_shader->setFloat("aoPower", m_ao_power);
+        m_shader->setFloat("aoIntensity", m_ao_intensity);
+        if (ao_on)
         {
-            ctx.device->bindTexture(2, *m_ssao_blur_pass->getResultTexture());
-            m_shader->setInt("ssaoTexture", 2);
+            ctx.device->bindTexture(2, *ao_tex);
+            m_shader->setInt("aoTexture", 2);
         }
-        if (depth_tex && (ssao_on || display_mode == 8))
+        if (depth_tex && (ao_on || display_mode == 8))
         {
             ctx.device->bindTexture(3, *depth_tex);
             m_shader->setInt("depthTexture", 3);

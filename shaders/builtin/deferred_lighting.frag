@@ -1,9 +1,10 @@
-#version 330 core
+#version 450 core
 
 #include "../include/common.glsl"
 #include "../include/brdf.glsl"
 #include "../include/lighting.glsl"
 #include "../include/shadow.glsl"
+#include "../include/sh_lighting.glsl"
 
 layout(location = 0) out vec4 FragColor;
 
@@ -13,6 +14,7 @@ in vec2 textureCoordinates;
 uniform sampler2D gAlbedoModelID;
 uniform sampler2D gNormalMetallic;
 uniform sampler2D gEmissiveRoughness;
+uniform sampler2D gAO;
 uniform sampler2D gDepth;
 
 // Camera
@@ -27,6 +29,7 @@ uniform sampler2D brdfConvolutionMap;
 
 // Viewport display mode
 uniform int displayMode;
+uniform mat4 viewMatrix;
 
 vec3 reconstructWorldPosition(vec2 uv, float depth)
 {
@@ -37,14 +40,25 @@ vec3 reconstructWorldPosition(vec2 uv, float depth)
     return worldPos.xyz;
 }
 
+uniform bool probesEnabled;
+
 vec3 computeIBL(vec3 albedo, vec3 n, vec3 v, vec3 r,
-                float metallic, float roughness, vec3 f0)
+                float metallic, float roughness, vec3 f0, vec3 worldPos)
 {
     vec3 kSpecular = fresnelSchlickRoughness(max(dot(n, v), 0.0), f0, roughness);
     vec3 kDiffuse  = (1.0 - kSpecular) * (1.0 - metallic);
 
     vec3 irradiance = texture(diffuseIrradianceMap, n).rgb;
-    vec3 diffuse    = irradiance * albedo;
+
+    if (probesEnabled)
+    {
+        vec3 probeIrr = evaluateProbeIrradiance(worldPos, n);
+        // Blend: probe data overrides IBL diffuse where available
+        float probeWeight = (probeCount > 0) ? 1.0 : 0.0;
+        irradiance = mix(irradiance, probeIrr, probeWeight);
+    }
+
+    vec3 diffuse = irradiance * albedo;
 
     vec3  prefilteredColor = textureLod(prefilteredEnvMap, r, roughness * PREFILTERED_ENV_MAP_LOD).rgb;
     float NdotV = max(dot(n, v), 0.0);
@@ -56,12 +70,10 @@ vec3 computeIBL(vec3 albedo, vec3 n, vec3 v, vec3 r,
 
 // Standard PBR shading (shadingModelID = 0)
 vec3 shadePBR(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
-              float metallic, float roughness, vec3 emissive, vec3 r)
+              float metallic, float roughness, vec3 emissive, vec3 r, float ao)
 {
     vec3 f0 = mix(vec3(0.04), albedo, metallic);
     vec3 Lo = vec3(0.0);
-
-    vec4 fragPosLS = lightSpaceMatrix * vec4(worldPos, 1.0);
 
     for (int i = 0; i < lightCount; i++)
     {
@@ -71,24 +83,22 @@ vec3 shadePBR(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
 
         int lightType = int(lights[i].position.w);
         if (lightType == 1)
-            radiance *= calculateShadow(fragPosLS, n, l);
+            radiance *= calculateShadow(worldPos, n, l, viewMatrix);
 
         Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0,
                                false, 0.0, vec3(1.0));
     }
 
-    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0);
+    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0, worldPos) * ao;
     return emissive + ambient + Lo;
 }
 
 // Subsurface shading (shadingModelID = 1): PBR + subsurface wrap diffuse
 vec3 shadeSubsurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
-                     float metallic, float roughness, vec3 emissive, vec3 r)
+                     float metallic, float roughness, vec3 emissive, vec3 r, float ao)
 {
     vec3 f0 = mix(vec3(0.04), albedo, metallic);
     vec3 Lo = vec3(0.0);
-
-    vec4 fragPosLS = lightSpaceMatrix * vec4(worldPos, 1.0);
 
     for (int i = 0; i < lightCount; i++)
     {
@@ -98,14 +108,13 @@ vec3 shadeSubsurface(vec3 albedo, vec3 n, vec3 v, vec3 worldPos,
 
         int lightType = int(lights[i].position.w);
         if (lightType == 1)
-            radiance *= calculateShadow(fragPosLS, n, l);
+            radiance *= calculateShadow(worldPos, n, l, viewMatrix);
 
-        // SSS enabled with default wrap parameters
         Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0,
                                true, 1.0, vec3(1.0));
     }
 
-    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0);
+    vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0, worldPos) * ao;
     return emissive + ambient + Lo;
 }
 
@@ -114,6 +123,7 @@ void main()
     vec4  albedoModelID = texture(gAlbedoModelID, textureCoordinates);
     vec4  normalMet     = texture(gNormalMetallic, textureCoordinates);
     vec4  emissRough    = texture(gEmissiveRoughness, textureCoordinates);
+    float ao            = texture(gAO, textureCoordinates).r;
     float depth         = texture(gDepth, textureCoordinates).r;
 
     if (depth >= 1.0)
@@ -135,14 +145,14 @@ void main()
     if (displayMode == 2) { FragColor = vec4(n * 0.5 + 0.5, 1.0); return; }
     if (displayMode == 3) { FragColor = vec4(vec3(metallic), 1.0); return; }
     if (displayMode == 4) { FragColor = vec4(vec3(roughness), 1.0); return; }
-    if (displayMode == 5) { FragColor = vec4(vec3(1.0), 1.0); return; }
+    if (displayMode == 5) { FragColor = vec4(vec3(ao), 1.0); return; }
     if (displayMode == 6) { FragColor = vec4(emissive, 1.0); return; }
 
     vec3 color;
     if (modelID == 1)
-        color = shadeSubsurface(albedo, n, v, worldPos, metallic, roughness, emissive, r);
+        color = shadeSubsurface(albedo, n, v, worldPos, metallic, roughness, emissive, r, ao);
     else
-        color = shadePBR(albedo, n, v, worldPos, metallic, roughness, emissive, r);
+        color = shadePBR(albedo, n, v, worldPos, metallic, roughness, emissive, r, ao);
 
     FragColor = vec4(color, 0.0);
 }

@@ -38,7 +38,6 @@ namespace RealmEngine
         void                       setParent(std::shared_ptr<SceneNode> parent);
         void                       clearChildren();
 
-        void forEachChild(std::function<void(std::shared_ptr<SceneNode>)> func);
         void forEachChild(std::function<void(const std::shared_ptr<SceneNode>&)> func) const;
 
     private:

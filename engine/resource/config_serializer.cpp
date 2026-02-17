@@ -176,21 +176,18 @@ namespace RealmEngine
         json["camera_look_at_x"]     = renderer.camera_look_at_x;
         json["camera_look_at_y"]     = renderer.camera_look_at_y;
         json["camera_look_at_z"]     = renderer.camera_look_at_z;
-        json["ssao_enabled"]         = renderer.ssao_enabled;
-        json["ssao_radius"]          = renderer.ssao_radius;
-        json["ssao_bias"]            = renderer.ssao_bias;
-        json["ssao_power"]           = renderer.ssao_power;
-        json["ssao_kernel_size"]     = renderer.ssao_kernel_size;
-        json["ssao_noise_size"]      = renderer.ssao_noise_size;
+        json["ao_enabled"]           = renderer.ao_enabled;
+        json["ao_radius"]            = renderer.ao_radius;
+        json["ao_power"]             = renderer.ao_power;
+        json["ao_intensity"]         = renderer.ao_intensity;
+        json["gtao_num_directions"]  = renderer.gtao_num_directions;
+        json["gtao_num_steps"]       = renderer.gtao_num_steps;
 
         json["bloom_enabled"]           = renderer.bloom_enabled;
         json["bloom_intensity"]         = renderer.bloom_intensity;
         json["bloom_iterations"]        = renderer.bloom_iterations;
         json["bloom_direction"]         = renderer.bloom_direction;
         json["bloom_brightness_cutoff"] = renderer.bloom_brightness_cutoff;
-        json["sss_enabled"]             = renderer.sss_enabled;
-        json["sss_radius"]              = renderer.sss_radius;
-        json["sss_samples"]             = renderer.sss_samples;
         json["tonemapping_enabled"]     = renderer.tonemapping_enabled;
         json["gamma_correction_factor"] = renderer.gamma_correction_factor;
         json["hdri_path"]               = renderer.hdri_path;
@@ -257,18 +254,28 @@ namespace RealmEngine
             renderer.camera_look_at_y = json["camera_look_at_y"].get<float>();
         if (json.contains("camera_look_at_z"))
             renderer.camera_look_at_z = json["camera_look_at_z"].get<float>();
-        if (json.contains("ssao_enabled"))
-            renderer.ssao_enabled = json["ssao_enabled"].get<bool>();
-        if (json.contains("ssao_radius"))
-            renderer.ssao_radius = json["ssao_radius"].get<float>();
-        if (json.contains("ssao_bias"))
-            renderer.ssao_bias = json["ssao_bias"].get<float>();
-        if (json.contains("ssao_power"))
-            renderer.ssao_power = json["ssao_power"].get<float>();
-        if (json.contains("ssao_kernel_size"))
-            renderer.ssao_kernel_size = json["ssao_kernel_size"].get<int>();
-        if (json.contains("ssao_noise_size"))
-            renderer.ssao_noise_size = json["ssao_noise_size"].get<int>();
+        if (json.contains("ao_enabled"))
+            renderer.ao_enabled = json["ao_enabled"].get<bool>();
+        else if (json.contains("ssao_enabled"))
+            renderer.ao_enabled = json["ssao_enabled"].get<bool>();
+        if (json.contains("ao_radius"))
+            renderer.ao_radius = json["ao_radius"].get<float>();
+        else if (json.contains("ssao_radius"))
+            renderer.ao_radius = json["ssao_radius"].get<float>();
+        if (json.contains("ao_power"))
+            renderer.ao_power = json["ao_power"].get<float>();
+        else if (json.contains("ssao_power"))
+            renderer.ao_power = json["ssao_power"].get<float>();
+        if (json.contains("ao_intensity"))
+            renderer.ao_intensity = json["ao_intensity"].get<float>();
+        else if (json.contains("ssao_intensity"))
+            renderer.ao_intensity = json["ssao_intensity"].get<float>();
+        else if (json.contains("gtao_intensity"))
+            renderer.ao_intensity = json["gtao_intensity"].get<float>();
+        if (json.contains("gtao_num_directions"))
+            renderer.gtao_num_directions = json["gtao_num_directions"].get<int>();
+        if (json.contains("gtao_num_steps"))
+            renderer.gtao_num_steps = json["gtao_num_steps"].get<int>();
 
         if (json.contains("bloom_enabled"))
             renderer.bloom_enabled = json["bloom_enabled"].get<bool>();
@@ -280,12 +287,6 @@ namespace RealmEngine
             renderer.bloom_direction = json["bloom_direction"].get<int>();
         if (json.contains("bloom_brightness_cutoff"))
             renderer.bloom_brightness_cutoff = json["bloom_brightness_cutoff"].get<float>();
-        if (json.contains("sss_enabled"))
-            renderer.sss_enabled = json["sss_enabled"].get<bool>();
-        if (json.contains("sss_radius"))
-            renderer.sss_radius = json["sss_radius"].get<float>();
-        if (json.contains("sss_samples"))
-            renderer.sss_samples = json["sss_samples"].get<int>();
         if (json.contains("tonemapping_enabled"))
             renderer.tonemapping_enabled = json["tonemapping_enabled"].get<bool>();
         if (json.contains("gamma_correction_factor"))

@@ -1,6 +1,9 @@
-uniform sampler2D shadowMap;
+uniform sampler2DArray shadowMapArray;
 uniform bool shadowEnabled;
-uniform mat4 lightSpaceMatrix;
+uniform int cascadeCount;
+uniform mat4 cascadeVP[4];
+uniform float cascadeSplits[4]; // far depth of each cascade in view space
+uniform float lightSize;        // virtual light size for PCSS
 
 // Poisson disk 16-tap sampling
 const vec2 poissonDisk[16] = vec2[](
@@ -21,32 +24,115 @@ vec2 rotatePoissonSample(vec2 v, float angle)
     return mat2(c, -s, s, c) * v;
 }
 
-// PCF shadow with Poisson disk sampling
-float calculateShadow(vec4 fragPosLS, vec3 n, vec3 l)
+int selectCascade(float viewDepth)
+{
+    for (int i = 0; i < cascadeCount; ++i)
+    {
+        if (viewDepth < cascadeSplits[i])
+            return i;
+    }
+    return cascadeCount - 1;
+}
+
+// Blocker search for PCSS: returns average blocker depth, or -1 if no blockers
+float blockerSearch(vec3 projCoords, int cascade, float searchRadius)
+{
+    float blockerSum = 0.0;
+    int   blockerCount = 0;
+    vec2  texel = 1.0 / vec2(textureSize(shadowMapArray, 0).xy);
+    float angle = fract(dot(projCoords.xy, vec2(12.9898, 78.233)) * 43758.5453) * 6.28318;
+
+    for (int i = 0; i < 16; ++i)
+    {
+        vec2  off = rotatePoissonSample(poissonDisk[i], angle) * texel * searchRadius;
+        float d   = texture(shadowMapArray, vec3(projCoords.xy + off, float(cascade))).r;
+        if (d < projCoords.z)
+        {
+            blockerSum += d;
+            blockerCount++;
+        }
+    }
+    return blockerCount > 0 ? blockerSum / float(blockerCount) : -1.0;
+}
+
+// PCF with variable kernel radius
+float pcfFilter(vec3 projCoords, int cascade, float filterRadius)
+{
+    float shadow = 0.0;
+    vec2  texel  = 1.0 / vec2(textureSize(shadowMapArray, 0).xy);
+    float angle  = fract(dot(projCoords.xy, vec2(12.9898, 78.233)) * 43758.5453) * 6.28318;
+
+    for (int i = 0; i < 16; ++i)
+    {
+        vec2  off = rotatePoissonSample(poissonDisk[i], angle) * texel * filterRadius;
+        float d   = texture(shadowMapArray, vec3(projCoords.xy + off, float(cascade))).r;
+        shadow += projCoords.z > d ? 1.0 : 0.0;
+    }
+    return 1.0 - shadow / 16.0;
+}
+
+// PCSS: distance-dependent penumbra
+float pcssShadow(vec3 projCoords, int cascade, float bias)
+{
+    projCoords.z -= bias;
+    float avgBlockerDepth = blockerSearch(projCoords, cascade, lightSize * 20.0);
+    if (avgBlockerDepth < 0.0)
+        return 1.0;
+    // Penumbra estimation: w_penumbra = lightSize * (d_receiver - d_blocker) / d_blocker
+    float penumbra = lightSize * (projCoords.z - avgBlockerDepth) / avgBlockerDepth;
+    float filterRadius = max(penumbra * 20.0, 1.0);
+    return pcfFilter(projCoords, cascade, filterRadius);
+}
+
+// Standard PCF shadow for a single cascade
+float pcfShadow(vec3 projCoords, int cascade, float bias)
+{
+    projCoords.z -= bias;
+    return pcfFilter(projCoords, cascade, 1.0);
+}
+
+// Main entry: compute shadow factor for a world-space fragment
+float calculateShadow(vec3 worldPos, vec3 n, vec3 l, mat4 viewMatrix)
 {
     if (!shadowEnabled)
         return 1.0;
 
-    vec3 proj = fragPosLS.xyz / fragPosLS.w;
+    // View-space depth for cascade selection
+    float viewDepth = -(viewMatrix * vec4(worldPos, 1.0)).z;
+    int   cascade   = selectCascade(viewDepth);
+
+    // Project into cascade light space
+    vec4 lsPos = cascadeVP[cascade] * vec4(worldPos, 1.0);
+    vec3 proj  = lsPos.xyz / lsPos.w;
     proj = proj * 0.5 + 0.5;
 
     if (proj.x < 0.0 || proj.x > 1.0 || proj.y < 0.0 || proj.y > 1.0 || proj.z > 1.0)
         return 1.0;
 
-    float depth = proj.z;
-    float bias  = max(0.05 * (1.0 - dot(n, l)), 0.005);
+    float bias = max(0.05 * (1.0 - dot(n, l)), 0.005);
 
-    float shadow = 0.0;
-    vec2  texel  = 1.0 / textureSize(shadowMap, 0);
+    float shadow;
+    if (lightSize > 0.0)
+        shadow = pcssShadow(proj, cascade, bias);
+    else
+        shadow = pcfShadow(proj, cascade, bias);
 
-    float angle = fract(dot(proj.xy, vec2(12.9898, 78.233)) * 43758.5453) * 6.28318;
-
-    for (int i = 0; i < 16; i++)
+    // Fade out shadow at cascade boundary to reduce visible seams
+    float fade = smoothstep(cascadeSplits[cascade] * 0.9, cascadeSplits[cascade], viewDepth);
+    if (cascade < cascadeCount - 1)
     {
-        vec2  off    = rotatePoissonSample(poissonDisk[i], angle) * texel;
-        float pcf    = texture(shadowMap, proj.xy + off).r;
-        shadow += depth - bias > pcf ? 1.0 : 0.0;
+        vec4  lsNext = cascadeVP[cascade + 1] * vec4(worldPos, 1.0);
+        vec3  projNext = lsNext.xyz / lsNext.w;
+        projNext = projNext * 0.5 + 0.5;
+
+        float shadowNext;
+        if (lightSize > 0.0)
+            shadowNext = pcssShadow(projNext, cascade + 1, bias);
+        else
+            shadowNext = pcfShadow(projNext, cascade + 1, bias);
+
+        shadow = mix(shadow, shadowNext, fade);
     }
 
-    return 1.0 - shadow / 16.0;
+    return shadow;
 }

@@ -13,7 +13,7 @@ namespace RealmEngine
         Roughness,
         MaterialAO,
         Emissive,
-        SSAO,
+        AO,
         Depth,
         Count
     };

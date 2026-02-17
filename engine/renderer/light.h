@@ -47,7 +47,7 @@ namespace RealmEngine
         glm::vec4 spot_area;   // x = outer_cone_angle, y = width, z = height, w = padding
     };
 
-    static constexpr size_t   MAX_LIGHTS              = 16;
+    static constexpr size_t   MAX_LIGHTS              = 1024;
     static constexpr size_t   BUFFER_SIZE             = 16 + MAX_LIGHTS * sizeof(LightData);
     static constexpr uint32_t LIGHT_UBO_BINDING_POINT = 0;
 

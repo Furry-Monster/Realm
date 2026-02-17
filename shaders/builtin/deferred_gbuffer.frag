@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 #include "../include/material_input.glsl"
 
@@ -6,9 +6,11 @@
 //   RT0 (RGBA16F): albedo.rgb, shadingModelID
 //   RT1 (RGBA16F): worldNormal.xyz, metallic
 //   RT2 (RGBA16F): emissive.rgb, roughness
+//   RT3 (RGBA16F): materialAO.r, 0, 0, 0
 layout(location = 0) out vec4 gAlbedoModelID;
 layout(location = 1) out vec4 gNormalMetallic;
 layout(location = 2) out vec4 gEmissiveRoughness;
+layout(location = 3) out vec4 gAO;
 
 in vec2 textureCoordinates;
 in vec3 worldPosition;
@@ -29,4 +31,5 @@ void main()
     gAlbedoModelID     = vec4(s.albedo, float(shadingModelID));
     gNormalMetallic    = vec4(s.normal, s.metallic);
     gEmissiveRoughness = vec4(s.emissive, s.roughness);
+    gAO                = vec4(s.ao, 0.0, 0.0, 0.0);
 }

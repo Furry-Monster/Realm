@@ -12,14 +12,14 @@
 #include <glm/glm.hpp>
 
 #include "core/log/log_macros.h"
-
-namespace fs = std::filesystem;
 #include "renderer/material.h"
 #include "renderer/render_mesh.h"
 #include "resource/asset_manager.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_texture.h"
 #include "rhi/rhi_types.h"
+
+namespace fs = std::filesystem;
 
 namespace RealmEngine
 {

@@ -6,18 +6,17 @@
 
 namespace RealmEngine
 {
-    using namespace PrimitiveVertices;
-
     IblCubeMesh createIblCubeMesh(RHIDevice& device)
     {
         IblCubeMesh mesh;
         mesh.vbo = device.createBuffer(BufferType::Vertex,
                                        BufferUsage::Static,
-                                       k_cube,
-                                       k_cube_vertex_count * k_cube_floats_per_vertex * sizeof(float));
+                                       PrimitiveVertices::k_cube,
+                                       PrimitiveVertices::k_cube_vertex_count *
+                                           PrimitiveVertices::k_cube_floats_per_vertex * sizeof(float));
 
         VertexLayout layout;
-        layout.stride = k_cube_floats_per_vertex * sizeof(float);
+        layout.stride = PrimitiveVertices::k_cube_floats_per_vertex * sizeof(float);
         layout.attributes.push_back({0, 3, AttributeType::Float, 0, false});
 
         mesh.vertex_input = device.createVertexInput(layout, *mesh.vbo, nullptr);
@@ -27,14 +26,14 @@ namespace RealmEngine
     IblFullscreenQuadMesh createIblFullscreenQuadMesh(RHIDevice& device)
     {
         IblFullscreenQuadMesh mesh;
-        mesh.vbo =
-            device.createBuffer(BufferType::Vertex,
-                                BufferUsage::Static,
-                                k_fullscreen_quad,
-                                k_fullscreen_quad_vertex_count * k_fullscreen_quad_floats_per_vertex * sizeof(float));
+        mesh.vbo = device.createBuffer(BufferType::Vertex,
+                                       BufferUsage::Static,
+                                       PrimitiveVertices::k_fullscreen_quad,
+                                       PrimitiveVertices::k_fullscreen_quad_vertex_count *
+                                           PrimitiveVertices::k_fullscreen_quad_floats_per_vertex * sizeof(float));
 
         VertexLayout layout;
-        layout.stride = k_fullscreen_quad_floats_per_vertex * sizeof(float);
+        layout.stride = PrimitiveVertices::k_fullscreen_quad_floats_per_vertex * sizeof(float);
         layout.attributes.push_back({0, 2, AttributeType::Float, 0, false});
         layout.attributes.push_back({1, 2, AttributeType::Float, 2 * sizeof(float), false});
 

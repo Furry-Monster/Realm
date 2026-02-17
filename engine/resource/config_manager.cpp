@@ -1,10 +1,10 @@
 #include "resource/config_manager.h"
 
+#include <filesystem>
+
 #include "core/log/log_macros.h"
 #include "platform/filesystem/filesystem.h"
 #include "resource/config_serializer.h"
-
-#include <filesystem>
 
 namespace RealmEngine
 {
@@ -30,7 +30,7 @@ namespace RealmEngine
         RE_LOG_INFO("Config manager initialized.");
     }
 
-    void ConfigManager::disposal() const
+    void ConfigManager::disposal()
     {
         std::filesystem::path config_file = m_general_config.root_folder / "config.json";
         if (ConfigSerializer::saveToFile(*this, config_file.string()))

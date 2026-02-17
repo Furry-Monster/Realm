@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 // Example custom unlit shader.
 // Renders mesh with a flat color, no lighting. Demonstrates how to use

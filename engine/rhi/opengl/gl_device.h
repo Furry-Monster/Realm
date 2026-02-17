@@ -22,6 +22,8 @@ namespace RealmEngine
                                                 const std::string& geometry_path,
                                                 const std::string& fragment_path) override;
 
+        std::unique_ptr<RHIShader> createComputeShader(const std::string& compute_path) override;
+
         std::unique_ptr<RHIFramebuffer> createFramebuffer(const FramebufferDesc& desc) override;
 
         std::unique_ptr<RHIVertexInput> createVertexInput(const VertexLayout& layout,
@@ -69,6 +71,10 @@ namespace RealmEngine
 
         // Texture helpers
         void bindTexture(uint32_t unit, RHITexture& texture) override;
+
+        // Compute
+        void dispatchCompute(uint32_t groups_x, uint32_t groups_y, uint32_t groups_z) override;
+        void memoryBarrier(BarrierFlags flags) override;
 
         // Misc
         void enableSeamlessCubemap() override;
