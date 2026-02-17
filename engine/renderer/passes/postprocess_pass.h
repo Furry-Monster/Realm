@@ -19,8 +19,8 @@ namespace RealmEngine
         PostProcessPass(const std::string& shader_path,
                         bool               tonemapping,
                         float              gamma,
-                        bool               ao_enabled = false,
-                        float              ao_power   = 1.2f,
+                        bool               ao_enabled   = false,
+                        float              ao_power     = 1.2f,
                         float              ao_intensity = 0.6f);
         ~PostProcessPass() override;
 

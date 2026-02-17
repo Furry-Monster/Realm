@@ -55,11 +55,10 @@ namespace RealmEngine
 
         auto* depth_tex = geo_fb->getDepthAttachment();
 
-        RHITexture* ao_tex = (m_gtao_blur_pass && m_gtao_blur_pass->getResultTexture())
-                                 ? m_gtao_blur_pass->getResultTexture()
-                                 : nullptr;
-        bool ao_on = m_ao_enabled && ao_tex && depth_tex;
-        int display_mode = static_cast<int>(ctx.display_mode);
+        RHITexture* ao_tex =
+            (m_gtao_blur_pass && m_gtao_blur_pass->getResultTexture()) ? m_gtao_blur_pass->getResultTexture() : nullptr;
+        bool ao_on        = m_ao_enabled && ao_tex && depth_tex;
+        int  display_mode = static_cast<int>(ctx.display_mode);
         if (display_mode == 7 && !ao_on)
             display_mode = 0;
         m_shader->setInt("displayMode", display_mode);

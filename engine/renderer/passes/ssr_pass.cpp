@@ -14,11 +14,11 @@
 
 namespace RealmEngine
 {
-    static constexpr int TEX_UNIT_SCENE_COLOR   = 0;
-    static constexpr int TEX_UNIT_HIZ_DEPTH     = 1;
-    static constexpr int TEX_UNIT_NORMAL_METAL  = 2;
+    static constexpr int TEX_UNIT_SCENE_COLOR    = 0;
+    static constexpr int TEX_UNIT_HIZ_DEPTH      = 1;
+    static constexpr int TEX_UNIT_NORMAL_METAL   = 2;
     static constexpr int TEX_UNIT_EMISSIVE_ROUGH = 3;
-    static constexpr int TEX_UNIT_SCENE_DEPTH   = 4;
+    static constexpr int TEX_UNIT_SCENE_DEPTH    = 4;
 
     SSRPass::~SSRPass() = default;
 
@@ -29,8 +29,7 @@ namespace RealmEngine
 
     void SSRPass::init(RHIDevice& device)
     {
-        m_shader =
-            device.createShader(m_shader_path + "/builtin/ssr.vert", m_shader_path + "/builtin/ssr.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/ssr.vert", m_shader_path + "/builtin/ssr.frag");
     }
 
     void SSRPass::execute(const RenderContext& ctx)
@@ -111,8 +110,9 @@ namespace RealmEngine
         m_shader->setVec2("uScreenSize",
                           glm::vec2(static_cast<float>(ctx.viewport_width), static_cast<float>(ctx.viewport_height)));
 
-        int hiz_mip_count = 1 + static_cast<int>(std::floor(
-                                std::log2(static_cast<double>(std::max(hiz_tex->getWidth(), hiz_tex->getHeight())))));
+        int hiz_mip_count =
+            1 + static_cast<int>(
+                    std::floor(std::log2(static_cast<double>(std::max(hiz_tex->getWidth(), hiz_tex->getHeight())))));
         m_shader->setInt("uHiZMipCount", hiz_mip_count);
 
         m_quad->draw();

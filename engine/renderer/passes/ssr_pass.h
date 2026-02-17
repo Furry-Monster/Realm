@@ -18,10 +18,7 @@ namespace RealmEngine
     class SSRPass final : public RenderPass
     {
     public:
-        SSRPass(const std::string& shader_path,
-                bool               enabled,
-                int                max_steps    = 64,
-                float              max_distance = 100.0f);
+        SSRPass(const std::string& shader_path, bool enabled, int max_steps = 64, float max_distance = 100.0f);
         ~SSRPass() override;
 
         void init(RHIDevice& device) override;

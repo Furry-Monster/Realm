@@ -92,7 +92,7 @@ namespace RealmEngine
         // ----- Compute dispatch -----------------------------------------------
 
         virtual void dispatchCompute(uint32_t groups_x, uint32_t groups_y, uint32_t groups_z) = 0;
-        virtual void memoryBarrier(BarrierFlags flags) = 0;
+        virtual void memoryBarrier(BarrierFlags flags)                                        = 0;
 
         // ----- Misc -------------------------------------------------------
 

@@ -10,8 +10,8 @@
 #include "renderer/light.h"
 #include "renderer/light_probe_data.h"
 #include "renderer/material.h"
-#include "renderer/passes/gbuffer_pass.h"
 #include "renderer/passes/csm_shadow_pass.h"
+#include "renderer/passes/gbuffer_pass.h"
 #include "renderer/render_camera.h"
 #include "renderer/render_scene.h"
 #include "rhi/rhi_buffer.h"
@@ -31,7 +31,7 @@ namespace RealmEngine
     static constexpr int TEX_UNIT_SHADOW            = 5;
     static constexpr int TEX_UNIT_IBL_DIFFUSE       = 6;
     static constexpr int TEX_UNIT_IBL_PREFILTERED   = 7;
-    static constexpr int TEX_UNIT_IBL_BRDF         = 8;
+    static constexpr int TEX_UNIT_IBL_BRDF          = 8;
 
     DeferredLightingPass::~DeferredLightingPass() = default;
 
@@ -183,8 +183,8 @@ namespace RealmEngine
         }
 
         // Light probes
-        bool probes_active = false;
-        Scene* ecs_scene = ctx.scene ? ctx.scene->getScene() : nullptr;
+        bool   probes_active = false;
+        Scene* ecs_scene     = ctx.scene ? ctx.scene->getScene() : nullptr;
         if (ecs_scene && m_probe_ssbo)
         {
             LightProbeGPUData probe_data;
@@ -193,8 +193,8 @@ namespace RealmEngine
             if (probe_data.probe_count > 0)
             {
                 m_probe_ssbo->setSubData(&probe_data.probe_count, 0, sizeof(int));
-                m_probe_ssbo->setSubData(probe_data.probes.data(), 16,
-                                         probe_data.probes.size() * sizeof(LightProbeGPUData::ProbeInfo));
+                m_probe_ssbo->setSubData(
+                    probe_data.probes.data(), 16, probe_data.probes.size() * sizeof(LightProbeGPUData::ProbeInfo));
                 probes_active = true;
             }
             else

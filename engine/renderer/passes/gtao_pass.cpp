@@ -21,21 +21,15 @@ namespace RealmEngine
 {
     GTAOPass::~GTAOPass() = default;
 
-    GTAOPass::GTAOPass(const std::string& shader_path,
-                       bool               enabled,
-                       float              radius,
-                       int                num_directions,
-                       int                num_steps) :
+    GTAOPass::GTAOPass(const std::string& shader_path, bool enabled, float radius, int num_directions, int num_steps) :
         RenderPass("gtao"), m_shader_path(shader_path), m_enabled(enabled), m_radius(radius),
-        m_num_directions(std::min(std::max(num_directions, 4), 8)),
-        m_num_steps(std::min(std::max(num_steps, 4), 8))
-    {
-    }
+        m_num_directions(std::min(std::max(num_directions, 4), 8)), m_num_steps(std::min(std::max(num_steps, 4), 8))
+    {}
 
     void GTAOPass::generateNoiseTexture(RHIDevice& device)
     {
         // 4x4 blue-noise rotation texture: each texel stores (cos(angle), sin(angle), jitter)
-        constexpr int                         noise_size = 4;
+        constexpr int                         noise_size  = 4;
         constexpr size_t                      texel_count = noise_size * noise_size;
         std::vector<glm::vec3>                noise(texel_count);
         std::uniform_real_distribution<float> jitter_dist(0.0f, 1.0f);
@@ -44,8 +38,8 @@ namespace RealmEngine
         for (size_t i = 0; i < texel_count; ++i)
         {
             // Spatially-distributed rotation angles via interleaved gradient
-            float angle = glm::two_pi<float>() * (static_cast<float>(i) / static_cast<float>(texel_count))
-                        + jitter_dist(rng) * glm::two_pi<float>() / static_cast<float>(texel_count);
+            float angle = glm::two_pi<float>() * (static_cast<float>(i) / static_cast<float>(texel_count)) +
+                          jitter_dist(rng) * glm::two_pi<float>() / static_cast<float>(texel_count);
             noise[i] = glm::vec3(std::cos(angle), std::sin(angle), jitter_dist(rng));
         }
 
@@ -99,12 +93,12 @@ namespace RealmEngine
         m_shader->setMat4("projection", proj);
         m_shader->setMat4("invProjection", inv_proj);
 
-        m_shader->setVec2("noiseScale",
-                          glm::vec2(static_cast<float>(ctx.viewport_width) / 4.0f,
-                                    static_cast<float>(ctx.viewport_height) / 4.0f));
-        m_shader->setVec2("texelSize",
-                          glm::vec2(1.0f / static_cast<float>(ctx.viewport_width),
-                                    1.0f / static_cast<float>(ctx.viewport_height)));
+        m_shader->setVec2(
+            "noiseScale",
+            glm::vec2(static_cast<float>(ctx.viewport_width) / 4.0f, static_cast<float>(ctx.viewport_height) / 4.0f));
+        m_shader->setVec2(
+            "texelSize",
+            glm::vec2(1.0f / static_cast<float>(ctx.viewport_width), 1.0f / static_cast<float>(ctx.viewport_height)));
         m_shader->setFloat("radius", m_radius);
         m_shader->setInt("numDirections", m_num_directions);
         m_shader->setInt("numSteps", m_num_steps);

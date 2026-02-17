@@ -16,7 +16,8 @@ namespace RealmEngine
         GLShader(const std::string& vertex_path, const std::string& geometry_path, const std::string& fragment_path);
 
         // Compute shader constructor
-        struct ComputeTag {};
+        struct ComputeTag
+        {};
         GLShader(const std::string& compute_path, ComputeTag);
 
         ~GLShader() override;

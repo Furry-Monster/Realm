@@ -100,19 +100,19 @@ namespace RealmEngine
 
         SceneColorSource* m_scene_color_source {nullptr};
 
-        CSMShadowPass*   m_shadow_pass {nullptr};
-        PointShadowPass* m_point_shadow_pass {nullptr};
-        SpotShadowPass*  m_spot_shadow_pass {nullptr};
-        OpaquePass*      m_opaque_pass {nullptr};
-        TransparentPass* m_transparent_pass {nullptr};
+        CSMShadowPass*          m_shadow_pass {nullptr};
+        PointShadowPass*        m_point_shadow_pass {nullptr};
+        SpotShadowPass*         m_spot_shadow_pass {nullptr};
+        OpaquePass*             m_opaque_pass {nullptr};
+        TransparentPass*        m_transparent_pass {nullptr};
         ClusteredLightCullPass* m_cluster_cull_pass {nullptr};
-        GTAOPass*        m_gtao_pass {nullptr};
-        GTAOBlurPass*    m_gtao_blur_pass {nullptr};
-        HiZPass*         m_hiz_pass {nullptr};
-        SSRPass*         m_ssr_pass {nullptr};
-        SkyboxPass*      m_skybox_pass {nullptr};
-        BloomPass*       m_bloom_pass {nullptr};
-        PostProcessPass* m_postprocess_pass {nullptr};
+        GTAOPass*               m_gtao_pass {nullptr};
+        GTAOBlurPass*           m_gtao_blur_pass {nullptr};
+        HiZPass*                m_hiz_pass {nullptr};
+        SSRPass*                m_ssr_pass {nullptr};
+        SkyboxPass*             m_skybox_pass {nullptr};
+        BloomPass*              m_bloom_pass {nullptr};
+        PostProcessPass*        m_postprocess_pass {nullptr};
 
         GBufferPass*          m_gbuffer_pass {nullptr};
         DeferredLightingPass* m_deferred_lighting_pass {nullptr};

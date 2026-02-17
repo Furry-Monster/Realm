@@ -30,8 +30,10 @@ namespace RealmEngine
                                   IndexType     idx_type = IndexType::UInt32) override;
 
     private:
-        uint32_t m_vao {0};
-        bool     m_has_index_buffer {false};
+        uint32_t    m_vao {0};
+        bool        m_has_index_buffer {false};
+        RHIBuffer*  m_vertex_buffer {nullptr};
+        RHIBuffer*  m_index_buffer {nullptr};
     };
 
 } // namespace RealmEngine

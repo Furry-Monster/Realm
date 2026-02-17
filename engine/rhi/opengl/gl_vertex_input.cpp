@@ -54,6 +54,8 @@ namespace RealmEngine
     GLVertexInput::GLVertexInput(const VertexLayout& layout, RHIBuffer& vertex_buffer, RHIBuffer* index_buffer)
     {
         m_has_index_buffer = (index_buffer != nullptr);
+        m_vertex_buffer    = &vertex_buffer;
+        m_index_buffer     = index_buffer;
 
         glGenVertexArrays(1, &m_vao);
         glBindVertexArray(m_vao);
@@ -105,6 +107,8 @@ namespace RealmEngine
 
     void GLVertexInput::draw(PrimitiveType primitive, uint32_t count)
     {
+        if (m_vertex_buffer)
+            m_vertex_buffer->bind();
         glBindVertexArray(m_vao);
         glDrawArrays(toGLPrimitive(primitive), 0, static_cast<GLsizei>(count));
         glBindVertexArray(0);
@@ -112,6 +116,8 @@ namespace RealmEngine
 
     void GLVertexInput::drawIndexed(PrimitiveType primitive, uint32_t index_count, IndexType idx_type)
     {
+        if (m_vertex_buffer)
+            m_vertex_buffer->bind();
         glBindVertexArray(m_vao);
         glDrawElements(toGLPrimitive(primitive), static_cast<GLsizei>(index_count), toGLIndexType(idx_type), nullptr);
         glBindVertexArray(0);
@@ -119,6 +125,8 @@ namespace RealmEngine
 
     void GLVertexInput::drawInstanced(PrimitiveType primitive, uint32_t count, uint32_t instance_count)
     {
+        if (m_vertex_buffer)
+            m_vertex_buffer->bind();
         glBindVertexArray(m_vao);
         glDrawArraysInstanced(
             toGLPrimitive(primitive), 0, static_cast<GLsizei>(count), static_cast<GLsizei>(instance_count));
@@ -130,6 +138,8 @@ namespace RealmEngine
                                              uint32_t      instance_count,
                                              IndexType     idx_type)
     {
+        if (m_vertex_buffer)
+            m_vertex_buffer->bind();
         glBindVertexArray(m_vao);
         glDrawElementsInstanced(toGLPrimitive(primitive),
                                 static_cast<GLsizei>(index_count),

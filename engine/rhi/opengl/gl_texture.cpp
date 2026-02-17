@@ -43,16 +43,8 @@ namespace RealmEngine
         }
         else if (desc.type == TextureType::Texture2DArray)
         {
-            glTexImage3D(GL_TEXTURE_2D_ARRAY,
-                         0,
-                         internal_fmt,
-                         m_width,
-                         m_height,
-                         m_depth,
-                         0,
-                         pixel_fmt,
-                         pixel_type,
-                         desc.data);
+            glTexImage3D(
+                GL_TEXTURE_2D_ARRAY, 0, internal_fmt, m_width, m_height, m_depth, 0, pixel_fmt, pixel_type, desc.data);
         }
         else if (desc.type == TextureType::Texture3D)
         {

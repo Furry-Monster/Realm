@@ -21,8 +21,7 @@ namespace RealmEngine
     void SpotShadowPass::init(RHIDevice& device)
     {
         // Reuse the basic shadow shader for spot lights (perspective projection)
-        m_shader =
-            device.createShader(m_shader_path + "/builtin/shadow.vert", m_shader_path + "/builtin/shadow.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/shadow.vert", m_shader_path + "/builtin/shadow.frag");
 
         for (int i = 0; i < MAX_SPOT_SHADOWS; ++i)
         {
@@ -62,12 +61,13 @@ namespace RealmEngine
             if (light.type != LightType::Spot)
                 continue;
             float dist = glm::length(light.position - cam_pos);
-            candidates.push_back({static_cast<int>(i), dist, light.position,
-                                  light.direction, light.outer_cone_angle, light.range});
+            candidates.push_back(
+                {static_cast<int>(i), dist, light.position, light.direction, light.outer_cone_angle, light.range});
         }
 
-        std::sort(candidates.begin(), candidates.end(),
-                  [](const Candidate& a, const Candidate& b) { return a.distance < b.distance; });
+        std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
+            return a.distance < b.distance;
+        });
 
         int shadow_count = std::min(static_cast<int>(candidates.size()), MAX_SPOT_SHADOWS);
 
@@ -80,16 +80,16 @@ namespace RealmEngine
             float     far  = c.range;
             glm::mat4 proj = glm::perspective(fov, 1.0f, near, far);
 
-            glm::vec3 dir  = glm::normalize(c.dir);
-            glm::vec3 up   = glm::vec3(0.0f, 1.0f, 0.0f);
+            glm::vec3 dir = glm::normalize(c.dir);
+            glm::vec3 up  = glm::vec3(0.0f, 1.0f, 0.0f);
             if (std::abs(glm::dot(dir, up)) > 0.9f)
                 up = glm::vec3(1.0f, 0.0f, 0.0f);
             glm::mat4 view = glm::lookAt(c.pos, c.pos + dir, up);
 
             SpotShadowData sd;
-            sd.light_index   = c.index;
+            sd.light_index     = c.index;
             sd.light_view_proj = proj * view;
-            sd.range         = c.range;
+            sd.range           = c.range;
             m_active_shadows.push_back(sd);
 
             auto* fb = m_framebuffers[s].get();

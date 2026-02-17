@@ -223,8 +223,7 @@ namespace RealmEngine
             }
         }
         catch (const std::filesystem::filesystem_error&)
-        {
-        }
+        {}
     }
 
 } // namespace RealmEngine

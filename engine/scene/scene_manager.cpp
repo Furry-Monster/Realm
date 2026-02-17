@@ -34,18 +34,20 @@ namespace RealmEngine
         auto scene      = std::make_shared<Scene>();
         auto asset_path = m_asset_folder.generic_string();
 
-        auto loadModelAt = [this, &scene, &device, asset_path](
-                               const std::string& name, const std::string& rel_path,
-                               const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scale) {
+        auto loadModelAt = [this, &scene, &device, asset_path](const std::string& name,
+                                                               const std::string& rel_path,
+                                                               const glm::vec3&   pos,
+                                                               const glm::quat&   rot,
+                                                               const glm::vec3&   scale) {
             try
             {
-                auto node   = scene->createNodeWithEntity(name);
-                auto entity = scene->findEntity(name);
-                auto& t     = entity.emplace<Transform>();
-                t.position  = pos;
-                t.rotation  = rot;
-                t.scale     = scale;
-                auto& r     = entity.emplace<Renderable>();
+                auto  node   = scene->createNodeWithEntity(name);
+                auto  entity = scene->findEntity(name);
+                auto& t      = entity.emplace<Transform>();
+                t.position   = pos;
+                t.rotation   = rot;
+                t.scale      = scale;
+                auto& r      = entity.emplace<Renderable>();
                 r.model_path = asset_path + "/" + rel_path;
                 if (m_asset_mgr)
                     loadRenderableModel(r, device, *m_asset_mgr);
@@ -61,11 +63,15 @@ namespace RealmEngine
             }
         };
 
-        loadModelAt("Helmet", "helmet/DamagedHelmet.gltf", glm::vec3(0.0f, 0.0f, 0.0f),
+        loadModelAt("Helmet",
+                    "helmet/DamagedHelmet.gltf",
+                    glm::vec3(0.0f, 0.0f, 0.0f),
                     glm::angleAxis(glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)),
                     glm::vec3(1.0f));
 
-        loadModelAt("Cian", "Cian/Cian.gltf", glm::vec3(-3.5f, 0.0f, 0.0f),
+        loadModelAt("Cian",
+                    "Cian/Cian.gltf",
+                    glm::vec3(-3.5f, 0.0f, 0.0f),
                     glm::angleAxis(glm::half_pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)),
                     glm::vec3(1.5f));
 
@@ -78,38 +84,38 @@ namespace RealmEngine
         };
 
         {
-            auto  n = scene->createNodeWithEntity("PointLight1");
-            auto  e = scene->findEntity("PointLight1");
-            auto& t = e.emplace<Transform>();
-            t.position = glm::vec3(0.0f, 9.0f, 0.0f);
-            auto& pl = e.emplace<PointLight>();
-            pl.color    = glm::vec3(1.0f, 1.0f, 1.0f);
+            auto  n      = scene->createNodeWithEntity("PointLight1");
+            auto  e      = scene->findEntity("PointLight1");
+            auto& t      = e.emplace<Transform>();
+            t.position   = glm::vec3(0.0f, 9.0f, 0.0f);
+            auto& pl     = e.emplace<PointLight>();
+            pl.color     = glm::vec3(1.0f, 1.0f, 1.0f);
             pl.intensity = 5.0f;
-            pl.range    = 50.0f;
+            pl.range     = 50.0f;
             scene->getRoot()->addChild(n);
         }
 
         {
-            auto  n = scene->createNodeWithEntity("PointLight2");
-            auto  e = scene->findEntity("PointLight2");
-            auto& t = e.emplace<Transform>();
-            t.position = glm::vec3(-5.0f, 4.0f, 2.0f);
-            auto& pl = e.emplace<PointLight>();
-            pl.color    = glm::vec3(1.0f, 0.25f, 0.2f);
+            auto  n      = scene->createNodeWithEntity("PointLight2");
+            auto  e      = scene->findEntity("PointLight2");
+            auto& t      = e.emplace<Transform>();
+            t.position   = glm::vec3(-5.0f, 4.0f, 2.0f);
+            auto& pl     = e.emplace<PointLight>();
+            pl.color     = glm::vec3(1.0f, 0.25f, 0.2f);
             pl.intensity = 5.0f;
-            pl.range    = 35.0f;
+            pl.range     = 35.0f;
             scene->getRoot()->addChild(n);
         }
 
         {
-            auto  n = scene->createNodeWithEntity("PointLight3");
-            auto  e = scene->findEntity("PointLight3");
-            auto& t = e.emplace<Transform>();
-            t.position = glm::vec3(5.0f, 4.0f, 2.0f);
-            auto& pl = e.emplace<PointLight>();
-            pl.color    = glm::vec3(0.2f, 0.3f, 1.0f);
+            auto  n      = scene->createNodeWithEntity("PointLight3");
+            auto  e      = scene->findEntity("PointLight3");
+            auto& t      = e.emplace<Transform>();
+            t.position   = glm::vec3(5.0f, 4.0f, 2.0f);
+            auto& pl     = e.emplace<PointLight>();
+            pl.color     = glm::vec3(0.2f, 0.3f, 1.0f);
             pl.intensity = 5.0f;
-            pl.range    = 35.0f;
+            pl.range     = 35.0f;
             scene->getRoot()->addChild(n);
         }
 
@@ -118,47 +124,47 @@ namespace RealmEngine
             auto  e = scene->findEntity("DirectionalLight");
             auto& t = e.emplace<Transform>();
             setLightDir(t, glm::normalize(glm::vec3(-1.0f, -1.2f, -0.5f)));
-            auto& dl = e.emplace<DirectionalLight>();
-            dl.color    = glm::vec3(1.0f, 0.98f, 0.88f);
+            auto& dl     = e.emplace<DirectionalLight>();
+            dl.color     = glm::vec3(1.0f, 0.98f, 0.88f);
             dl.intensity = 3.5f;
             scene->getRoot()->addChild(n);
         }
 
         {
-            auto  n = scene->createNodeWithEntity("SpotLight");
-            auto  e = scene->findEntity("SpotLight");
-            auto& t = e.emplace<Transform>();
+            auto  n    = scene->createNodeWithEntity("SpotLight");
+            auto  e    = scene->findEntity("SpotLight");
+            auto& t    = e.emplace<Transform>();
             t.position = glm::vec3(0.0f, 5.0f, 10.0f);
             setLightDir(t, glm::normalize(glm::vec3(0.0f, -0.5f, -1.0f)));
-            auto& sl = e.emplace<SpotLight>();
-            sl.color           = glm::vec3(1.0f, 1.0f, 0.95f);
-            sl.intensity       = 8.0f;
-            sl.range           = 25.0f;
+            auto& sl            = e.emplace<SpotLight>();
+            sl.color            = glm::vec3(1.0f, 1.0f, 0.95f);
+            sl.intensity        = 8.0f;
+            sl.range            = 25.0f;
             sl.inner_cone_angle = 12.0f;
             sl.outer_cone_angle = 28.0f;
             scene->getRoot()->addChild(n);
         }
 
         {
-            auto  n = scene->createNodeWithEntity("AreaLight");
-            auto  e = scene->findEntity("AreaLight");
-            auto& t = e.emplace<Transform>();
+            auto  n    = scene->createNodeWithEntity("AreaLight");
+            auto  e    = scene->findEntity("AreaLight");
+            auto& t    = e.emplace<Transform>();
             t.position = glm::vec3(0.0f, 7.0f, 2.0f);
             setLightDir(t, glm::vec3(0.0f, -1.0f, 0.0f));
-            auto& al = e.emplace<AreaLight>();
-            al.color    = glm::vec3(0.95f, 1.0f, 1.0f);
+            auto& al     = e.emplace<AreaLight>();
+            al.color     = glm::vec3(0.95f, 1.0f, 1.0f);
             al.intensity = 3.0f;
-            al.width    = 2.5f;
-            al.height   = 2.5f;
+            al.width     = 2.5f;
+            al.height    = 2.5f;
             scene->getRoot()->addChild(n);
         }
 
         {
-            auto  n = scene->createNodeWithEntity("LightProbe");
-            auto  e = scene->findEntity("LightProbe");
-            auto& t = e.emplace<Transform>();
-            t.position = glm::vec3(0.0f, 1.0f, 0.0f);
-            auto& lp  = e.emplace<LightProbe>();
+            auto  n             = scene->createNodeWithEntity("LightProbe");
+            auto  e             = scene->findEntity("LightProbe");
+            auto& t             = e.emplace<Transform>();
+            t.position          = glm::vec3(0.0f, 1.0f, 0.0f);
+            auto& lp            = e.emplace<LightProbe>();
             lp.influence_radius = 15.0f;
             lp.needs_update     = true;
             scene->getRoot()->addChild(n);

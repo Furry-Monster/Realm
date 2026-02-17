@@ -44,11 +44,11 @@ namespace RealmEngine
             // Actually for depth cubemap, we use a special approach:
             // Use a cubemap color attachment and write linear depth in fragment shader
             FramebufferAttachment color;
-            color.format     = TextureFormat::R32F;
-            color.min_filter = TextureFilter::Nearest;
-            color.mag_filter = TextureFilter::Nearest;
-            color.wrap       = TextureWrap::ClampToEdge;
-            color.is_cubemap = true;
+            color.format           = TextureFormat::R32F;
+            color.min_filter       = TextureFilter::Nearest;
+            color.mag_filter       = TextureFilter::Nearest;
+            color.wrap             = TextureWrap::ClampToEdge;
+            color.is_cubemap       = true;
             desc.color_attachments = {color};
 
             m_framebuffers.push_back(device.createFramebuffer(desc));
@@ -80,8 +80,9 @@ namespace RealmEngine
             candidates.push_back({static_cast<int>(i), dist, light.position, light.range});
         }
 
-        std::sort(candidates.begin(), candidates.end(),
-                  [](const Candidate& a, const Candidate& b) { return a.distance < b.distance; });
+        std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
+            return a.distance < b.distance;
+        });
 
         int shadow_count = std::min(static_cast<int>(candidates.size()), MAX_POINT_SHADOWS);
 
@@ -95,20 +96,18 @@ namespace RealmEngine
             sd.range       = c.range;
             m_active_shadows.push_back(sd);
 
-            float     near    = 0.1f;
-            float     far     = c.range;
-            glm::mat4 proj    = glm::perspective(glm::radians(90.0f), 1.0f, near, far);
-            glm::vec3 pos     = c.pos;
+            float     near = 0.1f;
+            float     far  = c.range;
+            glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, near, far);
+            glm::vec3 pos  = c.pos;
 
             // 6 face view matrices
-            glm::mat4 shadow_views[6] = {
-                proj * glm::lookAt(pos, pos + glm::vec3( 1, 0, 0), glm::vec3(0,-1, 0)),
-                proj * glm::lookAt(pos, pos + glm::vec3(-1, 0, 0), glm::vec3(0,-1, 0)),
-                proj * glm::lookAt(pos, pos + glm::vec3( 0, 1, 0), glm::vec3(0, 0, 1)),
-                proj * glm::lookAt(pos, pos + glm::vec3( 0,-1, 0), glm::vec3(0, 0,-1)),
-                proj * glm::lookAt(pos, pos + glm::vec3( 0, 0, 1), glm::vec3(0,-1, 0)),
-                proj * glm::lookAt(pos, pos + glm::vec3( 0, 0,-1), glm::vec3(0,-1, 0))
-            };
+            glm::mat4 shadow_views[6] = {proj * glm::lookAt(pos, pos + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0)),
+                                         proj * glm::lookAt(pos, pos + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0)),
+                                         proj * glm::lookAt(pos, pos + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)),
+                                         proj * glm::lookAt(pos, pos + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1)),
+                                         proj * glm::lookAt(pos, pos + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0)),
+                                         proj * glm::lookAt(pos, pos + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0))};
 
             auto* fb = m_framebuffers[s].get();
 

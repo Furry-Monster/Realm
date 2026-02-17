@@ -36,10 +36,10 @@ namespace RealmEngine
 
         const std::vector<std::shared_ptr<RenderObject>>& getRenderObjects() const { return m_render_objects; }
         std::vector<std::shared_ptr<RenderObject>>&       getRenderObjects() { return m_render_objects; }
-        const std::vector<glm::mat4>&                     getRenderModelMatrices() const { return m_render_model_matrices; }
-        std::vector<glm::mat4>&                           getRenderModelMatrices() { return m_render_model_matrices; }
-        const std::vector<Light>&                         getLights() const { return m_lights; }
-        std::vector<Light>&                               getLights() { return m_lights; }
+        const std::vector<glm::mat4>& getRenderModelMatrices() const { return m_render_model_matrices; }
+        std::vector<glm::mat4>&       getRenderModelMatrices() { return m_render_model_matrices; }
+        const std::vector<Light>&     getLights() const { return m_lights; }
+        std::vector<Light>&           getLights() { return m_lights; }
 
         std::optional<std::reference_wrapper<const Light>> findDirectionalLight() const;
 

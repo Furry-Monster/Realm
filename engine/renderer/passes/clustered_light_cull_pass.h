@@ -14,9 +14,9 @@ namespace RealmEngine
     class ClusteredLightCullPass final : public RenderPass
     {
     public:
-        static constexpr int CLUSTER_X = 16;
-        static constexpr int CLUSTER_Y = 9;
-        static constexpr int CLUSTER_Z = 24;
+        static constexpr int CLUSTER_X      = 16;
+        static constexpr int CLUSTER_Y      = 9;
+        static constexpr int CLUSTER_Z      = 24;
         static constexpr int TOTAL_CLUSTERS = CLUSTER_X * CLUSTER_Y * CLUSTER_Z;
 
         static constexpr uint32_t SSBO_BINDING_LIGHTS       = 1;

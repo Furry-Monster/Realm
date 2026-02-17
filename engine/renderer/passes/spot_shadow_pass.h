@@ -31,7 +31,7 @@ namespace RealmEngine
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 
-        int                                getActiveShadowCount() const { return static_cast<int>(m_active_shadows.size()); }
+        int getActiveShadowCount() const { return static_cast<int>(m_active_shadows.size()); }
         const std::vector<SpotShadowData>& getActiveShadows() const { return m_active_shadows; }
         RHIFramebuffer*                    getFramebuffer(int index) const;
 

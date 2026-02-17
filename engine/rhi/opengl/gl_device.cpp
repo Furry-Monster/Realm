@@ -1,7 +1,7 @@
 #include "rhi/opengl/gl_device.h"
 
-#include <cstring>
 #include <glad/glad.h>
+#include <cstring>
 #include <string>
 
 #include "core/log/log_macros.h"
@@ -38,7 +38,23 @@ namespace RealmEngine
         // we bind VAO before glUseProgram; some recompilation may still occur with FBO/cascade switches
         if (id == 131218 && message && std::strstr(message, "recompiled"))
             return;
-
+        // Intel Mesa: glDrawArrays GL_INVALID_OPERATION on fullscreen quad draws despite valid VAO/VBO/program.
+        // Driver reports error but rendering proceeds; suppress log spam (Bug: Mesa/Intel validation quirk).
+        if (message && std::strstr(message, "glDrawArrays") && std::strstr(message, "GL_INVALID_OPERATION"))
+        {
+            const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+            if (vendor && std::strstr(vendor, "Intel"))
+            {
+                static bool once = true;
+                if (once)
+                {
+                    once = false;
+                    RE_LOG_WARN(
+                        "[GL] Suppressing recurring Intel Mesa glDrawArrays GL_INVALID_OPERATION (known driver quirk).");
+                }
+                return;
+            }
+        }
 
         std::string src_str;
         switch (source)
@@ -160,7 +176,7 @@ namespace RealmEngine
 
     std::unique_ptr<RHIShader> GLDevice::createComputeShader(const std::string& compute_path)
     {
-        auto shader = std::make_unique<GLShader>(compute_path, GLShader::ComputeTag{});
+        auto shader = std::make_unique<GLShader>(compute_path, GLShader::ComputeTag {});
         if (!shader->isValid())
             return nullptr;
         return shader;

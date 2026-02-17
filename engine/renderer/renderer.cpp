@@ -5,10 +5,10 @@
 #include "core/log/log_macros.h"
 #include "platform/window/window.h"
 #include "renderer/fullscreen_quad.h"
-#include "renderer/light_probe_baker.h"
 #include "renderer/ibl/diffuse_irradiance_map.h"
 #include "renderer/ibl/equirectangular_cubemap.h"
 #include "renderer/ibl/specular_map.h"
+#include "renderer/light_probe_baker.h"
 #include "renderer/passes/bloom_pass.h"
 #include "renderer/passes/clustered_light_cull_pass.h"
 #include "renderer/passes/csm_shadow_pass.h"
@@ -80,15 +80,15 @@ namespace RealmEngine
 
         m_device->setViewport(0, 0, window.getWidth(), window.getHeight());
 
-        uint8_t white[] = {255, 255, 255, 255};
+        uint8_t     white[] = {255, 255, 255, 255};
         TextureDesc td;
-        td.type       = TextureType::Texture2D;
-        td.format     = TextureFormat::RGBA8;
-        td.width      = 1;
-        td.height     = 1;
-        td.data       = white;
-        td.min_filter = TextureFilter::Nearest;
-        td.mag_filter = TextureFilter::Nearest;
+        td.type         = TextureType::Texture2D;
+        td.format       = TextureFormat::RGBA8;
+        td.width        = 1;
+        td.height       = 1;
+        td.data         = white;
+        td.min_filter   = TextureFilter::Nearest;
+        td.mag_filter   = TextureFilter::Nearest;
         m_default_white = m_device->createTexture(td);
 
         if (m_pipeline_mode == PipelineMode::Deferred)
@@ -150,8 +150,8 @@ namespace RealmEngine
         m_transparent_pass = transparent.get();
         m_pipeline.addPass(std::move(transparent));
 
-        auto gtao   = std::make_unique<GTAOPass>(sp, rc.ao_enabled, rc.ao_radius,
-                                                  rc.gtao_num_directions, rc.gtao_num_steps);
+        auto gtao =
+            std::make_unique<GTAOPass>(sp, rc.ao_enabled, rc.ao_radius, rc.gtao_num_directions, rc.gtao_num_steps);
         m_gtao_pass = gtao.get();
         m_pipeline.addPass(std::move(gtao));
 
@@ -172,8 +172,8 @@ namespace RealmEngine
         m_bloom_pass = bloom.get();
         m_pipeline.addPass(std::move(bloom));
 
-        auto post = std::make_unique<PostProcessPass>(sp, rc.tonemapping_enabled, rc.gamma_correction_factor,
-                                                      rc.ao_enabled, rc.ao_power, rc.ao_intensity);
+        auto post = std::make_unique<PostProcessPass>(
+            sp, rc.tonemapping_enabled, rc.gamma_correction_factor, rc.ao_enabled, rc.ao_power, rc.ao_intensity);
         m_postprocess_pass = post.get();
         m_pipeline.addPass(std::move(post));
 
@@ -247,8 +247,8 @@ namespace RealmEngine
         m_ssr_pass = ssr.get();
         m_pipeline.addPass(std::move(ssr));
 
-        auto gtao   = std::make_unique<GTAOPass>(sp, rc.ao_enabled, rc.ao_radius,
-                                                  rc.gtao_num_directions, rc.gtao_num_steps);
+        auto gtao =
+            std::make_unique<GTAOPass>(sp, rc.ao_enabled, rc.ao_radius, rc.gtao_num_directions, rc.gtao_num_steps);
         m_gtao_pass = gtao.get();
         m_pipeline.addPass(std::move(gtao));
 
@@ -279,8 +279,8 @@ namespace RealmEngine
         m_bloom_pass = bloom.get();
         m_pipeline.addPass(std::move(bloom));
 
-        auto post = std::make_unique<PostProcessPass>(sp, rc.tonemapping_enabled, rc.gamma_correction_factor,
-                                                      rc.ao_enabled, rc.ao_power, rc.ao_intensity);
+        auto post = std::make_unique<PostProcessPass>(
+            sp, rc.tonemapping_enabled, rc.gamma_correction_factor, rc.ao_enabled, rc.ao_power, rc.ao_intensity);
         m_postprocess_pass = post.get();
         m_pipeline.addPass(std::move(post));
 
@@ -450,7 +450,6 @@ namespace RealmEngine
             };
             m_bloom_pass->setFramebuffers(make_fb(), make_fb());
         }
-
     }
 
     void Renderer::recreateSharedFramebuffers(int width, int height)

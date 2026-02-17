@@ -37,15 +37,15 @@ namespace RealmEngine
         m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
         m_probe_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, PROBE_SSBO_SIZE);
 
-        uint8_t white[] = {255, 255, 255, 255};
+        uint8_t     white[] = {255, 255, 255, 255};
         TextureDesc td;
-        td.type       = TextureType::Texture2D;
-        td.format     = TextureFormat::RGBA8;
-        td.width      = 1;
-        td.height     = 1;
-        td.data       = white;
-        td.min_filter = TextureFilter::Nearest;
-        td.mag_filter = TextureFilter::Nearest;
+        td.type         = TextureType::Texture2D;
+        td.format       = TextureFormat::RGBA8;
+        td.width        = 1;
+        td.height       = 1;
+        td.data         = white;
+        td.min_filter   = TextureFilter::Nearest;
+        td.mag_filter   = TextureFilter::Nearest;
         m_default_white = device.createTexture(td);
     }
 
@@ -139,8 +139,8 @@ namespace RealmEngine
         }
 
         // Upload probe data
-        bool probes_active = false;
-        Scene* ecs_scene = ctx.scene ? ctx.scene->getScene() : nullptr;
+        bool   probes_active = false;
+        Scene* ecs_scene     = ctx.scene ? ctx.scene->getScene() : nullptr;
         if (ecs_scene && m_probe_ssbo)
         {
             LightProbeGPUData probe_data;
@@ -149,8 +149,8 @@ namespace RealmEngine
             if (probe_data.probe_count > 0)
             {
                 m_probe_ssbo->setSubData(&probe_data.probe_count, 0, sizeof(int));
-                m_probe_ssbo->setSubData(probe_data.probes.data(), 16,
-                                         probe_data.probes.size() * sizeof(LightProbeGPUData::ProbeInfo));
+                m_probe_ssbo->setSubData(
+                    probe_data.probes.data(), 16, probe_data.probes.size() * sizeof(LightProbeGPUData::ProbeInfo));
                 probes_active = true;
             }
             else

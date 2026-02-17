@@ -30,7 +30,7 @@ namespace RealmEngine
         m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
 
         // binding 2: cluster AABBs (min + max per cluster, 2 * vec4)
-        size_t aabb_size = static_cast<size_t>(TOTAL_CLUSTERS) * 2 * sizeof(glm::vec4);
+        size_t aabb_size    = static_cast<size_t>(TOTAL_CLUSTERS) * 2 * sizeof(glm::vec4);
         m_cluster_aabb_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, aabb_size);
 
         // binding 3: global light index list
@@ -40,7 +40,7 @@ namespace RealmEngine
             BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, sizeof(uint32_t) + index_list_size);
 
         // binding 4: per-cluster grid (offset, count) packed as uvec2
-        size_t grid_size = static_cast<size_t>(TOTAL_CLUSTERS) * sizeof(glm::uvec2);
+        size_t grid_size  = static_cast<size_t>(TOTAL_CLUSTERS) * sizeof(glm::uvec2);
         m_light_grid_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, grid_size);
     }
 
@@ -56,9 +56,7 @@ namespace RealmEngine
         m_cluster_aabb_ssbo->bindBase(SSBO_BINDING_CLUSTER_AABB);
 
         ctx.device->dispatchCompute(
-            static_cast<uint32_t>(CLUSTER_X),
-            static_cast<uint32_t>(CLUSTER_Y),
-            static_cast<uint32_t>(CLUSTER_Z));
+            static_cast<uint32_t>(CLUSTER_X), static_cast<uint32_t>(CLUSTER_Y), static_cast<uint32_t>(CLUSTER_Z));
         ctx.device->memoryBarrier(BarrierFlags::ShaderStorage);
 
         m_aabbs_built = true;
@@ -77,7 +75,7 @@ namespace RealmEngine
             std::vector<LightData> data(count);
             for (size_t i = 0; i < count; ++i)
             {
-                auto& l          = ctx.scene->getLights()[i];
+                auto& l             = ctx.scene->getLights()[i];
                 data[i].position    = glm::vec4(l.position, static_cast<float>(static_cast<int>(l.type)));
                 data[i].direction   = glm::vec4(l.direction, l.intensity);
                 data[i].color       = glm::vec4(l.color, l.constant);

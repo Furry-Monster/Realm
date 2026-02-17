@@ -107,11 +107,8 @@ namespace RealmEngine
                 if (datt.is_array)
                 {
                     // Attach whole texture; use setLayer() to select specific layer for rendering
-                    glFramebufferTextureLayer(GL_FRAMEBUFFER,
-                                             depthAttachmentType(datt.format),
-                                             m_depth_texture->getNativeHandle(),
-                                             0,
-                                             0);
+                    glFramebufferTextureLayer(
+                        GL_FRAMEBUFFER, depthAttachmentType(datt.format), m_depth_texture->getNativeHandle(), 0, 0);
                 }
                 else
                 {
@@ -211,10 +208,10 @@ namespace RealmEngine
             if (i < m_desc.color_attachments.size() && m_desc.color_attachments[i].is_array)
             {
                 glFramebufferTextureLayer(GL_FRAMEBUFFER,
-                                         GL_COLOR_ATTACHMENT0 + i,
-                                         m_color_textures[i]->getNativeHandle(),
-                                         m_mip_level,
-                                         layer);
+                                          GL_COLOR_ATTACHMENT0 + i,
+                                          m_color_textures[i]->getNativeHandle(),
+                                          m_mip_level,
+                                          layer);
             }
         }
 
@@ -222,10 +219,10 @@ namespace RealmEngine
         if (m_depth_texture && m_desc.has_depth && m_desc.depth_attachment.is_array)
         {
             glFramebufferTextureLayer(GL_FRAMEBUFFER,
-                                     depthAttachmentType(m_desc.depth_attachment.format),
-                                     m_depth_texture->getNativeHandle(),
-                                     0,
-                                     layer);
+                                      depthAttachmentType(m_desc.depth_attachment.format),
+                                      m_depth_texture->getNativeHandle(),
+                                      0,
+                                      layer);
         }
     }
 
@@ -241,10 +238,10 @@ namespace RealmEngine
             {
                 int layer = (m_layer >= 0) ? m_layer : 0;
                 glFramebufferTextureLayer(GL_FRAMEBUFFER,
-                                         GL_COLOR_ATTACHMENT0 + i,
-                                         m_color_textures[i]->getNativeHandle(),
-                                         m_mip_level,
-                                         layer);
+                                          GL_COLOR_ATTACHMENT0 + i,
+                                          m_color_textures[i]->getNativeHandle(),
+                                          m_mip_level,
+                                          layer);
             }
             else
             {

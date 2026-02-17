@@ -282,12 +282,12 @@ namespace RealmEngine
 
     enum class BarrierFlags : uint32_t
     {
-        ShaderStorage   = 1u << 0,
-        ImageAccess     = 1u << 1,
-        TextureFetch    = 1u << 2,
-        BufferUpdate    = 1u << 3,
-        Framebuffer     = 1u << 4,
-        All             = 0xFFFFFFFF
+        ShaderStorage = 1u << 0,
+        ImageAccess   = 1u << 1,
+        TextureFetch  = 1u << 2,
+        BufferUpdate  = 1u << 3,
+        Framebuffer   = 1u << 4,
+        All           = 0xFFFFFFFF
     };
 
     inline BarrierFlags operator|(BarrierFlags a, BarrierFlags b)

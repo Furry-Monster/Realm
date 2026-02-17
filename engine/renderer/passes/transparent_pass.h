@@ -39,9 +39,9 @@ namespace RealmEngine
 
         std::string m_shader_path;
 
-        std::unique_ptr<RHIShader> m_pbr_shader;
-        std::unique_ptr<RHIBuffer> m_light_ssbo;
-        std::unique_ptr<RHIBuffer> m_probe_ssbo;
+        std::unique_ptr<RHIShader>  m_pbr_shader;
+        std::unique_ptr<RHIBuffer>  m_light_ssbo;
+        std::unique_ptr<RHIBuffer>  m_probe_ssbo;
         std::unique_ptr<RHITexture> m_default_white;
 
         ShaderCache m_shader_cache;

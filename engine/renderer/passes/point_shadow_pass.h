@@ -31,16 +31,16 @@ namespace RealmEngine
         void execute(const RenderContext& ctx) override;
         void dispose() override;
 
-        int                          getActiveShadowCount() const { return static_cast<int>(m_active_shadows.size()); }
+        int getActiveShadowCount() const { return static_cast<int>(m_active_shadows.size()); }
         const std::vector<PointShadowData>& getActiveShadows() const { return m_active_shadows; }
-        RHIFramebuffer*              getFramebuffer(int index) const;
+        RHIFramebuffer*                     getFramebuffer(int index) const;
 
     private:
-        std::string                                              m_shader_path;
-        int                                                      m_resolution;
-        std::unique_ptr<RHIShader>                               m_shader;
-        std::vector<std::unique_ptr<RHIFramebuffer>>             m_framebuffers;
-        std::vector<PointShadowData>                             m_active_shadows;
+        std::string                                  m_shader_path;
+        int                                          m_resolution;
+        std::unique_ptr<RHIShader>                   m_shader;
+        std::vector<std::unique_ptr<RHIFramebuffer>> m_framebuffers;
+        std::vector<PointShadowData>                 m_active_shadows;
     };
 
 } // namespace RealmEngine

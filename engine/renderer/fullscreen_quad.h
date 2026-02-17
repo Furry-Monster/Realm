@@ -13,7 +13,7 @@ namespace RealmEngine
         ~FullscreenQuad();
 
         FullscreenQuad(const FullscreenQuad&)            = delete;
-        FullscreenQuad& operator=(const FullscreenQuad&)  = delete;
+        FullscreenQuad& operator=(const FullscreenQuad&) = delete;
         FullscreenQuad(FullscreenQuad&&)                 = delete;
         FullscreenQuad& operator=(FullscreenQuad&&)      = delete;
 

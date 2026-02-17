@@ -1,8 +1,8 @@
 #include "renderer/light_probe_baker.h"
 
+#include <glad/glad.h>
 #include <algorithm>
 #include <cmath>
-#include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "renderer/light.h"
@@ -16,11 +16,11 @@
 namespace RealmEngine
 {
     // SH basis constants
-    static constexpr float kY00  = 0.282095f;  // 0.5 * sqrt(1/PI)
-    static constexpr float kY1x  = 0.488603f;  // 0.5 * sqrt(3/PI)
-    static constexpr float kY2xy = 1.092548f;  // 0.5 * sqrt(15/PI)
-    static constexpr float kY20  = 0.315392f;  // 0.25 * sqrt(5/PI)
-    static constexpr float kY2x2 = 0.546274f;  // 0.25 * sqrt(15/PI)
+    static constexpr float kY00  = 0.282095f; // 0.5 * sqrt(1/PI)
+    static constexpr float kY1x  = 0.488603f; // 0.5 * sqrt(3/PI)
+    static constexpr float kY2xy = 1.092548f; // 0.5 * sqrt(15/PI)
+    static constexpr float kY20  = 0.315392f; // 0.25 * sqrt(5/PI)
+    static constexpr float kY2x2 = 0.546274f; // 0.25 * sqrt(15/PI)
 
     LightProbeBaker::LightProbeBaker(RHIDevice& device) : m_device(device)
     {
@@ -29,11 +29,11 @@ namespace RealmEngine
         desc.height = CUBEMAP_RESOLUTION;
 
         FramebufferAttachment color;
-        color.format     = TextureFormat::RGB16F;
-        color.min_filter = TextureFilter::Linear;
-        color.mag_filter = TextureFilter::Linear;
-        color.wrap       = TextureWrap::ClampToEdge;
-        color.is_cubemap = true;
+        color.format           = TextureFormat::RGB16F;
+        color.min_filter       = TextureFilter::Linear;
+        color.mag_filter       = TextureFilter::Linear;
+        color.wrap             = TextureWrap::ClampToEdge;
+        color.is_cubemap       = true;
         desc.color_attachments = {color};
 
         FramebufferAttachment depth;
@@ -50,8 +50,8 @@ namespace RealmEngine
 
     void LightProbeBaker::initShader(const std::string& shader_path)
     {
-        m_shader = m_device.createShader(shader_path + "/builtin/probe_bake.vert",
-                                         shader_path + "/builtin/probe_bake.frag");
+        m_shader =
+            m_device.createShader(shader_path + "/builtin/probe_bake.vert", shader_path + "/builtin/probe_bake.frag");
         if (m_shader)
             m_shader->bindShaderStorageBlock("LightBuffer", 1);
     }
@@ -93,14 +93,12 @@ namespace RealmEngine
     {
         glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 1000.0f);
 
-        glm::mat4 views[6] = {
-            glm::lookAt(position, position + glm::vec3( 1, 0, 0), glm::vec3(0,-1, 0)),
-            glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0,-1, 0)),
-            glm::lookAt(position, position + glm::vec3( 0, 1, 0), glm::vec3(0, 0, 1)),
-            glm::lookAt(position, position + glm::vec3( 0,-1, 0), glm::vec3(0, 0,-1)),
-            glm::lookAt(position, position + glm::vec3( 0, 0, 1), glm::vec3(0,-1, 0)),
-            glm::lookAt(position, position + glm::vec3( 0, 0,-1), glm::vec3(0,-1, 0))
-        };
+        glm::mat4 views[6] = {glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0)),
+                              glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0)),
+                              glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)),
+                              glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1)),
+                              glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0)),
+                              glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0))};
 
         m_shader->use();
 
@@ -119,8 +117,7 @@ namespace RealmEngine
             for (size_t i = 0; i < objects.size(); ++i)
             {
                 auto&     ro    = *objects[i];
-                glm::mat4 model = (i < matrices.size()) ? matrices[i]
-                                      : glm::mat4(1.0f);
+                glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
                 m_shader->setMVP(model, views[face], projection);
                 ro.drawShadow(*m_shader);
             }
@@ -155,9 +152,8 @@ namespace RealmEngine
 
         int res = CUBEMAP_RESOLUTION;
 
-        using BasisFn = float (*)(const glm::vec3&);
-        BasisFn basis[9] = {shBasis0, shBasis1, shBasis2, shBasis3, shBasis4,
-                            shBasis5, shBasis6, shBasis7, shBasis8};
+        using BasisFn    = float (*)(const glm::vec3&);
+        BasisFn basis[9] = {shBasis0, shBasis1, shBasis2, shBasis3, shBasis4, shBasis5, shBasis6, shBasis7, shBasis8};
 
         for (int face = 0; face < 6; ++face)
         {
@@ -171,13 +167,26 @@ namespace RealmEngine
                     glm::vec3 dir;
                     switch (face)
                     {
-                        case 0: dir = glm::vec3( 1, -v, -u); break; // +X
-                        case 1: dir = glm::vec3(-1, -v,  u); break; // -X
-                        case 2: dir = glm::vec3( u,  1,  v); break; // +Y
-                        case 3: dir = glm::vec3( u, -1, -v); break; // -Y
-                        case 4: dir = glm::vec3( u, -v,  1); break; // +Z
-                        case 5: dir = glm::vec3(-u, -v, -1); break; // -Z
-                        default: break;
+                        case 0:
+                            dir = glm::vec3(1, -v, -u);
+                            break; // +X
+                        case 1:
+                            dir = glm::vec3(-1, -v, u);
+                            break; // -X
+                        case 2:
+                            dir = glm::vec3(u, 1, v);
+                            break; // +Y
+                        case 3:
+                            dir = glm::vec3(u, -1, -v);
+                            break; // -Y
+                        case 4:
+                            dir = glm::vec3(u, -v, 1);
+                            break; // +Z
+                        case 5:
+                            dir = glm::vec3(-u, -v, -1);
+                            break; // -Z
+                        default:
+                            break;
                     }
                     dir = glm::normalize(dir);
 
@@ -194,7 +203,7 @@ namespace RealmEngine
         }
 
         // Cosine lobe convolution: A_0 = PI, A_1 = 2*PI/3, A_2 = PI/4
-        static constexpr float PI  = 3.14159265358979323846f;
+        static constexpr float PI     = 3.14159265358979323846f;
         static constexpr float A_l[3] = {PI, 2.0f * PI / 3.0f, PI / 4.0f};
 
         for (int k = 0; k < 9; ++k)

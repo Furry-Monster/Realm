@@ -65,9 +65,9 @@ namespace RealmEngine
         SceneColorSource* m_scene_color {nullptr};
 
         CSMShadowPass* m_shadow_pass {nullptr};
-        RHITexture* m_ibl_diffuse {nullptr};
-        RHITexture* m_ibl_prefiltered {nullptr};
-        RHITexture* m_ibl_brdf {nullptr};
+        RHITexture*    m_ibl_diffuse {nullptr};
+        RHITexture*    m_ibl_prefiltered {nullptr};
+        RHITexture*    m_ibl_brdf {nullptr};
     };
 
 } // namespace RealmEngine

@@ -57,7 +57,7 @@ namespace RealmEngine
         static constexpr float SHADOW_FRUSTUM = 20.0f;
 
         const Light& light = directional_light->get();
-        glm::mat4 light_proj =
+        glm::mat4    light_proj =
             glm::ortho(-SHADOW_FRUSTUM, SHADOW_FRUSTUM, -SHADOW_FRUSTUM, SHADOW_FRUSTUM, SHADOW_NEAR, SHADOW_FAR);
         glm::vec3 light_dir    = glm::normalize(light.direction);
         glm::vec3 scene_center = ctx.camera->getPosition();
@@ -69,13 +69,12 @@ namespace RealmEngine
         m_light_space_matrix = light_proj * light_view;
         m_shadow_enabled     = true;
 
-        const auto& objects = ctx.scene->getRenderObjects();
+        const auto& objects  = ctx.scene->getRenderObjects();
         const auto& matrices = ctx.scene->getRenderModelMatrices();
         for (size_t i = 0; i < objects.size(); ++i)
         {
             auto&     ro    = *objects[i];
-            glm::mat4 model = (i < matrices.size()) ? matrices[i] :
-                                                                                glm::mat4(1.0f);
+            glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
 
             m_shader->setMat4("lightSpaceMatrix", m_light_space_matrix);
             m_shader->setMat4("model", model);

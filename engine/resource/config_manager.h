@@ -43,12 +43,12 @@ namespace RealmEngine
         float camera_look_at_y     = 0.0f;
         float camera_look_at_z     = 0.0f;
 
-        bool  ao_enabled         = true;
-        float ao_radius          = 0.4f;
-        float ao_power           = 1.2f;
-        float ao_intensity       = 0.15f;
+        bool  ao_enabled          = true;
+        float ao_radius           = 0.4f;
+        float ao_power            = 1.2f;
+        float ao_intensity        = 0.15f;
         int   gtao_num_directions = 6;
-        int   gtao_num_steps     = 6;
+        int   gtao_num_steps      = 6;
 
         bool  bloom_enabled           = true;
         float bloom_intensity         = 1.0f;

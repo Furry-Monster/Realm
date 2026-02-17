@@ -36,7 +36,7 @@ namespace RealmEngine
             setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         }
 
-        virtual void bindUniformBlock(const std::string& name, uint32_t binding_point) = 0;
+        virtual void bindUniformBlock(const std::string& name, uint32_t binding_point)       = 0;
         virtual void bindShaderStorageBlock(const std::string& name, uint32_t binding_point) = 0;
     };
 

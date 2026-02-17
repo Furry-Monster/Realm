@@ -119,7 +119,7 @@ namespace RealmEngine
             changed |= ImGui::DragInt("Bloom Iterations", &copy.bloom_iterations, 1, 1, 32);
             {
                 static const char* bloomDirLabels[] = {"Both", "Horizontal", "Vertical"};
-                int               dir_idx          = copy.bloom_direction;
+                int                dir_idx          = copy.bloom_direction;
                 if (ImGui::Combo("Bloom Direction", &dir_idx, bloomDirLabels, 3))
                 {
                     copy.bloom_direction = dir_idx;

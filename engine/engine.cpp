@@ -213,8 +213,7 @@ namespace RealmEngine
                 else if (auto* t = scene->tryGet<Transform>(entity))
                     pos = t->position;
 
-                auto result =
-                    m_renderer->getLightProbeBaker()->bake(pos, *m_renderer->getRenderScene());
+                auto result = m_renderer->getLightProbeBaker()->bake(pos, *m_renderer->getRenderScene());
                 if (result.success)
                 {
                     lp.sh_coefficients = result.sh_coefficients;

@@ -13,13 +13,12 @@ namespace RealmEngine
 {
     GTAOBlurPass::~GTAOBlurPass() = default;
 
-    GTAOBlurPass::GTAOBlurPass(const std::string& shader_path) :
-        RenderPass("gtao_blur"), m_shader_path(shader_path) {}
+    GTAOBlurPass::GTAOBlurPass(const std::string& shader_path) : RenderPass("gtao_blur"), m_shader_path(shader_path) {}
 
     void GTAOBlurPass::init(RHIDevice& device)
     {
-        m_shader = device.createShader(m_shader_path + "/builtin/gtao_blur.vert",
-                                       m_shader_path + "/builtin/gtao_blur.frag");
+        m_shader =
+            device.createShader(m_shader_path + "/builtin/gtao_blur.vert", m_shader_path + "/builtin/gtao_blur.frag");
     }
 
     void GTAOBlurPass::execute(const RenderContext& ctx)

@@ -23,8 +23,7 @@ namespace RealmEngine
 
     void CSMShadowPass::init(RHIDevice& device)
     {
-        m_shader =
-            device.createShader(m_shader_path + "/builtin/shadow.vert", m_shader_path + "/builtin/shadow.frag");
+        m_shader = device.createShader(m_shader_path + "/builtin/shadow.vert", m_shader_path + "/builtin/shadow.frag");
 
         FramebufferDesc desc;
         desc.width                       = m_resolution;
@@ -48,15 +47,17 @@ namespace RealmEngine
         m_split_distances[0] = near_plane;
         for (int i = 1; i <= CASCADE_COUNT; ++i)
         {
-            float p    = static_cast<float>(i) / static_cast<float>(CASCADE_COUNT);
-            float log  = near_plane * std::pow(ratio, p);
-            float lin  = near_plane + range * p;
-            float dist = m_split_lambda * log + (1.0f - m_split_lambda) * lin;
+            float p              = static_cast<float>(i) / static_cast<float>(CASCADE_COUNT);
+            float log            = near_plane * std::pow(ratio, p);
+            float lin            = near_plane + range * p;
+            float dist           = m_split_lambda * log + (1.0f - m_split_lambda) * lin;
             m_split_distances[i] = dist;
         }
     }
 
-    void CSMShadowPass::computeCascadeMatrix(int cascade_index, const glm::mat4& view, const glm::mat4& proj,
+    void CSMShadowPass::computeCascadeMatrix(int              cascade_index,
+                                             const glm::mat4& view,
+                                             const glm::mat4& proj,
                                              const glm::vec3& light_dir)
     {
         float near_split = m_split_distances[cascade_index];
@@ -73,15 +74,13 @@ namespace RealmEngine
 
         // Frustum corners in NDC
         static constexpr glm::vec3 ndc_corners[8] = {
-            {-1, -1, -1}, {1, -1, -1}, {1, 1, -1}, {-1, 1, -1},
-            {-1, -1,  1}, {1, -1,  1}, {1,  1,  1}, {-1,  1,  1}
-        };
+            {-1, -1, -1}, {1, -1, -1}, {1, 1, -1}, {-1, 1, -1}, {-1, -1, 1}, {1, -1, 1}, {1, 1, 1}, {-1, 1, 1}};
 
         // Full frustum corners in world space
         glm::vec3 world_corners[8];
         for (int i = 0; i < 8; ++i)
         {
-            glm::vec4 h = inv_vp * glm::vec4(ndc_corners[i], 1.0f);
+            glm::vec4 h      = inv_vp * glm::vec4(ndc_corners[i], 1.0f);
             world_corners[i] = glm::vec3(h) / h.w;
         }
 
@@ -95,7 +94,7 @@ namespace RealmEngine
         glm::vec3 sub_corners[8];
         for (int i = 0; i < 4; ++i)
         {
-            glm::vec3 ray = world_corners[i + 4] - world_corners[i];
+            glm::vec3 ray      = world_corners[i + 4] - world_corners[i];
             sub_corners[i]     = world_corners[i] + ray * near_ratio;
             sub_corners[i + 4] = world_corners[i] + ray * far_ratio;
         }
@@ -123,12 +122,12 @@ namespace RealmEngine
         for (int i = 0; i < 8; ++i)
         {
             glm::vec3 ls = glm::vec3(light_view * glm::vec4(sub_corners[i], 1.0f));
-            min_x = std::min(min_x, ls.x);
-            max_x = std::max(max_x, ls.x);
-            min_y = std::min(min_y, ls.y);
-            max_y = std::max(max_y, ls.y);
-            min_z = std::min(min_z, ls.z);
-            max_z = std::max(max_z, ls.z);
+            min_x        = std::min(min_x, ls.x);
+            max_x        = std::max(max_x, ls.x);
+            min_y        = std::min(min_y, ls.y);
+            max_y        = std::max(max_y, ls.y);
+            min_z        = std::min(min_z, ls.z);
+            max_z        = std::max(max_z, ls.z);
         }
 
         // Extend z range to avoid clipping shadow casters behind the frustum
@@ -138,13 +137,13 @@ namespace RealmEngine
         glm::mat4 light_proj = glm::ortho(min_x, max_x, min_y, max_y, min_z, max_z);
 
         // Texel snapping: round the origin to shadow map texel grid
-        glm::mat4 shadow_matrix   = light_proj * light_view;
-        glm::vec4 origin_ndc      = shadow_matrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        float     texel_size      = 2.0f * (max_x - min_x) / static_cast<float>(m_resolution);
-        glm::vec4 origin_rounded  = origin_ndc;
-        origin_rounded.x           = std::round(origin_ndc.x / texel_size) * texel_size;
-        origin_rounded.y          = std::round(origin_ndc.y / texel_size) * texel_size;
-        glm::vec4 offset          = origin_rounded - origin_ndc;
+        glm::mat4 shadow_matrix  = light_proj * light_view;
+        glm::vec4 origin_ndc     = shadow_matrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        float     texel_size     = 2.0f * (max_x - min_x) / static_cast<float>(m_resolution);
+        glm::vec4 origin_rounded = origin_ndc;
+        origin_rounded.x         = std::round(origin_ndc.x / texel_size) * texel_size;
+        origin_rounded.y         = std::round(origin_ndc.y / texel_size) * texel_size;
+        glm::vec4 offset         = origin_rounded - origin_ndc;
         light_proj[3][0] += offset.x;
         light_proj[3][1] += offset.y;
 
@@ -161,9 +160,9 @@ namespace RealmEngine
             return;
         }
 
-        m_shadow_enabled = true;
-        const Light& light = directional_light->get();
-        glm::vec3 light_dir = glm::normalize(light.direction);
+        m_shadow_enabled       = true;
+        const Light& light     = directional_light->get();
+        glm::vec3    light_dir = glm::normalize(light.direction);
 
         computeCascadeSplits(ctx.camera->getNearPlane(), ctx.camera->getFarPlane());
 
@@ -184,13 +183,12 @@ namespace RealmEngine
             m_shader->use();
             m_shader->setMat4("lightSpaceMatrix", m_cascades[c].light_view_proj);
 
-            const auto& objects = ctx.scene->getRenderObjects();
+            const auto& objects  = ctx.scene->getRenderObjects();
             const auto& matrices = ctx.scene->getRenderModelMatrices();
             for (size_t i = 0; i < objects.size(); ++i)
             {
                 auto&     ro    = *objects[i];
-                glm::mat4 model = (i < matrices.size()) ? matrices[i]
-                                      : glm::mat4(1.0f);
+                glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
                 m_shader->setMat4("model", model);
                 ro.drawShadow(*m_shader);
             }

@@ -21,8 +21,8 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
-#  include <windows.h>
 #  include <psapi.h>
+#  include <windows.h>
 #elif defined(__APPLE__)
 #  include <mach/mach.h>
 #  include <sys/sysctl.h>
@@ -207,7 +207,8 @@ namespace RealmEngine
             return static_cast<size_t>(pmc.WorkingSetSize / 1024);
         return 0;
 #elif defined(__APPLE__)
-        struct task_basic_info info {};
+        struct task_basic_info info
+        {};
         mach_msg_type_number_t count = TASK_BASIC_INFO_COUNT;
         if (task_info(mach_task_self(), TASK_BASIC_INFO, reinterpret_cast<task_info_t>(&info), &count) == KERN_SUCCESS)
             return static_cast<size_t>(info.resident_size / 1024);

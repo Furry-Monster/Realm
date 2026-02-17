@@ -44,15 +44,15 @@ namespace RealmEngine
         m_shader = device.createShader(m_shader_path + "/builtin/deferred_gbuffer.vert",
                                        m_shader_path + "/builtin/deferred_gbuffer.frag");
 
-        uint8_t white[] = {255, 255, 255, 255};
+        uint8_t     white[] = {255, 255, 255, 255};
         TextureDesc td;
-        td.type       = TextureType::Texture2D;
-        td.format     = TextureFormat::RGBA8;
-        td.width      = 1;
-        td.height     = 1;
-        td.data       = white;
-        td.min_filter = TextureFilter::Nearest;
-        td.mag_filter = TextureFilter::Nearest;
+        td.type         = TextureType::Texture2D;
+        td.format       = TextureFormat::RGBA8;
+        td.width        = 1;
+        td.height       = 1;
+        td.data         = white;
+        td.min_filter   = TextureFilter::Nearest;
+        td.mag_filter   = TextureFilter::Nearest;
         m_default_white = device.createTexture(td);
     }
 
