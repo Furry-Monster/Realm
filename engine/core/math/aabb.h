@@ -13,7 +13,7 @@ namespace RealmEngine
 
         constexpr AABB() : min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::lowest()) {}
 
-        constexpr AABB(const glm::vec3& min, const glm::vec3& max) : min(min), max(max) {}
+        constexpr AABB(const glm::vec3& min_point, const glm::vec3& max_point) : min(min_point), max(max_point) {}
 
         constexpr AABB(const glm::vec3& center, const float half_size) :
             min(center - glm::vec3(half_size)), max(center + glm::vec3(half_size))

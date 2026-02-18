@@ -1,4 +1,4 @@
-set(TARGET_NAME RealmEngineLib)
+set(TARGET_NAME realm)
 
 # Module directories
 set(ENGINE_MODULES
