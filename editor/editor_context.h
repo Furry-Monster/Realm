@@ -22,7 +22,7 @@ namespace RealmEngine
     {
     public:
         EditorContext()  = default;
-        ~EditorContext() = default;
+        ~EditorContext() noexcept = default;
 
         EditorContext(const EditorContext&)            = delete;
         EditorContext& operator=(const EditorContext&) = delete;

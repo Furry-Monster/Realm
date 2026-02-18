@@ -95,7 +95,7 @@ namespace RealmEngine
         glBindVertexArray(0);
     }
 
-    GLVertexInput::~GLVertexInput()
+    GLVertexInput::~GLVertexInput() noexcept
     {
         if (m_vao != 0)
             glDeleteVertexArrays(1, &m_vao);

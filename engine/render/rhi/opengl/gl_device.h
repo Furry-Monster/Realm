@@ -8,7 +8,7 @@ namespace RealmEngine
     {
     public:
         GLDevice()           = default;
-        ~GLDevice() override = default;
+        ~GLDevice() noexcept override = default;
 
         // Resource creation
         std::unique_ptr<RHIBuffer>

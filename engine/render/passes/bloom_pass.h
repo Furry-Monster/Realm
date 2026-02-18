@@ -29,7 +29,7 @@ namespace RealmEngine
                   float              brightness_cutoff,
                   int                iterations,
                   BloomDirection     direction);
-        ~BloomPass() override;
+        ~BloomPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

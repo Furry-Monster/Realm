@@ -40,7 +40,7 @@ namespace RealmEngine
     {
     public:
         explicit MenuBarWidget(MenuBarCallbacks callbacks);
-        ~MenuBarWidget() override = default;
+        ~MenuBarWidget() noexcept override = default;
 
         MenuBarWidget(const MenuBarWidget&)            = delete;
         MenuBarWidget& operator=(const MenuBarWidget&) = delete;

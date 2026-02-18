@@ -25,7 +25,7 @@ namespace RealmEngine
         static constexpr size_t MAX_SPOT_SHADOWS = 4;
 
         explicit SpotShadowPass(const std::string& shader_path, int resolution = 1024);
-        ~SpotShadowPass() override;
+        ~SpotShadowPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

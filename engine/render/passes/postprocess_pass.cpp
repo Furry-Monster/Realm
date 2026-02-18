@@ -11,7 +11,7 @@
 
 namespace RealmEngine
 {
-    PostProcessPass::~PostProcessPass() = default;
+    PostProcessPass::~PostProcessPass() noexcept = default;
 
     PostProcessPass::PostProcessPass(const std::string& shader_path,
                                      const bool         tonemapping,

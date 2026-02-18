@@ -12,7 +12,7 @@ namespace RealmEngine
     {
     public:
         GLVertexInput(const VertexLayout& layout, RHIBuffer& vertex_buffer, RHIBuffer* index_buffer);
-        ~GLVertexInput() override;
+        ~GLVertexInput() noexcept override;
 
         GLVertexInput(const GLVertexInput&)            = delete;
         GLVertexInput& operator=(const GLVertexInput&) = delete;

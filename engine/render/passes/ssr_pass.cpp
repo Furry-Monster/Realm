@@ -20,7 +20,7 @@ namespace RealmEngine
     static constexpr int TEX_UNIT_EMISSIVE_ROUGH = 3;
     static constexpr int TEX_UNIT_SCENE_DEPTH    = 4;
 
-    SSRPass::~SSRPass() = default;
+    SSRPass::~SSRPass() noexcept = default;
 
     SSRPass::SSRPass(const std::string& shader_path,
                      const bool         enabled,

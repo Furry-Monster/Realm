@@ -31,7 +31,7 @@ namespace RealmEngine
     {
     public:
         explicit RenderPass(const std::string& name) : m_name(name) {}
-        virtual ~RenderPass() = default;
+        virtual ~RenderPass() noexcept = default;
 
         virtual void init(RHIDevice& device)           = 0;
         virtual void execute(const RenderContext& ctx) = 0;

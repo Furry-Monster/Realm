@@ -24,7 +24,7 @@ namespace RealmEngine
         };
 
         explicit CSMShadowPass(const std::string& shader_path, int resolution_per_cascade = 2048);
-        ~CSMShadowPass() override;
+        ~CSMShadowPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

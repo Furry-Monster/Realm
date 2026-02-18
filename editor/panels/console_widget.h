@@ -12,7 +12,7 @@ namespace RealmEngine
     {
     public:
         ConsoleWidget();
-        ~ConsoleWidget() override = default;
+        ~ConsoleWidget() noexcept override = default;
 
         ConsoleWidget(const ConsoleWidget&)            = delete;
         ConsoleWidget& operator=(const ConsoleWidget&) = delete;

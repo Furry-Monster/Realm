@@ -16,7 +16,7 @@
 
 namespace RealmEngine
 {
-    CSMShadowPass::~CSMShadowPass() = default;
+    CSMShadowPass::~CSMShadowPass() noexcept = default;
 
     CSMShadowPass::CSMShadowPass(const std::string& shader_path, const int resolution_per_cascade) :
         RenderPass("csm_shadow"), m_shader_path(shader_path), m_resolution(resolution_per_cascade)

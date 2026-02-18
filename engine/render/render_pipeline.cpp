@@ -4,7 +4,7 @@
 
 namespace RealmEngine
 {
-    RenderPipeline::~RenderPipeline()
+    RenderPipeline::~RenderPipeline() noexcept
     {
         if (!m_passes.empty())
             dispose();

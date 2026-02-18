@@ -14,7 +14,7 @@ namespace RealmEngine
         // Adopt an existing GL texture id (for IBL / legacy interop)
         GLTexture(uint32_t native_id, TextureType type, TextureFormat format, int width, int height);
 
-        ~GLTexture() override;
+        ~GLTexture() noexcept override;
 
         GLTexture(const GLTexture&)            = delete;
         GLTexture& operator=(const GLTexture&) = delete;

@@ -14,7 +14,7 @@ namespace RealmEngine
     {
     public:
         explicit GLFramebuffer(const FramebufferDesc& desc);
-        ~GLFramebuffer() override;
+        ~GLFramebuffer() noexcept override;
 
         GLFramebuffer(const GLFramebuffer&)            = delete;
         GLFramebuffer& operator=(const GLFramebuffer&) = delete;

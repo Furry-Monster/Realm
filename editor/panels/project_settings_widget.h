@@ -10,7 +10,7 @@ namespace RealmEngine
     {
     public:
         explicit ProjectSettingsWidget(EditorEngineBridge& bridge);
-        ~ProjectSettingsWidget() override = default;
+        ~ProjectSettingsWidget() noexcept override = default;
 
         ProjectSettingsWidget(const ProjectSettingsWidget&)            = delete;
         ProjectSettingsWidget& operator=(const ProjectSettingsWidget&) = delete;

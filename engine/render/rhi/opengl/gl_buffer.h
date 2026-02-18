@@ -10,7 +10,7 @@ namespace RealmEngine
     {
     public:
         GLBuffer(BufferType type, BufferUsage usage, const void* data, size_t size);
-        ~GLBuffer() override;
+        ~GLBuffer() noexcept override;
 
         GLBuffer(const GLBuffer&)            = delete;
         GLBuffer& operator=(const GLBuffer&) = delete;

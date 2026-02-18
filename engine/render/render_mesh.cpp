@@ -37,7 +37,7 @@ namespace RealmEngine
         m_vertex_input = device.createVertexInput(buildVertexLayout(), *m_vertex_buffer, m_index_buffer.get());
     }
 
-    RenderMesh::~RenderMesh() = default;
+    RenderMesh::~RenderMesh() noexcept = default;
 
     RenderMesh::RenderMesh(RenderMesh&& other) noexcept :
         m_name(std::move(other.m_name)), m_vertices(std::move(other.m_vertices)), m_indices(std::move(other.m_indices)),

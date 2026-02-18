@@ -14,7 +14,7 @@ namespace RealmEngine
     {
     public:
         PropertiesWidget(const std::shared_ptr<EditorContext>& context, EditorEngineBridge& bridge);
-        ~PropertiesWidget() override = default;
+        ~PropertiesWidget() noexcept override = default;
 
         PropertiesWidget(const PropertiesWidget&)            = delete;
         PropertiesWidget& operator=(const PropertiesWidget&) = delete;

@@ -16,7 +16,7 @@ namespace RealmEngine
         m_impl->mesh = createIblFullscreenQuadMesh(device);
     }
 
-    FullscreenQuad::~FullscreenQuad() = default;
+    FullscreenQuad::~FullscreenQuad() noexcept = default;
 
     void FullscreenQuad::draw() const
     {

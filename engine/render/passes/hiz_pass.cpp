@@ -12,7 +12,7 @@
 
 namespace RealmEngine
 {
-    HiZPass::~HiZPass() = default;
+    HiZPass::~HiZPass() noexcept = default;
 
     HiZPass::HiZPass(const std::string& shader_path) : RenderPass("hiz"), m_shader_path(shader_path) {}
 

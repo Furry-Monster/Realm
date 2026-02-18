@@ -15,7 +15,7 @@ namespace RealmEngine
     {
     public:
         explicit ShadowPass(const std::string& shader_path, int resolution = 2048);
-        ~ShadowPass() override;
+        ~ShadowPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

@@ -11,7 +11,7 @@ namespace RealmEngine
     class RHIFramebuffer
     {
     public:
-        virtual ~RHIFramebuffer() = default;
+        virtual ~RHIFramebuffer() noexcept = default;
 
         virtual void bind()   = 0;
         virtual void unbind() = 0;

@@ -13,7 +13,7 @@
 
 namespace RealmEngine
 {
-    SpotShadowPass::~SpotShadowPass() = default;
+    SpotShadowPass::~SpotShadowPass() noexcept = default;
 
     SpotShadowPass::SpotShadowPass(const std::string& shader_path, const int resolution) :
         RenderPass("spot_shadow"), m_shader_path(shader_path), m_resolution(resolution)

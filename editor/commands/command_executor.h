@@ -14,7 +14,7 @@ namespace RealmEngine
         static constexpr size_t DEFAULT_MAX_HISTORY = 200;
 
         explicit CommandExecutor(size_t max_history = DEFAULT_MAX_HISTORY);
-        ~CommandExecutor() = default;
+        ~CommandExecutor() noexcept = default;
 
         CommandExecutor(const CommandExecutor&)            = delete;
         CommandExecutor& operator=(const CommandExecutor&) = delete;

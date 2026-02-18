@@ -26,7 +26,7 @@ namespace RealmEngine
         RenderPass("transparent"), m_shader_path(shader_path)
     {}
 
-    TransparentPass::~TransparentPass() = default;
+    TransparentPass::~TransparentPass() noexcept = default;
 
     static constexpr size_t PROBE_SSBO_SIZE = 16 + LightProbeGPUData::MAX_ACTIVE_PROBES * 160;
 

@@ -28,7 +28,7 @@ namespace RealmEngine
         }
     }
 
-    GBufferPass::~GBufferPass() = default;
+    GBufferPass::~GBufferPass() noexcept = default;
 
     GBufferPass::GBufferPass(const std::string& shader_path,
                              const float        clear_r,

@@ -31,7 +31,7 @@ namespace RealmEngine
                    Material                  material,
                    RHIDevice&                device,
                    const std::string&        name = "");
-        ~RenderMesh();
+        ~RenderMesh() noexcept;
 
         RenderMesh(const RenderMesh&)            = delete;
         RenderMesh& operator=(const RenderMesh&) = delete;

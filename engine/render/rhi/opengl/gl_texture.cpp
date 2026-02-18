@@ -80,7 +80,7 @@ namespace RealmEngine
         m_height = height;
     }
 
-    GLTexture::~GLTexture()
+    GLTexture::~GLTexture() noexcept
     {
         if (m_owned && m_id != 0)
             glDeleteTextures(1, &m_id);

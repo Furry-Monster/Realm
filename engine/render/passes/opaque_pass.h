@@ -24,7 +24,7 @@ namespace RealmEngine
     {
     public:
         OpaquePass(const std::string& shader_path, float clear_r, float clear_g, float clear_b, float clear_a);
-        ~OpaquePass() override;
+        ~OpaquePass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

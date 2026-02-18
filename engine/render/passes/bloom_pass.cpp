@@ -16,7 +16,7 @@ namespace RealmEngine
         constexpr int k_bloom_max_mip = 5;
     }
 
-    BloomPass::~BloomPass() = default;
+    BloomPass::~BloomPass() noexcept = default;
 
     BloomPass::BloomPass(const std::string&   shader_path,
                          const bool           enabled,

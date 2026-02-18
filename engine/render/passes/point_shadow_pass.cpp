@@ -12,7 +12,7 @@
 
 namespace RealmEngine
 {
-    PointShadowPass::~PointShadowPass() = default;
+    PointShadowPass::~PointShadowPass() noexcept = default;
 
     PointShadowPass::PointShadowPass(const std::string& shader_path, const int resolution) :
         RenderPass("point_shadow"), m_shader_path(shader_path), m_resolution(resolution)

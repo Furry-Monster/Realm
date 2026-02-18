@@ -9,7 +9,7 @@ namespace RealmEngine
     class RHITexture
     {
     public:
-        virtual ~RHITexture() = default;
+        virtual ~RHITexture() noexcept = default;
 
         virtual void bind(uint32_t unit = 0)   = 0;
         virtual void unbind(uint32_t unit = 0) = 0;

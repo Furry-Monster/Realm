@@ -18,7 +18,7 @@ namespace RealmEngine
     {
     public:
         explicit GTAOBlurPass(const std::string& shader_path);
-        ~GTAOBlurPass() override;
+        ~GTAOBlurPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

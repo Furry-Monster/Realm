@@ -13,7 +13,7 @@ namespace RealmEngine
         explicit PreferencesWidget(EditorPreferences&                     prefs,
                                    std::function<void()>                  on_apply,
                                    std::function<std::filesystem::path()> get_prefs_path);
-        ~PreferencesWidget() override = default;
+        ~PreferencesWidget() noexcept override = default;
 
         PreferencesWidget(const PreferencesWidget&)            = delete;
         PreferencesWidget& operator=(const PreferencesWidget&) = delete;

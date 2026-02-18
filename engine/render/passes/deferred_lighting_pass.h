@@ -26,7 +26,7 @@ namespace RealmEngine
     {
     public:
         explicit DeferredLightingPass(const std::string& shader_path);
-        ~DeferredLightingPass() override;
+        ~DeferredLightingPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

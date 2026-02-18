@@ -19,7 +19,7 @@
 
 namespace RealmEngine
 {
-    GTAOPass::~GTAOPass() = default;
+    GTAOPass::~GTAOPass() noexcept = default;
 
     GTAOPass::GTAOPass(const std::string& shader_path,
                        const bool         enabled,

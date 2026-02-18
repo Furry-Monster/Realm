@@ -8,7 +8,7 @@ namespace RealmEngine
     {
     public:
         ProfilerWidget();
-        ~ProfilerWidget() override = default;
+        ~ProfilerWidget() noexcept override = default;
 
         ProfilerWidget(const ProfilerWidget&)            = delete;
         ProfilerWidget& operator=(const ProfilerWidget&) = delete;

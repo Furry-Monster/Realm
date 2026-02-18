@@ -19,7 +19,7 @@ namespace RealmEngine
         RenderPass("clustered_light_cull"), m_shader_path(shader_path)
     {}
 
-    ClusteredLightCullPass::~ClusteredLightCullPass() = default;
+    ClusteredLightCullPass::~ClusteredLightCullPass() noexcept = default;
 
     void ClusteredLightCullPass::init(RHIDevice& device)
     {

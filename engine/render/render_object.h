@@ -15,6 +15,11 @@ namespace RealmEngine
     public:
         explicit RenderObject(std::vector<RenderMesh> meshes);
 
+        RenderObject(const RenderObject&)                = delete;
+        RenderObject& operator=(const RenderObject&)     = delete;
+        RenderObject(RenderObject&&) noexcept            = default;
+        RenderObject& operator=(RenderObject&&) noexcept = default;
+
         [[nodiscard]] bool   isEmpty() const { return m_meshes.empty(); }
         [[nodiscard]] size_t getMeshCount() const { return m_meshes.size(); }
         [[nodiscard]] int    getTriangleCount(size_t mesh_index) const;

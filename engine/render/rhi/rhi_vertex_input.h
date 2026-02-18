@@ -11,7 +11,7 @@ namespace RealmEngine
     class RHIVertexInput
     {
     public:
-        virtual ~RHIVertexInput() = default;
+        virtual ~RHIVertexInput() noexcept = default;
 
         virtual void bind()   = 0;
         virtual void unbind() = 0;

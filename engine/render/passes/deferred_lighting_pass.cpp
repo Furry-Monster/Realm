@@ -34,7 +34,7 @@ namespace RealmEngine
     static constexpr int TEX_UNIT_IBL_PREFILTERED   = 7;
     static constexpr int TEX_UNIT_IBL_BRDF          = 8;
 
-    DeferredLightingPass::~DeferredLightingPass() = default;
+    DeferredLightingPass::~DeferredLightingPass() noexcept = default;
 
     DeferredLightingPass::DeferredLightingPass(const std::string& shader_path) :
         RenderPass("deferred_lighting"), m_shader_path(shader_path)

@@ -15,7 +15,7 @@ namespace RealmEngine
         static constexpr const char* DRAG_DROP_PAYLOAD_TYPE = "ASSET_PATH";
 
         explicit AssetBrowserWidget(EditorEngineBridge& bridge);
-        ~AssetBrowserWidget() override = default;
+        ~AssetBrowserWidget() noexcept override = default;
 
         AssetBrowserWidget(const AssetBrowserWidget&)            = delete;
         AssetBrowserWidget& operator=(const AssetBrowserWidget&) = delete;

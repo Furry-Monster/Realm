@@ -15,7 +15,7 @@ namespace RealmEngine
     {
     public:
         EntityBrowserWidget(const std::shared_ptr<EditorContext>& context, EditorEngineBridge& bridge);
-        ~EntityBrowserWidget() override = default;
+        ~EntityBrowserWidget() noexcept override = default;
 
         EntityBrowserWidget(const EntityBrowserWidget&)            = delete;
         EntityBrowserWidget& operator=(const EntityBrowserWidget&) = delete;

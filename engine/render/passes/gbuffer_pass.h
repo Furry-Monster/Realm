@@ -20,7 +20,7 @@ namespace RealmEngine
     {
     public:
         GBufferPass(const std::string& shader_path, float clear_r, float clear_g, float clear_b, float clear_a);
-        ~GBufferPass() override;
+        ~GBufferPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

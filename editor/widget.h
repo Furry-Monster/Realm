@@ -8,12 +8,12 @@ namespace RealmEngine
     public:
         explicit Widget(const std::string& name) : m_name(name), m_open(true) {}
         explicit Widget(std::string&& name) : m_name(std::move(name)), m_open(true) {}
-        virtual ~Widget() = default;
+        virtual ~Widget() noexcept = default;
 
         Widget(const Widget&)            = delete;
         Widget& operator=(const Widget&) = delete;
-        Widget(Widget&&)                 = default;
-        Widget& operator=(Widget&&)      = default;
+        Widget(Widget&&) noexcept                 = default;
+        Widget& operator=(Widget&&) noexcept      = default;
 
         virtual void render() = 0;
 

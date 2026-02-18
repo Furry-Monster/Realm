@@ -22,7 +22,7 @@ namespace RealmEngine
                         bool               ao_enabled   = false,
                         float              ao_power     = 1.2f,
                         float              ao_intensity = 0.6f);
-        ~PostProcessPass() override;
+        ~PostProcessPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

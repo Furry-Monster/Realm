@@ -229,7 +229,7 @@ namespace RealmEngine
         glDeleteShader(cs);
     }
 
-    GLShader::~GLShader()
+    GLShader::~GLShader() noexcept
     {
         if (m_id != 0)
             glDeleteProgram(m_id);

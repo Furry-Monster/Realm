@@ -9,7 +9,7 @@
 
 namespace RealmEngine
 {
-    SkyboxPass::~SkyboxPass() = default;
+    SkyboxPass::~SkyboxPass() noexcept = default;
 
     SkyboxPass::SkyboxPass(const std::string& shader_path) : RenderPass("skybox"), m_shader_path(shader_path) {}
 

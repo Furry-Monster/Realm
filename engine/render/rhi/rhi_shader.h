@@ -10,7 +10,7 @@ namespace RealmEngine
     class RHIShader
     {
     public:
-        virtual ~RHIShader() = default;
+        virtual ~RHIShader() noexcept = default;
 
         [[nodiscard]] virtual bool isValid() const = 0;
         virtual void               use()           = 0;

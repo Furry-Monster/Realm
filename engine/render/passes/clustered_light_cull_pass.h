@@ -26,7 +26,7 @@ namespace RealmEngine
         static constexpr int AVG_LIGHTS_PER_CLUSTER = 100;
 
         explicit ClusteredLightCullPass(const std::string& shader_path);
-        ~ClusteredLightCullPass() override;
+        ~ClusteredLightCullPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

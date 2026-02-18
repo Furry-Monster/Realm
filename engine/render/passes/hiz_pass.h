@@ -15,7 +15,7 @@ namespace RealmEngine
     {
     public:
         explicit HiZPass(const std::string& shader_path);
-        ~HiZPass() override;
+        ~HiZPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

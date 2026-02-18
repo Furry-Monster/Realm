@@ -17,7 +17,7 @@ namespace RealmEngine
     {
     public:
         explicit SkyboxPass(const std::string& shader_path);
-        ~SkyboxPass() override;
+        ~SkyboxPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

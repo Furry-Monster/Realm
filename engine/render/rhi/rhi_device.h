@@ -18,7 +18,7 @@ namespace RealmEngine
     class RHIDevice
     {
     public:
-        virtual ~RHIDevice() = default;
+        virtual ~RHIDevice() noexcept = default;
 
         // ----- Resource creation ------------------------------------------
 

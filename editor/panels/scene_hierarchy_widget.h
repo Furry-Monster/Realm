@@ -23,7 +23,7 @@ namespace RealmEngine
         SceneHierarchyWidget(const std::shared_ptr<EditorContext>& context,
                              EditorEngineBridge&                   bridge,
                              HierarchyCallbacks                    callbacks = {});
-        ~SceneHierarchyWidget() override = default;
+        ~SceneHierarchyWidget() noexcept override = default;
 
         SceneHierarchyWidget(const SceneHierarchyWidget&)            = delete;
         SceneHierarchyWidget& operator=(const SceneHierarchyWidget&) = delete;

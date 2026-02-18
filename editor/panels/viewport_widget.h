@@ -12,7 +12,7 @@ namespace RealmEngine
     {
     public:
         ViewportWidget(EditorEngineBridge& bridge, const std::shared_ptr<EditorContext>& context);
-        ~ViewportWidget() override = default;
+        ~ViewportWidget() noexcept override = default;
 
         ViewportWidget(const ViewportWidget&)            = delete;
         ViewportWidget& operator=(const ViewportWidget&) = delete;

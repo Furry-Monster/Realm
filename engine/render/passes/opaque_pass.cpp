@@ -30,7 +30,7 @@ namespace RealmEngine
         m_clear_a(clear_a)
     {}
 
-    OpaquePass::~OpaquePass() = default;
+    OpaquePass::~OpaquePass() noexcept = default;
 
     static constexpr size_t PROBE_SSBO_SIZE = 16 + LightProbeGPUData::MAX_ACTIVE_PROBES * 160;
 

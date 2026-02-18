@@ -11,7 +11,7 @@ namespace RealmEngine
     class SceneColorSource
     {
     public:
-        virtual ~SceneColorSource() = default;
+        virtual ~SceneColorSource() noexcept = default;
 
         virtual RHIFramebuffer* getFramebuffer() const = 0;
     };

@@ -19,7 +19,7 @@ namespace RealmEngine
         using OnFileSelectedCallback = std::function<void(const std::filesystem::path&)>;
 
         FileDialogWidget();
-        ~FileDialogWidget() override = default;
+        ~FileDialogWidget() noexcept override = default;
 
         FileDialogWidget(const FileDialogWidget&)            = delete;
         FileDialogWidget& operator=(const FileDialogWidget&) = delete;

@@ -11,7 +11,7 @@
 
 namespace RealmEngine
 {
-    GTAOBlurPass::~GTAOBlurPass() = default;
+    GTAOBlurPass::~GTAOBlurPass() noexcept = default;
 
     GTAOBlurPass::GTAOBlurPass(const std::string& shader_path) : RenderPass("gtao_blur"), m_shader_path(shader_path) {}
 

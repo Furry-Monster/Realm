@@ -17,7 +17,7 @@ namespace RealmEngine
     {
     public:
         GTAOPass(const std::string& shader_path, bool enabled, float radius, int num_directions, int num_steps);
-        ~GTAOPass() override;
+        ~GTAOPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

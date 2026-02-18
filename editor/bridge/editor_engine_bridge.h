@@ -21,7 +21,7 @@ namespace RealmEngine
     {
     public:
         explicit EditorEngineBridge(Engine& engine);
-        ~EditorEngineBridge() = default;
+        ~EditorEngineBridge() noexcept = default;
 
         EditorEngineBridge(const EditorEngineBridge&)            = delete;
         EditorEngineBridge& operator=(const EditorEngineBridge&) = delete;

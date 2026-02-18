@@ -21,7 +21,7 @@ namespace RealmEngine
         create();
     }
 
-    GLFramebuffer::~GLFramebuffer() { destroy(); }
+    GLFramebuffer::~GLFramebuffer() noexcept { destroy(); }
 
     void GLFramebuffer::create()
     {

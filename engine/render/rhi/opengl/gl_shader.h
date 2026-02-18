@@ -20,7 +20,7 @@ namespace RealmEngine
         {};
         GLShader(const std::string& compute_path, ComputeTag);
 
-        ~GLShader() override;
+        ~GLShader() noexcept override;
 
         GLShader(const GLShader&)            = delete;
         GLShader& operator=(const GLShader&) = delete;

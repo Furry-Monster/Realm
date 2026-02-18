@@ -13,7 +13,7 @@
 
 namespace RealmEngine
 {
-    ShadowPass::~ShadowPass() = default;
+    ShadowPass::~ShadowPass() noexcept = default;
 
     ShadowPass::ShadowPass(const std::string& shader_path, const int resolution) :
         RenderPass("shadow"), m_shader_path(shader_path), m_resolution(resolution)

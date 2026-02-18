@@ -21,7 +21,7 @@ namespace RealmEngine
     {
     public:
         explicit TransparentPass(const std::string& shader_path);
-        ~TransparentPass() override;
+        ~TransparentPass() noexcept override;
 
         void init(RHIDevice& device) override;
         void execute(const RenderContext& ctx) override;

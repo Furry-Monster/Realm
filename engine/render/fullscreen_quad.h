@@ -10,7 +10,7 @@ namespace RealmEngine
     {
     public:
         explicit FullscreenQuad(RHIDevice& device);
-        ~FullscreenQuad();
+        ~FullscreenQuad() noexcept;
 
         FullscreenQuad(const FullscreenQuad&)            = delete;
         FullscreenQuad& operator=(const FullscreenQuad&) = delete;

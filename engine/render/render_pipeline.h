@@ -15,7 +15,7 @@ namespace RealmEngine
     {
     public:
         RenderPipeline() = default;
-        ~RenderPipeline();
+        ~RenderPipeline() noexcept;
 
         RenderPipeline(const RenderPipeline&)            = delete;
         RenderPipeline& operator=(const RenderPipeline&) = delete;

@@ -49,7 +49,7 @@ namespace RealmEngine
         glBindBuffer(m_target, 0);
     }
 
-    GLBuffer::~GLBuffer()
+    GLBuffer::~GLBuffer() noexcept
     {
         if (m_id != 0)
             glDeleteBuffers(1, &m_id);
