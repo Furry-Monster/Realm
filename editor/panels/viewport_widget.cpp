@@ -173,14 +173,19 @@ namespace RealmEngine
             if (m_context->getGizmoOperation() == GizmoOperation::None && ImGui::IsItemHovered() &&
                 ImGui::IsMouseClicked(ImGuiMouseButton_Left))
             {
-                const ImVec2 mouse  = ImGui::GetMousePos();
-                const auto   scene  = m_bridge->getCurrentScene();
-                const auto   entity = m_bridge->pickEntityAtViewport(vp_min.x, vp_min.y, vp_w, vp_h, mouse.x, mouse.y);
+                const ImVec2 mouse = ImGui::GetMousePos();
+                const auto   scene = m_bridge->getCurrentScene();
+                const auto*  tex   = m_bridge->getViewportTexture();
+                const int    rw    = tex ? tex->getWidth() : static_cast<int>(vp_w);
+                const int    rh    = tex ? tex->getHeight() : static_cast<int>(vp_h);
+                const auto   entity =
+                    m_bridge->pickEntityAtViewport(vp_min.x, vp_min.y, vp_w, vp_h, mouse.x, mouse.y, rw, rh);
                 if (scene && scene->valid(entity))
                 {
                     const auto node = scene->findNodeByEntity(entity);
                     m_context->setSelectedEntity(entity);
                     m_context->setSelectedNode(node);
+                    m_context->setGizmoOperation(GizmoOperation::Translate);
                     m_bridge->getEventBus().publish(EntitySelectedEvent {entity, node ? node.get() : nullptr});
                 }
                 else

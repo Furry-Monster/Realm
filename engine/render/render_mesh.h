@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "core/math/aabb.h"
 #include "render/material.h"
 #include "render/rhi/rhi_shader.h"
 
@@ -40,7 +41,8 @@ namespace RealmEngine
         void draw(RHIShader& shader);
         void drawShadow(RHIShader& shader);
 
-        [[nodiscard]] int getTriangleCount() const { return static_cast<int>(m_indices.size()) / 3; }
+        [[nodiscard]] int  getTriangleCount() const { return static_cast<int>(m_indices.size()) / 3; }
+        [[nodiscard]] AABB getLocalAABB() const;
 
         std::string               m_name;
         std::vector<RenderVertex> m_vertices;

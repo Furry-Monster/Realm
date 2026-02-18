@@ -3,6 +3,7 @@
 #include <functional>
 #include <vector>
 
+#include "core/math/aabb.h"
 #include "render/render_mesh.h"
 
 namespace RealmEngine
@@ -24,6 +25,8 @@ namespace RealmEngine
 
         [[nodiscard]] RenderMesh*       getMesh(size_t index);
         [[nodiscard]] const RenderMesh* getMesh(size_t index) const;
+
+        [[nodiscard]] AABB getLocalAABB() const;
 
     private:
         std::vector<RenderMesh> m_meshes;

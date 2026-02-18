@@ -6,6 +6,11 @@ namespace RealmEngine
 {
     bool AABB::intersectsRay(const glm::vec3& origin, const glm::vec3& direction) const
     {
+        return rayIntersectT(origin, direction) < std::numeric_limits<float>::max();
+    }
+
+    float AABB::rayIntersectT(const glm::vec3& origin, const glm::vec3& direction) const
+    {
         float tmin = std::numeric_limits<float>::lowest();
         float tmax = std::numeric_limits<float>::max();
 
@@ -14,7 +19,7 @@ namespace RealmEngine
             if (std::abs(direction[i]) < std::numeric_limits<float>::epsilon())
             {
                 if (origin[i] < min[i] || origin[i] > max[i])
-                    return false;
+                    return std::numeric_limits<float>::max();
             }
             else
             {
@@ -29,11 +34,13 @@ namespace RealmEngine
                 tmax = std::min(tmax, t2);
 
                 if (tmin > tmax)
-                    return false;
+                    return std::numeric_limits<float>::max();
             }
         }
 
-        return tmax >= 0.0f;
+        if (tmax < 0.0f)
+            return std::numeric_limits<float>::max();
+        return (tmin >= 0.0f) ? tmin : tmax;
     }
 
     AABB AABB::transform(const glm::mat4& matrix) const

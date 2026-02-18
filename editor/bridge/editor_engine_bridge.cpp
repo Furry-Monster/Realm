@@ -1,6 +1,7 @@
 #include "editor_engine_bridge.h"
 
 #include "core/base/macros.h"
+#include "core/math/aabb.h"
 #include "engine.h"
 #include "platform/window/window.h"
 #include "render/renderer.h"
@@ -22,6 +23,7 @@
 #include <cstring>
 #include <filesystem>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <limits>
 
@@ -208,42 +210,42 @@ namespace RealmEngine
                                                           const float vp_w,
                                                           const float vp_h,
                                                           const float mouse_x,
-                                                          const float mouse_y) const
+                                                          const float mouse_y,
+                                                          const int   render_w,
+                                                          const int   render_h) const
     {
         const auto scene = m_engine->getSceneManager().getCurrentScene();
-        if (!scene)
+        if (!scene || render_w <= 0 || render_h <= 0)
             return entt::null;
 
-        const glm::mat4 view   = m_engine->getRenderer().getCamera()->getViewMatrix();
-        const glm::mat4 proj   = m_engine->getRenderer().getCamera()->getProjMatrix();
-        const glm::mat4 inv_vp = glm::inverse(proj * view);
+        const float u = (mouse_x - vp_x) / vp_w;
+        const float v = (mouse_y - vp_y) / vp_h;
+        if (u < 0.0f || u > 1.0f || v < 0.0f || v > 1.0f)
+            return entt::null;
 
-        const float ndc_x = (mouse_x - vp_x) / vp_w * 2.0f - 1.0f;
-        const float ndc_y = 1.0f - (mouse_y - vp_y) / vp_h * 2.0f;
+        const glm::mat4  view = m_engine->getRenderer().getCamera()->getViewMatrix();
+        const glm::mat4  proj = m_engine->getRenderer().getCamera()->getProjMatrix();
+        const glm::ivec4 viewport(0, 0, render_w, render_h);
 
-        const glm::vec4 near_ndc(ndc_x, ndc_y, 0.0f, 1.0f);
-        const glm::vec4 far_ndc(ndc_x, ndc_y, 1.0f, 1.0f);
-        const glm::vec4 near_ws = inv_vp * near_ndc;
-        const glm::vec4 far_ws  = inv_vp * far_ndc;
+        const float win_x = u * static_cast<float>(render_w);
+        const float win_y = (1.0f - v) * static_cast<float>(render_h);
 
-        const glm::vec3 ray_origin(near_ws / near_ws.w);
-        const glm::vec3 ray_dir = glm::normalize(glm::vec3(far_ws / far_ws.w) - ray_origin);
+        const glm::vec3 ray_origin = glm::unProject(glm::vec3(win_x, win_y, 0.0f), view, proj, viewport);
+        const glm::vec3 ray_dir =
+            glm::normalize(glm::unProject(glm::vec3(win_x, win_y, 1.0f), view, proj, viewport) - ray_origin);
 
         entt::entity hit       = entt::null;
         float        hit_t_min = std::numeric_limits<float>::max();
 
-        const auto view_registry = scene->getRegistry().view<Renderable, WorldTransform>();
-        for (const auto entity : view_registry)
+        for (const auto entity : scene->getRegistry().view<Renderable, WorldTransform>())
         {
-            const glm::vec3 center = glm::vec3(scene->get<WorldTransform>(entity).matrix[3]);
-            const float     t      = glm::dot(center - ray_origin, ray_dir);
-            if (t < 0.1f)
+            const auto* ro = scene->get<Renderable>(entity).render_object.get();
+            if (!ro || ro->isEmpty())
                 continue;
 
-            const glm::vec3 proj_pt        = ray_origin + ray_dir * t;
-            const float     dist_sq        = glm::dot(center - proj_pt, center - proj_pt);
-            const float     pick_radius_sq = 4.0f * 4.0f;
-            if (dist_sq < pick_radius_sq && t < hit_t_min)
+            const AABB  world_aabb = ro->getLocalAABB().transform(scene->get<WorldTransform>(entity).matrix);
+            const float t          = world_aabb.rayIntersectT(ray_origin, ray_dir);
+            if (t >= 0.1f && t < hit_t_min)
             {
                 hit_t_min = t;
                 hit       = entity;

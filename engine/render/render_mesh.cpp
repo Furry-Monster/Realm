@@ -71,4 +71,12 @@ namespace RealmEngine
         m_vertex_input->drawIndexed(PrimitiveType::Triangles, static_cast<uint32_t>(m_indices.size()));
     }
 
+    AABB RenderMesh::getLocalAABB() const
+    {
+        AABB box;
+        for (const auto& v : m_vertices)
+            box.merge(v.m_position);
+        return box;
+    }
+
 } // namespace RealmEngine

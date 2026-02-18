@@ -49,7 +49,8 @@ namespace RealmEngine
 
         bool intersectsSphere(const glm::vec3& center, float radius) const;
 
-        bool intersectsRay(const glm::vec3& origin, const glm::vec3& direction) const;
+        bool  intersectsRay(const glm::vec3& origin, const glm::vec3& direction) const;
+        float rayIntersectT(const glm::vec3& origin, const glm::vec3& direction) const;
 
         constexpr bool intersectsPlane(const glm::vec4& plane) const
         {

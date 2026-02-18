@@ -35,4 +35,12 @@ namespace RealmEngine
         return index < m_meshes.size() ? &m_meshes[index] : nullptr;
     }
 
+    AABB RenderObject::getLocalAABB() const
+    {
+        AABB box;
+        for (const auto& mesh : m_meshes)
+            box.merge(mesh.getLocalAABB());
+        return box;
+    }
+
 } // namespace RealmEngine
