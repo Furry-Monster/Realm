@@ -69,12 +69,6 @@ namespace RealmEngine
                     glm::angleAxis(glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)),
                     glm::vec3(1.0f));
 
-        loadModelAt("Cian",
-                    "Cian/Cian.gltf",
-                    glm::vec3(-3.5f, 0.0f, 0.0f),
-                    glm::angleAxis(glm::half_pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)),
-                    glm::vec3(1.5f));
-
         auto setLightDir = [](Transform& t, const glm::vec3& forward) {
             constexpr glm::vec3 def_fwd(0.0f, 0.0f, -1.0f);
             const glm::vec3     axis = glm::cross(def_fwd, forward);
