@@ -21,7 +21,7 @@ namespace RealmEngine
     class EditorContext
     {
     public:
-        EditorContext()  = default;
+        EditorContext()           = default;
         ~EditorContext() noexcept = default;
 
         EditorContext(const EditorContext&)            = delete;

@@ -9,7 +9,7 @@ namespace RealmEngine
     class ICommand
     {
     public:
-        virtual ~ICommand() noexcept = default;
+        virtual ~ICommand() noexcept                              = default;
         virtual void execute(RegisterUndo registerUndo = nullptr) = 0;
     };
 

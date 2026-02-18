@@ -7,7 +7,7 @@ namespace RealmEngine
     class GLDevice final : public RHIDevice
     {
     public:
-        GLDevice()           = default;
+        GLDevice()                    = default;
         ~GLDevice() noexcept override = default;
 
         // Resource creation

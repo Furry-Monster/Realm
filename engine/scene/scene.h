@@ -26,7 +26,7 @@ namespace RealmEngine
         void tick(float delta_time);
 
         // Entity management
-        Entity               createEntity(const std::string& name);
+        Entity               createEntity(std::string name);
         void                 destroyEntity(entt::entity entity);
         [[nodiscard]] Entity findEntity(const std::string& name) const;
         [[nodiscard]] bool   valid(entt::entity entity) const;

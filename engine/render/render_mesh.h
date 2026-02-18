@@ -30,7 +30,7 @@ namespace RealmEngine
                    std::vector<unsigned int> indices,
                    Material                  material,
                    RHIDevice&                device,
-                   const std::string&        name = "");
+                   std::string               name = "");
         ~RenderMesh() noexcept;
 
         RenderMesh(const RenderMesh&)            = delete;

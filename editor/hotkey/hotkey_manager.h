@@ -12,7 +12,7 @@ namespace RealmEngine
     public:
         using Handler = std::function<void()>;
 
-        HotkeyManager()  = default;
+        HotkeyManager()           = default;
         ~HotkeyManager() noexcept = default;
 
         HotkeyManager(const HotkeyManager&)            = delete;

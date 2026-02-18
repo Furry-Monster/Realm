@@ -27,8 +27,8 @@ namespace RealmEngine
         entt::entity getEntity() const;
         bool         hasEntity() const;
 
-        void                       addChild(const std::shared_ptr<SceneNode>& child);
-        void                       insertChildAt(size_t index, const std::shared_ptr<SceneNode>& child);
+        void                       addChild(std::shared_ptr<SceneNode> child);
+        void                       insertChildAt(size_t index, std::shared_ptr<SceneNode> child);
         void                       removeChild(std::shared_ptr<SceneNode> child);
         void                       removeChild(const std::string& name);
         std::shared_ptr<SceneNode> getChild(const std::string& name) const;

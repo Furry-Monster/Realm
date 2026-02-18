@@ -356,7 +356,8 @@ namespace RealmEngine
             material.render_face  = is_double_sided ? RenderFace::Both : RenderFace::Front;
 
             std::string mesh_name = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : "";
-            return RenderMesh(std::move(vertices), std::move(indices), std::move(material), device, mesh_name);
+            return RenderMesh(
+                std::move(vertices), std::move(indices), std::move(material), device, std::move(mesh_name));
         }
 
         std::string getTextureFilename(const std::string& path)

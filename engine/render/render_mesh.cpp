@@ -25,8 +25,9 @@ namespace RealmEngine
                            std::vector<unsigned int> indices,
                            Material                  material,
                            RHIDevice&                device,
-                           const std::string&        name) :
-        m_name(name), m_vertices(std::move(vertices)), m_indices(std::move(indices)), m_material(std::move(material))
+                           std::string               name) :
+        m_name(std::move(name)), m_vertices(std::move(vertices)), m_indices(std::move(indices)),
+        m_material(std::move(material))
     {
         m_vertex_buffer = device.createBuffer(
             BufferType::Vertex, BufferUsage::Static, m_vertices.data(), m_vertices.size() * sizeof(RenderVertex));

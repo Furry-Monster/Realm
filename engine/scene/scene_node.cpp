@@ -14,14 +14,14 @@ namespace RealmEngine
     entt::entity SceneNode::getEntity() const { return m_entity; }
     bool         SceneNode::hasEntity() const { return m_entity != entt::null; }
 
-    void SceneNode::addChild(const std::shared_ptr<SceneNode>& child)
+    void SceneNode::addChild(std::shared_ptr<SceneNode> child)
     {
         if (!child)
             return;
-        insertChildAt(m_children.size(), child);
+        insertChildAt(m_children.size(), std::move(child));
     }
 
-    void SceneNode::insertChildAt(const size_t index, const std::shared_ptr<SceneNode>& child)
+    void SceneNode::insertChildAt(const size_t index, std::shared_ptr<SceneNode> child)
     {
         if (!child)
             return;
@@ -31,8 +31,8 @@ namespace RealmEngine
             old_parent->removeChild(child);
 
         const size_t insert_idx = std::min(index, m_children.size());
-        m_children.insert(m_children.begin() + static_cast<ptrdiff_t>(insert_idx), child);
-        child->updateParentReference(shared_from_this());
+        auto         it = m_children.insert(m_children.begin() + static_cast<ptrdiff_t>(insert_idx), std::move(child));
+        (*it)->updateParentReference(shared_from_this());
     }
 
     void SceneNode::removeChild(std::shared_ptr<SceneNode> child)

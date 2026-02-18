@@ -76,22 +76,25 @@ namespace RealmEngine
             m_camera_controller->update(delta_time);
     }
 
-    Entity Scene::createEntity(const std::string& name)
+    Entity Scene::createEntity(std::string name)
     {
         const auto it = m_name_index.find(name);
         if (it != m_name_index.end())
         {
             RE_LOG_WARN("Entity name already taken: " + name + " -- generating unique name");
-            std::string unique_name = name;
-            int         suffix      = 1;
-            while (m_name_index.count(unique_name))
-                unique_name = name + "_" + std::to_string(suffix++);
-            return createEntity(unique_name);
+            const std::string base   = std::move(name);
+            int               suffix = 1;
+            std::string       unique_name;
+            do
+            {
+                unique_name = base + "_" + std::to_string(suffix++);
+            } while (m_name_index.count(unique_name));
+            return createEntity(std::move(unique_name));
         }
 
-        const auto handle = m_registry.create();
-        m_registry.emplace<NameTag>(handle, NameTag {name});
-        m_name_index[name] = handle;
+        const auto  handle     = m_registry.create();
+        const auto& tag        = m_registry.emplace<NameTag>(handle, NameTag {std::move(name)});
+        m_name_index[tag.name] = handle;
         incrementGeneration();
         return Entity(handle, &m_registry);
     }
