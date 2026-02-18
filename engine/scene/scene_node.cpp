@@ -18,12 +18,20 @@ namespace RealmEngine
     {
         if (!child)
             return;
+        insertChildAt(m_children.size(), child);
+    }
+
+    void SceneNode::insertChildAt(const size_t index, const std::shared_ptr<SceneNode>& child)
+    {
+        if (!child)
+            return;
 
         const auto old_parent = child->getParent();
         if (old_parent)
             old_parent->removeChild(child);
 
-        m_children.push_back(child);
+        const size_t insert_idx = std::min(index, m_children.size());
+        m_children.insert(m_children.begin() + static_cast<ptrdiff_t>(insert_idx), child);
         child->updateParentReference(shared_from_this());
     }
 

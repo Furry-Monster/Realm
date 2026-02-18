@@ -171,8 +171,15 @@ namespace RealmEngine
         };
 
         m_panels.push_back(std::make_shared<MenuBarWidget>(std::move(menu_callbacks)));
+
+        HierarchyCallbacks hierarchy_callbacks;
+        hierarchy_callbacks.on_delete    = [this] { m_executor.execute(DeleteEntityCommand(*m_bridge, *m_context)); };
+        hierarchy_callbacks.on_duplicate = [this] {
+            m_executor.execute(DuplicateEntityCommand(*m_bridge, *m_context));
+        };
+
         m_panels.push_back(std::make_shared<ViewportWidget>(*m_bridge));
-        m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context, *m_bridge));
+        m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context, *m_bridge, hierarchy_callbacks));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context, *m_bridge));
         auto entity_browser = std::make_shared<EntityBrowserWidget>(m_context, *m_bridge);
         auto console        = std::make_shared<ConsoleWidget>();
