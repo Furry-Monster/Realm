@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <limits>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -19,8 +18,8 @@ namespace RealmEngine
 {
     CSMShadowPass::~CSMShadowPass() = default;
 
-    CSMShadowPass::CSMShadowPass(const std::string& shader_path, int resolution) :
-        RenderPass("csm_shadow"), m_shader_path(shader_path), m_resolution(resolution)
+    CSMShadowPass::CSMShadowPass(const std::string& shader_path, const int resolution_per_cascade) :
+        RenderPass("csm_shadow"), m_shader_path(shader_path), m_resolution(resolution_per_cascade)
     {}
 
     void CSMShadowPass::init(RHIDevice& device)
@@ -41,18 +40,18 @@ namespace RealmEngine
         m_framebuffer = device.createFramebuffer(desc);
     }
 
-    void CSMShadowPass::computeCascadeSplits(float near_plane, float far_plane)
+    void CSMShadowPass::computeCascadeSplits(const float near_plane, const float far_plane)
     {
-        float range = far_plane - near_plane;
-        float ratio = far_plane / near_plane;
+        const float range = far_plane - near_plane;
+        const float ratio = far_plane / near_plane;
 
         m_split_distances[0] = near_plane;
         for (size_t i = 1; i <= static_cast<size_t>(CASCADE_COUNT); ++i)
         {
-            float p              = static_cast<float>(i) / static_cast<float>(CASCADE_COUNT);
-            float log            = near_plane * std::pow(ratio, p);
-            float lin            = near_plane + range * p;
-            float dist           = m_split_lambda * log + (1.0f - m_split_lambda) * lin;
+            const float p        = static_cast<float>(i) / static_cast<float>(CASCADE_COUNT);
+            const float log      = near_plane * std::pow(ratio, p);
+            const float lin      = near_plane + range * p;
+            const float dist     = m_split_lambda * log + (1.0f - m_split_lambda) * lin;
             m_split_distances[i] = dist;
         }
     }
@@ -155,16 +154,16 @@ namespace RealmEngine
 
     void CSMShadowPass::execute(const RenderContext& ctx)
     {
-        auto directional_light = ctx.scene->findDirectionalLight();
+        const auto directional_light = ctx.scene->findDirectionalLight();
         if (!directional_light.has_value())
         {
             m_shadow_enabled = false;
             return;
         }
 
-        m_shadow_enabled       = true;
-        const Light& light     = directional_light->get();
-        glm::vec3    light_dir = glm::normalize(light.direction);
+        m_shadow_enabled          = true;
+        const Light&    light     = directional_light->get();
+        const glm::vec3 light_dir = glm::normalize(light.direction);
 
         computeCascadeSplits(ctx.camera->getNearPlane(), ctx.camera->getFarPlane());
 

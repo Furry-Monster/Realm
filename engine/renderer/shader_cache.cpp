@@ -21,7 +21,7 @@ namespace RealmEngine
         if (m_failed.count(key))
             return nullptr;
 
-        auto it = m_cache.find(key);
+        const auto it = m_cache.find(key);
         if (it != m_cache.end())
             return it->second.get();
 
@@ -40,7 +40,7 @@ namespace RealmEngine
 
     void ShaderCache::invalidate(const std::string& vert_path, const std::string& frag_path)
     {
-        std::string key = makeKey(vert_path, frag_path);
+        const std::string key = makeKey(vert_path, frag_path);
         m_cache.erase(key);
         m_failed.erase(key);
     }

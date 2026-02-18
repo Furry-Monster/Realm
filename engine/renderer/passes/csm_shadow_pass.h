@@ -34,7 +34,7 @@ namespace RealmEngine
         const std::array<CascadeData, CASCADE_COUNT>& getCascades() const { return m_cascades; }
         RHIFramebuffer*                               getFramebuffer() const { return m_framebuffer.get(); }
         float                                         getLightSize() const { return m_light_size; }
-        void                                          setLightSize(float size) { m_light_size = size; }
+        void                                          setLightSize(const float size) { m_light_size = size; }
 
     private:
         void computeCascadeSplits(float near_plane, float far_plane);

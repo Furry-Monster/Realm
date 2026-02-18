@@ -52,7 +52,7 @@ namespace RealmEngine
         Renderer(Renderer&&)                 = delete;
         Renderer& operator=(Renderer&&)      = delete;
 
-        void initialize(ConfigManager& config, Window& window);
+        void initialize(const ConfigManager& config, Window& window);
         void disposal();
         void render();
         void onResize(int width, int height);
@@ -66,7 +66,7 @@ namespace RealmEngine
         void reloadCustomShaders();
 
         ViewportDisplayMode getViewportDisplayMode() const { return m_display_mode; }
-        void                setViewportDisplayMode(ViewportDisplayMode mode) { m_display_mode = mode; }
+        void                setViewportDisplayMode(const ViewportDisplayMode mode) { m_display_mode = mode; }
 
         void        setRenderToViewportTexture(bool enable);
         RHITexture* getViewportTexture() const;
@@ -87,9 +87,9 @@ namespace RealmEngine
         RHITexture* getGBufferDepth() const { return getGBufferTexture(GBufferSlot::Depth); }
 
     private:
-        void buildForwardPipeline(ConfigManager& config);
-        void buildDeferredPipeline(ConfigManager& config);
-        void precomputeIBL(ConfigManager& config);
+        void buildForwardPipeline(const ConfigManager& config);
+        void buildDeferredPipeline(const ConfigManager& config);
+        void precomputeIBL(const ConfigManager& config);
         void createSharedFramebuffers(int width, int height, const RendererConfig& rc);
         void recreateSharedFramebuffers(int width, int height);
 

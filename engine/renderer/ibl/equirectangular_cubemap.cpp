@@ -16,8 +16,8 @@ namespace RealmEngine
                                                    const std::string& engine_root,
                                                    const std::string& hdri_path)
     {
-        std::string vert_path = engine_root + "/shaders/builtin/ibl/hdricube.vert";
-        std::string frag_path = engine_root + "/shaders/builtin/ibl/hdricube.frag";
+        const std::string vert_path = engine_root + "/shaders/builtin/ibl/hdricube.vert";
+        const std::string frag_path = engine_root + "/shaders/builtin/ibl/hdricube.frag";
 
         m_hdri_shader = device.createShader(vert_path, frag_path);
         if (!m_hdri_shader || !m_hdri_shader->isValid())
@@ -45,19 +45,19 @@ namespace RealmEngine
         if (!m_hdri_shader || !m_hdri_shader->isValid() || !m_framebuffer)
             return;
 
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::vec3 origin(0.0f, 0.0f, 0.0f);
-        glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
-        glm::vec3 unit_y(0.0f, 1.0f, 0.0f);
-        glm::vec3 unit_z(0.0f, 0.0f, 1.0f);
+        constexpr glm::mat4 model = glm::mat4(1.0f);
+        constexpr glm::vec3 origin(0.0f, 0.0f, 0.0f);
+        constexpr glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
+        constexpr glm::vec3 unit_y(0.0f, 1.0f, 0.0f);
+        constexpr glm::vec3 unit_z(0.0f, 0.0f, 1.0f);
 
-        glm::mat4 camera_angles[] = {glm::lookAt(origin, unit_x, -unit_y),
-                                     glm::lookAt(origin, -unit_x, -unit_y),
-                                     glm::lookAt(origin, unit_y, unit_z),
-                                     glm::lookAt(origin, -unit_y, -unit_z),
-                                     glm::lookAt(origin, unit_z, -unit_y),
-                                     glm::lookAt(origin, -unit_z, -unit_y)};
-        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
+        const glm::mat4 camera_angles[] = {glm::lookAt(origin, unit_x, -unit_y),
+                                           glm::lookAt(origin, -unit_x, -unit_y),
+                                           glm::lookAt(origin, unit_y, unit_z),
+                                           glm::lookAt(origin, -unit_y, -unit_z),
+                                           glm::lookAt(origin, unit_z, -unit_y),
+                                           glm::lookAt(origin, -unit_z, -unit_y)};
+        const glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
 
         device.setViewport(0, 0, WIDTH, HEIGHT);
         m_framebuffer->bind();

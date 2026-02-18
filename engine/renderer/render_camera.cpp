@@ -23,19 +23,19 @@ namespace RealmEngine
     }
     void RenderCamera::setRotation(const glm::vec3& euler_angles)
     {
-        glm::quat q_pitch = glm::angleAxis(glm::radians(euler_angles.x), glm::vec3(1, 0, 0));
-        glm::quat q_yaw   = glm::angleAxis(glm::radians(euler_angles.y), glm::vec3(0, 1, 0));
-        glm::quat q_roll  = glm::angleAxis(glm::radians(euler_angles.z), glm::vec3(0, 0, 1));
+        const glm::quat q_pitch = glm::angleAxis(glm::radians(euler_angles.x), glm::vec3(1, 0, 0));
+        const glm::quat q_yaw   = glm::angleAxis(glm::radians(euler_angles.y), glm::vec3(0, 1, 0));
+        const glm::quat q_roll  = glm::angleAxis(glm::radians(euler_angles.z), glm::vec3(0, 0, 1));
 
         m_rotation       = glm::normalize(q_yaw * q_pitch * q_roll);
         m_view_mat_dirty = true;
     }
     void RenderCamera::lookAt(const glm::vec3& target, const glm::vec3& up)
     {
-        glm::mat4 view_matrix = glm::lookAt(m_position, target, up);
+        const glm::mat4 view_matrix = glm::lookAt(m_position, target, up);
 
-        glm::mat3 rotation_part = glm::mat3(view_matrix);
-        rotation_part           = glm::transpose(rotation_part);
+        auto rotation_part = glm::mat3(view_matrix);
+        rotation_part      = glm::transpose(rotation_part);
 
         m_rotation       = glm::normalize(glm::quat_cast(rotation_part));
         m_view_mat_dirty = true;
@@ -47,7 +47,10 @@ namespace RealmEngine
     glm::vec3        RenderCamera::getLocalRight() const { return m_rotation * glm::vec3(1, 0, 0); }
     glm::vec3        RenderCamera::getLocalUp() const { return m_rotation * glm::vec3(0, 1, 0); }
 
-    void RenderCamera::setPerspective(float fov, float aspect_ratio, float near_plane, float far_plane)
+    void RenderCamera::setPerspective(const float fov,
+                                      const float aspect_ratio,
+                                      const float near_plane,
+                                      const float far_plane)
     {
         m_projection_type = ProjectionType::Perspective;
         m_fov             = fov;
@@ -56,8 +59,12 @@ namespace RealmEngine
         m_far_plane       = far_plane;
         m_proj_mat_dirty  = true;
     }
-    void
-    RenderCamera::setOrthographic(float left, float right, float bottom, float top, float near_plane, float far_plane)
+    void RenderCamera::setOrthographic(const float left,
+                                       const float right,
+                                       const float bottom,
+                                       const float top,
+                                       const float near_plane,
+                                       const float far_plane)
     {
         m_projection_type = ProjectionType::Orthographic;
         m_ortho_left      = left;
@@ -69,22 +76,22 @@ namespace RealmEngine
         m_proj_mat_dirty  = true;
     }
 
-    void RenderCamera::setFov(float fov)
+    void RenderCamera::setFov(const float fov)
     {
         m_fov            = fov;
         m_proj_mat_dirty = true;
     }
-    void RenderCamera::setAspectRatio(float aspect_ratio)
+    void RenderCamera::setAspectRatio(const float aspect_ratio)
     {
         m_aspect_ratio   = aspect_ratio;
         m_proj_mat_dirty = true;
     }
-    void RenderCamera::setNearPlane(float near_plane)
+    void RenderCamera::setNearPlane(const float near_plane)
     {
         m_near_plane     = near_plane;
         m_proj_mat_dirty = true;
     }
-    void RenderCamera::setFarPlane(float far_plane)
+    void RenderCamera::setFarPlane(const float far_plane)
     {
         m_far_plane      = far_plane;
         m_proj_mat_dirty = true;
@@ -146,9 +153,9 @@ namespace RealmEngine
 
     void RenderCamera::updateViewMatrix()
     {
-        glm::mat4 rotation_matrix    = glm::transpose(glm::mat4_cast(m_rotation));
-        glm::mat4 translation_matrix = glm::translate(glm::mat4(1.0f), -m_position);
-        m_view_matrix                = rotation_matrix * translation_matrix;
+        const glm::mat4 rotation_matrix    = glm::transpose(glm::mat4_cast(m_rotation));
+        const glm::mat4 translation_matrix = glm::translate(glm::mat4(1.0f), -m_position);
+        m_view_matrix                      = rotation_matrix * translation_matrix;
     }
 
     void RenderCamera::updateProjectionMatrix()
@@ -187,7 +194,7 @@ namespace RealmEngine
 
         for (auto& plane : m_frustum.planes)
         {
-            float length = glm::length(glm::vec3(plane));
+            const float length = glm::length(glm::vec3(plane));
             plane /= length;
         }
     }

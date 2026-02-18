@@ -11,7 +11,7 @@ namespace RealmEngine
         m_cube = std::make_unique<IblCubeMesh>(createIblCubeMesh(device));
     }
 
-    void Skybox::draw(RHIDevice& device)
+    void Skybox::draw(RHIDevice& device) const
     {
         if (!m_env_cubemap || !m_cube || !m_cube->vertex_input)
             return;

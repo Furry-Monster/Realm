@@ -14,7 +14,7 @@ namespace RealmEngine
     public:
         explicit Skybox(RHIDevice& device, RHITexture* env_cubemap);
 
-        void draw(RHIDevice& device);
+        void draw(RHIDevice& device) const;
 
     private:
         RHITexture*                  m_env_cubemap {nullptr};

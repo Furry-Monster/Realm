@@ -22,7 +22,10 @@ namespace RealmEngine
 
     SSRPass::~SSRPass() = default;
 
-    SSRPass::SSRPass(const std::string& shader_path, bool enabled, int max_steps, float max_distance) :
+    SSRPass::SSRPass(const std::string& shader_path,
+                     const bool         enabled,
+                     const int          max_steps,
+                     const float        max_distance) :
         RenderPass("ssr"), m_shader_path(shader_path), m_enabled(enabled), m_max_steps(max_steps),
         m_max_distance(max_distance)
     {}
@@ -93,10 +96,10 @@ namespace RealmEngine
         ctx.device->bindTexture(TEX_UNIT_SCENE_DEPTH, *scene_depth_tex);
         m_shader->setInt("uSceneDepth", TEX_UNIT_SCENE_DEPTH);
 
-        glm::mat4 view       = ctx.camera->getViewMatrix();
-        glm::mat4 projection = ctx.camera->getProjMatrix();
-        glm::mat4 inv_view   = glm::inverse(view);
-        glm::mat4 inv_proj   = glm::inverse(projection);
+        const glm::mat4 view       = ctx.camera->getViewMatrix();
+        const glm::mat4 projection = ctx.camera->getProjMatrix();
+        const glm::mat4 inv_view   = glm::inverse(view);
+        const glm::mat4 inv_proj   = glm::inverse(projection);
 
         m_shader->setMat4("uView", view);
         m_shader->setMat4("uProjection", projection);
@@ -110,7 +113,7 @@ namespace RealmEngine
         m_shader->setVec2("uScreenSize",
                           glm::vec2(static_cast<float>(ctx.viewport_width), static_cast<float>(ctx.viewport_height)));
 
-        int hiz_mip_count =
+        const int hiz_mip_count =
             1 + static_cast<int>(
                     std::floor(std::log2(static_cast<double>(std::max(hiz_tex->getWidth(), hiz_tex->getHeight())))));
         m_shader->setInt("uHiZMipCount", hiz_mip_count);

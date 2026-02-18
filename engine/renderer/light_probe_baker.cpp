@@ -3,7 +3,6 @@
 #include <glad/glad.h>
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "renderer/light.h"
@@ -66,9 +65,9 @@ namespace RealmEngine
         // Upload light data for the bake shader
         if (m_light_ssbo)
         {
-            size_t    count   = std::min(scene.getLights().size(), MAX_LIGHTS);
-            int       count_i = static_cast<int>(count);
-            LightData data[MAX_LIGHTS] {};
+            const size_t count   = std::min(scene.getLights().size(), MAX_LIGHTS);
+            const int    count_i = static_cast<int>(count);
+            LightData    data[MAX_LIGHTS] {};
             for (size_t i = 0; i < count; ++i)
             {
                 auto& l             = scene.getLights()[i];
@@ -92,14 +91,14 @@ namespace RealmEngine
 
     void LightProbeBaker::renderCubemap(const glm::vec3& position, RenderScene& scene)
     {
-        glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 1000.0f);
+        const glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 1000.0f);
 
-        glm::mat4 views[6] = {glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0)),
-                              glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0)),
-                              glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)),
-                              glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1)),
-                              glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0)),
-                              glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0))};
+        const glm::mat4 views[6] = {glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0)),
+                                    glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0)),
+                                    glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)),
+                                    glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1)),
+                                    glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0)),
+                                    glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0))};
 
         m_shader->use();
 
@@ -129,7 +128,7 @@ namespace RealmEngine
 
     void LightProbeBaker::readCubemapPixels()
     {
-        int face_pixels = CUBEMAP_RESOLUTION * CUBEMAP_RESOLUTION;
+        constexpr int face_pixels = CUBEMAP_RESOLUTION * CUBEMAP_RESOLUTION;
         m_pixel_buffer.resize(6 * face_pixels);
 
         for (int face = 0; face < 6; ++face)

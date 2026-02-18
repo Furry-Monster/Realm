@@ -14,10 +14,10 @@ namespace RealmEngine
         probes.clear();
         probe_count = 0;
 
-        auto& registry = scene.getRegistry();
-        auto  view     = registry.view<LightProbe>();
+        auto&      registry = scene.getRegistry();
+        const auto view     = registry.view<LightProbe>();
 
-        for (auto entity : view)
+        for (const auto entity : view)
         {
             if (probe_count >= MAX_ACTIVE_PROBES)
                 break;
@@ -29,7 +29,7 @@ namespace RealmEngine
             glm::vec3 position {0.0f};
             if (auto* wt = scene.tryGet<WorldTransform>(entity))
                 position = glm::vec3(wt->matrix[3]);
-            else if (auto* t = scene.tryGet<Transform>(entity))
+            else if (const auto* t = scene.tryGet<Transform>(entity))
                 position = t->position;
 
             ProbeInfo info {};

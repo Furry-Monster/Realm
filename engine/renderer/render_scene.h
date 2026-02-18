@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <entt/entity/entity.hpp>
 #include <functional>
 #include <glm/glm.hpp>
@@ -27,7 +26,7 @@ namespace RealmEngine
         RenderScene(RenderScene&&) noexcept            = default;
         RenderScene& operator=(RenderScene&&) noexcept = default;
 
-        void syncFromScene(std::shared_ptr<Scene> scene);
+        void syncFromScene(const std::shared_ptr<Scene>& scene);
 
         Scene* getScene() const { return m_cached_scene.get(); }
 

@@ -14,11 +14,11 @@ namespace RealmEngine
     PostProcessPass::~PostProcessPass() = default;
 
     PostProcessPass::PostProcessPass(const std::string& shader_path,
-                                     bool               tonemapping,
-                                     float              gamma,
-                                     bool               ao_enabled,
-                                     float              ao_power,
-                                     float              ao_intensity) :
+                                     const bool         tonemapping,
+                                     const float        gamma,
+                                     const bool         ao_enabled,
+                                     const float        ao_power,
+                                     const float        ao_intensity) :
         RenderPass("postprocess"), m_shader_path(shader_path), m_tonemapping(tonemapping), m_gamma(gamma),
         m_ao_enabled(ao_enabled), m_ao_power(ao_power), m_ao_intensity(ao_intensity)
     {}
@@ -47,8 +47,8 @@ namespace RealmEngine
 
         m_shader->use();
 
-        bool  bloom_on        = m_bloom_pass && m_bloom_pass->isEnabled();
-        float bloom_intensity = bloom_on ? m_bloom_pass->getIntensity() : 0.0f;
+        bool        bloom_on        = m_bloom_pass && m_bloom_pass->isEnabled();
+        const float bloom_intensity = bloom_on ? m_bloom_pass->getIntensity() : 0.0f;
 
         m_shader->setBool("tonemappingEnabled", m_tonemapping);
         m_shader->setFloat("gammaCorrectionFactor", m_gamma);
@@ -57,8 +57,8 @@ namespace RealmEngine
 
         RHITexture* ao_tex =
             (m_gtao_blur_pass && m_gtao_blur_pass->getResultTexture()) ? m_gtao_blur_pass->getResultTexture() : nullptr;
-        bool ao_on        = m_ao_enabled && ao_tex && depth_tex;
-        int  display_mode = static_cast<int>(ctx.display_mode);
+        const bool ao_on        = m_ao_enabled && ao_tex && depth_tex;
+        int        display_mode = static_cast<int>(ctx.display_mode);
         if (display_mode == 7 && !ao_on)
             display_mode = 0;
         m_shader->setInt("displayMode", display_mode);

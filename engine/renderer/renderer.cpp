@@ -37,7 +37,7 @@ namespace RealmEngine
     Renderer::Renderer()           = default;
     Renderer::~Renderer() noexcept = default;
 
-    void Renderer::initialize(ConfigManager& config, Window& window)
+    void Renderer::initialize(const ConfigManager& config, Window& window)
     {
         m_window      = &window;
         m_shader_path = config.getShaderFolder();
@@ -80,8 +80,8 @@ namespace RealmEngine
 
         m_device->setViewport(0, 0, window.getWidth(), window.getHeight());
 
-        uint8_t     white[] = {255, 255, 255, 255};
-        TextureDesc td;
+        constexpr uint8_t white[] = {255, 255, 255, 255};
+        TextureDesc       td;
         td.type         = TextureType::Texture2D;
         td.format       = TextureFormat::RGBA8;
         td.width        = 1;
@@ -97,7 +97,7 @@ namespace RealmEngine
             RE_LOG_INFO("Renderer initialized (RHI + Forward pipeline).");
     }
 
-    void Renderer::precomputeIBL(ConfigManager& config)
+    void Renderer::precomputeIBL(const ConfigManager& config)
     {
         std::string root_path = config.getRootFolder().generic_string();
         std::string hdri_path = (config.getAssetFolder() / config.getRendererConfig().hdri_path).generic_string();
@@ -123,7 +123,7 @@ namespace RealmEngine
 
     // ---- Forward pipeline ---------------------------------------------------
 
-    void Renderer::buildForwardPipeline(ConfigManager& config)
+    void Renderer::buildForwardPipeline(const ConfigManager& config)
     {
         const RendererConfig& rc = config.getRendererConfig();
         std::string           sp = m_shader_path.generic_string();
@@ -208,7 +208,7 @@ namespace RealmEngine
 
     // ---- Deferred pipeline --------------------------------------------------
 
-    void Renderer::buildDeferredPipeline(ConfigManager& config)
+    void Renderer::buildDeferredPipeline(const ConfigManager& config)
     {
         const RendererConfig& rc = config.getRendererConfig();
         std::string           sp = m_shader_path.generic_string();
@@ -329,7 +329,7 @@ namespace RealmEngine
 
     // ---- Shared framebuffer creation ----------------------------------------
 
-    void Renderer::createSharedFramebuffers(int width, int height, const RendererConfig& /*rc*/)
+    void Renderer::createSharedFramebuffers(int width, int height, [[maybe_unused]] const RendererConfig& rc)
     {
         if (m_pipeline_mode == PipelineMode::Forward)
         {
@@ -414,7 +414,7 @@ namespace RealmEngine
         // GTAO framebuffers
         if (m_gtao_pass && m_gtao_blur_pass)
         {
-            auto make_ao_fb = [&](int w, int h) {
+            auto make_ao_fb = [&](const int w, const int h) {
                 FramebufferDesc desc;
                 desc.width  = w;
                 desc.height = h;
@@ -452,9 +452,9 @@ namespace RealmEngine
         }
     }
 
-    void Renderer::recreateSharedFramebuffers(int width, int height)
+    void Renderer::recreateSharedFramebuffers(const int width, const int height)
     {
-        RendererConfig dummy;
+        const RendererConfig dummy;
         createSharedFramebuffers(width, height, dummy);
     }
 
@@ -486,7 +486,7 @@ namespace RealmEngine
         m_pipeline.execute(ctx);
     }
 
-    void Renderer::onResize(int width, int height)
+    void Renderer::onResize(const int width, const int height)
     {
         if (width <= 0 || height <= 0)
             return;
@@ -516,7 +516,7 @@ namespace RealmEngine
         }
     }
 
-    void Renderer::setRenderToViewportTexture(bool enable)
+    void Renderer::setRenderToViewportTexture(const bool enable)
     {
         m_render_to_viewport_texture = enable;
         if (enable && !m_viewport_framebuffer && m_window)
@@ -543,7 +543,7 @@ namespace RealmEngine
         return m_viewport_framebuffer ? m_viewport_framebuffer->getColorAttachment(0) : nullptr;
     }
 
-    RHITexture* Renderer::getGBufferTexture(GBufferSlot slot) const
+    RHITexture* Renderer::getGBufferTexture(const GBufferSlot slot) const
     {
         if (m_pipeline_mode != PipelineMode::Deferred || !m_gbuffer_pass)
             return nullptr;

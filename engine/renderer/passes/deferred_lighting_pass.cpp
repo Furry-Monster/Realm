@@ -112,9 +112,9 @@ namespace RealmEngine
 
         // Camera
         ctx.camera->update();
-        glm::vec3 cam_pos    = ctx.camera->getPosition();
-        glm::mat4 projection = ctx.camera->getProjMatrix();
-        glm::mat4 view       = ctx.camera->getViewMatrix();
+        const glm::vec3 cam_pos    = ctx.camera->getPosition();
+        const glm::mat4 projection = ctx.camera->getProjMatrix();
+        const glm::mat4 view       = ctx.camera->getViewMatrix();
 
         m_shader->setVec3("cameraPosition", cam_pos);
         m_shader->setMat4("invView", glm::inverse(view));
@@ -122,9 +122,9 @@ namespace RealmEngine
 
         // Lights UBO
         {
-            size_t    count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
-            int       count_i = static_cast<int>(count);
-            LightData data[MAX_LIGHTS] {};
+            const size_t count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
+            const int    count_i = static_cast<int>(count);
+            LightData    data[MAX_LIGHTS] {};
             for (size_t i = 0; i < count; ++i)
             {
                 auto& l             = ctx.scene->getLights()[i];
@@ -201,7 +201,7 @@ namespace RealmEngine
             }
             else
             {
-                int zero = 0;
+                constexpr int zero = 0;
                 m_probe_ssbo->setSubData(&zero, 0, sizeof(int));
             }
             m_probe_ssbo->bindBase(5);

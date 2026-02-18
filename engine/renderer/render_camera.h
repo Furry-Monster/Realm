@@ -23,7 +23,7 @@ namespace RealmEngine
                     return false;
             return true;
         }
-        constexpr bool containsSphere(const glm::vec3& center, float r) const
+        constexpr bool containsSphere(const glm::vec3& center, const float r) const
         {
             for (const glm::vec4& plane : planes)
                 if (glm::dot(glm::vec3(plane), center) + plane.w < -r)

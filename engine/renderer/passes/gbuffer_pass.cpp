@@ -17,7 +17,7 @@
 namespace RealmEngine
 {
     // Maps ShadingModel to G-Buffer shadingModelID (RT0.a)
-    static int shadingModelToID(ShadingModel model)
+    static int shadingModelToID(const ShadingModel model)
     {
         switch (model)
         {
@@ -31,10 +31,10 @@ namespace RealmEngine
     GBufferPass::~GBufferPass() = default;
 
     GBufferPass::GBufferPass(const std::string& shader_path,
-                             float              clear_r,
-                             float              clear_g,
-                             float              clear_b,
-                             float              clear_a) :
+                             const float        clear_r,
+                             const float        clear_g,
+                             const float        clear_b,
+                             const float        clear_a) :
         RenderPass("gbuffer"), m_shader_path(shader_path), m_clear_r(clear_r), m_clear_g(clear_g), m_clear_b(clear_b),
         m_clear_a(clear_a)
     {}
@@ -44,8 +44,8 @@ namespace RealmEngine
         m_shader = device.createShader(m_shader_path + "/builtin/deferred_gbuffer.vert",
                                        m_shader_path + "/builtin/deferred_gbuffer.frag");
 
-        uint8_t     white[] = {255, 255, 255, 255};
-        TextureDesc td;
+        constexpr uint8_t white[] = {255, 255, 255, 255};
+        TextureDesc       td;
         td.type         = TextureType::Texture2D;
         td.format       = TextureFormat::RGBA8;
         td.width        = 1;
@@ -73,8 +73,8 @@ namespace RealmEngine
         m_shader->use();
 
         ctx.camera->update();
-        glm::mat4 projection = ctx.camera->getProjMatrix();
-        glm::mat4 view       = ctx.camera->getViewMatrix();
+        const glm::mat4 projection = ctx.camera->getProjMatrix();
+        const glm::mat4 view       = ctx.camera->getViewMatrix();
 
         const auto& objects  = ctx.scene->getRenderObjects();
         const auto& matrices = ctx.scene->getRenderModelMatrices();
@@ -91,7 +91,7 @@ namespace RealmEngine
                 for (int u = TEXTURE_UNIT_ALBEDO; u <= TEXTURE_UNIT_OPACITY; ++u)
                     ctx.device->bindTexture(u, *m_default_white);
 
-                int model_id = shadingModelToID(mesh.m_material.shading_model);
+                const int model_id = shadingModelToID(mesh.m_material.shading_model);
                 m_shader->setInt("shadingModelID", model_id);
 
                 ctx.device->setCullFace(mesh.m_material.isDoubleSided() ? CullFace::None : CullFace::Back);

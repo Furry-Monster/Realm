@@ -1,7 +1,6 @@
 #include "renderer/passes/point_shadow_pass.h"
 
 #include <algorithm>
-#include <cstddef>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "renderer/light.h"
@@ -15,7 +14,7 @@ namespace RealmEngine
 {
     PointShadowPass::~PointShadowPass() = default;
 
-    PointShadowPass::PointShadowPass(const std::string& shader_path, int resolution) :
+    PointShadowPass::PointShadowPass(const std::string& shader_path, const int resolution) :
         RenderPass("point_shadow"), m_shader_path(shader_path), m_resolution(resolution)
     {}
 
@@ -70,14 +69,14 @@ namespace RealmEngine
         };
         std::vector<Candidate> candidates;
 
-        const auto& lights  = ctx.scene->getLights();
-        glm::vec3   cam_pos = ctx.camera->getPosition();
+        const auto&     lights  = ctx.scene->getLights();
+        const glm::vec3 cam_pos = ctx.camera->getPosition();
         for (size_t i = 0; i < lights.size(); ++i)
         {
             const auto& light = lights[i];
             if (light.type != LightType::Point)
                 continue;
-            float dist = glm::length(light.position - cam_pos);
+            const float dist = glm::length(light.position - cam_pos);
             candidates.push_back({static_cast<int>(i), dist, light.position, light.range});
         }
 
@@ -85,11 +84,11 @@ namespace RealmEngine
             return a.distance < b.distance;
         });
 
-        size_t shadow_count = std::min(candidates.size(), MAX_POINT_SHADOWS);
+        const size_t shadow_count = std::min(candidates.size(), MAX_POINT_SHADOWS);
 
         for (size_t s = 0; s < shadow_count; ++s)
         {
-            auto& c = candidates[s];
+            const auto& c = candidates[s];
 
             PointShadowData sd;
             sd.light_index = c.index;
@@ -97,18 +96,18 @@ namespace RealmEngine
             sd.range       = c.range;
             m_active_shadows.push_back(sd);
 
-            float     near = 0.1f;
-            float     far  = c.range;
-            glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, near, far);
-            glm::vec3 pos  = c.pos;
+            constexpr float near = 0.1f;
+            const float     far  = c.range;
+            glm::mat4       proj = glm::perspective(glm::radians(90.0f), 1.0f, near, far);
+            glm::vec3       pos  = c.pos;
 
             // 6 face view matrices
-            glm::mat4 shadow_views[6] = {proj * glm::lookAt(pos, pos + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0)),
-                                         proj * glm::lookAt(pos, pos + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0)),
-                                         proj * glm::lookAt(pos, pos + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)),
-                                         proj * glm::lookAt(pos, pos + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1)),
-                                         proj * glm::lookAt(pos, pos + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0)),
-                                         proj * glm::lookAt(pos, pos + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0))};
+            const glm::mat4 shadow_views[6] = {proj * glm::lookAt(pos, pos + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0)),
+                                               proj * glm::lookAt(pos, pos + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0)),
+                                               proj * glm::lookAt(pos, pos + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)),
+                                               proj * glm::lookAt(pos, pos + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1)),
+                                               proj * glm::lookAt(pos, pos + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0)),
+                                               proj * glm::lookAt(pos, pos + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0))};
 
             auto* fb = m_framebuffers[s].get();
 
@@ -142,7 +141,7 @@ namespace RealmEngine
         ctx.device->bindDefaultFramebuffer();
     }
 
-    RHIFramebuffer* PointShadowPass::getFramebuffer(int index) const
+    RHIFramebuffer* PointShadowPass::getFramebuffer(const int index) const
     {
         if (index >= 0 && index < static_cast<int>(m_framebuffers.size()))
             return m_framebuffers[static_cast<size_t>(index)].get();

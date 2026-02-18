@@ -21,7 +21,11 @@
 
 namespace RealmEngine
 {
-    OpaquePass::OpaquePass(const std::string& shader_path, float clear_r, float clear_g, float clear_b, float clear_a) :
+    OpaquePass::OpaquePass(const std::string& shader_path,
+                           const float        clear_r,
+                           const float        clear_g,
+                           const float        clear_b,
+                           const float        clear_a) :
         RenderPass("opaque"), m_shader_path(shader_path), m_clear_r(clear_r), m_clear_g(clear_g), m_clear_b(clear_b),
         m_clear_a(clear_a)
     {}
@@ -38,8 +42,8 @@ namespace RealmEngine
         m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
         m_probe_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, PROBE_SSBO_SIZE);
 
-        uint8_t     white[] = {255, 255, 255, 255};
-        TextureDesc td;
+        constexpr uint8_t white[] = {255, 255, 255, 255};
+        TextureDesc       td;
         td.type         = TextureType::Texture2D;
         td.format       = TextureFormat::RGBA8;
         td.width        = 1;
@@ -125,14 +129,14 @@ namespace RealmEngine
         ctx.device->setDepthWrite(true);
 
         ctx.camera->update();
-        glm::mat4 projection = ctx.camera->getProjMatrix();
-        glm::mat4 view       = ctx.camera->getViewMatrix();
+        const glm::mat4 projection = ctx.camera->getProjMatrix();
+        const glm::mat4 view       = ctx.camera->getViewMatrix();
 
         // Upload light data
         {
-            size_t    count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
-            int       count_i = static_cast<int>(count);
-            LightData data[MAX_LIGHTS] {};
+            const size_t count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
+            const int    count_i = static_cast<int>(count);
+            LightData    data[MAX_LIGHTS] {};
             for (size_t i = 0; i < count; ++i)
             {
                 auto& l             = ctx.scene->getLights()[i];
@@ -164,7 +168,7 @@ namespace RealmEngine
             }
             else
             {
-                int zero = 0;
+                constexpr int zero = 0;
                 m_probe_ssbo->setSubData(&zero, 0, sizeof(int));
             }
             m_probe_ssbo->bindBase(5);
@@ -210,29 +214,29 @@ namespace RealmEngine
             commands.begin(), commands.end(), [](const DrawCmd& a, const DrawCmd& b) { return a.shader < b.shader; });
 
         // Render
-        RHIShader* active_shader = nullptr;
+        const RHIShader* active_shader = nullptr;
 
-        for (const auto& cmd : commands)
+        for (const auto& [mesh, model, shader] : commands)
         {
-            if (cmd.shader != active_shader)
+            if (shader != active_shader)
             {
-                cmd.shader->use();
-                cmd.shader->bindShaderStorageBlock("LightBuffer", 1);
-                cmd.shader->bindShaderStorageBlock("ProbeBuffer", 5);
-                setupEngineUniforms(*cmd.shader, ctx);
-                cmd.shader->setBool("isTransparentPass", false);
-                cmd.shader->setBool("probesEnabled", probes_active);
-                active_shader = cmd.shader;
+                shader->use();
+                shader->bindShaderStorageBlock("LightBuffer", 1);
+                shader->bindShaderStorageBlock("ProbeBuffer", 5);
+                setupEngineUniforms(*shader, ctx);
+                shader->setBool("isTransparentPass", false);
+                shader->setBool("probesEnabled", probes_active);
+                active_shader = shader;
             }
 
             for (int u = TEXTURE_UNIT_ALBEDO; u <= TEXTURE_UNIT_OPACITY; ++u)
                 ctx.device->bindTexture(u, *m_default_white);
 
-            const Material& mat = cmd.mesh->m_material;
+            const Material& mat = mesh->m_material;
             ctx.device->setCullFace(mat.isDoubleSided() ? CullFace::None : CullFace::Back);
 
-            cmd.shader->setMVP(cmd.model, view, projection);
-            cmd.mesh->draw(*cmd.shader);
+            shader->setMVP(model, view, projection);
+            mesh->draw(*shader);
         }
     }
 

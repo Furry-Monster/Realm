@@ -15,7 +15,7 @@ namespace RealmEngine
 {
     ShadowPass::~ShadowPass() = default;
 
-    ShadowPass::ShadowPass(const std::string& shader_path, int resolution) :
+    ShadowPass::ShadowPass(const std::string& shader_path, const int resolution) :
         RenderPass("shadow"), m_shader_path(shader_path), m_resolution(resolution)
     {}
 
@@ -38,7 +38,7 @@ namespace RealmEngine
 
     void ShadowPass::execute(const RenderContext& ctx)
     {
-        auto directional_light = ctx.scene->findDirectionalLight();
+        const auto directional_light = ctx.scene->findDirectionalLight();
         if (!directional_light.has_value())
         {
             m_shadow_enabled = false;
@@ -56,15 +56,16 @@ namespace RealmEngine
         static constexpr float SHADOW_FAR     = 50.0f;
         static constexpr float SHADOW_FRUSTUM = 20.0f;
 
-        const Light& light = directional_light->get();
-        glm::mat4    light_proj =
+        const Light&    light = directional_light->get();
+        const glm::mat4 light_proj =
             glm::ortho(-SHADOW_FRUSTUM, SHADOW_FRUSTUM, -SHADOW_FRUSTUM, SHADOW_FRUSTUM, SHADOW_NEAR, SHADOW_FAR);
-        glm::vec3 light_dir    = glm::normalize(light.direction);
-        glm::vec3 scene_center = ctx.camera->getPosition();
-        glm::vec3 light_up     = glm::vec3(0.0f, 1.0f, 0.0f);
+        const glm::vec3 light_dir    = glm::normalize(light.direction);
+        const glm::vec3 scene_center = ctx.camera->getPosition();
+        glm::vec3       light_up     = glm::vec3(0.0f, 1.0f, 0.0f);
         if (glm::abs(glm::dot(light_dir, light_up)) > 0.9f)
             light_up = glm::vec3(1.0f, 0.0f, 0.0f);
-        glm::mat4 light_view = glm::lookAt(scene_center - light_dir * SHADOW_FRUSTUM * 0.5f, scene_center, light_up);
+        const glm::mat4 light_view =
+            glm::lookAt(scene_center - light_dir * SHADOW_FRUSTUM * 0.5f, scene_center, light_up);
 
         m_light_space_matrix = light_proj * light_view;
         m_shadow_enabled     = true;

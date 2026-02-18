@@ -12,7 +12,7 @@
 
 namespace RealmEngine
 {
-    void RenderScene::syncFromScene(std::shared_ptr<Scene> scene)
+    void RenderScene::syncFromScene(const std::shared_ptr<Scene>& scene)
     {
         if (!scene)
         {
@@ -43,29 +43,29 @@ namespace RealmEngine
 
     namespace
     {
-        glm::mat4 getModelMatrix(Scene& scene, entt::entity entity)
+        glm::mat4 getModelMatrix(Scene& scene, const entt::entity entity)
         {
-            if (auto* wt = scene.tryGet<WorldTransform>(entity))
+            if (const auto* wt = scene.tryGet<WorldTransform>(entity))
                 return wt->matrix;
-            if (auto* t = scene.tryGet<Transform>(entity))
+            if (const auto* t = scene.tryGet<Transform>(entity))
                 return t->getModelMatrix();
             return glm::mat4(1.0f);
         }
 
-        glm::vec3 getWorldPosition(Scene& scene, entt::entity entity)
+        glm::vec3 getWorldPosition(Scene& scene, const entt::entity entity)
         {
             if (auto* wt = scene.tryGet<WorldTransform>(entity))
                 return glm::vec3(wt->matrix[3]);
-            if (auto* t = scene.tryGet<Transform>(entity))
+            if (const auto* t = scene.tryGet<Transform>(entity))
                 return t->position;
             return glm::vec3(0.0f);
         }
 
-        glm::vec3 getWorldForward(Scene& scene, entt::entity entity)
+        glm::vec3 getWorldForward(Scene& scene, const entt::entity entity)
         {
             if (auto* wt = scene.tryGet<WorldTransform>(entity))
                 return -glm::vec3(wt->matrix[0][2], wt->matrix[1][2], wt->matrix[2][2]);
-            if (auto* t = scene.tryGet<Transform>(entity))
+            if (const auto* t = scene.tryGet<Transform>(entity))
                 return t->getForward();
             return glm::vec3(0.0f, 0.0f, -1.0f);
         }
@@ -79,7 +79,7 @@ namespace RealmEngine
         m_render_entities.clear();
         m_light_entities.clear();
 
-        auto root = scene.getRoot();
+        const auto root = scene.getRoot();
         if (root)
             syncNode(scene, root);
     }
@@ -94,7 +94,7 @@ namespace RealmEngine
             entt::entity entity = node->getEntity();
             if (!scene.valid(entity))
             {
-                node->forEachChild([this, &scene](std::shared_ptr<SceneNode> child) { syncNode(scene, child); });
+                node->forEachChild([this, &scene](const std::shared_ptr<SceneNode>& child) { syncNode(scene, child); });
                 return;
             }
 
@@ -201,7 +201,7 @@ namespace RealmEngine
             }
         }
 
-        node->forEachChild([this, &scene](std::shared_ptr<SceneNode> child) { syncNode(scene, child); });
+        node->forEachChild([this, &scene](const std::shared_ptr<SceneNode>& child) { syncNode(scene, child); });
     }
 
     int RenderScene::getDrawCallCount() const
@@ -233,7 +233,7 @@ namespace RealmEngine
     {
         for (size_t i = 0; i < m_render_entities.size(); ++i)
         {
-            entt::entity entity = m_render_entities[i];
+            const entt::entity entity = m_render_entities[i];
             if (!scene.valid(entity) || i >= m_render_objects.size() || i >= m_render_model_matrices.size())
                 continue;
 
@@ -242,13 +242,13 @@ namespace RealmEngine
 
         for (size_t i = 0; i < m_light_entities.size(); ++i)
         {
-            entt::entity entity = m_light_entities[i];
+            const entt::entity entity = m_light_entities[i];
             if (!scene.valid(entity) || i >= m_lights.size())
                 continue;
 
             Light& light = m_lights[i];
 
-            if (auto* pl = scene.tryGet<PointLight>(entity))
+            if (const auto* pl = scene.tryGet<PointLight>(entity))
             {
                 light.position  = getWorldPosition(scene, entity);
                 light.color     = pl->color;
@@ -258,7 +258,7 @@ namespace RealmEngine
                 light.quadratic = pl->quadratic;
                 light.range     = pl->range;
             }
-            else if (auto* sl = scene.tryGet<SpotLight>(entity))
+            else if (const auto* sl = scene.tryGet<SpotLight>(entity))
             {
                 light.position         = getWorldPosition(scene, entity);
                 light.direction        = getWorldForward(scene, entity);
@@ -271,7 +271,7 @@ namespace RealmEngine
                 light.inner_cone_angle = sl->inner_cone_angle;
                 light.outer_cone_angle = sl->outer_cone_angle;
             }
-            else if (auto* al = scene.tryGet<AreaLight>(entity))
+            else if (const auto* al = scene.tryGet<AreaLight>(entity))
             {
                 light.position  = getWorldPosition(scene, entity);
                 light.direction = getWorldForward(scene, entity);
@@ -280,7 +280,7 @@ namespace RealmEngine
                 light.width     = al->width;
                 light.height    = al->height;
             }
-            else if (auto* dl = scene.tryGet<DirectionalLight>(entity))
+            else if (const auto* dl = scene.tryGet<DirectionalLight>(entity))
             {
                 light.direction = getWorldForward(scene, entity);
                 light.color     = dl->color;

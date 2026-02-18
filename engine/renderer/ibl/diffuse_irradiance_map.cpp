@@ -19,8 +19,8 @@ namespace RealmEngine
                                                RHITexture*        environment_cubemap) :
         m_environment_cubemap(environment_cubemap)
     {
-        std::string vert_path = engine_root + "/shaders/builtin/ibl/diffuseirradiance.vert";
-        std::string frag_path = engine_root + "/shaders/builtin/ibl/diffuseirradiance.frag";
+        const std::string vert_path = engine_root + "/shaders/builtin/ibl/diffuseirradiance.vert";
+        const std::string frag_path = engine_root + "/shaders/builtin/ibl/diffuseirradiance.frag";
 
         m_shader = device.createShader(vert_path, frag_path);
         if (!m_shader || !m_shader->isValid())
@@ -45,21 +45,21 @@ namespace RealmEngine
         if (!m_shader || !m_shader->isValid() || !m_framebuffer || !m_environment_cubemap)
             return;
 
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::vec3 origin(0.0f, 0.0f, 0.0f);
-        glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
-        glm::vec3 unit_y(0.0f, 1.0f, 0.0f);
-        glm::vec3 unit_z(0.0f, 0.0f, 1.0f);
+        constexpr glm::mat4 model = glm::mat4(1.0f);
+        constexpr glm::vec3 origin(0.0f, 0.0f, 0.0f);
+        constexpr glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
+        constexpr glm::vec3 unit_y(0.0f, 1.0f, 0.0f);
+        constexpr glm::vec3 unit_z(0.0f, 0.0f, 1.0f);
 
-        glm::mat4 camera_angles[] = {glm::lookAt(origin, unit_x, -unit_y),
-                                     glm::lookAt(origin, -unit_x, -unit_y),
-                                     glm::lookAt(origin, unit_y, unit_z),
-                                     glm::lookAt(origin, -unit_y, -unit_z),
-                                     glm::lookAt(origin, unit_z, -unit_y),
-                                     glm::lookAt(origin, -unit_z, -unit_y)};
-        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
+        const glm::mat4 camera_angles[] = {glm::lookAt(origin, unit_x, -unit_y),
+                                           glm::lookAt(origin, -unit_x, -unit_y),
+                                           glm::lookAt(origin, unit_y, unit_z),
+                                           glm::lookAt(origin, -unit_y, -unit_z),
+                                           glm::lookAt(origin, unit_z, -unit_y),
+                                           glm::lookAt(origin, -unit_z, -unit_y)};
+        const glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
 
-        auto cube_mesh = createIblCubeMesh(device);
+        const auto cube_mesh = createIblCubeMesh(device);
 
         device.setViewport(0, 0, WIDTH, HEIGHT);
         m_framebuffer->bind();

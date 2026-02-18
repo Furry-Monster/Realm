@@ -14,19 +14,19 @@ namespace RealmEngine
 
     void RenderPipeline::initialize(RHIDevice& device)
     {
-        for (auto& pass : m_passes)
+        for (const auto& pass : m_passes)
             pass->init(device);
     }
 
     void RenderPipeline::execute(const RenderContext& ctx)
     {
-        for (auto& pass : m_passes)
+        for (const auto& pass : m_passes)
             pass->execute(ctx);
     }
 
     void RenderPipeline::dispose()
     {
-        for (auto& pass : m_passes)
+        for (const auto& pass : m_passes)
             pass->dispose();
         m_passes.clear();
     }

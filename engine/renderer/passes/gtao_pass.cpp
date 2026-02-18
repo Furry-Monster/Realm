@@ -21,7 +21,11 @@ namespace RealmEngine
 {
     GTAOPass::~GTAOPass() = default;
 
-    GTAOPass::GTAOPass(const std::string& shader_path, bool enabled, float radius, int num_directions, int num_steps) :
+    GTAOPass::GTAOPass(const std::string& shader_path,
+                       const bool         enabled,
+                       const float        radius,
+                       const int          num_directions,
+                       const int          num_steps) :
         RenderPass("gtao"), m_shader_path(shader_path), m_enabled(enabled), m_radius(radius),
         m_num_directions(std::min(std::max(num_directions, 4), 8)), m_num_steps(std::min(std::max(num_steps, 4), 8))
     {}
@@ -38,8 +42,8 @@ namespace RealmEngine
         for (size_t i = 0; i < texel_count; ++i)
         {
             // Spatially-distributed rotation angles via interleaved gradient
-            float angle = glm::two_pi<float>() * (static_cast<float>(i) / static_cast<float>(texel_count)) +
-                          jitter_dist(rng) * glm::two_pi<float>() / static_cast<float>(texel_count);
+            const float angle = glm::two_pi<float>() * (static_cast<float>(i) / static_cast<float>(texel_count)) +
+                                jitter_dist(rng) * glm::two_pi<float>() / static_cast<float>(texel_count);
             noise[i] = glm::vec3(std::cos(angle), std::sin(angle), jitter_dist(rng));
         }
 
@@ -88,8 +92,8 @@ namespace RealmEngine
         ctx.device->bindTexture(TEXTURE_UNIT_GTAO_NOISE, *m_noise_texture);
         m_shader->setInt("noiseTexture", TEXTURE_UNIT_GTAO_NOISE);
 
-        glm::mat4 proj     = ctx.camera->getProjMatrix();
-        glm::mat4 inv_proj = glm::inverse(proj);
+        const glm::mat4 proj     = ctx.camera->getProjMatrix();
+        const glm::mat4 inv_proj = glm::inverse(proj);
         m_shader->setMat4("projection", proj);
         m_shader->setMat4("invProjection", inv_proj);
 

@@ -38,8 +38,8 @@ namespace RealmEngine
         m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
         m_probe_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, PROBE_SSBO_SIZE);
 
-        uint8_t     white[] = {255, 255, 255, 255};
-        TextureDesc td;
+        constexpr uint8_t white[] = {255, 255, 255, 255};
+        TextureDesc       td;
         td.type         = TextureType::Texture2D;
         td.format       = TextureFormat::RGBA8;
         td.width        = 1;
@@ -116,15 +116,15 @@ namespace RealmEngine
         ctx.device->setDepthFunc(DepthFunc::Less);
 
         ctx.camera->update();
-        glm::vec3 cam_pos    = ctx.camera->getPosition();
-        glm::mat4 projection = ctx.camera->getProjMatrix();
-        glm::mat4 view       = ctx.camera->getViewMatrix();
+        const glm::vec3 cam_pos    = ctx.camera->getPosition();
+        const glm::mat4 projection = ctx.camera->getProjMatrix();
+        const glm::mat4 view       = ctx.camera->getViewMatrix();
 
         // Upload light data
         {
-            size_t    count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
-            int       count_i = static_cast<int>(count);
-            LightData data[MAX_LIGHTS] {};
+            const size_t count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
+            const int    count_i = static_cast<int>(count);
+            LightData    data[MAX_LIGHTS] {};
             for (size_t i = 0; i < count; ++i)
             {
                 auto& l             = ctx.scene->getLights()[i];
@@ -156,7 +156,7 @@ namespace RealmEngine
             }
             else
             {
-                int zero = 0;
+                constexpr int zero = 0;
                 m_probe_ssbo->setSubData(&zero, 0, sizeof(int));
             }
             m_probe_ssbo->bindBase(5);
@@ -207,7 +207,7 @@ namespace RealmEngine
             BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha, BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
         ctx.device->setDepthWrite(false);
 
-        RHIShader* active_shader = nullptr;
+        const RHIShader* active_shader = nullptr;
 
         for (const auto& cmd : commands)
         {

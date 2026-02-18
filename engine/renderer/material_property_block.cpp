@@ -21,7 +21,7 @@ namespace RealmEngine
         return nullptr;
     }
 
-    void MaterialPropertyBlock::setBool(const std::string& name, bool v)
+    void MaterialPropertyBlock::setBool(const std::string& name, const bool v)
     {
         auto* p = find(name);
         if (p)
@@ -36,7 +36,7 @@ namespace RealmEngine
         m_props.emplace_back(name, prop);
     }
 
-    void MaterialPropertyBlock::setFloat(const std::string& name, float v)
+    void MaterialPropertyBlock::setFloat(const std::string& name, const float v)
     {
         auto* p = find(name);
         if (p)
@@ -51,7 +51,7 @@ namespace RealmEngine
         m_props.emplace_back(name, prop);
     }
 
-    void MaterialPropertyBlock::setInt(const std::string& name, int v)
+    void MaterialPropertyBlock::setInt(const std::string& name, const int v)
     {
         auto* p = find(name);
         if (p)
@@ -123,7 +123,7 @@ namespace RealmEngine
         m_props.emplace_back(name, prop);
     }
 
-    void MaterialPropertyBlock::setTexture(const std::string& name, std::shared_ptr<RHITexture> tex, int unit)
+    void MaterialPropertyBlock::setTexture(const std::string& name, std::shared_ptr<RHITexture> tex, const int unit)
     {
         auto* p = find(name);
         if (p)
@@ -140,19 +140,19 @@ namespace RealmEngine
         m_props.emplace_back(name, prop);
     }
 
-    bool MaterialPropertyBlock::getBool(const std::string& name, bool default_val) const
+    bool MaterialPropertyBlock::getBool(const std::string& name, const bool default_val) const
     {
         const auto* p = find(name);
         return p ? (p->values[0] != 0.0f) : default_val;
     }
 
-    float MaterialPropertyBlock::getFloat(const std::string& name, float default_val) const
+    float MaterialPropertyBlock::getFloat(const std::string& name, const float default_val) const
     {
         const auto* p = find(name);
         return p ? p->values[0] : default_val;
     }
 
-    int MaterialPropertyBlock::getInt(const std::string& name, int default_val) const
+    int MaterialPropertyBlock::getInt(const std::string& name, const int default_val) const
     {
         const auto* p = find(name);
         return p ? static_cast<int>(p->values[0]) : default_val;

@@ -55,10 +55,10 @@ namespace RealmEngine
         // Downsample each subsequent mip level.
         for (int mip = 1; mip < m_mip_count; ++mip)
         {
-            int src_w = std::max(1, m_tex_width >> (mip - 1));
-            int src_h = std::max(1, m_tex_height >> (mip - 1));
-            int dst_w = std::max(1, m_tex_width >> mip);
-            int dst_h = std::max(1, m_tex_height >> mip);
+            const int src_w = std::max(1, m_tex_width >> (mip - 1));
+            const int src_h = std::max(1, m_tex_height >> (mip - 1));
+            const int dst_w = std::max(1, m_tex_width >> mip);
+            const int dst_h = std::max(1, m_tex_height >> mip);
 
             m_hiz_texture->bindImage(0, mip - 1, false, TextureAccess::ReadOnly);
             m_hiz_texture->bindImage(1, mip, false, TextureAccess::WriteOnly);
@@ -86,7 +86,7 @@ namespace RealmEngine
         m_mip_count  = 0;
     }
 
-    void HiZPass::ensureTexture(RHIDevice& device, int width, int height)
+    void HiZPass::ensureTexture(RHIDevice& device, const int width, const int height)
     {
         if (m_hiz_texture && m_tex_width == width && m_tex_height == height)
             return;
@@ -109,7 +109,7 @@ namespace RealmEngine
         m_hiz_texture = device.createTexture(td);
     }
 
-    int HiZPass::computeMipCount(int width, int height) const
+    int HiZPass::computeMipCount(const int width, const int height) const
     {
         return 1 + static_cast<int>(std::floor(std::log2(static_cast<double>(std::max(width, height)))));
     }

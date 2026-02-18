@@ -18,12 +18,12 @@ namespace RealmEngine
 
     BloomPass::~BloomPass() = default;
 
-    BloomPass::BloomPass(const std::string& shader_path,
-                         bool               enabled,
-                         float              intensity,
-                         float              brightness_cutoff,
-                         int                iterations,
-                         BloomDirection     direction) :
+    BloomPass::BloomPass(const std::string&   shader_path,
+                         const bool           enabled,
+                         const float          intensity,
+                         const float          brightness_cutoff,
+                         const int            iterations,
+                         const BloomDirection direction) :
         RenderPass("bloom"), m_shader_path(shader_path), m_enabled(enabled), m_intensity(intensity),
         m_brightness_cutoff(brightness_cutoff), m_iterations(iterations), m_direction(direction)
     {}
@@ -65,8 +65,8 @@ namespace RealmEngine
 
         ctx.device->setDepthTest(false);
 
-        int base_w = m_framebuffers[0]->getWidth();
-        int base_h = m_framebuffers[0]->getHeight();
+        const int base_w = m_framebuffers[0]->getWidth();
+        const int base_h = m_framebuffers[0]->getHeight();
 
         m_framebuffers[0]->setMipLevel(0);
         m_framebuffers[0]->bind();
@@ -89,8 +89,8 @@ namespace RealmEngine
 
         for (int mip = 0; mip <= k_bloom_max_mip; ++mip)
         {
-            int mip_w = std::max(1, base_w >> mip);
-            int mip_h = std::max(1, base_h >> mip);
+            const int mip_w = std::max(1, base_w >> mip);
+            const int mip_h = std::max(1, base_h >> mip);
 
             m_framebuffers[0]->setMipLevel(mip);
             m_framebuffers[1]->setMipLevel(mip);
@@ -107,8 +107,8 @@ namespace RealmEngine
             uint32_t last_written = 1;
             for (int i = 1; i < m_iterations; ++i)
             {
-                uint32_t src = last_written;
-                uint32_t dst = 1 - src;
+                const uint32_t src = last_written;
+                const uint32_t dst = 1 - src;
 
                 m_framebuffers[dst]->bind();
                 ctx.device->setViewport(0, 0, mip_w, mip_h);

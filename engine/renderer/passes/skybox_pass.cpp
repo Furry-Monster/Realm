@@ -30,9 +30,9 @@ namespace RealmEngine
         ctx.device->setDepthWrite(false);
 
         m_shader->use();
-        glm::mat4 skybox_model = glm::mat4(1.0f);
-        glm::mat4 skybox_view  = glm::mat4(glm::mat3(ctx.camera->getViewMatrix()));
-        glm::mat4 skybox_proj  = ctx.camera->getProjMatrix();
+        constexpr glm::mat4 skybox_model = glm::mat4(1.0f);
+        const glm::mat4     skybox_view  = glm::mat4(glm::mat3(ctx.camera->getViewMatrix()));
+        const glm::mat4     skybox_proj  = ctx.camera->getProjMatrix();
 
         m_shader->setMVP(skybox_model, skybox_view, skybox_proj);
         m_shader->setInt("skybox", 0);

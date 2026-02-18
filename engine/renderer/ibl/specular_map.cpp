@@ -57,21 +57,21 @@ namespace RealmEngine
         if (!m_prefilter_shader || !m_prefilter_shader->isValid() || !m_prefilter_framebuffer || !m_environment_cubemap)
             return;
 
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::vec3 origin(0.0f, 0.0f, 0.0f);
-        glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
-        glm::vec3 unit_y(0.0f, 1.0f, 0.0f);
-        glm::vec3 unit_z(0.0f, 0.0f, 1.0f);
+        constexpr glm::mat4 model = glm::mat4(1.0f);
+        constexpr glm::vec3 origin(0.0f, 0.0f, 0.0f);
+        constexpr glm::vec3 unit_x(1.0f, 0.0f, 0.0f);
+        constexpr glm::vec3 unit_y(0.0f, 1.0f, 0.0f);
+        constexpr glm::vec3 unit_z(0.0f, 0.0f, 1.0f);
 
-        glm::mat4 camera_angles[] = {glm::lookAt(origin, unit_x, -unit_y),
-                                     glm::lookAt(origin, -unit_x, -unit_y),
-                                     glm::lookAt(origin, unit_y, unit_z),
-                                     glm::lookAt(origin, -unit_y, -unit_z),
-                                     glm::lookAt(origin, unit_z, -unit_y),
-                                     glm::lookAt(origin, -unit_z, -unit_y)};
-        glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
+        const glm::mat4 camera_angles[] = {glm::lookAt(origin, unit_x, -unit_y),
+                                           glm::lookAt(origin, -unit_x, -unit_y),
+                                           glm::lookAt(origin, unit_y, unit_z),
+                                           glm::lookAt(origin, -unit_y, -unit_z),
+                                           glm::lookAt(origin, unit_z, -unit_y),
+                                           glm::lookAt(origin, -unit_z, -unit_y)};
+        const glm::mat4 projection      = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f);
 
-        auto cube_mesh = createIblCubeMesh(device);
+        const auto cube_mesh = createIblCubeMesh(device);
 
         m_prefilter_framebuffer->bind();
         m_prefilter_shader->use();
@@ -81,11 +81,11 @@ namespace RealmEngine
         for (unsigned int mip = 0; mip < PREFILTER_MIP_LEVELS; mip++)
         {
             m_prefilter_framebuffer->setMipLevel(static_cast<int>(mip));
-            int w = std::max(1, PREFILTER_WIDTH >> mip);
-            int h = std::max(1, PREFILTER_HEIGHT >> mip);
+            const int w = std::max(1, PREFILTER_WIDTH >> mip);
+            const int h = std::max(1, PREFILTER_HEIGHT >> mip);
             device.setViewport(0, 0, w, h);
 
-            float roughness = static_cast<float>(mip) / static_cast<float>(PREFILTER_MIP_LEVELS - 1);
+            const float roughness = static_cast<float>(mip) / static_cast<float>(PREFILTER_MIP_LEVELS - 1);
             m_prefilter_shader->setFloat("roughness", roughness);
 
             for (int i = 0; i < 6; i++)
@@ -106,7 +106,7 @@ namespace RealmEngine
         if (!m_brdf_shader || !m_brdf_shader->isValid() || !m_brdf_framebuffer)
             return;
 
-        auto quad_mesh = createIblFullscreenQuadMesh(device);
+        const auto quad_mesh = createIblFullscreenQuadMesh(device);
 
         m_brdf_framebuffer->bind();
         m_brdf_shader->use();

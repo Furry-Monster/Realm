@@ -15,7 +15,7 @@ namespace RealmEngine
 {
     SpotShadowPass::~SpotShadowPass() = default;
 
-    SpotShadowPass::SpotShadowPass(const std::string& shader_path, int resolution) :
+    SpotShadowPass::SpotShadowPass(const std::string& shader_path, const int resolution) :
         RenderPass("spot_shadow"), m_shader_path(shader_path), m_resolution(resolution)
     {}
 
@@ -54,14 +54,14 @@ namespace RealmEngine
         };
         std::vector<Candidate> candidates;
 
-        const auto& lights  = ctx.scene->getLights();
-        glm::vec3   cam_pos = ctx.camera->getPosition();
+        const auto&     lights  = ctx.scene->getLights();
+        const glm::vec3 cam_pos = ctx.camera->getPosition();
         for (size_t i = 0; i < lights.size(); ++i)
         {
             const auto& light = lights[i];
             if (light.type != LightType::Spot)
                 continue;
-            float dist = glm::length(light.position - cam_pos);
+            const float dist = glm::length(light.position - cam_pos);
             candidates.push_back(
                 {static_cast<int>(i), dist, light.position, light.direction, light.outer_cone_angle, light.range});
         }
@@ -70,16 +70,16 @@ namespace RealmEngine
             return a.distance < b.distance;
         });
 
-        size_t shadow_count = std::min(candidates.size(), MAX_SPOT_SHADOWS);
+        const size_t shadow_count = std::min(candidates.size(), MAX_SPOT_SHADOWS);
 
         for (size_t s = 0; s < shadow_count; ++s)
         {
             auto& c = candidates[s];
 
-            float     fov  = glm::radians(c.outer_cone * 2.0f);
-            float     near = 0.1f;
-            float     far  = c.range;
-            glm::mat4 proj = glm::perspective(fov, 1.0f, near, far);
+            const float     fov  = glm::radians(c.outer_cone * 2.0f);
+            constexpr float near = 0.1f;
+            const float     far  = c.range;
+            glm::mat4       proj = glm::perspective(fov, 1.0f, near, far);
 
             glm::vec3 dir = glm::normalize(c.dir);
             glm::vec3 up  = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -117,7 +117,7 @@ namespace RealmEngine
         ctx.device->bindDefaultFramebuffer();
     }
 
-    RHIFramebuffer* SpotShadowPass::getFramebuffer(int index) const
+    RHIFramebuffer* SpotShadowPass::getFramebuffer(const int index) const
     {
         if (index >= 0 && index < static_cast<int>(m_framebuffers.size()))
             return m_framebuffers[static_cast<size_t>(index)].get();

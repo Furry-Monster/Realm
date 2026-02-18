@@ -23,8 +23,7 @@ namespace RealmEngine
         if (!m_impl || !m_impl->mesh.vertex_input)
             return;
 
-        m_impl->mesh.vertex_input->draw(PrimitiveType::Triangles,
-                                        static_cast<uint32_t>(PrimitiveVertices::k_fullscreen_quad_vertex_count));
+        m_impl->mesh.vertex_input->draw(PrimitiveType::Triangles, PrimitiveVertices::k_fullscreen_quad_vertex_count);
     }
 
 } // namespace RealmEngine

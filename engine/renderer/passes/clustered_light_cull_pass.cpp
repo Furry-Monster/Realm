@@ -30,17 +30,18 @@ namespace RealmEngine
         m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
 
         // binding 2: cluster AABBs (min + max per cluster, 2 * vec4)
-        size_t aabb_size    = static_cast<size_t>(TOTAL_CLUSTERS) * 2 * sizeof(glm::vec4);
+        constexpr size_t aabb_size = static_cast<size_t>(TOTAL_CLUSTERS) * 2 * sizeof(glm::vec4);
         m_cluster_aabb_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, aabb_size);
 
         // binding 3: global light index list
-        size_t index_list_size = static_cast<size_t>(TOTAL_CLUSTERS) * AVG_LIGHTS_PER_CLUSTER * sizeof(uint32_t);
+        constexpr size_t index_list_size =
+            static_cast<size_t>(TOTAL_CLUSTERS) * AVG_LIGHTS_PER_CLUSTER * sizeof(uint32_t);
         // +16 bytes at the front for the atomic counter
         m_light_index_ssbo = device.createBuffer(
             BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, sizeof(uint32_t) + index_list_size);
 
         // binding 4: per-cluster grid (offset, count) packed as uvec2
-        size_t grid_size  = static_cast<size_t>(TOTAL_CLUSTERS) * sizeof(glm::uvec2);
+        constexpr size_t grid_size = static_cast<size_t>(TOTAL_CLUSTERS) * sizeof(glm::uvec2);
         m_light_grid_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, grid_size);
     }
 
@@ -48,7 +49,7 @@ namespace RealmEngine
     {
         m_build_shader->use();
 
-        glm::mat4 inv_proj = glm::inverse(ctx.camera->getProjMatrix());
+        const glm::mat4 inv_proj = glm::inverse(ctx.camera->getProjMatrix());
         m_build_shader->setMat4("invProjection", inv_proj);
         m_build_shader->setFloat("nearPlane", ctx.camera->getNearPlane());
         m_build_shader->setFloat("farPlane", ctx.camera->getFarPlane());
@@ -69,8 +70,8 @@ namespace RealmEngine
 
         // Upload light data into SSBO
         {
-            size_t count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
-            int    count_i = static_cast<int>(count);
+            const size_t count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
+            const int    count_i = static_cast<int>(count);
 
             std::vector<LightData> data(count);
             for (size_t i = 0; i < count; ++i)
@@ -90,13 +91,13 @@ namespace RealmEngine
 
         // Reset atomic counter in LightIndexBuffer to 0
         {
-            uint32_t zero = 0;
+            constexpr uint32_t zero = 0;
             m_light_index_ssbo->setSubData(&zero, 0, sizeof(uint32_t));
         }
 
         // Clear grid to zero
         {
-            std::vector<glm::uvec2> empty_grid(TOTAL_CLUSTERS, glm::uvec2(0));
+            const std::vector<glm::uvec2> empty_grid(TOTAL_CLUSTERS, glm::uvec2(0));
             m_light_grid_ssbo->setSubData(empty_grid.data(), 0, TOTAL_CLUSTERS * sizeof(glm::uvec2));
         }
 
@@ -109,7 +110,7 @@ namespace RealmEngine
         // Dispatch culling: one workgroup per Z-slice, each workgroup covers X*Y clusters
         m_cull_shader->use();
 
-        glm::mat4 view = ctx.camera->getViewMatrix();
+        const glm::mat4 view = ctx.camera->getViewMatrix();
         m_cull_shader->setMat4("viewMatrix", view);
 
         ctx.device->dispatchCompute(1, 1, static_cast<uint32_t>(CLUSTER_Z));
