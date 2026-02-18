@@ -21,6 +21,7 @@
 #include "module/render/renderer.h"
 #include "module/resource/asset_manager.h"
 #include "module/resource/config_manager.h"
+#include "module/scene/audio_listener_resolve.h"
 #include "module/scene/camera_sync.h"
 #include "module/scene/scene.h"
 #include "module/scene/scene_manager.h"
@@ -213,8 +214,13 @@ namespace RealmEngine
         if (m_audio && scene)
         {
             m_audio->tick(scene, static_cast<float>(m_delta_time), m_config->getAssetFolder().string());
-            const auto* cam = m_renderer->getCamera().get();
-            if (cam)
+            const entt::entity listener_entity = findPrimaryAudioListenerEntity(*scene);
+            if (listener_entity != entt::null)
+            {
+                const ListenerPose pose = getListenerPoseFromEntity(*scene, listener_entity);
+                m_audio->setListener(pose.position, pose.forward, pose.up);
+            }
+            else if (const auto* cam = m_renderer->getCamera().get())
             {
                 m_audio->setListener(cam->getPosition(), cam->getLocalForward(), cam->getLocalUp());
             }

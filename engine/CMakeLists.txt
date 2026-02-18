@@ -5,7 +5,6 @@ set(ENGINE_MODULES
         core/base
         core/debug
         core/event
-        core/geometry
         core/log
         core/math
         platform/filesystem

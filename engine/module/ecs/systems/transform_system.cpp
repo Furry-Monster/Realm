@@ -18,7 +18,7 @@ namespace RealmEngine
         }
     }
 
-    void TransformSystem::updateEntity(Scene& scene, entt::entity entity, const glm::mat4& parent_world)
+    void TransformSystem::updateEntity(Scene& scene, const entt::entity entity, const glm::mat4& parent_world)
     {
         auto& registry = scene.getRegistry();
 

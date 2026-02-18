@@ -58,7 +58,7 @@ namespace RealmEngine
                 registry.emplace<Children>(current_entity, Children {std::move(child_entities)});
         }
 
-        entt::entity effective_parent = (current_entity != entt::null) ? current_entity : parent_entity;
+        const entt::entity effective_parent = (current_entity != entt::null) ? current_entity : parent_entity;
         node->forEachChild([&](const std::shared_ptr<SceneNode>& child) { syncNode(scene, child, effective_parent); });
     }
 

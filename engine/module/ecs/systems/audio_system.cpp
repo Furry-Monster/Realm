@@ -2,6 +2,7 @@
 
 #include <miniaudio.h>
 
+#include <algorithm>
 #include <filesystem>
 
 #include "core/base/macros.h"
@@ -47,11 +48,11 @@ namespace RealmEngine
         ma_engine_config engine_config = ma_engine_config_init();
 
         if (config.sample_rate > 0)
-            engine_config.sampleRate = config.sample_rate;
+            engine_config.sampleRate = static_cast<ma_uint32>(config.sample_rate);
         if (config.channels > 0)
             engine_config.channels = static_cast<ma_uint32>(static_cast<unsigned>(config.channels));
 
-        ma_result result = ma_engine_init(&engine_config, raw);
+        const ma_result result = ma_engine_init(&engine_config, raw);
         if (result != MA_SUCCESS)
         {
             delete raw;
@@ -61,11 +62,15 @@ namespace RealmEngine
 
         m_engine.reset(raw);
         ma_engine_set_volume(m_engine.get(), config.master_volume);
+        m_spatial_enabled = config.spatial_enabled;
     }
 
     void AudioSystem::shutdown()
     {
         clearSceneSounds();
+        for (ma_sound* s : m_one_shot_sounds)
+            sound_deleter(s);
+        m_one_shot_sounds.clear();
         m_engine.reset();
     }
 
@@ -76,14 +81,29 @@ namespace RealmEngine
         m_entity_sounds.clear();
     }
 
-    void AudioSystem::tick(Scene* scene, float delta_time, const std::string& asset_folder)
+    void AudioSystem::pruneOneShotSounds()
+    {
+        m_one_shot_sounds.erase(std::remove_if(m_one_shot_sounds.begin(),
+                                               m_one_shot_sounds.end(),
+                                               [](ma_sound* s) {
+                                                   if (ma_sound_is_playing(s) == MA_FALSE)
+                                                   {
+                                                       sound_deleter(s);
+                                                       return true;
+                                                   }
+                                                   return false;
+                                               }),
+                                m_one_shot_sounds.end());
+    }
+
+    void AudioSystem::tick(Scene* scene, const float delta_time, const std::string& asset_folder)
     {
         (void)delta_time;
         if (!m_engine || !scene)
             return;
 
-        auto& registry = scene->getRegistry();
-        auto  view     = registry.view<AudioSource>();
+        auto&      registry = scene->getRegistry();
+        const auto view     = registry.view<AudioSource>();
 
         for (auto entity : view)
         {
@@ -106,7 +126,7 @@ namespace RealmEngine
             ma_sound* sound = it->second;
             src.playing     = ma_sound_is_playing(sound) == MA_TRUE;
 
-            if (src.spatial)
+            if (m_spatial_enabled && src.spatial)
                 updateSoundPosition(scene, entity);
 
             ma_sound_set_volume(sound, src.volume);
@@ -134,6 +154,7 @@ namespace RealmEngine
                 m_entity_sounds.erase(it);
             }
         }
+        pruneOneShotSounds();
     }
 
     void AudioSystem::setListener(const glm::vec3& pos, const glm::vec3& forward, const glm::vec3& up)
@@ -146,7 +167,10 @@ namespace RealmEngine
         ma_engine_listener_set_world_up(m_engine.get(), 0, up.x, up.y, up.z);
     }
 
-    void AudioSystem::playSound(const std::string& path, const std::string& asset_folder, bool loop, float volume)
+    void AudioSystem::playSound(const std::string& path,
+                                const std::string& asset_folder,
+                                const bool         loop,
+                                const float        volume)
     {
         if (!m_engine)
             return;
@@ -161,15 +185,23 @@ namespace RealmEngine
             return;
         }
 
-        ma_result result = ma_engine_play_sound(m_engine.get(), full_path.c_str(), nullptr);
+        ma_sound*       sound  = new ma_sound;
+        const ma_result result = ma_sound_init_from_file(
+            m_engine.get(), full_path.c_str(), MA_SOUND_FLAG_NO_SPATIALIZATION, nullptr, nullptr, sound);
         if (result != MA_SUCCESS)
+        {
+            delete sound;
             RE_LOG_ERROR("AudioSystem: failed to play: " + full_path);
+            return;
+        }
 
-        (void)loop;
-        (void)volume;
+        ma_sound_set_volume(sound, volume);
+        ma_sound_set_looping(sound, loop ? MA_TRUE : MA_FALSE);
+        ma_sound_start(sound);
+        m_one_shot_sounds.push_back(sound);
     }
 
-    void AudioSystem::startSoundForEntity(Scene* scene, entt::entity entity, const std::string& asset_folder)
+    void AudioSystem::startSoundForEntity(Scene* scene, const entt::entity entity, const std::string& asset_folder)
     {
         if (!m_engine || !scene)
             return;
@@ -188,9 +220,10 @@ namespace RealmEngine
             return;
         }
 
-        ma_sound* sound  = new ma_sound;
-        ma_uint32 flags  = src->spatial ? 0 : MA_SOUND_FLAG_NO_SPATIALIZATION;
-        ma_result result = ma_sound_init_from_file(m_engine.get(), full_path.c_str(), flags, nullptr, nullptr, sound);
+        ma_sound*       sound = new ma_sound;
+        const ma_uint32 flags = (m_spatial_enabled && src->spatial) ? 0 : MA_SOUND_FLAG_NO_SPATIALIZATION;
+        const ma_result result =
+            ma_sound_init_from_file(m_engine.get(), full_path.c_str(), flags, nullptr, nullptr, sound);
         if (result != MA_SUCCESS)
         {
             delete sound;
@@ -203,7 +236,7 @@ namespace RealmEngine
         ma_sound_set_volume(sound, src->volume);
         ma_sound_set_looping(sound, src->loop ? MA_TRUE : MA_FALSE);
 
-        if (src->spatial)
+        if (m_spatial_enabled && src->spatial)
         {
             ma_sound_set_positioning(sound, ma_positioning_absolute);
             updateSoundPosition(scene, entity);
@@ -213,9 +246,19 @@ namespace RealmEngine
         src->playing = true;
     }
 
-    void AudioSystem::stopSoundForEntity(entt::entity entity)
+    void AudioSystem::playSoundForEntity(Scene* scene, const entt::entity entity, const std::string& asset_folder)
     {
-        auto it = m_entity_sounds.find(entity);
+        const auto* src = scene->tryGet<AudioSource>(entity);
+        if (!src || src->clip_path.empty())
+            return;
+        if (m_entity_sounds.count(entity))
+            stopSoundForEntity(entity);
+        startSoundForEntity(scene, entity, asset_folder);
+    }
+
+    void AudioSystem::stopSoundForEntity(const entt::entity entity)
+    {
+        const auto it = m_entity_sounds.find(entity);
         if (it != m_entity_sounds.end())
         {
             ma_sound_stop(it->second);
@@ -224,9 +267,9 @@ namespace RealmEngine
         }
     }
 
-    void AudioSystem::updateSoundPosition(Scene* scene, entt::entity entity)
+    void AudioSystem::updateSoundPosition(Scene* scene, const entt::entity entity)
     {
-        auto it = m_entity_sounds.find(entity);
+        const auto it = m_entity_sounds.find(entity);
         if (it == m_entity_sounds.end())
             return;
 

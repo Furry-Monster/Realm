@@ -7,6 +7,7 @@
 
 #include "core/base/macros.h"
 #include "core/base/utils.h"
+#include "module/ecs/components/audio/audio_listener.h"
 #include "module/ecs/components/audio/audio_source.h"
 #include "module/ecs/components/camera.h"
 #include "module/ecs/components/lighting/area.h"
@@ -323,6 +324,14 @@ namespace RealmEngine
             c["loop"]          = as->loop;
             c["spatial"]       = as->spatial;
             c["play_on_start"] = as->play_on_start;
+            components_json.push_back(c);
+        }
+
+        if (auto* al = scene.tryGet<AudioListener>(entity))
+        {
+            nlohmann::json c;
+            c["type"]     = "AudioListener";
+            c["primary"]  = al->primary;
             components_json.push_back(c);
         }
 
@@ -724,6 +733,12 @@ namespace RealmEngine
                     spatial = comp_json["spatial"];
                 if (comp_json.contains("play_on_start") && comp_json["play_on_start"].is_boolean())
                     play_on_start = comp_json["play_on_start"];
+            }
+            else if (type == "AudioListener")
+            {
+                auto& primary = entity.emplace<AudioListener>().primary;
+                if (comp_json.contains("primary") && comp_json["primary"].is_boolean())
+                    primary = comp_json["primary"];
             }
         }
     }
