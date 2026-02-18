@@ -7,7 +7,7 @@
 #include "core/base/macros.h"
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
-#include "resource/config_manager.h"
+#include "module/resource/config_manager.h"
 
 #include <string>
 

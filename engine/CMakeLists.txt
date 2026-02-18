@@ -12,13 +12,13 @@ set(ENGINE_MODULES
         platform/info
         platform/input
         platform/window
-        render/rhi
-        render/rhi/opengl
-        render
-        render/ibl
-        render/passes
-        resource
-        scene
+        module/render/rhi
+        module/render/rhi/opengl
+        module/render
+        module/render/ibl
+        module/render/passes
+        module/resource
+        module/scene
         module/ecs
         module/ecs/components
         module/ecs/components/lighting

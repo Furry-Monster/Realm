@@ -8,11 +8,11 @@
 #include "module/ecs/components/lighting/spot.h"
 #include "module/ecs/components/renderable.h"
 #include "module/ecs/components/transform.h"
-#include "scene/scene.h"
+#include "module/scene/scene.h"
 
-#include "render/render_mesh.h"
-#include "render/render_object.h"
-#include "render/rhi/rhi_texture.h"
+#include "module/render/render_mesh.h"
+#include "module/render/render_object.h"
+#include "module/render/rhi/rhi_texture.h"
 
 #include <imgui.h>
 #include <glm/glm.hpp>

@@ -8,6 +8,7 @@
 #include "commands/editor_commands.h"
 #include "editor_context.h"
 #include "engine.h"
+#include "module/scene/scene.h"
 #include "panels/asset_browser_widget.h"
 #include "panels/console_widget.h"
 #include "panels/entity_browser_widget.h"
@@ -21,7 +22,6 @@
 #include "panels/viewport_widget.h"
 #include "platform/window/window.h"
 #include "preferences/editor_preferences.h"
-#include "scene/scene.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

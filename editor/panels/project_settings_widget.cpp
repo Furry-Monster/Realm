@@ -1,7 +1,7 @@
 #include "panels/project_settings_widget.h"
 
 #include "bridge/editor_engine_bridge.h"
-#include "resource/config_manager.h"
+#include "module/resource/config_manager.h"
 
 #include <imgui.h>
 

@@ -7,10 +7,10 @@
 #include "module/ecs/components/hierarchy.h"
 #include "module/ecs/components/transform.h"
 #include "module/ecs/components/world_transform.h"
-#include "render/rhi/rhi_texture.h"
-#include "render/viewport_display_mode.h"
-#include "resource/config_manager.h"
-#include "scene/scene.h"
+#include "module/render/rhi/rhi_texture.h"
+#include "module/render/viewport_display_mode.h"
+#include "module/resource/config_manager.h"
+#include "module/scene/scene.h"
 
 #include <ImGuizmo.h>
 #include <glad/glad.h>

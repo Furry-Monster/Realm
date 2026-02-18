@@ -2,10 +2,10 @@
 
 #include "bridge/editor_engine_bridge.h"
 #include "editor_context.h"
+#include "module/scene/scene.h"
+#include "module/scene/scene_node.h"
+#include "module/scene/scene_serializer.h"
 #include "panels/file_dialog_widget.h"
-#include "scene/scene.h"
-#include "scene/scene_node.h"
-#include "scene/scene_serializer.h"
 #include "widget.h"
 
 #include <filesystem>

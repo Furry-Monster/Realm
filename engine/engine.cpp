@@ -17,15 +17,15 @@
 #include "module/ecs/components/transform.h"
 #include "module/ecs/components/world_transform.h"
 #include "module/ecs/systems/audio_system.h"
+#include "module/render/light_probe_baker.h"
+#include "module/render/renderer.h"
+#include "module/resource/asset_manager.h"
+#include "module/resource/config_manager.h"
+#include "module/scene/scene.h"
+#include "module/scene/scene_manager.h"
 #include "platform/info/platform_info.h"
 #include "platform/input/input.h"
 #include "platform/window/window.h"
-#include "render/light_probe_baker.h"
-#include "render/renderer.h"
-#include "resource/asset_manager.h"
-#include "resource/config_manager.h"
-#include "scene/scene.h"
-#include "scene/scene_manager.h"
 
 namespace RealmEngine
 {

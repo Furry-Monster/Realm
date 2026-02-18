@@ -3,7 +3,7 @@
 #include "module/ecs/components/hierarchy.h"
 #include "module/ecs/components/transform.h"
 #include "module/ecs/components/world_transform.h"
-#include "scene/scene.h"
+#include "module/scene/scene.h"
 
 namespace RealmEngine
 {

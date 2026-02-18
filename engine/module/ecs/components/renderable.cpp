@@ -1,8 +1,8 @@
 #include "module/ecs/components/renderable.h"
 
-#include "render/render_object.h"
-#include "resource/asset_manager.h"
-#include "resource/model_loader.h"
+#include "module/render/render_object.h"
+#include "module/resource/asset_manager.h"
+#include "module/resource/model_loader.h"
 
 namespace RealmEngine
 {

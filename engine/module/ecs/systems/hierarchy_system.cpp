@@ -1,8 +1,8 @@
 #include "module/ecs/systems/hierarchy_system.h"
 
 #include "module/ecs/components/hierarchy.h"
-#include "scene/scene.h"
-#include "scene/scene_node.h"
+#include "module/scene/scene.h"
+#include "module/scene/scene_node.h"
 
 namespace RealmEngine
 {
