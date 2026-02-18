@@ -20,3 +20,7 @@
 [submodule "libs/entt"]
 	path = libs/entt
 	url = https://github.com/skypjack/entt.git
+
+[submodule "libs/ImGuizmo"]
+	path = libs/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git
