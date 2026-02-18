@@ -1,6 +1,6 @@
 #include "module/render/ibl/diffuse_irradiance_map.h"
 
-#include "core/geometry/primitive_vertices.h"
+#include "core/math/primitive_vertices.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
