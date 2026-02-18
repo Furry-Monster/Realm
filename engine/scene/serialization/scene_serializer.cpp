@@ -7,9 +7,9 @@
 
 #include "core/base/macros.h"
 #include "core/base/utils.h"
-#include "renderer/material.h"
-#include "renderer/render_mesh.h"
-#include "renderer/render_object.h"
+#include "render/material.h"
+#include "render/render_mesh.h"
+#include "render/render_object.h"
 #include "resource/asset_manager.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"

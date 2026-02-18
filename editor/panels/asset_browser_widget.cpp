@@ -1,7 +1,7 @@
 #include "panels/asset_browser_widget.h"
 
 #include "bridge/editor_engine_bridge.h"
-#include "rhi/rhi_texture.h"
+#include "render/rhi/rhi_texture.h"
 
 #include <imgui.h>
 #include <algorithm>

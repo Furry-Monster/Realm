@@ -10,9 +10,9 @@
 #include "scene/components/transform.h"
 #include "scene/scene.h"
 
-#include "renderer/render_mesh.h"
-#include "renderer/render_object.h"
-#include "rhi/rhi_texture.h"
+#include "render/render_mesh.h"
+#include "render/render_object.h"
+#include "render/rhi/rhi_texture.h"
 
 #include <imgui.h>
 #include <glm/glm.hpp>

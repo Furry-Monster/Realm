@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "renderer/render_camera.h"
+#include "render/render_camera.h"
 
 namespace RealmEngine
 {

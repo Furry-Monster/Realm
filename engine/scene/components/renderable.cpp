@@ -1,6 +1,6 @@
 #include "scene/components/renderable.h"
 
-#include "renderer/render_object.h"
+#include "render/render_object.h"
 #include "resource/asset_manager.h"
 #include "resource/model_loader.h"
 

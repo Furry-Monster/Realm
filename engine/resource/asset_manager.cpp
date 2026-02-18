@@ -6,11 +6,11 @@
 #include <cmath>
 
 #include "core/base/macros.h"
-#include "renderer/render_object.h"
+#include "render/render_object.h"
+#include "render/rhi/rhi_device.h"
+#include "render/rhi/rhi_texture.h"
+#include "render/rhi/rhi_types.h"
 #include "resource/model_loader.h"
-#include "rhi/rhi_device.h"
-#include "rhi/rhi_texture.h"
-#include "rhi/rhi_types.h"
 
 namespace RealmEngine
 {

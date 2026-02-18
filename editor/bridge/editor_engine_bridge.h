@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "renderer/viewport_display_mode.h"
+#include "render/viewport_display_mode.h"
 #include "resource/config_manager.h"
 
 namespace RealmEngine

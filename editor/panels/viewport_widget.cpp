@@ -1,9 +1,9 @@
 #include "viewport_widget.h"
 
 #include "bridge/editor_engine_bridge.h"
-#include "renderer/viewport_display_mode.h"
+#include "render/rhi/rhi_texture.h"
+#include "render/viewport_display_mode.h"
 #include "resource/config_manager.h"
-#include "rhi/rhi_texture.h"
 
 #include <glad/glad.h>
 #include <imgui.h>
