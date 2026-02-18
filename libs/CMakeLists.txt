@@ -71,6 +71,15 @@ if (NOT TARGET assimp)
     add_subdirectory(assimp)
 endif ()
 
+# miniaudio 
+if (REALM_ENABLE_AUDIO AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/miniaudio/CMakeLists.txt")
+    set(MINIAUDIO_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(MINIAUDIO_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(MINIAUDIO_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+    set(MINIAUDIO_INSTALL OFF CACHE BOOL "" FORCE)
+    add_subdirectory(miniaudio)
+endif ()
+
 # spdlog
 if (NOT TARGET spdlog)
     set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
@@ -110,5 +119,8 @@ endif ()
 # Aggregate target
 add_library(realm_third_party INTERFACE)
 add_library(Realm::ThirdParty ALIAS realm_third_party)
-target_link_libraries(realm_third_party INTERFACE
-        glad glfw glm imgui imguizmo stb assimp spdlog nlohmann entt realm_opengl)
+set(REALM_THIRD_PARTY_LIBS glad glfw glm imgui imguizmo stb assimp spdlog nlohmann entt realm_opengl)
+if (REALM_ENABLE_AUDIO AND TARGET miniaudio)
+    list(APPEND REALM_THIRD_PARTY_LIBS miniaudio)
+endif ()
+target_link_libraries(realm_third_party INTERFACE ${REALM_THIRD_PARTY_LIBS})

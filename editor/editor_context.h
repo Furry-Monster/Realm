@@ -32,7 +32,7 @@ namespace RealmEngine
         HotkeyManager&       getHotkeyManager() { return m_hotkeys; }
         const HotkeyManager& getHotkeyManager() const { return m_hotkeys; }
 
-        void         setSelectedEntity(entt::entity entity) { m_selected_entity = entity; }
+        void         setSelectedEntity(const entt::entity entity) { m_selected_entity = entity; }
         entt::entity getSelectedEntity() const { return m_selected_entity; }
         bool         hasSelectedEntity() const { return m_selected_entity != entt::null; }
         void         clearSelectedEntity() { m_selected_entity = entt::null; }
@@ -53,7 +53,7 @@ namespace RealmEngine
         EditorPreferences&       getPreferences() { return m_preferences; }
         const EditorPreferences& getPreferences() const { return m_preferences; }
 
-        void           setGizmoOperation(GizmoOperation op) { m_gizmo_operation = op; }
+        void           setGizmoOperation(const GizmoOperation op) { m_gizmo_operation = op; }
         GizmoOperation getGizmoOperation() const { return m_gizmo_operation; }
 
     private:

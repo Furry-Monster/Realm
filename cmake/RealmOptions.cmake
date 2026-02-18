@@ -8,6 +8,7 @@ option(REALM_BUILD_TESTS "Build unit tests" OFF)
 # Features
 option(REALM_ENABLE_LOGGING "Enable spdlog-based logging" ON)
 option(REALM_ENABLE_PROFILER "Enable profiler" ON)
+option(REALM_ENABLE_AUDIO "Enable miniaudio-based audio system" ON)
 
 # Developer tools
 option(REALM_ENABLE_SANITIZERS "Enable Address/UB sanitizers" OFF)
@@ -29,6 +30,7 @@ message(STATUS "  Runtime           : ${REALM_BUILD_RUNTIME}")
 message(STATUS "  Tests             : ${REALM_BUILD_TESTS}")
 message(STATUS "  Logging           : ${REALM_ENABLE_LOGGING}")
 message(STATUS "  Profiler          : ${REALM_ENABLE_PROFILER}")
+message(STATUS "  Audio             : ${REALM_ENABLE_AUDIO}")
 message(STATUS "  Sanitizers        : ${REALM_ENABLE_SANITIZERS}")
 message(STATUS "  Warnings as errors: ${REALM_WARNINGS_AS_ERRORS}")
 message(STATUS "==============================================")

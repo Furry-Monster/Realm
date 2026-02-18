@@ -57,6 +57,7 @@ namespace RealmEngine
                     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
                     if (ext == ".gltf" || ext == ".glb" || ext == ".fbx" || ext == ".obj")
                         m_bridge->addModelToScene(path);
+                    // TODO: fallback
                 }
             }
             ImGui::EndDragDropTarget();
