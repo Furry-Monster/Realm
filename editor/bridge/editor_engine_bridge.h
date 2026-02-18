@@ -46,6 +46,8 @@ namespace RealmEngine
 
         ViewportDisplayMode getViewportDisplayMode() const;
         void                setViewportDisplayMode(ViewportDisplayMode mode) const;
+        ViewportMode        getViewportMode() const;
+        void                setViewportMode(ViewportMode mode) const;
         void                setRenderToViewportTexture(bool enable) const;
         RHITexture*         getViewportTexture() const;
         void                bindDefaultFramebufferForImGui() const;

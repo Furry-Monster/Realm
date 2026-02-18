@@ -17,7 +17,7 @@
 - **PBR 渲染** — Cook-Torrance BRDF，金属度/粗糙度工作流，多 Pass 管线（阴影、GTAO、泛光、次表面散射、后处理）
 - **基于图像的光照** — 漫反射辐照度、高光预过滤、BRDF 查找表
 - **可视化编辑器** — ImGui 场景编辑器，含视口、层级、属性、资产浏览器、性能分析、撤销/重做、快捷键
-- **ECS 架构** — 基于 EnTT，内置 Transform、Renderable、Lighting、Hierarchy、CameraController 组件
+- **ECS 架构** — 基于 EnTT，内置 Transform、Renderable、Camera、Lighting、Hierarchy 组件
 - **场景管理** — 场景图、JSON 序列化、资源缓存（glTF / FBX / OBJ / PLY / STL）
 - **RHI 抽象层** — 当前 OpenGL 后端，架构预留 Vulkan / D3D12
 

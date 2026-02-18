@@ -4,6 +4,12 @@
 
 namespace RealmEngine
 {
+    enum class ViewportMode : uint8_t
+    {
+        Scene,
+        Game
+    };
+
     enum class ViewportDisplayMode : uint16_t
     {
         Lit = 0,

@@ -12,8 +12,8 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/logger.h"
-#include "module/ecs/components/camera_controller.h"
 #include "module/ecs/components/lighting/light_probe.h"
+#include "module/ecs/components/scene_view_camera_controller.h"
 #include "module/ecs/components/transform.h"
 #include "module/ecs/components/world_transform.h"
 #include "module/ecs/systems/audio_system.h"
@@ -21,6 +21,7 @@
 #include "module/render/renderer.h"
 #include "module/resource/asset_manager.h"
 #include "module/resource/config_manager.h"
+#include "module/scene/camera_sync.h"
 #include "module/scene/scene.h"
 #include "module/scene/scene_manager.h"
 #include "platform/info/platform_info.h"
@@ -162,14 +163,14 @@ namespace RealmEngine
         }
 
         m_scene->setCurrentScene(loaded);
+        setViewportMode(ViewportMode::Game);
 
-        // Initialize scene camera controller
         const GamePlayConfig& gp = m_config->getGamePlayConfig();
-        loaded->getCameraController()->initialize(m_renderer->getCamera(),
-                                                  *m_input,
-                                                  gp.camera_mouse_sensitivity,
-                                                  gp.camera_move_speed,
-                                                  gp.camera_sprint_multiplier);
+        loaded->getSceneViewCameraController()->initialize(m_renderer->getCamera(),
+                                                           *m_input,
+                                                           gp.camera_mouse_sensitivity,
+                                                           gp.camera_move_speed,
+                                                           gp.camera_sprint_multiplier);
 
         const RendererConfig& rc = m_config->getRendererConfig();
         m_renderer->getCamera()->setPosition(
@@ -204,6 +205,11 @@ namespace RealmEngine
         auto* scene = m_scene->getCurrentOrNewScene().get();
         scene->tick(static_cast<float>(m_delta_time));
 
+        if (m_viewport_mode == ViewportMode::Scene && scene)
+        {
+            scene->getSceneViewCameraController()->update(static_cast<float>(m_delta_time));
+        }
+
         if (m_audio && scene)
         {
             m_audio->tick(scene, static_cast<float>(m_delta_time), m_config->getAssetFolder().string());
@@ -219,6 +225,17 @@ namespace RealmEngine
     {
         const auto scene = m_scene->getCurrentScene();
         m_renderer->getRenderScene()->syncFromScene(scene);
+
+        if (m_viewport_mode == ViewportMode::Game && scene)
+        {
+            const entt::entity cam_entity = findPrimaryCameraEntity(*scene);
+            if (cam_entity != entt::null)
+            {
+                const float aspect =
+                    static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight());
+                syncEntityCameraToRenderCamera(*scene, cam_entity, *m_renderer->getCamera(), aspect);
+            }
+        }
 
         if (scene && m_renderer->getLightProbeBaker())
         {

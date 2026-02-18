@@ -2,6 +2,7 @@
 
 #include "bridge/editor_engine_bridge.h"
 #include "editor_context.h"
+#include "module/ecs/components/camera.h"
 #include "module/ecs/components/lighting/area.h"
 #include "module/ecs/components/lighting/directional.h"
 #include "module/ecs/components/lighting/point.h"
@@ -56,6 +57,8 @@ namespace RealmEngine
             renderDirectionalLight();
         if (scene->has<AreaLight>(entity))
             renderAreaLight();
+        if (scene->has<Camera>(entity))
+            renderCamera();
 
         ImGui::End();
     }
@@ -532,6 +535,50 @@ namespace RealmEngine
             if (ImGui::DragFloat("Width", &al->width, 0.1f, 0.0f, 100.0f))
                 scene->markDirty();
             if (ImGui::DragFloat("Height", &al->height, 0.1f, 0.0f, 100.0f))
+                scene->markDirty();
+        }
+    }
+
+    void PropertiesWidget::renderCamera()
+    {
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        auto*              cam    = scene->tryGet<Camera>(entity);
+        if (!cam)
+            return;
+
+        if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            if (ImGui::Checkbox("Primary", &cam->primary))
+                scene->markDirty();
+
+            int proj_type = static_cast<int>(cam->projection_type);
+            if (ImGui::Combo("Projection", &proj_type, "Perspective\0Orthographic\0"))
+            {
+                cam->projection_type = static_cast<CameraProjectionType>(proj_type);
+                scene->markDirty();
+            }
+
+            if (cam->projection_type == CameraProjectionType::Perspective)
+            {
+                if (ImGui::DragFloat("FOV", &cam->fov, 1.0f, 1.0f, 179.0f))
+                    scene->markDirty();
+            }
+            else
+            {
+                if (ImGui::DragFloat("Left", &cam->ortho_left, 0.5f))
+                    scene->markDirty();
+                if (ImGui::DragFloat("Right", &cam->ortho_right, 0.5f))
+                    scene->markDirty();
+                if (ImGui::DragFloat("Bottom", &cam->ortho_bottom, 0.5f))
+                    scene->markDirty();
+                if (ImGui::DragFloat("Top", &cam->ortho_top, 0.5f))
+                    scene->markDirty();
+            }
+
+            if (ImGui::DragFloat("Near", &cam->near_plane, 0.01f, 0.001f, 10.0f))
+                scene->markDirty();
+            if (ImGui::DragFloat("Far", &cam->far_plane, 1.0f, 1.0f, 10000.0f))
                 scene->markDirty();
         }
     }

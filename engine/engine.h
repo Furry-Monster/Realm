@@ -3,6 +3,8 @@
 #include <cassert>
 #include <memory>
 
+#include "module/render/viewport_display_mode.h"
+
 namespace RealmEngine
 {
     class EventBus;
@@ -78,6 +80,9 @@ namespace RealmEngine
         }
         AudioSystem* getAudioSystem() const { return m_audio.get(); }
 
+        ViewportMode getViewportMode() const { return m_viewport_mode; }
+        void         setViewportMode(ViewportMode mode) { m_viewport_mode = mode; }
+
     protected:
         void logicalTick();
         void renderTick();
@@ -94,9 +99,10 @@ namespace RealmEngine
         std::unique_ptr<Input>         m_input;
         std::unique_ptr<AudioSystem>   m_audio;
 
-        bool   m_initialized {false};
-        double m_delta_time {0.0};
-        double m_max_delta_time {0.1};
-        double m_last_frame_time {0.0};
+        bool         m_initialized {false};
+        double       m_delta_time {0.0};
+        double       m_max_delta_time {0.1};
+        double       m_last_frame_time {0.0};
+        ViewportMode m_viewport_mode {ViewportMode::Scene};
     };
 } // namespace RealmEngine

@@ -17,7 +17,7 @@ A modern OpenGL game engine with PBR rendering, a visual editor, and an ECS arch
 - **PBR Rendering** — Cook-Torrance BRDF, Metallic/Roughness workflow, multi-pass pipeline (Shadow, GTAO, Bloom, SSS, Post-processing)
 - **Image-Based Lighting** — Diffuse irradiance, specular prefiltering, BRDF LUT
 - **Visual Editor** — ImGui-based scene editor with viewport, hierarchy, properties, asset browser, profiler, undo/redo, hotkeys
-- **ECS Architecture** — EnTT-powered with Transform, Renderable, Lighting, Hierarchy, CameraController components
+- **ECS Architecture** — EnTT-powered with Transform, Renderable, Camera, Lighting, Hierarchy components
 - **Scene Management** — Scene graph, JSON serialization, resource caching (glTF / FBX / OBJ / PLY / STL)
 - **RHI Abstraction** — OpenGL backend, architecture ready for Vulkan / D3D12
 

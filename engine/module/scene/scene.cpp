@@ -1,13 +1,13 @@
 #include "module/scene/scene.h"
 
 #include "core/base/macros.h"
-#include "module/ecs/components/camera_controller.h"
 #include "module/ecs/components/lighting/area.h"
 #include "module/ecs/components/lighting/directional.h"
 #include "module/ecs/components/lighting/point.h"
 #include "module/ecs/components/lighting/spot.h"
 #include "module/ecs/components/name_tag.h"
 #include "module/ecs/components/renderable.h"
+#include "module/ecs/components/scene_view_camera_controller.h"
 #include "module/ecs/systems/hierarchy_system.h"
 #include "module/ecs/systems/transform_system.h"
 
@@ -15,8 +15,8 @@ namespace RealmEngine
 {
     Scene::Scene()
     {
-        m_root              = std::make_shared<SceneNode>("Root");
-        m_camera_controller = std::make_shared<CameraController>();
+        m_root                         = std::make_shared<SceneNode>("Root");
+        m_scene_view_camera_controller = std::make_shared<SceneViewCameraController>();
 
         m_registry.on_construct<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
         m_registry.on_construct<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
@@ -46,7 +46,8 @@ namespace RealmEngine
 
     Scene::Scene(Scene&& other) noexcept :
         m_registry(std::move(other.m_registry)), m_name_index(std::move(other.m_name_index)),
-        m_root(std::move(other.m_root)), m_camera_controller(std::move(other.m_camera_controller)),
+        m_root(std::move(other.m_root)),
+        m_scene_view_camera_controller(std::move(other.m_scene_view_camera_controller)),
         m_generation(other.m_generation)
     {
         reconnectSignals();
@@ -56,24 +57,21 @@ namespace RealmEngine
     {
         if (this != &other)
         {
-            m_registry          = std::move(other.m_registry);
-            m_name_index        = std::move(other.m_name_index);
-            m_root              = std::move(other.m_root);
-            m_camera_controller = std::move(other.m_camera_controller);
-            m_generation        = other.m_generation;
+            m_registry                     = std::move(other.m_registry);
+            m_name_index                   = std::move(other.m_name_index);
+            m_root                         = std::move(other.m_root);
+            m_scene_view_camera_controller = std::move(other.m_scene_view_camera_controller);
+            m_generation                   = other.m_generation;
             reconnectSignals();
         }
         return *this;
     }
 
-    void Scene::tick(const float delta_time)
+    void Scene::tick([[maybe_unused]] const float delta_time)
     {
         // Run ECS systems each frame
         HierarchySystem::update(*this);
         TransformSystem::update(*this);
-
-        if (m_camera_controller)
-            m_camera_controller->update(delta_time);
     }
 
     Entity Scene::createEntity(std::string name)

@@ -5,6 +5,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "core/base/macros.h"
+#include "module/ecs/components/camera.h"
 #include "module/ecs/components/lighting/area.h"
 #include "module/ecs/components/lighting/directional.h"
 #include "module/ecs/components/lighting/light_probe.h"
@@ -62,6 +63,16 @@ namespace RealmEngine
                 return false;
             }
         };
+
+        {
+            const auto n = scene->createNodeWithEntity("MainCamera");
+            auto       e = scene->findEntity("MainCamera");
+            auto&      t = e.emplace<Transform>();
+            t.position   = glm::vec3(0.0f, 0.0f, 5.0f);
+            t.rotation   = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+            e.emplace<Camera>();
+            scene->getRoot()->addChild(n);
+        }
 
         loadModelAt("Helmet",
                     "helmet/DamagedHelmet.gltf",

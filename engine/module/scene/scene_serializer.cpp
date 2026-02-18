@@ -8,6 +8,7 @@
 #include "core/base/macros.h"
 #include "core/base/utils.h"
 #include "module/ecs/components/audio/audio_source.h"
+#include "module/ecs/components/camera.h"
 #include "module/ecs/components/lighting/area.h"
 #include "module/ecs/components/lighting/directional.h"
 #include "module/ecs/components/lighting/point.h"
@@ -294,6 +295,25 @@ namespace RealmEngine
             components_json.push_back(c);
         }
 
+        if (auto* cam = scene.tryGet<Camera>(entity))
+        {
+            nlohmann::json c;
+            c["type"]      = "Camera";
+            c["fov"]       = cam->fov;
+            c["near"]      = cam->near_plane;
+            c["far"]       = cam->far_plane;
+            c["primary"]   = cam->primary;
+            c["proj_type"] = static_cast<int>(cam->projection_type);
+            if (cam->projection_type == CameraProjectionType::Orthographic)
+            {
+                c["ortho_left"]   = cam->ortho_left;
+                c["ortho_right"]  = cam->ortho_right;
+                c["ortho_bottom"] = cam->ortho_bottom;
+                c["ortho_top"]    = cam->ortho_top;
+            }
+            components_json.push_back(c);
+        }
+
         if (auto* as = scene.tryGet<AudioSource>(entity))
         {
             nlohmann::json c;
@@ -466,6 +486,31 @@ namespace RealmEngine
 
                 if (comp_json.contains("scale") && comp_json["scale"].is_array() && comp_json["scale"].size() == 3)
                     scale = glm::vec3(comp_json["scale"][0], comp_json["scale"][1], comp_json["scale"][2]);
+            }
+            else if (type == "Camera")
+            {
+                auto& c = entity.emplace<Camera>();
+                if (comp_json.contains("fov") && comp_json["fov"].is_number())
+                    c.fov = comp_json["fov"];
+                if (comp_json.contains("near") && comp_json["near"].is_number())
+                    c.near_plane = comp_json["near"];
+                if (comp_json.contains("far") && comp_json["far"].is_number())
+                    c.far_plane = comp_json["far"];
+                if (comp_json.contains("primary") && comp_json["primary"].is_boolean())
+                    c.primary = comp_json["primary"];
+                if (comp_json.contains("proj_type") && comp_json["proj_type"].is_number_integer())
+                    c.projection_type = static_cast<CameraProjectionType>(comp_json["proj_type"].get<int>());
+                if (c.projection_type == CameraProjectionType::Orthographic)
+                {
+                    if (comp_json.contains("ortho_left"))
+                        c.ortho_left = comp_json["ortho_left"];
+                    if (comp_json.contains("ortho_right"))
+                        c.ortho_right = comp_json["ortho_right"];
+                    if (comp_json.contains("ortho_bottom"))
+                        c.ortho_bottom = comp_json["ortho_bottom"];
+                    if (comp_json.contains("ortho_top"))
+                        c.ortho_top = comp_json["ortho_top"];
+                }
             }
             else if (type == "Renderable")
             {

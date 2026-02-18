@@ -83,7 +83,12 @@ namespace RealmEngine
 
         const bool is_deferred = m_bridge->getPipelineMode() == PipelineMode::Deferred;
 
-        // Pipeline mode label
+        ImGui::SetNextItemWidth(60.0f);
+        int vp_mode = static_cast<int>(m_bridge->getViewportMode());
+        if (ImGui::Combo("##ViewportMode", &vp_mode, "Scene\0Game\0"))
+            m_bridge->setViewportMode(static_cast<ViewportMode>(vp_mode));
+        ImGui::SameLine();
+
         if (is_deferred)
             ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "[Deferred]");
         else

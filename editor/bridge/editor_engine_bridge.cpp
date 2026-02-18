@@ -3,8 +3,8 @@
 #include "core/base/macros.h"
 #include "core/math/aabb.h"
 #include "engine.h"
-#include "module/ecs/components/camera_controller.h"
 #include "module/ecs/components/renderable.h"
+#include "module/ecs/components/scene_view_camera_controller.h"
 #include "module/ecs/components/transform.h"
 #include "module/ecs/components/world_transform.h"
 #include "module/render/renderer.h"
@@ -73,11 +73,11 @@ namespace RealmEngine
         if (!scene)
             return;
         const GamePlayConfig& gp = m_engine->getConfig().getGamePlayConfig();
-        scene->getCameraController()->initialize(m_engine->getRenderer().getCamera(),
-                                                 m_engine->getInput(),
-                                                 gp.camera_mouse_sensitivity,
-                                                 gp.camera_move_speed,
-                                                 gp.camera_sprint_multiplier);
+        scene->getSceneViewCameraController()->initialize(m_engine->getRenderer().getCamera(),
+                                                          m_engine->getInput(),
+                                                          gp.camera_mouse_sensitivity,
+                                                          gp.camera_move_speed,
+                                                          gp.camera_sprint_multiplier);
     }
 
     std::filesystem::path EditorEngineBridge::getAssetFolder() const { return m_engine->getConfig().getAssetFolder(); }
@@ -163,6 +163,10 @@ namespace RealmEngine
     {
         m_engine->getRenderer().setViewportDisplayMode(mode);
     }
+
+    ViewportMode EditorEngineBridge::getViewportMode() const { return m_engine->getViewportMode(); }
+
+    void EditorEngineBridge::setViewportMode(const ViewportMode mode) const { m_engine->setViewportMode(mode); }
 
     void EditorEngineBridge::setRenderToViewportTexture(const bool enable) const
     {

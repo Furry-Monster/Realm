@@ -1,22 +1,23 @@
 #pragma once
 
 #include <memory>
+
 #include "module/render/render_camera.h"
 
 namespace RealmEngine
 {
     class Input;
 
-    class CameraController
+    class SceneViewCameraController
     {
     public:
-        CameraController()           = default;
-        ~CameraController() noexcept = default;
+        SceneViewCameraController()           = default;
+        ~SceneViewCameraController() noexcept = default;
 
-        CameraController(const CameraController&)                = delete;
-        CameraController& operator=(const CameraController&)     = delete;
-        CameraController(CameraController&&) noexcept            = default;
-        CameraController& operator=(CameraController&&) noexcept = default;
+        SceneViewCameraController(const SceneViewCameraController&)                = delete;
+        SceneViewCameraController& operator=(const SceneViewCameraController&)     = delete;
+        SceneViewCameraController(SceneViewCameraController&&) noexcept            = default;
+        SceneViewCameraController& operator=(SceneViewCameraController&&) noexcept = default;
 
         void initialize(const std::shared_ptr<RenderCamera>& camera,
                         Input&                               input,

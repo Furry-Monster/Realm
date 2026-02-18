@@ -35,6 +35,7 @@ namespace RealmEngine
         void renderSpotLight();
         void renderDirectionalLight();
         void renderAreaLight();
+        void renderCamera();
 
         std::shared_ptr<EditorContext> m_context;
         EditorEngineBridge*            m_bridge;

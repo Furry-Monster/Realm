@@ -1,4 +1,4 @@
-#include "module/ecs/components/camera_controller.h"
+#include "module/ecs/components/scene_view_camera_controller.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -6,11 +6,11 @@
 
 namespace RealmEngine
 {
-    void CameraController::initialize(const std::shared_ptr<RenderCamera>& camera,
-                                      Input&                               input,
-                                      const float                          mouse_sensitivity,
-                                      const float                          move_speed,
-                                      const float                          sprint_multiplier)
+    void SceneViewCameraController::initialize(const std::shared_ptr<RenderCamera>& camera,
+                                               Input&                               input,
+                                               const float                          mouse_sensitivity,
+                                               const float                          move_speed,
+                                               const float                          sprint_multiplier)
     {
         m_camera            = camera;
         m_input             = &input;
@@ -19,7 +19,7 @@ namespace RealmEngine
         m_sprint_multiplier = sprint_multiplier;
     }
 
-    void CameraController::update(const float delta_time)
+    void SceneViewCameraController::update(const float delta_time)
     {
         if (!m_camera || !m_input)
             return;

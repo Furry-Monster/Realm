@@ -4,6 +4,7 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "editor_context.h"
+#include "module/ecs/components/camera.h"
 #include "module/ecs/components/lighting/area.h"
 #include "module/ecs/components/lighting/directional.h"
 #include "module/ecs/components/lighting/point.h"
@@ -41,8 +42,8 @@ namespace RealmEngine
         }
 
         const char* component_types[] = {
-            "Transform", "Renderable", "PointLight", "SpotLight", "DirectionalLight", "AreaLight", "NameTag"};
-        constexpr int num_types = 7;
+            "Transform", "Renderable", "Camera", "PointLight", "SpotLight", "DirectionalLight", "AreaLight", "NameTag"};
+        constexpr int num_types = 8;
 
         if (ImGui::Combo("Filter by component", &m_selected_component_type, component_types, num_types))
         {
@@ -98,22 +99,26 @@ namespace RealmEngine
                     m_filtered_entities.push_back(entity);
                 break;
             case 2:
-                for (auto entity : reg.view<PointLight>())
+                for (auto entity : reg.view<Camera>())
                     m_filtered_entities.push_back(entity);
                 break;
             case 3:
-                for (auto entity : reg.view<SpotLight>())
+                for (auto entity : reg.view<PointLight>())
                     m_filtered_entities.push_back(entity);
                 break;
             case 4:
-                for (auto entity : reg.view<DirectionalLight>())
+                for (auto entity : reg.view<SpotLight>())
                     m_filtered_entities.push_back(entity);
                 break;
             case 5:
-                for (auto entity : reg.view<AreaLight>())
+                for (auto entity : reg.view<DirectionalLight>())
                     m_filtered_entities.push_back(entity);
                 break;
             case 6:
+                for (auto entity : reg.view<AreaLight>())
+                    m_filtered_entities.push_back(entity);
+                break;
+            case 7:
                 for (auto entity : reg.view<NameTag>())
                     m_filtered_entities.push_back(entity);
                 break;
