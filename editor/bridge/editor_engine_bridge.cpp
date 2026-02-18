@@ -13,13 +13,17 @@
 #include "scene/components/camera_controller.h"
 #include "scene/components/renderable.h"
 #include "scene/components/transform.h"
+#include "scene/components/world_transform.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
 #include "scene/scene_node.h"
 #include "scene/serialization/scene_serializer.h"
 
+#include <cstring>
 #include <filesystem>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <limits>
 
 namespace RealmEngine
 {
@@ -189,5 +193,64 @@ namespace RealmEngine
     }
 
     RHITexture* EditorEngineBridge::getGBufferDepth() const { return m_engine->getRenderer().getGBufferDepth(); }
+
+    void EditorEngineBridge::getCameraViewProj(float* view, float* proj) const
+    {
+        const auto& cam = m_engine->getRenderer().getCamera();
+        if (!cam || !view || !proj)
+            return;
+        memcpy(view, glm::value_ptr(cam->getViewMatrix()), 16 * sizeof(float));
+        memcpy(proj, glm::value_ptr(cam->getProjMatrix()), 16 * sizeof(float));
+    }
+
+    entt::entity EditorEngineBridge::pickEntityAtViewport(const float vp_x,
+                                                          const float vp_y,
+                                                          const float vp_w,
+                                                          const float vp_h,
+                                                          const float mouse_x,
+                                                          const float mouse_y) const
+    {
+        const auto scene = m_engine->getSceneManager().getCurrentScene();
+        if (!scene)
+            return entt::null;
+
+        const glm::mat4 view   = m_engine->getRenderer().getCamera()->getViewMatrix();
+        const glm::mat4 proj   = m_engine->getRenderer().getCamera()->getProjMatrix();
+        const glm::mat4 inv_vp = glm::inverse(proj * view);
+
+        const float ndc_x = (mouse_x - vp_x) / vp_w * 2.0f - 1.0f;
+        const float ndc_y = 1.0f - (mouse_y - vp_y) / vp_h * 2.0f;
+
+        const glm::vec4 near_ndc(ndc_x, ndc_y, 0.0f, 1.0f);
+        const glm::vec4 far_ndc(ndc_x, ndc_y, 1.0f, 1.0f);
+        const glm::vec4 near_ws = inv_vp * near_ndc;
+        const glm::vec4 far_ws  = inv_vp * far_ndc;
+
+        const glm::vec3 ray_origin(near_ws / near_ws.w);
+        const glm::vec3 ray_dir = glm::normalize(glm::vec3(far_ws / far_ws.w) - ray_origin);
+
+        entt::entity hit       = entt::null;
+        float        hit_t_min = std::numeric_limits<float>::max();
+
+        const auto view_registry = scene->getRegistry().view<Renderable, WorldTransform>();
+        for (const auto entity : view_registry)
+        {
+            const glm::vec3 center = glm::vec3(scene->get<WorldTransform>(entity).matrix[3]);
+            const float     t      = glm::dot(center - ray_origin, ray_dir);
+            if (t < 0.1f)
+                continue;
+
+            const glm::vec3 proj_pt        = ray_origin + ray_dir * t;
+            const float     dist_sq        = glm::dot(center - proj_pt, center - proj_pt);
+            const float     pick_radius_sq = 4.0f * 4.0f;
+            if (dist_sq < pick_radius_sq && t < hit_t_min)
+            {
+                hit_t_min = t;
+                hit       = entity;
+            }
+        }
+
+        return hit;
+    }
 
 } // namespace RealmEngine

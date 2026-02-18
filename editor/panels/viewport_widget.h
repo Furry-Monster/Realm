@@ -1,15 +1,17 @@
 #pragma once
 
+#include <memory>
 #include "widget.h"
 
 namespace RealmEngine
 {
     class EditorEngineBridge;
+    class EditorContext;
 
     class ViewportWidget : public Widget
     {
     public:
-        explicit ViewportWidget(EditorEngineBridge& bridge);
+        ViewportWidget(EditorEngineBridge& bridge, const std::shared_ptr<EditorContext>& context);
         ~ViewportWidget() override = default;
 
         ViewportWidget(const ViewportWidget&)            = delete;
@@ -18,8 +20,9 @@ namespace RealmEngine
         void render() override;
 
     private:
-        EditorEngineBridge* m_bridge;
-        int                 m_gbuffer_preview {0};
+        EditorEngineBridge*            m_bridge;
+        std::shared_ptr<EditorContext> m_context;
+        int                            m_gbuffer_preview {0};
     };
 
 } // namespace RealmEngine

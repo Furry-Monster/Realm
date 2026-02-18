@@ -1,12 +1,22 @@
 #include "viewport_widget.h"
 
 #include "bridge/editor_engine_bridge.h"
+#include "core/event/event.h"
+#include "core/event/event_bus.h"
+#include "editor_context.h"
 #include "render/rhi/rhi_texture.h"
 #include "render/viewport_display_mode.h"
 #include "resource/config_manager.h"
+#include "scene/components/hierarchy.h"
+#include "scene/components/transform.h"
+#include "scene/components/world_transform.h"
+#include "scene/scene.h"
 
+#include <ImGuizmo.h>
 #include <glad/glad.h>
 #include <imgui.h>
+#include <cstring>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace RealmEngine
 {
@@ -19,7 +29,8 @@ namespace RealmEngine
                                                  "GBuffer: Emissive+Roughness",
                                                  "GBuffer: Depth"};
 
-    ViewportWidget::ViewportWidget(EditorEngineBridge& bridge) : Widget("Viewport"), m_bridge(&bridge)
+    ViewportWidget::ViewportWidget(EditorEngineBridge& bridge, const std::shared_ptr<EditorContext>& context) :
+        Widget("Viewport"), m_bridge(&bridge), m_context(context)
     {
         m_bridge->setRenderToViewportTexture(true);
     }
@@ -79,6 +90,29 @@ namespace RealmEngine
             ImGui::TextColored(ImVec4(0.6f, 1.0f, 0.6f, 1.0f), "[Forward]");
         ImGui::SameLine();
 
+        // Gizmo mode indicator
+        if (m_context)
+        {
+            const char* gizmo_label = "";
+            switch (m_context->getGizmoOperation())
+            {
+                case GizmoOperation::None:
+                    gizmo_label = "Select";
+                    break;
+                case GizmoOperation::Translate:
+                    gizmo_label = "Move [W]";
+                    break;
+                case GizmoOperation::Rotate:
+                    gizmo_label = "Rotate [E]";
+                    break;
+                case GizmoOperation::Scale:
+                    gizmo_label = "Scale [R]";
+                    break;
+            }
+            ImGui::TextDisabled("| QWER: %s", gizmo_label);
+            ImGui::SameLine();
+        }
+
         // Display mode combo
         const float combo_width = ImGui::GetContentRegionAvail().x * 0.4f;
         ImGui::SetNextItemWidth(combo_width);
@@ -127,6 +161,105 @@ namespace RealmEngine
                     break;
             }
             drawTexturePreview(gbuf_tex, avail, true);
+        }
+
+        if (m_context && m_gbuffer_preview == 0)
+        {
+            const ImVec2 vp_min = ImGui::GetItemRectMin();
+            const ImVec2 vp_max = ImGui::GetItemRectMax();
+            const float  vp_w   = vp_max.x - vp_min.x;
+            const float  vp_h   = vp_max.y - vp_min.y;
+
+            if (m_context->getGizmoOperation() == GizmoOperation::None && ImGui::IsItemHovered() &&
+                ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            {
+                const ImVec2 mouse  = ImGui::GetMousePos();
+                const auto   scene  = m_bridge->getCurrentScene();
+                const auto   entity = m_bridge->pickEntityAtViewport(vp_min.x, vp_min.y, vp_w, vp_h, mouse.x, mouse.y);
+                if (scene && scene->valid(entity))
+                {
+                    const auto node = scene->findNodeByEntity(entity);
+                    m_context->setSelectedEntity(entity);
+                    m_context->setSelectedNode(node);
+                    m_bridge->getEventBus().publish(EntitySelectedEvent {entity, node ? node.get() : nullptr});
+                }
+                else
+                {
+                    m_context->clearSelectedEntity();
+                    m_context->clearSelectedNode();
+                    m_bridge->getEventBus().publish(EntitySelectedEvent {entt::null, nullptr});
+                }
+            }
+
+            const auto scene  = m_bridge->getCurrentScene();
+            const auto entity = m_context->getSelectedEntity();
+            const auto op     = m_context->getGizmoOperation();
+
+            if (scene && scene->valid(entity) && scene->has<Transform>(entity) && op != GizmoOperation::None)
+            {
+                float view[16], proj[16];
+                m_bridge->getCameraViewProj(view, proj);
+
+                glm::mat4 parent_world(1.0f);
+                if (const auto* parent_comp = scene->tryGet<Parent>(entity))
+                {
+                    const auto parent = parent_comp->entity;
+                    if (scene->valid(parent) && scene->has<WorldTransform>(parent))
+                        parent_world = scene->get<WorldTransform>(parent).matrix;
+                }
+
+                auto&     transform = scene->get<Transform>(entity);
+                glm::mat4 world     = parent_world * transform.getModelMatrix();
+                float     matrix[16];
+                memcpy(matrix, glm::value_ptr(world), sizeof(matrix));
+
+                ImGuizmo::SetDrawlist(nullptr);
+                ImGuizmo::SetRect(vp_min.x, vp_min.y, vp_w, vp_h);
+                ImGuizmo::SetOrthographic(false);
+
+                ImGuizmo::OPERATION guizmo_op = ImGuizmo::TRANSLATE;
+                switch (op)
+                {
+                    case GizmoOperation::Translate:
+                        guizmo_op = ImGuizmo::TRANSLATE;
+                        break;
+                    case GizmoOperation::Rotate:
+                        guizmo_op = ImGuizmo::ROTATE;
+                        break;
+                    case GizmoOperation::Scale:
+                        guizmo_op = ImGuizmo::SCALE;
+                        break;
+                    default:
+                        break;
+                }
+
+                if (ImGuizmo::Manipulate(view, proj, guizmo_op, ImGuizmo::LOCAL, matrix))
+                {
+                    const glm::mat4 new_world = glm::make_mat4(matrix);
+                    const glm::mat4 new_local = glm::inverse(parent_world) * new_world;
+
+                    switch (op)
+                    {
+                        case GizmoOperation::Translate: {
+                            transform.position = glm::vec3(new_local[3][0], new_local[3][1], new_local[3][2]);
+                            break;
+                        }
+                        case GizmoOperation::Rotate: {
+                            transform.rotation = glm::quat_cast(glm::mat3(new_local));
+                            break;
+                        }
+                        case GizmoOperation::Scale: {
+                            const glm::mat3 rot_scale = glm::mat3(new_local);
+                            transform.scale           = glm::vec3(
+                                glm::length(rot_scale[0]), glm::length(rot_scale[1]), glm::length(rot_scale[2]));
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                    scene->markDirty();
+                }
+            }
         }
 
         ImGui::End();

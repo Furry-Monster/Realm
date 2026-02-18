@@ -41,6 +41,13 @@ if (NOT TARGET imgui)
     target_compile_definitions(imgui PUBLIC IMGUI_HAS_DOCK)
 endif ()
 
+# ImGuizmo
+if (NOT TARGET imguizmo)
+    add_library(imguizmo STATIC "${CMAKE_CURRENT_SOURCE_DIR}/ImGuizmo/ImGuizmo.cpp")
+    target_include_directories(imguizmo SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/ImGuizmo")
+    target_link_libraries(imguizmo PUBLIC imgui)
+endif ()
+
 # stb
 if (NOT TARGET stb)
     add_library(stb INTERFACE)
@@ -104,4 +111,4 @@ endif ()
 add_library(realm_third_party INTERFACE)
 add_library(Realm::ThirdParty ALIAS realm_third_party)
 target_link_libraries(realm_third_party INTERFACE
-        glad glfw glm imgui stb assimp spdlog nlohmann entt realm_opengl)
+        glad glfw glm imgui imguizmo stb assimp spdlog nlohmann entt realm_opengl)

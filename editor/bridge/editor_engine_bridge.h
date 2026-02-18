@@ -1,5 +1,6 @@
 #pragma once
 
+#include <entt/entity/entity.hpp>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -60,6 +61,10 @@ namespace RealmEngine
 
         void      reloadCustomShaders() const;
         EventBus& getEventBus() const;
+
+        void getCameraViewProj(float* view, float* proj) const;
+        entt::entity
+        pickEntityAtViewport(float vp_x, float vp_y, float vp_w, float vp_h, float mouse_x, float mouse_y) const;
 
     private:
         Engine* m_engine;

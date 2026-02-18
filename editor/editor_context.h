@@ -10,6 +10,14 @@
 
 namespace RealmEngine
 {
+    enum class GizmoOperation
+    {
+        None,
+        Translate,
+        Rotate,
+        Scale
+    };
+
     class EditorContext
     {
     public:
@@ -45,12 +53,16 @@ namespace RealmEngine
         EditorPreferences&       getPreferences() { return m_preferences; }
         const EditorPreferences& getPreferences() const { return m_preferences; }
 
+        void           setGizmoOperation(GizmoOperation op) { m_gizmo_operation = op; }
+        GizmoOperation getGizmoOperation() const { return m_gizmo_operation; }
+
     private:
         HotkeyManager              m_hotkeys;
         entt::entity               m_selected_entity {entt::null};
         std::shared_ptr<SceneNode> m_selected_node {nullptr};
         std::string                m_entity_clipboard;
         EditorPreferences          m_preferences;
+        GizmoOperation             m_gizmo_operation {GizmoOperation::Translate};
     };
 
 } // namespace RealmEngine

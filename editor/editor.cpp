@@ -25,6 +25,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <ImGuizmo.h>
 #include <glad/glad.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -178,7 +179,7 @@ namespace RealmEngine
             m_executor.execute(DuplicateEntityCommand(*m_bridge, *m_context));
         };
 
-        m_panels.push_back(std::make_shared<ViewportWidget>(*m_bridge));
+        m_panels.push_back(std::make_shared<ViewportWidget>(*m_bridge, m_context));
         m_panels.push_back(std::make_shared<SceneHierarchyWidget>(m_context, *m_bridge, hierarchy_callbacks));
         m_panels.push_back(std::make_shared<PropertiesWidget>(m_context, *m_bridge));
         auto entity_browser = std::make_shared<EntityBrowserWidget>(m_context, *m_bridge);
@@ -228,6 +229,13 @@ namespace RealmEngine
             edit_flags);
         hotkeys.registerHotkey(
             ImGuiKey_Delete, [this] { m_executor.execute(DeleteEntityCommand(*m_bridge, *m_context)); }, edit_flags);
+
+        hotkeys.registerHotkey(ImGuiKey_Q, [this] { m_context->setGizmoOperation(GizmoOperation::None); }, edit_flags);
+        hotkeys.registerHotkey(
+            ImGuiKey_W, [this] { m_context->setGizmoOperation(GizmoOperation::Translate); }, edit_flags);
+        hotkeys.registerHotkey(
+            ImGuiKey_E, [this] { m_context->setGizmoOperation(GizmoOperation::Rotate); }, edit_flags);
+        hotkeys.registerHotkey(ImGuiKey_R, [this] { m_context->setGizmoOperation(GizmoOperation::Scale); }, edit_flags);
 
         for (size_t i = 1; i < m_panels.size() && i <= 6; ++i)
         {
@@ -321,6 +329,7 @@ namespace RealmEngine
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
     }
 
     void Editor::render() const
