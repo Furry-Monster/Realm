@@ -5,9 +5,6 @@
 
 namespace RealmEngine
 {
-    // Parent-child relationship components.
-    // Managed by HierarchySystem -- do not modify directly.
-
     struct Parent
     {
         entt::entity entity {entt::null};

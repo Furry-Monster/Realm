@@ -1,6 +1,6 @@
-#include "scene/systems/hierarchy_system.h"
+#include "module/ecs/systems/hierarchy_system.h"
 
-#include "scene/components/hierarchy.h"
+#include "module/ecs/components/hierarchy.h"
 #include "scene/scene.h"
 #include "scene/scene_node.h"
 
@@ -18,11 +18,9 @@ namespace RealmEngine
 
         auto& registry = scene.getRegistry();
 
-        // Clear stale hierarchy components
         registry.clear<Parent>();
         registry.clear<Children>();
 
-        // Rebuild from SceneNode tree
         const auto root = scene.getRoot();
         if (!root)
             return;
@@ -45,11 +43,9 @@ namespace RealmEngine
         {
             current_entity = node->getEntity();
 
-            // Set parent relationship
             if (parent_entity != entt::null)
                 registry.emplace<Parent>(current_entity, Parent {parent_entity});
 
-            // Collect direct child entities
             std::vector<entt::entity> child_entities;
             child_entities.reserve(node->getChildCount());
 
@@ -62,7 +58,6 @@ namespace RealmEngine
                 registry.emplace<Children>(current_entity, Children {std::move(child_entities)});
         }
 
-        // Recurse into children -- pass current_entity as parent (or forward parent_entity if this node has no entity)
         entt::entity effective_parent = (current_entity != entt::null) ? current_entity : parent_entity;
         node->forEachChild([&](const std::shared_ptr<SceneNode>& child) { syncNode(scene, child, effective_parent); });
     }

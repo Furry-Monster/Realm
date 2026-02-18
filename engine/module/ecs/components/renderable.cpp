@@ -1,4 +1,4 @@
-#include "scene/components/renderable.h"
+#include "module/ecs/components/renderable.h"
 
 #include "render/render_object.h"
 #include "resource/asset_manager.h"

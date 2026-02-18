@@ -13,6 +13,7 @@ namespace RealmEngine
     class Window;
     class Renderer;
     class Input;
+    class AudioSystem;
 
     class Engine
     {
@@ -75,6 +76,7 @@ namespace RealmEngine
             assert(m_input && "Engine not initialized");
             return *m_input;
         }
+        AudioSystem* getAudioSystem() const { return m_audio.get(); }
 
     protected:
         void logicalTick();
@@ -90,6 +92,7 @@ namespace RealmEngine
         std::unique_ptr<Window>        m_window;
         std::unique_ptr<Renderer>      m_renderer;
         std::unique_ptr<Input>         m_input;
+        std::unique_ptr<AudioSystem>   m_audio;
 
         bool   m_initialized {false};
         double m_delta_time {0.0};

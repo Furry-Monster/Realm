@@ -1,8 +1,8 @@
 #include "render/light_probe_data.h"
 
-#include "scene/components/lighting/light_probe.h"
-#include "scene/components/transform.h"
-#include "scene/components/world_transform.h"
+#include "module/ecs/components/lighting/light_probe.h"
+#include "module/ecs/components/transform.h"
+#include "module/ecs/components/world_transform.h"
 #include "scene/scene.h"
 
 #include <cstddef>

@@ -5,15 +5,15 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "core/base/macros.h"
+#include "module/ecs/components/lighting/area.h"
+#include "module/ecs/components/lighting/directional.h"
+#include "module/ecs/components/lighting/light_probe.h"
+#include "module/ecs/components/lighting/point.h"
+#include "module/ecs/components/lighting/spot.h"
+#include "module/ecs/components/renderable.h"
+#include "module/ecs/components/transform.h"
 #include "resource/asset_manager.h"
-#include "scene/components/lighting/area.h"
-#include "scene/components/lighting/directional.h"
-#include "scene/components/lighting/light_probe.h"
-#include "scene/components/lighting/point.h"
-#include "scene/components/lighting/spot.h"
-#include "scene/components/renderable.h"
-#include "scene/components/transform.h"
-#include "scene/serialization/scene_serializer.h"
+#include "scene/scene_serializer.h"
 
 namespace RealmEngine
 {

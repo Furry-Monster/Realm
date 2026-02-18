@@ -6,10 +6,6 @@ namespace RealmEngine
 {
     class Entity
     {
-        // NOTE:
-        // Lightweight handle wrapping entt::entity + registry pointer.
-        // Provides ergonomic component access: entity.get<Transform>(), entity.emplace<T>(), etc.
-        // Not intended for long-term storage (registry pointer may become stale).
     public:
         Entity() = default;
         Entity(const entt::entity handle, entt::registry* registry) : m_handle(handle), m_registry(registry) {}

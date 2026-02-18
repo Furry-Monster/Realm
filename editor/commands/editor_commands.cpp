@@ -5,7 +5,7 @@
 #include "panels/file_dialog_widget.h"
 #include "scene/scene.h"
 #include "scene/scene_node.h"
-#include "scene/serialization/scene_serializer.h"
+#include "scene/scene_serializer.h"
 #include "widget.h"
 
 #include <filesystem>

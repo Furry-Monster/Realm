@@ -1,15 +1,15 @@
 #include "scene/scene.h"
 
 #include "core/base/macros.h"
-#include "scene/components/camera_controller.h"
-#include "scene/components/lighting/area.h"
-#include "scene/components/lighting/directional.h"
-#include "scene/components/lighting/point.h"
-#include "scene/components/lighting/spot.h"
-#include "scene/components/name_tag.h"
-#include "scene/components/renderable.h"
-#include "scene/systems/hierarchy_system.h"
-#include "scene/systems/transform_system.h"
+#include "module/ecs/components/camera_controller.h"
+#include "module/ecs/components/lighting/area.h"
+#include "module/ecs/components/lighting/directional.h"
+#include "module/ecs/components/lighting/point.h"
+#include "module/ecs/components/lighting/spot.h"
+#include "module/ecs/components/name_tag.h"
+#include "module/ecs/components/renderable.h"
+#include "module/ecs/systems/hierarchy_system.h"
+#include "module/ecs/systems/transform_system.h"
 
 namespace RealmEngine
 {

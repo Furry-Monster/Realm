@@ -12,6 +12,11 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/logger.h"
+#include "module/ecs/components/camera_controller.h"
+#include "module/ecs/components/lighting/light_probe.h"
+#include "module/ecs/components/transform.h"
+#include "module/ecs/components/world_transform.h"
+#include "module/ecs/systems/audio_system.h"
 #include "platform/info/platform_info.h"
 #include "platform/input/input.h"
 #include "platform/window/window.h"
@@ -19,10 +24,6 @@
 #include "render/renderer.h"
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
-#include "scene/components/camera_controller.h"
-#include "scene/components/lighting/light_probe.h"
-#include "scene/components/transform.h"
-#include "scene/components/world_transform.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
 
@@ -66,8 +67,16 @@ namespace RealmEngine
             (void)m_event_bus->subscribe<FramebufferResizeEvent>(
                 [this](const FramebufferResizeEvent& e) { m_renderer->onResize(e.width, e.height); });
 
+            (void)m_event_bus->subscribe<SceneChangedEvent>([this](const SceneChangedEvent&) {
+                if (m_audio)
+                    m_audio->clearSceneSounds();
+            });
+
             m_input = std::make_unique<Input>();
             m_input->initialize(*m_event_bus, *m_window);
+
+            m_audio = std::make_unique<AudioSystem>();
+            m_audio->initialize(m_config->getAudioConfig());
 
             const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
             m_max_delta_time                      = gameplay_config.max_delta_time;
@@ -81,8 +90,8 @@ namespace RealmEngine
         }
         catch (...)
         {
-            // Ensure clean state on partial initialization failure
             g_logger = nullptr;
+            m_audio.reset();
             m_input.reset();
             m_renderer.reset();
             m_window.reset();
@@ -102,7 +111,11 @@ namespace RealmEngine
         m_initialized = false;
         m_delta_time  = 0.0;
 
-        // Shutdown in reverse initialization order
+        if (m_audio)
+        {
+            m_audio->shutdown();
+            m_audio.reset();
+        }
         m_input->disposal(*m_event_bus);
         m_input.reset();
 
@@ -188,7 +201,18 @@ namespace RealmEngine
     {
         m_input->tick();
         m_window->pollEvents();
-        m_scene->getCurrentOrNewScene()->tick(static_cast<float>(m_delta_time));
+        auto* scene = m_scene->getCurrentOrNewScene().get();
+        scene->tick(static_cast<float>(m_delta_time));
+
+        if (m_audio && scene)
+        {
+            m_audio->tick(scene, static_cast<float>(m_delta_time), m_config->getAssetFolder().string());
+            const auto* cam = m_renderer->getCamera().get();
+            if (cam)
+            {
+                m_audio->setListener(cam->getPosition(), cam->getLocalForward(), cam->getLocalUp());
+            }
+        }
     }
 
     void Engine::renderTick()

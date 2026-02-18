@@ -19,10 +19,11 @@ set(ENGINE_MODULES
         render/passes
         resource
         scene
-        scene/components
-        scene/components/lighting
-        scene/serialization
-        scene/systems
+        module/ecs
+        module/ecs/components
+        module/ecs/components/lighting
+        module/ecs/components/audio
+        module/ecs/systems
 )
 
 file(GLOB ENGINE_ROOT_FILES CONFIGURE_DEPENDS

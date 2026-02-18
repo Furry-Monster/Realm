@@ -67,4 +67,8 @@ namespace RealmEngine
 
     void ConfigManager::setPhysicsConfig(const PhysicsConfig& config) { m_physics_config = config; }
 
+    const AudioConfig& ConfigManager::getAudioConfig() const { return m_audio_config; }
+
+    void ConfigManager::setAudioConfig(const AudioConfig& config) { m_audio_config = config; }
+
 } // namespace RealmEngine

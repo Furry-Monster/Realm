@@ -107,6 +107,7 @@ namespace RealmEngine
         serializeRendererConfig(config.getRendererConfig(), json["renderer"]);
         serializeGamePlayConfig(config.getGamePlayConfig(), json["gameplay"]);
         serializePhysicsConfig(config.getPhysicsConfig(), json["physics"]);
+        serializeAudioConfig(config.getAudioConfig(), json["audio"]);
     }
 
     void ConfigSerializer::deserializeConfig(ConfigManager& config, const nlohmann::json& json)
@@ -144,6 +145,13 @@ namespace RealmEngine
             PhysicsConfig physics = config.getPhysicsConfig();
             deserializePhysicsConfig(physics, json["physics"]);
             config.setPhysicsConfig(physics);
+        }
+
+        if (json.contains("audio"))
+        {
+            AudioConfig audio = config.getAudioConfig();
+            deserializeAudioConfig(audio, json["audio"]);
+            config.setAudioConfig(audio);
         }
     }
 
@@ -335,6 +343,29 @@ namespace RealmEngine
             physics.max_substeps = json["max_substeps"].get<int>();
         if (json.contains("fixed_timestep"))
             physics.fixed_timestep = json["fixed_timestep"].get<float>();
+    }
+
+    void ConfigSerializer::serializeAudioConfig(const AudioConfig& audio, nlohmann::json& json)
+    {
+        json["enabled"]         = audio.enabled;
+        json["master_volume"]   = audio.master_volume;
+        json["sample_rate"]     = audio.sample_rate;
+        json["channels"]        = audio.channels;
+        json["spatial_enabled"] = audio.spatial_enabled;
+    }
+
+    void ConfigSerializer::deserializeAudioConfig(AudioConfig& audio, const nlohmann::json& json)
+    {
+        if (json.contains("enabled"))
+            audio.enabled = json["enabled"].get<bool>();
+        if (json.contains("master_volume"))
+            audio.master_volume = json["master_volume"].get<float>();
+        if (json.contains("sample_rate"))
+            audio.sample_rate = json["sample_rate"].get<int>();
+        if (json.contains("channels"))
+            audio.channels = json["channels"].get<int>();
+        if (json.contains("spatial_enabled"))
+            audio.spatial_enabled = json["spatial_enabled"].get<bool>();
     }
 
 } // namespace RealmEngine

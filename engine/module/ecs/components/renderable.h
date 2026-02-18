@@ -16,7 +16,6 @@ namespace RealmEngine
         bool                          flip_textures = false;
     };
 
-    // Resource loading helpers (kept separate from the component to maintain ECS data purity)
     void loadRenderableModel(Renderable& renderable, RHIDevice& device);
     void loadRenderableModel(Renderable& renderable, RHIDevice& device, AssetManager& asset_mgr);
 

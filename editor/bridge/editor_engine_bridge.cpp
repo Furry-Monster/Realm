@@ -3,6 +3,10 @@
 #include "core/base/macros.h"
 #include "core/math/aabb.h"
 #include "engine.h"
+#include "module/ecs/components/camera_controller.h"
+#include "module/ecs/components/renderable.h"
+#include "module/ecs/components/transform.h"
+#include "module/ecs/components/world_transform.h"
 #include "platform/window/window.h"
 #include "render/renderer.h"
 #include "render/rhi/rhi_device.h"
@@ -11,14 +15,10 @@
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
 #include "resource/config_serializer.h"
-#include "scene/components/camera_controller.h"
-#include "scene/components/renderable.h"
-#include "scene/components/transform.h"
-#include "scene/components/world_transform.h"
 #include "scene/scene.h"
 #include "scene/scene_manager.h"
 #include "scene/scene_node.h"
-#include "scene/serialization/scene_serializer.h"
+#include "scene/scene_serializer.h"
 
 #include <cstring>
 #include <filesystem>

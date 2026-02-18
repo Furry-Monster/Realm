@@ -4,12 +4,12 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "editor_context.h"
+#include "module/ecs/components/hierarchy.h"
+#include "module/ecs/components/transform.h"
+#include "module/ecs/components/world_transform.h"
 #include "render/rhi/rhi_texture.h"
 #include "render/viewport_display_mode.h"
 #include "resource/config_manager.h"
-#include "scene/components/hierarchy.h"
-#include "scene/components/transform.h"
-#include "scene/components/world_transform.h"
 #include "scene/scene.h"
 
 #include <ImGuizmo.h>

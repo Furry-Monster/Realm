@@ -1,4 +1,4 @@
-#include "scene/components/transform.h"
+#include "module/ecs/components/transform.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -6,7 +6,6 @@ namespace RealmEngine
 {
     glm::mat4 Transform::getModelMatrix() const
     {
-        // M = T * R * S
         const glm::mat4 t = glm::translate(glm::mat4(1.0f), position);
         const glm::mat4 r = glm::mat4_cast(rotation);
         const glm::mat4 s = glm::scale(glm::mat4(1.0f), scale);

@@ -1,4 +1,4 @@
-#include "scene/serialization/scene_serializer.h"
+#include "scene/scene_serializer.h"
 
 #include <fstream>
 #include <json.hpp>
@@ -7,16 +7,17 @@
 
 #include "core/base/macros.h"
 #include "core/base/utils.h"
+#include "module/ecs/components/audio/audio_source.h"
+#include "module/ecs/components/lighting/area.h"
+#include "module/ecs/components/lighting/directional.h"
+#include "module/ecs/components/lighting/point.h"
+#include "module/ecs/components/lighting/spot.h"
+#include "module/ecs/components/renderable.h"
+#include "module/ecs/components/transform.h"
 #include "render/material.h"
 #include "render/render_mesh.h"
 #include "render/render_object.h"
 #include "resource/asset_manager.h"
-#include "scene/components/lighting/area.h"
-#include "scene/components/lighting/directional.h"
-#include "scene/components/lighting/point.h"
-#include "scene/components/lighting/spot.h"
-#include "scene/components/renderable.h"
-#include "scene/components/transform.h"
 #include "scene/scene.h"
 #include "scene/scene_node.h"
 
@@ -49,7 +50,6 @@ namespace RealmEngine
         {
             nlohmann::json json_obj = nlohmann::json::parse(json);
 
-            // Version check
             int version = 0;
             if (json_obj.contains("version") && json_obj["version"].is_number_integer())
                 version = json_obj["version"].get<int>();
@@ -222,7 +222,6 @@ namespace RealmEngine
                     m["vert_path"]     = mat.vert_path;
                     m["frag_path"]     = mat.frag_path;
 
-                    // Serialize all non-texture properties
                     nlohmann::json props_json = nlohmann::json::array();
                     for (const auto& [name, prop] : props.getProperties())
                     {
@@ -292,6 +291,18 @@ namespace RealmEngine
             c["enabled"]   = al->enabled;
             c["width"]     = al->width;
             c["height"]    = al->height;
+            components_json.push_back(c);
+        }
+
+        if (auto* as = scene.tryGet<AudioSource>(entity))
+        {
+            nlohmann::json c;
+            c["type"]          = "AudioSource";
+            c["clip_path"]     = as->clip_path;
+            c["volume"]        = as->volume;
+            c["loop"]          = as->loop;
+            c["spatial"]       = as->spatial;
+            c["play_on_start"] = as->play_on_start;
             components_json.push_back(c);
         }
 
@@ -441,7 +452,6 @@ namespace RealmEngine
                 {
                     if (comp_json["rotation"].size() == 4)
                     {
-                        // Quaternion: [w, x, y, z]
                         rotation = glm::quat(comp_json["rotation"][0],
                                              comp_json["rotation"][1],
                                              comp_json["rotation"][2],
@@ -449,7 +459,6 @@ namespace RealmEngine
                     }
                     else if (comp_json["rotation"].size() == 3)
                     {
-                        // Legacy euler angles fallback
                         rotation = glm::quat(
                             glm::vec3(comp_json["rotation"][0], comp_json["rotation"][1], comp_json["rotation"][2]));
                     }
@@ -485,7 +494,6 @@ namespace RealmEngine
                         auto&       props = mat.properties;
                         const auto& m     = arr[i];
 
-                        // New format
                         if (m.contains("shading_model") && m["shading_model"].is_number_integer())
                             mat.shading_model = static_cast<ShadingModel>(m["shading_model"].get<int>());
                         if (m.contains("blend_mode") && m["blend_mode"].is_number_integer())
@@ -543,10 +551,8 @@ namespace RealmEngine
                             }
                         }
 
-                        // Sync alpha_cutoff -> property block
                         props.setFloat("material.alphaCutout", mat.alpha_cutoff);
 
-                        // Legacy format backward compatibility
                         if (m.contains("opacity") && m["opacity"].is_number() && !m.contains("properties"))
                         {
                             props.setFloat("material.opacity", m["opacity"]);
@@ -657,6 +663,22 @@ namespace RealmEngine
                     width = comp_json["width"];
                 if (comp_json.contains("height") && comp_json["height"].is_number())
                     height = comp_json["height"];
+            }
+            else if (type == "AudioSource")
+            {
+                auto& [clip_path, volume, loop, spatial, play_on_start, playing, start_attempted] =
+                    entity.emplace<AudioSource>();
+
+                if (comp_json.contains("clip_path") && comp_json["clip_path"].is_string())
+                    clip_path = comp_json["clip_path"];
+                if (comp_json.contains("volume") && comp_json["volume"].is_number())
+                    volume = comp_json["volume"];
+                if (comp_json.contains("loop") && comp_json["loop"].is_boolean())
+                    loop = comp_json["loop"];
+                if (comp_json.contains("spatial") && comp_json["spatial"].is_boolean())
+                    spatial = comp_json["spatial"];
+                if (comp_json.contains("play_on_start") && comp_json["play_on_start"].is_boolean())
+                    play_on_start = comp_json["play_on_start"];
             }
         }
     }

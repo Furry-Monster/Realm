@@ -1,8 +1,8 @@
-#include "scene/systems/transform_system.h"
+#include "module/ecs/systems/transform_system.h"
 
-#include "scene/components/hierarchy.h"
-#include "scene/components/transform.h"
-#include "scene/components/world_transform.h"
+#include "module/ecs/components/hierarchy.h"
+#include "module/ecs/components/transform.h"
+#include "module/ecs/components/world_transform.h"
 #include "scene/scene.h"
 
 namespace RealmEngine
@@ -11,7 +11,6 @@ namespace RealmEngine
     {
         auto& registry = scene.getRegistry();
 
-        // Process root entities: have Transform but no Parent
         const auto view = registry.view<Transform>(entt::exclude<Parent>);
         for (const auto entity : view)
         {
@@ -30,10 +29,8 @@ namespace RealmEngine
         const glm::mat4 local_matrix = transform->getModelMatrix();
         const glm::mat4 world_matrix = parent_world * local_matrix;
 
-        // Store computed world matrix
         registry.emplace_or_replace<WorldTransform>(entity, WorldTransform {world_matrix});
 
-        // Recurse into children
         const auto* children = registry.try_get<Children>(entity);
         if (children)
         {

@@ -7,13 +7,6 @@ namespace RealmEngine
 {
     class Scene;
 
-    /**
-     * @brief
-     * Computes WorldTransform for every entity that owns a Transform component.
-     * Uses Parent / Children hierarchy (populated by HierarchySystem) to propagate
-     * parent transforms down to children.
-     * Call once per frame *after* HierarchySystem::update().
-     */
     class TransformSystem
     {
     public:

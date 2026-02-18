@@ -86,6 +86,15 @@ namespace RealmEngine
         float fixed_timestep = 1.0f / 60.0f;
     };
 
+    struct AudioConfig
+    {
+        bool  enabled         = true;
+        float master_volume   = 1.0f;
+        int   sample_rate     = 0;
+        int   channels        = 0;
+        bool  spatial_enabled = true;
+    };
+
     class ConfigManager
     {
     public:
@@ -105,12 +114,14 @@ namespace RealmEngine
         const RendererConfig& getRendererConfig() const;
         const GamePlayConfig& getGamePlayConfig() const;
         const PhysicsConfig&  getPhysicsConfig() const;
+        const AudioConfig&    getAudioConfig() const;
 
         void setGeneralConfig(const GeneralConfig& config);
         void setWindowConfig(const WindowConfig& config);
         void setRendererConfig(const RendererConfig& config);
         void setGamePlayConfig(const GamePlayConfig& config);
         void setPhysicsConfig(const PhysicsConfig& config);
+        void setAudioConfig(const AudioConfig& config);
 
         // Helper
         const std::filesystem::path& getRootFolder() const;
@@ -123,5 +134,6 @@ namespace RealmEngine
         RendererConfig m_renderer_config;
         GamePlayConfig m_gameplay_config;
         PhysicsConfig  m_physics_config;
+        AudioConfig    m_audio_config;
     };
 } // namespace RealmEngine

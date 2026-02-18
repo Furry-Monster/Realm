@@ -1,4 +1,4 @@
-#include "scene/components/camera_controller.h"
+#include "module/ecs/components/camera_controller.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -26,12 +26,10 @@ namespace RealmEngine
 
         const Command cmd = m_input->getCurrentCommand();
 
-        // Calculate movement speed
         float move_speed = m_move_speed;
         if (cmd & static_cast<Command>(BindableCommand::SPRINT))
             move_speed *= m_sprint_multiplier;
 
-        // Calculate movement direction
         glm::vec3 move_dir(0.0f);
 
         if (cmd & static_cast<Command>(BindableCommand::FORWARD))
@@ -43,7 +41,6 @@ namespace RealmEngine
         if (cmd & static_cast<Command>(BindableCommand::RIGHT))
             move_dir += m_camera->getLocalRight();
 
-        // Apply movement
         if (glm::length(move_dir) > 0.0f)
         {
             move_dir                     = glm::normalize(move_dir);
@@ -51,7 +48,6 @@ namespace RealmEngine
             m_camera->setPosition(new_position);
         }
 
-        // Mouse rotation control (when FOCUS is active)
         if (cmd & static_cast<Command>(BindableCommand::FOCUS))
         {
             const float yaw_delta   = static_cast<float>(m_input->getCursorDeltaX()) * m_mouse_sensitivity;
