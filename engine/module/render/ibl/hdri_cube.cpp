@@ -1,6 +1,6 @@
 #include "module/render/ibl/hdri_cube.h"
 
-#include "core/geometry/primitive_vertices.h"
+#include "core/math/primitive_vertices.h"
 
 #include "module/render/ibl/hdr_texture.h"
 #include "module/render/ibl/ibl_geometry.h"

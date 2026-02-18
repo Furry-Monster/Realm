@@ -330,8 +330,8 @@ namespace RealmEngine
         if (auto* al = scene.tryGet<AudioListener>(entity))
         {
             nlohmann::json c;
-            c["type"]     = "AudioListener";
-            c["primary"]  = al->primary;
+            c["type"]    = "AudioListener";
+            c["primary"] = al->primary;
             components_json.push_back(c);
         }
 

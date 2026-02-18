@@ -1,6 +1,6 @@
 #include "module/render/skybox.h"
 
-#include "core/geometry/primitive_vertices.h"
+#include "core/math/primitive_vertices.h"
 #include "module/render/rhi/rhi_device.h"
 #include "module/render/rhi/rhi_texture.h"
 

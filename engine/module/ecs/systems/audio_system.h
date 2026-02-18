@@ -48,7 +48,7 @@ namespace RealmEngine
         std::unique_ptr<ma_engine, void (*)(ma_engine*)> m_engine;
         std::unordered_map<entt::entity, ma_sound*>      m_entity_sounds;
         std::vector<ma_sound*>                           m_one_shot_sounds;
-        bool                                            m_spatial_enabled {true};
+        bool                                             m_spatial_enabled {true};
     };
 
 } // namespace RealmEngine
