@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "renderer/material.h"
-#include "rhi/rhi_texture.h"
 #include "widget.h"
 
 namespace RealmEngine
@@ -14,7 +13,7 @@ namespace RealmEngine
     class PropertiesWidget : public Widget
     {
     public:
-        PropertiesWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge);
+        PropertiesWidget(const std::shared_ptr<EditorContext>& context, EditorEngineBridge& bridge);
         ~PropertiesWidget() override = default;
 
         PropertiesWidget(const PropertiesWidget&)            = delete;
@@ -28,10 +27,10 @@ namespace RealmEngine
         void renderTransform();
         void renderRenderable();
         void renderMaterialEditor(Material& mat);
-        void renderTextureSlot(const char*            label,
-                               const std::string&     use_key,
-                               const std::string&     tex_key,
-                               MaterialPropertyBlock& props);
+        void renderTextureSlot(const char*                  label,
+                               const std::string&           use_key,
+                               const std::string&           tex_key,
+                               const MaterialPropertyBlock& props);
         void renderPointLight();
         void renderSpotLight();
         void renderDirectionalLight();

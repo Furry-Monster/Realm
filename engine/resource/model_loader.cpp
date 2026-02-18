@@ -11,7 +11,7 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "renderer/material.h"
 #include "renderer/render_mesh.h"
 #include "resource/asset_manager.h"

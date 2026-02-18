@@ -6,7 +6,6 @@
 #include "bridge/editor_engine_bridge.h"
 #include "commands/command_executor.h"
 #include "commands/editor_commands.h"
-#include "core/log/log_macros.h"
 #include "editor_context.h"
 #include "engine.h"
 #include "panels/asset_browser_widget.h"
@@ -30,6 +29,8 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+
+#include "core/base/macros.h"
 
 namespace RealmEngine
 {
@@ -94,12 +95,12 @@ namespace RealmEngine
         auto                            file_dialog = std::make_shared<FileDialogWidget>();
         std::weak_ptr<FileDialogWidget> weak_dialog = file_dialog;
         file_dialog->setOnFileSelected([this, weak_dialog](const std::filesystem::path& path) {
-            auto dialog = weak_dialog.lock();
+            const auto dialog = weak_dialog.lock();
             if (!dialog)
                 return;
             if (dialog->getMode() == FileDialogWidget::Mode::Open)
             {
-                auto loaded = m_bridge->loadScene(path.string());
+                const auto loaded = m_bridge->loadScene(path.string());
                 if (loaded)
                 {
                     m_bridge->setCurrentScene(loaded);
@@ -339,7 +340,7 @@ namespace RealmEngine
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        ImGuiIO& io = ImGui::GetIO();
+        const ImGuiIO& io = ImGui::GetIO();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
             void* backup = Window::getCurrentContext();

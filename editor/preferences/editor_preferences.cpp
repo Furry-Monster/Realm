@@ -1,16 +1,16 @@
 #include "editor_preferences.h"
 
-#include "core/log/log_macros.h"
 #include "platform/filesystem/filesystem.h"
 
 #include <filesystem>
 #include <fstream>
 #include <json.hpp>
-#include <sstream>
+
+#include "core/base/macros.h"
 
 namespace RealmEngine
 {
-    static const char* themeToString(EditorTheme t)
+    static const char* themeToString(const EditorTheme t)
     {
         switch (t)
         {

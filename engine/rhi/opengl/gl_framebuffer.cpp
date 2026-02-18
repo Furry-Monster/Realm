@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <algorithm>
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "rhi/opengl/gl_format_utils.h"
 #include "rhi/opengl/gl_texture.h"
 

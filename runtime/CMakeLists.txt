@@ -1,9 +1,9 @@
 set(TARGET_NAME RealmRuntime)
 
 file(GLOB RUNTIME_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
 
 add_executable(${TARGET_NAME} ${RUNTIME_SOURCES})

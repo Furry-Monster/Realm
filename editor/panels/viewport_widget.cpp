@@ -27,7 +27,7 @@ namespace RealmEngine
     static void disableBlendCB(const ImDrawList*, const ImDrawCmd*) { glDisable(GL_BLEND); }
     static void enableBlendCB(const ImDrawList*, const ImDrawCmd*) { glEnable(GL_BLEND); }
 
-    static void drawTexturePreview(RHITexture* tex, ImVec2 avail, bool force_opaque = false)
+    static void drawTexturePreview(const RHITexture* tex, const ImVec2 avail, const bool force_opaque = false)
     {
         if (!tex)
         {
@@ -35,8 +35,8 @@ namespace RealmEngine
             return;
         }
 
-        float w = static_cast<float>(tex->getWidth());
-        float h = static_cast<float>(tex->getHeight());
+        const float w = static_cast<float>(tex->getWidth());
+        const float h = static_cast<float>(tex->getHeight());
 
         if (w <= 0.0f || h <= 0.0f || avail.x <= 0.0f || avail.y <= 0.0f)
         {
@@ -44,10 +44,9 @@ namespace RealmEngine
             return;
         }
 
-        float  scale = std::min(avail.x / w, avail.y / h);
-        ImVec2 display_size(w * scale, h * scale);
-
-        ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
+        const float       scale = std::min(avail.x / w, avail.y / h);
+        const ImVec2      display_size(w * scale, h * scale);
+        const ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
 
         if (force_opaque)
         {
@@ -71,7 +70,7 @@ namespace RealmEngine
             return;
         }
 
-        bool is_deferred = m_bridge->getPipelineMode() == PipelineMode::Deferred;
+        const bool is_deferred = m_bridge->getPipelineMode() == PipelineMode::Deferred;
 
         // Pipeline mode label
         if (is_deferred)
@@ -81,7 +80,7 @@ namespace RealmEngine
         ImGui::SameLine();
 
         // Display mode combo
-        float combo_width = ImGui::GetContentRegionAvail().x * 0.4f;
+        const float combo_width = ImGui::GetContentRegionAvail().x * 0.4f;
         ImGui::SetNextItemWidth(combo_width);
         int mode = static_cast<int>(m_bridge->getViewportDisplayMode());
         if (ImGui::Combo("##DisplayMode", &mode, displayModeLabels, static_cast<int>(ViewportDisplayMode::Count)))
@@ -101,7 +100,7 @@ namespace RealmEngine
             m_gbuffer_preview = 0;
         }
 
-        ImVec2 avail = ImGui::GetContentRegionAvail();
+        const ImVec2 avail = ImGui::GetContentRegionAvail();
 
         if (m_gbuffer_preview == 0)
         {
@@ -109,7 +108,7 @@ namespace RealmEngine
         }
         else
         {
-            RHITexture* gbuf_tex = nullptr;
+            const RHITexture* gbuf_tex = nullptr;
             switch (m_gbuffer_preview)
             {
                 case 1:

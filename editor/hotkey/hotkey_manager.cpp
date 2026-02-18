@@ -1,17 +1,17 @@
 #include "hotkey_manager.h"
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 
 #include <imgui.h>
 
 namespace RealmEngine
 {
-    bool HotkeyManager::registerHotkey(ImGuiKeyChord chord, Handler handler)
+    bool HotkeyManager::registerHotkey(const ImGuiKeyChord chord, Handler handler)
     {
         return registerHotkey(chord, std::move(handler), ImGuiInputFlags_RouteAlways);
     }
 
-    bool HotkeyManager::registerHotkey(ImGuiKeyChord chord, Handler handler, ImGuiInputFlags flags)
+    bool HotkeyManager::registerHotkey(const ImGuiKeyChord chord, Handler handler, const ImGuiInputFlags flags)
     {
         if (!handler)
             return false;
@@ -29,7 +29,7 @@ namespace RealmEngine
         return true;
     }
 
-    bool HotkeyManager::unregisterHotkey(ImGuiKeyChord chord, ImGuiInputFlags flags)
+    bool HotkeyManager::unregisterHotkey(const ImGuiKeyChord chord, const ImGuiInputFlags flags)
     {
         for (auto it = m_entries.begin(); it != m_entries.end(); ++it)
         {
@@ -44,11 +44,11 @@ namespace RealmEngine
 
     void HotkeyManager::process()
     {
-        for (const auto& entry : m_entries)
+        for (const auto& [chord, handler, flags] : m_entries)
         {
-            if (ImGui::Shortcut(entry.chord, entry.flags))
+            if (ImGui::Shortcut(chord, flags))
             {
-                entry.handler();
+                handler();
                 break;
             }
         }

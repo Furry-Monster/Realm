@@ -27,25 +27,25 @@ namespace RealmEngine
         EditorEngineBridge(EditorEngineBridge&&)                 = delete;
         EditorEngineBridge& operator=(EditorEngineBridge&&)      = delete;
 
-        std::shared_ptr<Scene>      createDefaultScene();
-        std::shared_ptr<Scene>      loadScene(const std::string& path);
-        bool                        saveCurrentScene(const std::string& path);
-        void                        setCurrentScene(std::shared_ptr<Scene> scene);
-        std::shared_ptr<Scene>      getCurrentScene();
+        std::shared_ptr<Scene>      createDefaultScene() const;
+        std::shared_ptr<Scene>      loadScene(const std::string& path) const;
+        bool                        saveCurrentScene(const std::string& path) const;
+        void                        setCurrentScene(std::shared_ptr<Scene> scene) const;
+        std::shared_ptr<Scene>      getCurrentScene() const;
         std::filesystem::path       getConfigRootFolder() const;
         std::filesystem::path       getSceneFileFromConfig() const;
-        void                        requestWindowClose();
-        void                        initializeCameraForScene(std::shared_ptr<Scene> scene);
+        void                        requestWindowClose() const;
+        void                        initializeCameraForScene(const std::shared_ptr<Scene>& scene) const;
         std::filesystem::path       getAssetFolder() const;
-        bool                        addModelToScene(const std::filesystem::path& model_path);
-        std::shared_ptr<RHITexture> getTextureForPreview(const std::filesystem::path& path);
-        ConfigManager&              getConfig();
+        bool                        addModelToScene(const std::filesystem::path& model_path) const;
+        std::shared_ptr<RHITexture> getTextureForPreview(const std::filesystem::path& path) const;
+        ConfigManager&              getConfig() const;
 
         PipelineMode getPipelineMode() const;
 
         ViewportDisplayMode getViewportDisplayMode() const;
-        void                setViewportDisplayMode(ViewportDisplayMode mode);
-        void                setRenderToViewportTexture(bool enable);
+        void                setViewportDisplayMode(ViewportDisplayMode mode) const;
+        void                setRenderToViewportTexture(bool enable) const;
         RHITexture*         getViewportTexture() const;
         void                bindDefaultFramebufferForImGui() const;
 
@@ -54,11 +54,12 @@ namespace RealmEngine
         RHITexture*                getGBufferNormalMetallic() const;
         RHITexture*                getGBufferEmissiveRoughness() const;
         RHITexture*                getGBufferDepth() const;
-        void                       saveConfig();
-        std::shared_ptr<SceneNode> pasteEntityFromClipboard(const std::string& json, std::shared_ptr<SceneNode> parent);
+        void                       saveConfig() const;
+        std::shared_ptr<SceneNode> pasteEntityFromClipboard(const std::string&         json,
+                                                            std::shared_ptr<SceneNode> parent) const;
 
-        void      reloadCustomShaders();
-        EventBus& getEventBus();
+        void      reloadCustomShaders() const;
+        EventBus& getEventBus() const;
 
     private:
         Engine* m_engine;

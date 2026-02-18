@@ -24,10 +24,10 @@ namespace RealmEngine
         static size_t getProcessRSSKB();
 
         // GPU (via RHI; requires valid device with active context)
-        static std::string getGPUVendor(RHIDevice& device);
-        static std::string getGPURenderer(RHIDevice& device);
-        static std::string getAPIVersion(RHIDevice& device);
-        static std::string getShadingLanguageVersion(RHIDevice& device);
+        static std::string getGPUVendor(const RHIDevice& device);
+        static std::string getGPURenderer(const RHIDevice& device);
+        static std::string getAPIVersion(const RHIDevice& device);
+        static std::string getShaderLangVer(const RHIDevice& device);
 
         // display (requires GLFW)
         static int         getMonitorCount();

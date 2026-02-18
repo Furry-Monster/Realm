@@ -18,9 +18,9 @@ namespace RealmEngine
             }
             else
             {
-                float inv_dir = 1.0f / direction[i];
-                float t1      = (min[i] - origin[i]) * inv_dir;
-                float t2      = (max[i] - origin[i]) * inv_dir;
+                const float inv_dir = 1.0f / direction[i];
+                float       t1      = (min[i] - origin[i]) * inv_dir;
+                float       t2      = (max[i] - origin[i]) * inv_dir;
 
                 if (t1 > t2)
                     std::swap(t1, t2);
@@ -71,7 +71,7 @@ namespace RealmEngine
         return AABB(new_min, new_max);
     }
 
-    bool AABB::intersectsSphere(const glm::vec3& center, float radius) const
+    bool AABB::intersectsSphere(const glm::vec3& center, const float radius) const
     {
         float dist_sq = 0.0f;
 
@@ -79,12 +79,12 @@ namespace RealmEngine
         {
             if (center[i] < min[i])
             {
-                float diff = min[i] - center[i];
+                const float diff = min[i] - center[i];
                 dist_sq += diff * diff;
             }
             else if (center[i] > max[i])
             {
-                float diff = center[i] - max[i];
+                const float diff = center[i] - max[i];
                 dist_sq += diff * diff;
             }
         }
@@ -100,12 +100,12 @@ namespace RealmEngine
         {
             if (point[i] < min[i])
             {
-                float diff = min[i] - point[i];
+                const float diff = min[i] - point[i];
                 dist_sq += diff * diff;
             }
             else if (point[i] > max[i])
             {
-                float diff = point[i] - max[i];
+                const float diff = point[i] - max[i];
                 dist_sq += diff * diff;
             }
         }

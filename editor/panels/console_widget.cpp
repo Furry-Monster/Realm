@@ -4,7 +4,6 @@
 
 #include <imgui.h>
 #include <cinttypes>
-#include <cstdint>
 #include <cstdio>
 
 namespace RealmEngine
@@ -54,22 +53,22 @@ namespace RealmEngine
 
         ImGui::BeginChild("LogList", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 
-        for (const auto& entry : m_logs_cache)
+        for (const auto& [level, message, timestamp_ms] : m_logs_cache)
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, levelToColor(entry.level));
+            ImGui::PushStyleColor(ImGuiCol_Text, levelToColor(level));
             if (m_show_timestamps)
             {
-                uint64_t s   = entry.timestamp_ms / 1000;
-                uint64_t h   = s / 3600;
-                uint64_t m   = (s % 3600) / 60;
-                uint64_t sec = s % 60;
-                uint64_t ms  = entry.timestamp_ms % 1000;
-                char     buf[32];
+                const uint64_t s   = timestamp_ms / 1000;
+                const uint64_t h   = s / 3600;
+                const uint64_t m   = (s % 3600) / 60;
+                const uint64_t sec = s % 60;
+                const uint64_t ms  = timestamp_ms % 1000;
+                char           buf[32];
                 snprintf(buf, sizeof(buf), "[%02" PRIu64 ":%02" PRIu64 ":%02" PRIu64 ".%03" PRIu64 "] ", h, m, sec, ms);
                 ImGui::TextUnformatted(buf);
                 ImGui::SameLine(0, 0);
             }
-            ImGui::TextUnformatted(entry.message.c_str());
+            ImGui::TextUnformatted(message.c_str());
             ImGui::PopStyleColor();
         }
 
@@ -79,7 +78,7 @@ namespace RealmEngine
         ImGui::EndChild();
     }
 
-    const char* ConsoleWidget::levelToString(ConsoleLogLevel level) const
+    const char* ConsoleWidget::levelToString(const ConsoleLogLevel level)
     {
         switch (level)
         {
@@ -100,7 +99,7 @@ namespace RealmEngine
         }
     }
 
-    ImVec4 ConsoleWidget::levelToColor(ConsoleLogLevel level) const
+    ImVec4 ConsoleWidget::levelToColor(const ConsoleLogLevel level)
     {
         switch (level)
         {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <filesystem>
-#include <memory>
 #include <string>
 #include <vector>
 #include "widget.h"
@@ -34,12 +33,13 @@ namespace RealmEngine
         void renderTexturePreviewPopup();
         void renderAssetContextMenu();
         void openTexturePreview(const std::filesystem::path& path);
-        bool isModelFile(const std::filesystem::path& path) const;
-        bool isTextureFile(const std::filesystem::path& path) const;
-        bool isHdrFile(const std::filesystem::path& path) const;
-        bool isPbrTextureFile(const std::filesystem::path& path) const;
-        bool filenameHasNormalHint(const std::filesystem::path& path) const;
         bool passesFilter(const std::filesystem::path& entry) const;
+
+        static bool isModelFile(const std::filesystem::path& path);
+        static bool isTextureFile(const std::filesystem::path& path);
+        static bool isHdrFile(const std::filesystem::path& path);
+        static bool isPbrTextureFile(const std::filesystem::path& path);
+        static bool filenameHasNormalHint(const std::filesystem::path& path);
 
         EditorEngineBridge* m_bridge;
 

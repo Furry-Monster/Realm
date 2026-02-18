@@ -7,10 +7,10 @@
 #include <memory>
 #include <string>
 
+#include "core/base/macros.h"
 #include "core/debug/debug_console.h"
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
-#include "core/log/log_macros.h"
 #include "core/log/logger.h"
 #include "platform/info/platform_info.h"
 #include "platform/input/input.h"
@@ -19,7 +19,6 @@
 #include "renderer/renderer.h"
 #include "resource/asset_manager.h"
 #include "resource/config_manager.h"
-#include "rhi/rhi_device.h"
 #include "scene/components/camera_controller.h"
 #include "scene/components/lighting/light_probe.h"
 #include "scene/components/transform.h"
@@ -52,9 +51,10 @@ namespace RealmEngine
             m_scene = std::make_unique<SceneManager>();
             m_scene->initialize(m_config->getAssetFolder());
             m_scene->setAssetManager(m_assets.get());
-            m_scene->setOnSceneChanged([this](std::shared_ptr<Scene> old_scene, std::shared_ptr<Scene> new_scene) {
-                m_event_bus->publish(SceneChangedEvent {old_scene.get(), new_scene.get()});
-            });
+            m_scene->setOnSceneChanged(
+                [this](const std::shared_ptr<Scene>& old_scene, const std::shared_ptr<Scene>& new_scene) {
+                    m_event_bus->publish(SceneChangedEvent {old_scene.get(), new_scene.get()});
+                });
 
             m_window = std::make_unique<Window>();
             m_window->initialize(*m_event_bus, m_config->getWindowConfig());
@@ -131,7 +131,7 @@ namespace RealmEngine
 
     void Engine::loop()
     {
-        std::filesystem::path scene_file = m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
+        const std::filesystem::path scene_file = m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
 
         RHIDevice& device = m_renderer->getDevice();
 
@@ -174,9 +174,9 @@ namespace RealmEngine
 
     void Engine::tick()
     {
-        double current_time = m_window->getTime();
-        m_delta_time        = current_time - m_last_frame_time;
-        m_last_frame_time   = current_time;
+        const double current_time = m_window->getTime();
+        m_delta_time              = current_time - m_last_frame_time;
+        m_last_frame_time         = current_time;
         if (m_delta_time > m_max_delta_time)
             m_delta_time = m_max_delta_time;
 
@@ -193,15 +193,15 @@ namespace RealmEngine
 
     void Engine::renderTick()
     {
-        auto scene = m_scene->getCurrentScene();
+        const auto scene = m_scene->getCurrentScene();
         m_renderer->getRenderScene()->syncFromScene(scene);
 
         if (scene && m_renderer->getLightProbeBaker())
         {
-            auto& registry = scene->getRegistry();
-            auto  view     = registry.view<LightProbe>();
+            auto&      registry = scene->getRegistry();
+            const auto view     = registry.view<LightProbe>();
 
-            for (auto entity : view)
+            for (const auto entity : view)
             {
                 auto& lp = view.get<LightProbe>(entity);
                 if (!lp.needs_update)
@@ -210,13 +210,14 @@ namespace RealmEngine
                 glm::vec3 pos {0.0f};
                 if (auto* wt = scene->tryGet<WorldTransform>(entity))
                     pos = glm::vec3(wt->matrix[3]);
-                else if (auto* t = scene->tryGet<Transform>(entity))
+                else if (const auto* t = scene->tryGet<Transform>(entity))
                     pos = t->position;
 
-                auto result = m_renderer->getLightProbeBaker()->bake(pos, *m_renderer->getRenderScene());
-                if (result.success)
+                const auto [sh_coefficients, success] =
+                    m_renderer->getLightProbeBaker()->bake(pos, *m_renderer->getRenderScene());
+                if (success)
                 {
-                    lp.sh_coefficients = result.sh_coefficients;
+                    lp.sh_coefficients = sh_coefficients;
                     lp.needs_update    = false;
                 }
             }

@@ -14,11 +14,11 @@ option(REALM_ENABLE_SANITIZERS "Enable Address/UB sanitizers" OFF)
 option(REALM_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 
 # Default build type
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-        "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
-endif()
+            "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+endif ()
 
 # Summary
 message(STATUS "")

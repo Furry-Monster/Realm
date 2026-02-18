@@ -84,7 +84,7 @@ namespace RealmEngine
         std::string getGPUVendor() const override;
         std::string getGPURenderer() const override;
         std::string getAPIVersion() const override;
-        std::string getShadingLanguageVersion() const override;
+        std::string getShaderLangVer() const override;
     };
 
 } // namespace RealmEngine

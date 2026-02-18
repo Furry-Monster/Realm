@@ -1,5 +1,6 @@
 #include "core/log/logger.h"
 #include "core/base/macros.h"
+#include "core/base/utils.h"
 #include "core/debug/console_sink.h"
 
 #include <memory>

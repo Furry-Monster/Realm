@@ -29,24 +29,13 @@ namespace RealmEngine
         bool         hasSelectedEntity() const { return m_selected_entity != entt::null; }
         void         clearSelectedEntity() { m_selected_entity = entt::null; }
 
-        void                       setSelectedNode(std::shared_ptr<SceneNode> node) { m_selected_node = node; }
+        void                       setSelectedNode(const std::shared_ptr<SceneNode>& node) { m_selected_node = node; }
         std::shared_ptr<SceneNode> getSelectedNode() const { return m_selected_node; }
         bool                       hasSelectedNode() const { return m_selected_node != nullptr; }
         void                       clearSelectedNode() { m_selected_node.reset(); }
 
-        /// Atomically select a node and its associated entity
-        void selectNodeAndEntity(std::shared_ptr<SceneNode> node)
-        {
-            m_selected_node   = node;
-            m_selected_entity = (node && node->hasEntity()) ? node->getEntity() : entt::null;
-        }
-
-        /// Atomically clear both selection states
-        void clearSelection()
-        {
-            m_selected_node.reset();
-            m_selected_entity = entt::null;
-        }
+        void selectNodeAndEntity(const std::shared_ptr<SceneNode>& node);
+        void clearSelection();
 
         void        setEntityClipboard(const std::string& json) { m_entity_clipboard = json; }
         std::string getEntityClipboard() const { return m_entity_clipboard; }

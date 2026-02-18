@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include "widget.h"
 
 namespace RealmEngine

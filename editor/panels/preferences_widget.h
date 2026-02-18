@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <memory>
 
 #include "preferences/editor_preferences.h"
 #include "widget.h"

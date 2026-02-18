@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <cstdint>
 #include <functional>
 #include <mutex>
 #include <typeindex>
@@ -41,7 +40,7 @@ namespace RealmEngine
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             HandlerId                   id       = m_next_id++;
-            auto                        type_key = std::type_index(typeid(E));
+            const auto                  type_key = std::type_index(typeid(E));
 
             m_handlers[type_key].push_back(
                 {id, [handler = std::move(handler)](const void* raw) { handler(*static_cast<const E*>(raw)); }});
@@ -82,8 +81,8 @@ namespace RealmEngine
             std::vector<ErasedHandler> snapshot;
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
-                auto                        type_key = std::type_index(typeid(E));
-                auto                        it       = m_handlers.find(type_key);
+                const auto                  type_key = std::type_index(typeid(E));
+                const auto                  it       = m_handlers.find(type_key);
                 if (it == m_handlers.end())
                     return;
                 snapshot.reserve(it->second.size());

@@ -12,8 +12,8 @@ namespace RealmEngine
         auto& registry = scene.getRegistry();
 
         // Process root entities: have Transform but no Parent
-        auto view = registry.view<Transform>(entt::exclude<Parent>);
-        for (auto entity : view)
+        const auto view = registry.view<Transform>(entt::exclude<Parent>);
+        for (const auto entity : view)
         {
             updateEntity(scene, entity, glm::mat4(1.0f));
         }
@@ -23,21 +23,21 @@ namespace RealmEngine
     {
         auto& registry = scene.getRegistry();
 
-        auto* transform = registry.try_get<Transform>(entity);
+        const auto* transform = registry.try_get<Transform>(entity);
         if (!transform)
             return;
 
-        glm::mat4 local_matrix = transform->getModelMatrix();
-        glm::mat4 world_matrix = parent_world * local_matrix;
+        const glm::mat4 local_matrix = transform->getModelMatrix();
+        const glm::mat4 world_matrix = parent_world * local_matrix;
 
         // Store computed world matrix
         registry.emplace_or_replace<WorldTransform>(entity, WorldTransform {world_matrix});
 
         // Recurse into children
-        auto* children = registry.try_get<Children>(entity);
+        const auto* children = registry.try_get<Children>(entity);
         if (children)
         {
-            for (auto child : children->entities)
+            for (const auto child : children->entities)
             {
                 updateEntity(scene, child, world_matrix);
             }

@@ -3,52 +3,52 @@ message(STATUS "[Realm] Configuring third-party libraries ...")
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 # GLFW
-if(NOT TARGET glfw)
+if (NOT TARGET glfw)
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
     add_subdirectory(glfw)
     get_target_property(_glfw_inc glfw INTERFACE_INCLUDE_DIRECTORIES)
-    if(_glfw_inc)
+    if (_glfw_inc)
         set_target_properties(glfw PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_glfw_inc}")
-    endif()
-endif()
+    endif ()
+endif ()
 
 # GLAD
-if(NOT TARGET glad)
+if (NOT TARGET glad)
     add_library(glad STATIC "${CMAKE_CURRENT_SOURCE_DIR}/glad/src/glad.c")
     target_include_directories(glad SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/glad/include")
-endif()
+endif ()
 
 # GLM
-if(NOT TARGET glm)
+if (NOT TARGET glm)
     add_library(glm INTERFACE)
     target_include_directories(glm SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/glm")
-endif()
+endif ()
 
 # ImGui
-if(NOT TARGET imgui)
+if (NOT TARGET imgui)
     set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
     file(GLOB IMGUI_CORE_SOURCES "${IMGUI_DIR}/*.cpp")
     add_library(imgui STATIC
-        ${IMGUI_CORE_SOURCES}
-        "${IMGUI_DIR}/backends/imgui_impl_glfw.cpp"
-        "${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp"
+            ${IMGUI_CORE_SOURCES}
+            "${IMGUI_DIR}/backends/imgui_impl_glfw.cpp"
+            "${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp"
     )
     target_include_directories(imgui SYSTEM PUBLIC "${IMGUI_DIR}" "${IMGUI_DIR}/backends")
     target_link_libraries(imgui PUBLIC glfw)
     target_compile_definitions(imgui PUBLIC IMGUI_HAS_DOCK)
-endif()
+endif ()
 
 # stb
-if(NOT TARGET stb)
+if (NOT TARGET stb)
     add_library(stb INTERFACE)
     target_include_directories(stb SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/stb")
-endif()
+endif ()
 
 # Assimp
-if(NOT TARGET assimp)
+if (NOT TARGET assimp)
     set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
     set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
@@ -62,46 +62,46 @@ if(NOT TARGET assimp)
     set(ASSIMP_BUILD_PLY_IMPORTER ON CACHE BOOL "" FORCE)
     set(ASSIMP_BUILD_STL_IMPORTER ON CACHE BOOL "" FORCE)
     add_subdirectory(assimp)
-endif()
+endif ()
 
 # spdlog
-if(NOT TARGET spdlog)
+if (NOT TARGET spdlog)
     set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
     set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(SPDLOG_BUILD_BENCH OFF CACHE BOOL "" FORCE)
     set(SPDLOG_INSTALL OFF CACHE BOOL "" FORCE)
     add_subdirectory(spdlog)
-endif()
+endif ()
 
 # nlohmann/json
-if(NOT TARGET nlohmann)
+if (NOT TARGET nlohmann)
     add_library(nlohmann INTERFACE)
     target_include_directories(nlohmann SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/nlohmann")
-endif()
+endif ()
 
 # EnTT
-if(NOT TARGET entt)
+if (NOT TARGET entt)
     add_library(entt INTERFACE)
     target_include_directories(entt SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/entt/src")
-endif()
+endif ()
 
 # OpenGL (platform-specific)
 add_library(realm_opengl INTERFACE)
-if(UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE)
     set(OpenGL_GL_PREFERENCE GLVND)
     find_package(OpenGL REQUIRED)
     find_package(X11 REQUIRED)
     target_link_libraries(realm_opengl INTERFACE OpenGL::GL ${X11_LIBRARIES})
-elseif(WIN32)
+elseif (WIN32)
     target_link_libraries(realm_opengl INTERFACE opengl32)
-elseif(APPLE)
+elseif (APPLE)
     find_package(OpenGL REQUIRED)
     target_link_libraries(realm_opengl INTERFACE
-        OpenGL::GL "-framework Cocoa" "-framework IOKit" "-framework CoreVideo")
-endif()
+            OpenGL::GL "-framework Cocoa" "-framework IOKit" "-framework CoreVideo")
+endif ()
 
 # Aggregate target
 add_library(realm_third_party INTERFACE)
 add_library(Realm::ThirdParty ALIAS realm_third_party)
 target_link_libraries(realm_third_party INTERFACE
-    glad glfw glm imgui stb assimp spdlog nlohmann entt realm_opengl)
+        glad glfw glm imgui stb assimp spdlog nlohmann entt realm_opengl)

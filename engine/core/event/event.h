@@ -1,7 +1,6 @@
 #pragma once
 
 #include <entt/entity/entity.hpp>
-#include <memory>
 #include <string>
 #include <vector>
 

@@ -12,7 +12,7 @@ namespace RealmEngine
         // Not intended for long-term storage (registry pointer may become stale).
     public:
         Entity() = default;
-        Entity(entt::entity handle, entt::registry* registry) : m_handle(handle), m_registry(registry) {}
+        Entity(const entt::entity handle, entt::registry* registry) : m_handle(handle), m_registry(registry) {}
 
         template<typename T, typename... Args>
         T& emplace(Args&&... args)

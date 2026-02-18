@@ -1,7 +1,7 @@
 #include "resource/config_serializer.h"
 
+#include "core/base/macros.h"
 #include "core/base/utils.h"
-#include "core/log/log_macros.h"
 #include "resource/config_manager.h"
 
 #include <fstream>

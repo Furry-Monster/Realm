@@ -18,7 +18,8 @@
 
 namespace RealmEngine
 {
-    EntityBrowserWidget::EntityBrowserWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge) :
+    EntityBrowserWidget::EntityBrowserWidget(const std::shared_ptr<EditorContext>& context,
+                                             EditorEngineBridge&                   bridge) :
         Widget("Entity Browser"), m_context(context), m_bridge(&bridge)
     {}
 
@@ -31,7 +32,7 @@ namespace RealmEngine
             return;
         }
 
-        auto scene = m_bridge->getCurrentScene();
+        const auto scene = m_bridge->getCurrentScene();
         if (!scene)
         {
             ImGui::Text("No scene loaded");
@@ -41,7 +42,7 @@ namespace RealmEngine
 
         const char* component_types[] = {
             "Transform", "Renderable", "PointLight", "SpotLight", "DirectionalLight", "AreaLight", "NameTag"};
-        const int num_types = 7;
+        constexpr int num_types = 7;
 
         if (ImGui::Combo("Filter by component", &m_selected_component_type, component_types, num_types))
         {
@@ -52,13 +53,14 @@ namespace RealmEngine
         ImGui::Text("Entities: %zu", m_filtered_entities.size());
         ImGui::BeginChild("EntityList", ImVec2(0, 0), true);
 
-        for (entt::entity entity : m_filtered_entities)
+        for (const entt::entity entity : m_filtered_entities)
         {
             if (!scene->valid(entity))
                 continue;
 
             std::string label = getEntityDisplayName(entity);
-            bool selected     = m_context && m_context->hasSelectedEntity() && m_context->getSelectedEntity() == entity;
+            const bool  selected =
+                m_context && m_context->hasSelectedEntity() && m_context->getSelectedEntity() == entity;
 
             if (ImGui::Selectable(label.c_str(), selected))
             {
@@ -79,7 +81,7 @@ namespace RealmEngine
     void EntityBrowserWidget::collectEntitiesWithComponent()
     {
         m_filtered_entities.clear();
-        auto scene = m_bridge->getCurrentScene();
+        const auto scene = m_bridge->getCurrentScene();
         if (!scene)
             return;
 
@@ -122,7 +124,7 @@ namespace RealmEngine
 
     std::string EntityBrowserWidget::getEntityDisplayName(entt::entity entity) const
     {
-        auto scene = m_bridge->getCurrentScene();
+        const auto scene = m_bridge->getCurrentScene();
         if (!scene || !scene->valid(entity))
             return "Invalid";
 

@@ -5,8 +5,8 @@
 #include <sstream>
 #include <unordered_set>
 
+#include "core/base/macros.h"
 #include "core/base/utils.h"
-#include "core/log/log_macros.h"
 #include "renderer/material.h"
 #include "renderer/render_mesh.h"
 #include "renderer/render_object.h"
@@ -24,7 +24,7 @@ namespace RealmEngine
 {
     static constexpr int SCENE_FORMAT_VERSION = 1;
 
-    std::string SceneSerializer::serialize(std::shared_ptr<Scene> scene)
+    std::string SceneSerializer::serialize(const std::shared_ptr<Scene>& scene)
     {
         if (!scene)
             return "{}";
@@ -69,7 +69,7 @@ namespace RealmEngine
 
             if (json_obj.contains("root"))
             {
-                auto root = deserializeNode(json_obj["root"], *scene, device, asset_mgr);
+                const auto root = deserializeNode(json_obj["root"], *scene, device, asset_mgr);
                 if (root)
                 {
                     scene->getRoot()->clearChildren();
@@ -150,7 +150,7 @@ namespace RealmEngine
         }
     }
 
-    void SceneSerializer::serializeNode(nlohmann::json& json, std::shared_ptr<SceneNode> node, Scene& scene)
+    void SceneSerializer::serializeNode(nlohmann::json& json, const std::shared_ptr<SceneNode>& node, Scene& scene)
     {
         if (!node)
             return;
@@ -159,7 +159,7 @@ namespace RealmEngine
 
         if (node->hasEntity())
         {
-            entt::entity entity = node->getEntity();
+            const entt::entity entity = node->getEntity();
             if (scene.valid(entity))
             {
                 nlohmann::json entity_json;
@@ -298,7 +298,7 @@ namespace RealmEngine
         json["components"] = components_json;
     }
 
-    std::string SceneSerializer::serializeNodeToJson(std::shared_ptr<SceneNode> node, Scene& scene)
+    std::string SceneSerializer::serializeNodeToJson(const std::shared_ptr<SceneNode>& node, Scene& scene)
     {
         if (!node)
             return "{}";
@@ -309,7 +309,7 @@ namespace RealmEngine
 
     namespace
     {
-        std::string findUniqueName(Scene& scene, std::unordered_set<std::string>& used, const std::string& base)
+        std::string findUniqueName(const Scene& scene, std::unordered_set<std::string>& used, const std::string& base)
         {
             std::string name = base;
             int         n    = 0;
@@ -330,9 +330,9 @@ namespace RealmEngine
     {
         if (!node_json.contains("name"))
             return nullptr;
-        std::string base_name = node_json["name"];
-        std::string name      = findUniqueName(scene, used, base_name);
-        auto        node      = std::make_shared<SceneNode>(name);
+        const std::string base_name = node_json["name"];
+        std::string       name      = findUniqueName(scene, used, base_name);
+        auto              node      = std::make_shared<SceneNode>(name);
 
         if (node_json.contains("entity"))
         {
@@ -354,11 +354,11 @@ namespace RealmEngine
         return node;
     }
 
-    std::shared_ptr<SceneNode> SceneSerializer::pasteNodeFromJson(const std::string&         json,
-                                                                  Scene&                     scene,
-                                                                  std::shared_ptr<SceneNode> parent,
-                                                                  RHIDevice&                 device,
-                                                                  AssetManager*              asset_mgr)
+    std::shared_ptr<SceneNode> SceneSerializer::pasteNodeFromJson(const std::string&                json,
+                                                                  Scene&                            scene,
+                                                                  const std::shared_ptr<SceneNode>& parent,
+                                                                  RHIDevice&                        device,
+                                                                  AssetManager*                     asset_mgr)
     {
         if (json.empty() || !parent)
             return nullptr;
@@ -394,7 +394,7 @@ namespace RealmEngine
         if (json.contains("entity"))
         {
             deserializeEntity(json["entity"], scene, name, device, asset_mgr);
-            auto entity = scene.findEntity(name);
+            const auto entity = scene.findEntity(name);
             if (entity)
                 node->setEntity(entity.handle());
         }
@@ -429,36 +429,34 @@ namespace RealmEngine
                 continue;
 
             std::string type = comp_json["type"];
-
             if (type == "Transform")
             {
-                auto& tf = entity.emplace<Transform>();
+                auto& [position, rotation, scale] = entity.emplace<Transform>();
 
                 if (comp_json.contains("position") && comp_json["position"].is_array() &&
                     comp_json["position"].size() == 3)
-                    tf.position =
-                        glm::vec3(comp_json["position"][0], comp_json["position"][1], comp_json["position"][2]);
+                    position = glm::vec3(comp_json["position"][0], comp_json["position"][1], comp_json["position"][2]);
 
                 if (comp_json.contains("rotation") && comp_json["rotation"].is_array())
                 {
                     if (comp_json["rotation"].size() == 4)
                     {
                         // Quaternion: [w, x, y, z]
-                        tf.rotation = glm::quat(comp_json["rotation"][0],
-                                                comp_json["rotation"][1],
-                                                comp_json["rotation"][2],
-                                                comp_json["rotation"][3]);
+                        rotation = glm::quat(comp_json["rotation"][0],
+                                             comp_json["rotation"][1],
+                                             comp_json["rotation"][2],
+                                             comp_json["rotation"][3]);
                     }
                     else if (comp_json["rotation"].size() == 3)
                     {
                         // Legacy euler angles fallback
-                        tf.rotation = glm::quat(
+                        rotation = glm::quat(
                             glm::vec3(comp_json["rotation"][0], comp_json["rotation"][1], comp_json["rotation"][2]));
                     }
                 }
 
                 if (comp_json.contains("scale") && comp_json["scale"].is_array() && comp_json["scale"].size() == 3)
-                    tf.scale = glm::vec3(comp_json["scale"][0], comp_json["scale"][1], comp_json["scale"][2]);
+                    scale = glm::vec3(comp_json["scale"][0], comp_json["scale"][1], comp_json["scale"][2]);
             }
             else if (type == "Renderable")
             {
@@ -586,71 +584,79 @@ namespace RealmEngine
             }
             else if (type == "Point")
             {
-                auto& pl = entity.emplace<PointLight>();
+                auto& [color, intensity, enabled, constant, linear, quadratic, range] = entity.emplace<PointLight>();
 
                 if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
-                    pl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
+                    color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
                 if (comp_json.contains("intensity") && comp_json["intensity"].is_number())
-                    pl.intensity = comp_json["intensity"];
+                    intensity = comp_json["intensity"];
                 if (comp_json.contains("enabled") && comp_json["enabled"].is_boolean())
-                    pl.enabled = comp_json["enabled"];
+                    enabled = comp_json["enabled"];
                 if (comp_json.contains("range") && comp_json["range"].is_number())
-                    pl.range = comp_json["range"];
+                    range = comp_json["range"];
                 if (comp_json.contains("constant") && comp_json["constant"].is_number())
-                    pl.constant = comp_json["constant"];
+                    constant = comp_json["constant"];
                 if (comp_json.contains("linear") && comp_json["linear"].is_number())
-                    pl.linear = comp_json["linear"];
+                    linear = comp_json["linear"];
                 if (comp_json.contains("quadratic") && comp_json["quadratic"].is_number())
-                    pl.quadratic = comp_json["quadratic"];
+                    quadratic = comp_json["quadratic"];
             }
             else if (type == "Spot")
             {
-                auto& sl = entity.emplace<SpotLight>();
+                auto& [color,
+                       intensity,
+                       enabled,
+                       constant,
+                       linear,
+                       quadratic,
+                       range,
+                       inner_cone_angle,
+                       outer_cone_angle] = entity.emplace<SpotLight>();
 
                 if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
-                    sl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
+                    color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
                 if (comp_json.contains("intensity") && comp_json["intensity"].is_number())
-                    sl.intensity = comp_json["intensity"];
+                    intensity = comp_json["intensity"];
                 if (comp_json.contains("enabled") && comp_json["enabled"].is_boolean())
-                    sl.enabled = comp_json["enabled"];
+                    enabled = comp_json["enabled"];
                 if (comp_json.contains("range") && comp_json["range"].is_number())
-                    sl.range = comp_json["range"];
+                    range = comp_json["range"];
                 if (comp_json.contains("constant") && comp_json["constant"].is_number())
-                    sl.constant = comp_json["constant"];
+                    constant = comp_json["constant"];
                 if (comp_json.contains("linear") && comp_json["linear"].is_number())
-                    sl.linear = comp_json["linear"];
+                    linear = comp_json["linear"];
                 if (comp_json.contains("quadratic") && comp_json["quadratic"].is_number())
-                    sl.quadratic = comp_json["quadratic"];
+                    quadratic = comp_json["quadratic"];
                 if (comp_json.contains("inner_cone_angle") && comp_json["inner_cone_angle"].is_number())
-                    sl.inner_cone_angle = comp_json["inner_cone_angle"];
+                    inner_cone_angle = comp_json["inner_cone_angle"];
                 if (comp_json.contains("outer_cone_angle") && comp_json["outer_cone_angle"].is_number())
-                    sl.outer_cone_angle = comp_json["outer_cone_angle"];
+                    outer_cone_angle = comp_json["outer_cone_angle"];
             }
             else if (type == "Directional")
             {
-                auto& dl = entity.emplace<DirectionalLight>();
+                auto& [color, intensity, enabled] = entity.emplace<DirectionalLight>();
 
                 if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
-                    dl.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
+                    color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
                 if (comp_json.contains("intensity") && comp_json["intensity"].is_number())
-                    dl.intensity = comp_json["intensity"];
+                    intensity = comp_json["intensity"];
                 if (comp_json.contains("enabled") && comp_json["enabled"].is_boolean())
-                    dl.enabled = comp_json["enabled"];
+                    enabled = comp_json["enabled"];
             }
             else if (type == "Area")
             {
-                auto& al = entity.emplace<AreaLight>();
+                auto& [color, intensity, enabled, width, height] = entity.emplace<AreaLight>();
 
                 if (comp_json.contains("color") && comp_json["color"].is_array() && comp_json["color"].size() == 3)
-                    al.color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
+                    color = glm::vec3(comp_json["color"][0], comp_json["color"][1], comp_json["color"][2]);
                 if (comp_json.contains("intensity") && comp_json["intensity"].is_number())
-                    al.intensity = comp_json["intensity"];
+                    intensity = comp_json["intensity"];
                 if (comp_json.contains("enabled") && comp_json["enabled"].is_boolean())
-                    al.enabled = comp_json["enabled"];
+                    enabled = comp_json["enabled"];
                 if (comp_json.contains("width") && comp_json["width"].is_number())
-                    al.width = comp_json["width"];
+                    width = comp_json["width"];
                 if (comp_json.contains("height") && comp_json["height"].is_number())
-                    al.height = comp_json["height"];
+                    height = comp_json["height"];
             }
         }
     }

@@ -1,8 +1,13 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 
-// Cross-platform pretty function macro
+#include "core/base/utils.h"
+#include "core/log/logger.h"
+
+// -------Cross-platform pretty function macro------
+
 #if defined(__GNUC__) || defined(__clang__)
 #  define RE_PRETTY_FUNCTION __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
@@ -11,43 +16,61 @@
 #  define RE_PRETTY_FUNCTION __func__
 #endif
 
-namespace RealmEngine
-{
-    /// <summary>
-    /// Extract "ClassName::functionName" from __PRETTY_FUNCTION__ / __FUNCSIG__.
-    /// Input  (GCC/Clang): "void RealmEngine::ConfigManager::disposal() const"
-    /// Output            : "ConfigManager::disposal"
-    /// </summary>
-    inline std::string_view extractClassFunction(const char* pretty_function)
-    {
-        std::string_view pf(pretty_function);
+// ------------------------------------------------------------------------------
+// Logging convenience macros.
+//
+// Log output format:
+//   Default:  [info] [ConfigManager::disposal] Config saved to: ...
+//   Verbose:  [info] [ConfigManager::disposal @ config_manager.cpp:37] Config saved to: ...
+//
+// Compile-time controls (define before including, or via CMakeLists.txt):
+//   RE_MIN_LOG_LEVEL  - Minimum log level (0=debug, 1=info, 2=warn, 3=error, 4=fatal)
+//   RE_LOG_VERBOSE    - Include source file and line number in output
+// ------------------------------------------------------------------------------
 
-        auto paren = pf.find('(');
-        if (paren == std::string_view::npos)
-            paren = pf.size();
+#ifndef RE_MIN_LOG_LEVEL
+#  if defined(NDEBUG) || defined(_NDEBUG)
+#    define RE_MIN_LOG_LEVEL 1
+#  else
+#    define RE_MIN_LOG_LEVEL 0
+#  endif
+#endif
 
-        auto space = pf.rfind(' ', paren);
-        auto start = (space == std::string_view::npos) ? static_cast<std::string_view::size_type>(0) : space + 1;
+#ifdef RE_LOG_VERBOSE
+#  define RE_LOG_APPEND_SOURCE_LOC(buf)                                                                                \
+      buf += " @ ";                                                                                                    \
+      buf += RealmEngine::extractFileName(__FILE__);                                                                   \
+      buf += ':';                                                                                                      \
+      buf += std::to_string(__LINE__);
+#else
+#  define RE_LOG_APPEND_SOURCE_LOC(buf) ((void)0);
+#endif
 
-        auto qualified = pf.substr(start, paren - start);
+#define RE_LOG_IMPL(level_value, level_enum, msg)                                                                      \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if constexpr ((level_value) >= RE_MIN_LOG_LEVEL)                                                               \
+        {                                                                                                              \
+            if (RealmEngine::g_logger)                                                                                 \
+            {                                                                                                          \
+                std::string _re_log_buf;                                                                               \
+                _re_log_buf.reserve(128);                                                                              \
+                _re_log_buf += '[';                                                                                    \
+                _re_log_buf += RealmEngine::extractClassFunction(RE_PRETTY_FUNCTION);                                  \
+                RE_LOG_APPEND_SOURCE_LOC(_re_log_buf)                                                                  \
+                _re_log_buf += "] ";                                                                                   \
+                _re_log_buf += (msg);                                                                                  \
+                RealmEngine::g_logger->log(level_enum, std::move(_re_log_buf));                                        \
+            }                                                                                                          \
+        }                                                                                                              \
+    } while (0)
 
-        auto last_sep = qualified.rfind("::");
-        if (last_sep == std::string_view::npos)
-            return qualified;
+#define RE_LOG_DEBUG(msg) RE_LOG_IMPL(0, RealmEngine::Logger::LogLevel::debug, msg)
+#define RE_LOG_INFO(msg) RE_LOG_IMPL(1, RealmEngine::Logger::LogLevel::info, msg)
+#define RE_LOG_WARN(msg) RE_LOG_IMPL(2, RealmEngine::Logger::LogLevel::warn, msg)
+#define RE_LOG_ERROR(msg) RE_LOG_IMPL(3, RealmEngine::Logger::LogLevel::error, msg)
+#define RE_LOG_FATAL(msg) RE_LOG_IMPL(4, RealmEngine::Logger::LogLevel::fatal, msg)
 
-        auto before_last = (last_sep >= 2) ? qualified.rfind("::", last_sep - 2) : std::string_view::npos;
-        if (before_last == std::string_view::npos)
-            return qualified;
+// ------------------------------------------------------------------------------
 
-        return qualified.substr(before_last + 2);
-    }
-
-    // Extract filename from full __FILE__ path
-    inline std::string_view extractFileName(const char* path)
-    {
-        std::string_view sv(path);
-        auto             pos = sv.find_last_of("/\\");
-        return (pos != std::string_view::npos) ? sv.substr(pos + 1) : sv;
-    }
-
-} // namespace RealmEngine
+// ------------------------------------------------------------------------------

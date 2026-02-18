@@ -13,7 +13,8 @@
 
 namespace RealmEngine
 {
-    SceneHierarchyWidget::SceneHierarchyWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge) :
+    SceneHierarchyWidget::SceneHierarchyWidget(const std::shared_ptr<EditorContext>& context,
+                                               EditorEngineBridge&                   bridge) :
         Widget("Scene Hierarchy"), m_context(context), m_bridge(&bridge)
     {}
 
@@ -21,7 +22,7 @@ namespace RealmEngine
     {
         ImGui::Begin(m_name.c_str(), &m_open);
 
-        auto current_scene = m_bridge->getCurrentScene();
+        const auto current_scene = m_bridge->getCurrentScene();
         if (!current_scene)
         {
             ImGui::Text("No scene loaded");
@@ -31,7 +32,7 @@ namespace RealmEngine
 
         if (ImGui::BeginChild("SceneHierarchyContent", ImVec2(0, 0), true))
         {
-            auto root = current_scene->getRoot();
+            const auto root = current_scene->getRoot();
             if (root)
                 renderNode(root, *current_scene);
         }
@@ -41,11 +42,11 @@ namespace RealmEngine
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(AssetBrowserWidget::DRAG_DROP_PAYLOAD_TYPE))
             {
-                const char* path_cstr = static_cast<const char*>(payload->Data);
+                const auto path_cstr = static_cast<const char*>(payload->Data);
                 if (path_cstr)
                 {
-                    std::filesystem::path path(path_cstr);
-                    std::string           ext = path.extension().string();
+                    const std::filesystem::path path(path_cstr);
+                    std::string                 ext = path.extension().string();
                     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
                     if (ext == ".gltf" || ext == ".glb" || ext == ".fbx" || ext == ".obj")
                         m_bridge->addModelToScene(path);
@@ -57,7 +58,7 @@ namespace RealmEngine
         ImGui::End();
     }
 
-    void SceneHierarchyWidget::renderNode(std::shared_ptr<SceneNode> node, Scene& scene)
+    void SceneHierarchyWidget::renderNode(const std::shared_ptr<SceneNode>& node, Scene& scene)
     {
         if (!node)
             return;
@@ -66,7 +67,7 @@ namespace RealmEngine
         if (node->hasEntity())
             label += " (Entity)";
 
-        bool has_children = node->getChildCount() > 0;
+        const bool has_children = node->getChildCount() > 0;
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
         if (!has_children)
@@ -75,7 +76,7 @@ namespace RealmEngine
         if (m_context && m_context->hasSelectedNode() && m_context->getSelectedNode() == node)
             flags |= ImGuiTreeNodeFlags_Selected;
 
-        bool is_open = ImGui::TreeNodeEx(label.c_str(), flags);
+        const bool is_open = ImGui::TreeNodeEx(label.c_str(), flags);
 
         if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
         {

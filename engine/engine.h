@@ -35,42 +35,42 @@ namespace RealmEngine
         double getDeltaTime() const { return m_delta_time; }
 
         // Subsystem accessors (assert that the engine has been initialized)
-        EventBus& getEventBus()
+        EventBus& getEventBus() const
         {
             assert(m_event_bus && "Engine not initialized");
             return *m_event_bus;
         }
-        Logger& getLogger()
+        Logger& getLogger() const
         {
             assert(m_logger && "Engine not initialized");
             return *m_logger;
         }
-        ConfigManager& getConfig()
+        ConfigManager& getConfig() const
         {
             assert(m_config && "Engine not initialized");
             return *m_config;
         }
-        AssetManager& getAssets()
+        AssetManager& getAssets() const
         {
             assert(m_assets && "Engine not initialized");
             return *m_assets;
         }
-        SceneManager& getSceneManager()
+        SceneManager& getSceneManager() const
         {
             assert(m_scene && "Engine not initialized");
             return *m_scene;
         }
-        Window& getWindow()
+        Window& getWindow() const
         {
             assert(m_window && "Engine not initialized");
             return *m_window;
         }
-        Renderer& getRenderer()
+        Renderer& getRenderer() const
         {
             assert(m_renderer && "Engine not initialized");
             return *m_renderer;
         }
-        Input& getInput()
+        Input& getInput() const
         {
             assert(m_input && "Engine not initialized");
             return *m_input;

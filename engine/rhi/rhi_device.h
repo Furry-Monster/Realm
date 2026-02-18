@@ -101,10 +101,10 @@ namespace RealmEngine
 
         // ----- GPU info (for platform diagnostics) ------------------------
 
-        virtual std::string getGPUVendor() const              = 0;
-        virtual std::string getGPURenderer() const            = 0;
-        virtual std::string getAPIVersion() const             = 0;
-        virtual std::string getShadingLanguageVersion() const = 0;
+        virtual std::string getGPUVendor() const     = 0;
+        virtual std::string getGPURenderer() const   = 0;
+        virtual std::string getAPIVersion() const    = 0;
+        virtual std::string getShaderLangVer() const = 0;
 
         // ----- Factory ----------------------------------------------------
 

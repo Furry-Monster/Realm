@@ -7,7 +7,7 @@ namespace RealmEngine
 {
     FileDialogWidget::FileDialogWidget() : Widget("FileDialog") {}
 
-    void FileDialogWidget::open(Mode                         mode,
+    void FileDialogWidget::open(const Mode                   mode,
                                 const std::string&           title,
                                 const std::string&           filter,
                                 const std::filesystem::path& initial_path)
@@ -58,7 +58,7 @@ namespace RealmEngine
         if (ImGui::Begin(m_title.c_str(), &m_dialog_open, ImGuiWindowFlags_NoDocking))
         {
             // Current path display
-            std::string path_str = m_current_path.string();
+            const std::string path_str = m_current_path.string();
             ImGui::Text("Path: %s", path_str.c_str());
 
             ImGui::Separator();
@@ -78,7 +78,7 @@ namespace RealmEngine
                 // Directory entries
                 for (const auto& entry : m_current_directory_entries)
                 {
-                    bool        is_selected = (m_selected_path == entry);
+                    const bool  is_selected = (m_selected_path == entry);
                     std::string name        = entry.filename().string();
 
                     if (std::filesystem::is_directory(entry))
@@ -141,7 +141,7 @@ namespace RealmEngine
             }
             ImGui::SameLine();
 
-            std::string button_text = (m_mode == Mode::Open) ? "Open" : "Save";
+            const std::string button_text = (m_mode == Mode::Open) ? "Open" : "Save";
             if (ImGui::Button(button_text.c_str()))
             {
                 if (m_mode == Mode::Open)
@@ -159,7 +159,7 @@ namespace RealmEngine
                 {
                     if (strlen(m_filename_buffer) > 0)
                     {
-                        std::filesystem::path file_path = m_current_path / m_filename_buffer;
+                        const std::filesystem::path file_path = m_current_path / m_filename_buffer;
                         if (m_callback)
                         {
                             m_callback(file_path);
@@ -214,8 +214,8 @@ namespace RealmEngine
                 std::sort(m_current_directory_entries.begin(),
                           m_current_directory_entries.end(),
                           [](const std::filesystem::path& a, const std::filesystem::path& b) {
-                              bool a_is_dir = std::filesystem::is_directory(a);
-                              bool b_is_dir = std::filesystem::is_directory(b);
+                              const bool a_is_dir = std::filesystem::is_directory(a);
+                              const bool b_is_dir = std::filesystem::is_directory(b);
                               if (a_is_dir != b_is_dir)
                                   return a_is_dir;
                               return a.filename().string() < b.filename().string();

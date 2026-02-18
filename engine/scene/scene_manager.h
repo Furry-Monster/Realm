@@ -31,20 +31,20 @@ namespace RealmEngine
         void setAssetManager(AssetManager* asset_mgr) { m_asset_mgr = asset_mgr; }
 
         std::shared_ptr<Scene> createScene(const std::string& name);
-        std::shared_ptr<Scene> createDefaultScene(RHIDevice& device);
+        std::shared_ptr<Scene> createDefaultScene(RHIDevice& device) const;
         std::shared_ptr<Scene> loadScene(const std::string& filepath, RHIDevice& device);
         bool                   saveScene(const std::string& name, const std::string& filepath);
         bool                   saveCurrentScene(const std::string& filepath);
 
         void                   setCurrentScene(const std::string& name);
-        void                   setCurrentScene(std::shared_ptr<Scene> scene);
+        void                   setCurrentScene(const std::shared_ptr<Scene>& scene);
         std::shared_ptr<Scene> getCurrentScene() const;
         std::shared_ptr<Scene> getCurrentOrNewScene();
         std::shared_ptr<Scene> getScene(const std::string& name) const;
         bool                   hasScene(const std::string& name) const;
         void                   removeScene(const std::string& name);
 
-        void setOnSceneChanged(SceneChangeCallback callback);
+        void setOnSceneChanged(const SceneChangeCallback& callback);
 
     private:
         std::filesystem::path  m_asset_folder;

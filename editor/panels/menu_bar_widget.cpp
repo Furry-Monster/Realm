@@ -10,7 +10,8 @@ namespace RealmEngine
             action();
     }
 
-    static void menuItem(const char* label, const char* shortcut, bool enabled, const std::function<void()>& action)
+    static void
+    menuItem(const char* label, const char* shortcut, const bool enabled, const std::function<void()>& action)
     {
         if (ImGui::MenuItem(label, shortcut, false, enabled) && action)
             action();
@@ -18,7 +19,7 @@ namespace RealmEngine
 
     MenuBarWidget::MenuBarWidget(MenuBarCallbacks callbacks) : Widget("MenuBar"), m_callbacks(std::move(callbacks)) {}
 
-    const char* MenuBarWidget::panelShortcut(size_t one_based_index)
+    const char* MenuBarWidget::panelShortcut(const size_t one_based_index)
     {
         static const char* s_shortcuts[] = {nullptr, "F1", "F2", "F3", "F4", "F5", "F6"};
         return (one_based_index >= 1 && one_based_index <= 6) ? s_shortcuts[one_based_index] : nullptr;
@@ -58,12 +59,12 @@ namespace RealmEngine
         if (!ImGui::BeginMenu("Edit"))
             return;
 
-        bool undo_enabled      = m_callbacks.can_undo ? m_callbacks.can_undo() : false;
-        bool redo_enabled      = m_callbacks.can_redo ? m_callbacks.can_redo() : false;
-        bool copy_enabled      = m_callbacks.can_copy ? m_callbacks.can_copy() : false;
-        bool paste_enabled     = m_callbacks.can_paste ? m_callbacks.can_paste() : false;
-        bool delete_enabled    = m_callbacks.can_delete ? m_callbacks.can_delete() : false;
-        bool duplicate_enabled = m_callbacks.can_duplicate ? m_callbacks.can_duplicate() : false;
+        const bool undo_enabled      = m_callbacks.can_undo ? m_callbacks.can_undo() : false;
+        const bool redo_enabled      = m_callbacks.can_redo ? m_callbacks.can_redo() : false;
+        const bool copy_enabled      = m_callbacks.can_copy ? m_callbacks.can_copy() : false;
+        const bool paste_enabled     = m_callbacks.can_paste ? m_callbacks.can_paste() : false;
+        const bool delete_enabled    = m_callbacks.can_delete ? m_callbacks.can_delete() : false;
+        const bool duplicate_enabled = m_callbacks.can_duplicate ? m_callbacks.can_duplicate() : false;
 
         menuItem("Undo", "Ctrl+Z", undo_enabled, m_callbacks.on_undo);
         menuItem("Redo", "Ctrl+Y", redo_enabled, m_callbacks.on_redo);
@@ -83,7 +84,7 @@ namespace RealmEngine
 
         if (m_callbacks.get_view_panels)
         {
-            std::vector<Widget*> panels = m_callbacks.get_view_panels();
+            const std::vector<Widget*> panels = m_callbacks.get_view_panels();
             for (size_t i = 0; i < panels.size(); ++i)
             {
                 Widget* panel = panels[i];

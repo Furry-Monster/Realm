@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <array>
 #include <limits>
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/vector_float3.hpp"
@@ -17,7 +15,7 @@ namespace RealmEngine
 
         constexpr AABB(const glm::vec3& min, const glm::vec3& max) : min(min), max(max) {}
 
-        constexpr AABB(const glm::vec3& center, float half_size) :
+        constexpr AABB(const glm::vec3& center, const float half_size) :
             min(center - glm::vec3(half_size)), max(center + glm::vec3(half_size))
         {}
 
@@ -71,8 +69,8 @@ namespace RealmEngine
             if (plane.z >= 0)
                 negative_vert.z = min.z;
 
-            float positive_dist = glm::dot(glm::vec3(plane), positive_vert) + plane.w;
-            float negative_dist = glm::dot(glm::vec3(plane), negative_vert) + plane.w;
+            const float positive_dist = glm::dot(glm::vec3(plane), positive_vert) + plane.w;
+            const float negative_dist = glm::dot(glm::vec3(plane), negative_vert) + plane.w;
 
             return positive_dist * negative_dist <= 0.0f;
         }
@@ -96,7 +94,7 @@ namespace RealmEngine
             return result;
         }
 
-        void expand(float amount)
+        void expand(const float amount)
         {
             const glm::vec3 offset(amount);
             min -= offset;
@@ -109,7 +107,7 @@ namespace RealmEngine
             max += amount;
         }
 
-        void shrink(float amount)
+        void shrink(const float amount)
         {
             const glm::vec3 offset(amount);
             min += offset;
@@ -140,7 +138,7 @@ namespace RealmEngine
             max += offset;
         }
 
-        void scale(float factor)
+        void scale(const float factor)
         {
             const glm::vec3 c = center();
             const glm::vec3 e = extent() * factor;

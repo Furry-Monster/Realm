@@ -1,12 +1,11 @@
 #include "platform/filesystem/filesystem.h"
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 
 #include <chrono>
 #include <fstream>
 
 #ifdef __linux__
-#  include <limits.h>
 #  include <unistd.h>
 #elif defined(_WIN32)
 #  ifndef WIN32_LEAN_AND_MEAN
@@ -28,8 +27,8 @@ namespace RealmEngine
     std::filesystem::path FileSystem::getExecutablePath() noexcept
     {
 #ifdef __linux__
-        char    buffer[PATH_MAX];
-        ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+        char          buffer[PATH_MAX];
+        const ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
         if (len != -1)
         {
             buffer[len] = '\0';
@@ -153,7 +152,7 @@ namespace RealmEngine
     std::uintmax_t FileSystem::getFileSize(const std::filesystem::path& path)
     {
         std::error_code ec;
-        auto            size = std::filesystem::file_size(path, ec);
+        const auto      size = std::filesystem::file_size(path, ec);
         if (ec)
             return 0;
         return size;
@@ -233,16 +232,16 @@ namespace RealmEngine
     std::int64_t FileSystem::getLastWriteTime(const std::filesystem::path& path)
     {
         std::error_code ec;
-        auto            ftime = std::filesystem::last_write_time(path, ec);
+        const auto      ftime = std::filesystem::last_write_time(path, ec);
         if (ec)
             return 0;
 
         // Approximate conversion to Unix epoch via clock difference.
         // file_time_type::clock epoch is implementation-defined (e.g. 1601 on MSVC).
-        auto file_now = std::filesystem::file_time_type::clock::now();
-        auto sys_now  = std::chrono::system_clock::now();
-        auto delta    = ftime - file_now;
-        auto sys_tp   = sys_now + std::chrono::duration_cast<std::chrono::seconds>(delta);
+        const auto file_now = std::filesystem::file_time_type::clock::now();
+        const auto sys_now  = std::chrono::system_clock::now();
+        const auto delta    = ftime - file_now;
+        const auto sys_tp   = sys_now + std::chrono::duration_cast<std::chrono::seconds>(delta);
         return std::chrono::duration_cast<std::chrono::seconds>(sys_tp.time_since_epoch()).count();
     }
 

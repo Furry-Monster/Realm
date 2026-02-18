@@ -11,6 +11,7 @@ assets/Aqua/
 .cache/
 .vscode/
 .idea/
+.clion/
 __pycache__/
 *.pyc
 *.pyo

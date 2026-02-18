@@ -1,7 +1,6 @@
 #include "editor_commands.h"
 
 #include "bridge/editor_engine_bridge.h"
-#include "core/log/log_macros.h"
 #include "editor_context.h"
 #include "panels/file_dialog_widget.h"
 #include "scene/scene.h"
@@ -11,13 +10,15 @@
 
 #include <filesystem>
 
+#include "core/base/macros.h"
+
 namespace RealmEngine
 {
     NewSceneCommand::NewSceneCommand(EditorEngineBridge& bridge) : m_bridge(&bridge) {}
 
     void NewSceneCommand::execute(RegisterUndo)
     {
-        auto new_scene = m_bridge->createDefaultScene();
+        const auto new_scene = m_bridge->createDefaultScene();
         if (new_scene)
         {
             m_bridge->setCurrentScene(new_scene);
@@ -33,7 +34,7 @@ namespace RealmEngine
     {
         if (m_file_dialog)
         {
-            std::filesystem::path initial_path = m_bridge->getConfigRootFolder();
+            const std::filesystem::path initial_path = m_bridge->getConfigRootFolder();
             m_file_dialog->open(FileDialogWidget::Mode::Open, "Open Scene", ".json", initial_path);
         }
     }
@@ -62,7 +63,7 @@ namespace RealmEngine
     {
         if (m_file_dialog && m_bridge->getCurrentScene())
         {
-            std::filesystem::path initial_path = m_bridge->getConfigRootFolder();
+            const std::filesystem::path initial_path = m_bridge->getConfigRootFolder();
             m_file_dialog->open(FileDialogWidget::Mode::Save, "Save Scene As", ".json", initial_path);
         }
     }
@@ -81,7 +82,7 @@ namespace RealmEngine
             return;
         }
 
-        auto loaded = m_bridge->loadScene(scene_file.string());
+        const auto loaded = m_bridge->loadScene(scene_file.string());
         if (loaded)
         {
             m_bridge->setCurrentScene(loaded);
@@ -98,7 +99,7 @@ namespace RealmEngine
 
     void ExitCommand::execute(RegisterUndo) { m_bridge->requestWindowClose(); }
 
-    TogglePanelCommand::TogglePanelCommand(std::vector<std::shared_ptr<Widget>>& widgets, size_t index) :
+    TogglePanelCommand::TogglePanelCommand(std::vector<std::shared_ptr<Widget>>& widgets, const size_t index) :
         m_widgets(widgets), m_index(index)
     {}
 
@@ -106,7 +107,7 @@ namespace RealmEngine
     {
         if (m_index < m_widgets.size())
         {
-            auto& w = m_widgets[m_index];
+            const auto& w = m_widgets[m_index];
             if (w)
                 w->setOpen(!w->isOpen());
         }
@@ -114,7 +115,7 @@ namespace RealmEngine
 
     namespace
     {
-        void destroyNodeAndSubtree(Scene& scene, std::shared_ptr<SceneNode> node)
+        void destroyNodeAndSubtree(Scene& scene, const std::shared_ptr<SceneNode>& node)
         {
             if (!node)
                 return;
@@ -124,20 +125,20 @@ namespace RealmEngine
                 destroyNodeAndSubtree(scene, child);
             if (node->hasEntity() && scene.valid(node->getEntity()))
                 scene.destroyEntity(node->getEntity());
-            auto parent = node->getParent();
+            const auto parent = node->getParent();
             if (parent)
                 parent->removeChild(node);
         }
         void removeNodeWithUndo(EditorEngineBridge* bridge, EditorContext* context, RegisterUndo registerUndo)
         {
-            auto scene = bridge->getCurrentScene();
-            auto node  = context->getSelectedNode();
+            const auto scene = bridge->getCurrentScene();
+            const auto node  = context->getSelectedNode();
             if (!scene || !node)
                 return;
-            auto root = scene->getRoot();
+            const auto root = scene->getRoot();
             if (node == root)
                 return;
-            auto parent = node->getParent();
+            const auto parent = node->getParent();
             if (!parent)
                 return;
             std::string json = SceneSerializer::serializeNodeToJson(node, *scene);
@@ -154,7 +155,7 @@ namespace RealmEngine
                         auto p = parent_weak.lock();
                         if (!p)
                             return;
-                        auto pasted = bridge->pasteEntityFromClipboard(json, p);
+                        const auto pasted = bridge->pasteEntityFromClipboard(json, p);
                         if (pasted)
                         {
                             *pasted_storage = pasted;
@@ -166,7 +167,7 @@ namespace RealmEngine
                     [pasted_storage, bridge, context] {
                         if (!*pasted_storage)
                             return;
-                        auto sc = bridge->getCurrentScene();
+                        const auto sc = bridge->getCurrentScene();
                         if (!sc)
                             return;
                         destroyNodeAndSubtree(*sc, *pasted_storage);
@@ -183,7 +184,7 @@ namespace RealmEngine
         m_bridge(&bridge), m_context(&context)
     {}
 
-    void DeleteEntityCommand::execute(RegisterUndo registerUndo)
+    void DeleteEntityCommand::execute(const RegisterUndo registerUndo)
     {
         removeNodeWithUndo(m_bridge, m_context, registerUndo);
     }
@@ -194,11 +195,11 @@ namespace RealmEngine
 
     void CopyEntityCommand::execute(RegisterUndo)
     {
-        auto scene = m_bridge->getCurrentScene();
-        auto node  = m_context->getSelectedNode();
+        const auto scene = m_bridge->getCurrentScene();
+        const auto node  = m_context->getSelectedNode();
         if (!scene || !node)
             return;
-        std::string json = SceneSerializer::serializeNodeToJson(node, *scene);
+        const std::string json = SceneSerializer::serializeNodeToJson(node, *scene);
         m_context->setEntityClipboard(json);
     }
 
@@ -210,10 +211,10 @@ namespace RealmEngine
     {
         if (!m_context->hasEntityClipboard())
             return;
-        auto scene = m_bridge->getCurrentScene();
+        const auto scene = m_bridge->getCurrentScene();
         if (!scene)
             return;
-        auto parent = m_context->hasSelectedNode() ? m_context->getSelectedNode() : scene->getRoot();
+        const auto parent = m_context->hasSelectedNode() ? m_context->getSelectedNode() : scene->getRoot();
         if (!parent)
             return;
         std::string json   = m_context->getEntityClipboard();
@@ -230,7 +231,7 @@ namespace RealmEngine
                 [pasted_storage, bridge, context] {
                     if (!*pasted_storage)
                         return;
-                    auto sc = bridge->getCurrentScene();
+                    const auto sc = bridge->getCurrentScene();
                     if (!sc)
                         return;
                     destroyNodeAndSubtree(*sc, *pasted_storage);
@@ -243,10 +244,11 @@ namespace RealmEngine
                     sc->markDirty();
                 },
                 [pasted_storage, bridge, context, json, parent_weak] {
-                    auto p = parent_weak.lock();
+                    const auto p = parent_weak.lock();
                     if (!p)
                         return;
-                    auto restored = bridge->pasteEntityFromClipboard(json, p);
+
+                    const auto restored = bridge->pasteEntityFromClipboard(json, p);
                     if (restored)
                     {
                         *pasted_storage = restored;
@@ -262,7 +264,7 @@ namespace RealmEngine
         m_bridge(&bridge), m_context(&context)
     {}
 
-    void CutEntityCommand::execute(RegisterUndo registerUndo)
+    void CutEntityCommand::execute(const RegisterUndo registerUndo)
     {
         CopyEntityCommand(*m_bridge, *m_context).execute(nullptr);
         removeNodeWithUndo(m_bridge, m_context, registerUndo);
@@ -272,10 +274,10 @@ namespace RealmEngine
         m_bridge(&bridge), m_context(&context)
     {}
 
-    void DuplicateEntityCommand::execute(RegisterUndo registerUndo)
+    void DuplicateEntityCommand::execute(const RegisterUndo registerUndo)
     {
         // Preserve existing clipboard so Duplicate doesn't clobber it
-        std::string saved_clipboard = m_context->getEntityClipboard();
+        const std::string saved_clipboard = m_context->getEntityClipboard();
         CopyEntityCommand(*m_bridge, *m_context).execute(nullptr);
         PasteEntityCommand(*m_bridge, *m_context).execute(registerUndo);
         m_context->setEntityClipboard(saved_clipboard);

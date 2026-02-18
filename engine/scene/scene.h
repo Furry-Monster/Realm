@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <entt/entity/registry.hpp>
 #include <memory>
 #include <string>
@@ -33,7 +32,7 @@ namespace RealmEngine
         [[nodiscard]] bool   valid(entt::entity entity) const;
 
         // Wrap a raw entt::entity handle into an Entity helper
-        Entity entity(entt::entity handle) { return Entity(handle, &m_registry); }
+        Entity entity(const entt::entity handle) { return Entity(handle, &m_registry); }
 
         // Component access (thin wrappers around entt::registry)
         template<typename T, typename... Args>
@@ -105,37 +104,37 @@ namespace RealmEngine
     }
 
     template<typename T>
-    T& Scene::get(entt::entity entity)
+    T& Scene::get(const entt::entity entity)
     {
         return m_registry.get<T>(entity);
     }
 
     template<typename T>
-    const T& Scene::get(entt::entity entity) const
+    const T& Scene::get(const entt::entity entity) const
     {
         return m_registry.get<T>(entity);
     }
 
     template<typename T>
-    T* Scene::tryGet(entt::entity entity)
+    T* Scene::tryGet(const entt::entity entity)
     {
         return m_registry.try_get<T>(entity);
     }
 
     template<typename T>
-    const T* Scene::tryGet(entt::entity entity) const
+    const T* Scene::tryGet(const entt::entity entity) const
     {
         return m_registry.try_get<T>(entity);
     }
 
     template<typename T>
-    bool Scene::has(entt::entity entity) const
+    bool Scene::has(const entt::entity entity) const
     {
         return m_registry.all_of<T>(entity);
     }
 
     template<typename T>
-    void Scene::remove(entt::entity entity)
+    void Scene::remove(const entt::entity entity)
     {
         m_registry.remove<T>(entity);
         incrementGeneration();

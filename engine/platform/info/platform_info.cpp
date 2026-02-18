@@ -1,6 +1,6 @@
 #include "platform/info/platform_info.h"
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "rhi/rhi_device.h"
 
 #define GLFW_INCLUDE_NONE
@@ -105,11 +105,11 @@ namespace RealmEngine
         {
             if (line.find("model name") != std::string::npos)
             {
-                auto pos = line.find(':');
+                const auto pos = line.find(':');
                 if (pos != std::string::npos)
                 {
                     std::string name  = line.substr(pos + 1);
-                    auto        start = name.find_first_not_of(" \t");
+                    const auto  start = name.find_first_not_of(" \t");
                     return (start != std::string::npos) ? name.substr(start) : name;
                 }
             }
@@ -152,7 +152,7 @@ namespace RealmEngine
 
     int PlatformInfo::getLogicalCoreCount()
     {
-        int count = static_cast<int>(std::thread::hardware_concurrency());
+        const int count = static_cast<int>(std::thread::hardware_concurrency());
         return (count > 0) ? count : 1;
     }
 
@@ -194,7 +194,7 @@ namespace RealmEngine
         {
             if (line.compare(0, 6, "VmRSS:") == 0)
             {
-                size_t pos = line.find_first_not_of(" \t", 6);
+                const size_t pos = line.find_first_not_of(" \t", 6);
                 if (pos != std::string::npos)
                     return static_cast<size_t>(std::stoull(line.substr(pos)));
             }
@@ -273,16 +273,13 @@ namespace RealmEngine
 
     // GPU (via RHI)
 
-    std::string PlatformInfo::getGPUVendor(RHIDevice& device) { return device.getGPUVendor(); }
+    std::string PlatformInfo::getGPUVendor(const RHIDevice& device) { return device.getGPUVendor(); }
 
-    std::string PlatformInfo::getGPURenderer(RHIDevice& device) { return device.getGPURenderer(); }
+    std::string PlatformInfo::getGPURenderer(const RHIDevice& device) { return device.getGPURenderer(); }
 
-    std::string PlatformInfo::getAPIVersion(RHIDevice& device) { return device.getAPIVersion(); }
+    std::string PlatformInfo::getAPIVersion(const RHIDevice& device) { return device.getAPIVersion(); }
 
-    std::string PlatformInfo::getShadingLanguageVersion(RHIDevice& device)
-    {
-        return device.getShadingLanguageVersion();
-    }
+    std::string PlatformInfo::getShaderLangVer(const RHIDevice& device) { return device.getShaderLangVer(); }
 
     // display (requires GLFW)
 
@@ -345,7 +342,7 @@ namespace RealmEngine
         RE_LOG_INFO("GPU vendor: " + getGPUVendor(device));
         RE_LOG_INFO("GPU renderer: " + getGPURenderer(device));
         RE_LOG_INFO("API version: " + getAPIVersion(device));
-        RE_LOG_INFO("Shading language version: " + getShadingLanguageVersion(device));
+        RE_LOG_INFO("Shading language version: " + getShaderLangVer(device));
 
         int mon_w = 0;
         int mon_h = 0;

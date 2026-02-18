@@ -55,7 +55,7 @@ namespace RealmEngine
                 m_on_apply();
             if (m_get_prefs_path)
             {
-                auto path = m_get_prefs_path();
+                const auto path = m_get_prefs_path();
                 if (!path.empty())
                     EditorPreferencesManager::save(*m_prefs, path);
             }
@@ -69,7 +69,7 @@ namespace RealmEngine
         ImGui::End();
     }
 
-    void PreferencesWidget::applyTheme(EditorTheme theme)
+    void PreferencesWidget::applyTheme(const EditorTheme theme)
     {
         switch (theme)
         {

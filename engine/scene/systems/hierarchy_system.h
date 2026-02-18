@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <entt/entity/entity.hpp>
 #include <memory>
 #include <unordered_map>
@@ -22,7 +21,7 @@ namespace RealmEngine
         static void update(Scene& scene);
 
         // Force a full resync on the next update() call
-        static void invalidate(Scene& scene);
+        static void invalidate(const Scene& scene);
         static void invalidateAll();
 
     private:

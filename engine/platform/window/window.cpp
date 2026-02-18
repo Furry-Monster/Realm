@@ -4,12 +4,11 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
+#include "core/base/macros.h"
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
-#include "core/log/log_macros.h"
 #include "resource/config_manager.h"
 
-#include <cstddef>
 #include <string>
 
 namespace RealmEngine
@@ -34,58 +33,58 @@ namespace RealmEngine
         bool                                 vsync {false};
     };
 
-    static void keyCallback(GLFWwindow* w, int key, int scancode, int action, int mods)
+    static void keyCallback(GLFWwindow* w, const int key, const int scancode, const int action, const int mods)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(KeyEvent {key, scancode, action, mods});
     }
 
-    static void charCallback(GLFWwindow* w, unsigned int codepoint)
+    static void charCallback(GLFWwindow* w, const unsigned int codepoint)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(CharEvent {codepoint});
     }
 
-    static void charModsCallback(GLFWwindow* w, unsigned int codepoint, int mods)
+    static void charModsCallback(GLFWwindow* w, const unsigned int codepoint, const int mods)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(CharModsEvent {codepoint, mods});
     }
 
-    static void mouseButtonCallback(GLFWwindow* w, int button, int action, int mods)
+    static void mouseButtonCallback(GLFWwindow* w, const int button, const int action, const int mods)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(MouseButtonEvent {button, action, mods});
     }
 
-    static void cursorPosCallback(GLFWwindow* w, double xpos, double ypos)
+    static void cursorPosCallback(GLFWwindow* w, const double xpos, const double ypos)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(CursorPosEvent {xpos, ypos});
     }
 
-    static void cursorEnterCallback(GLFWwindow* w, int entered)
+    static void cursorEnterCallback(GLFWwindow* w, const int entered)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(CursorEnterEvent {entered != 0});
     }
 
-    static void scrollCallback(GLFWwindow* w, double xoffset, double yoffset)
+    static void scrollCallback(GLFWwindow* w, const double xoffset, const double yoffset)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(ScrollEvent {xoffset, yoffset});
     }
 
-    static void dropCallback(GLFWwindow* w, int count, const char** paths)
+    static void dropCallback(GLFWwindow* w, const int count, const char** paths)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
         {
             DropEvent event;
@@ -96,7 +95,7 @@ namespace RealmEngine
         }
     }
 
-    static void windowSizeCallback(GLFWwindow* w, int width, int height)
+    static void windowSizeCallback(GLFWwindow* w, const int width, const int height)
     {
         auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self)
@@ -108,16 +107,16 @@ namespace RealmEngine
         }
     }
 
-    static void framebufferSizeCallback(GLFWwindow* w, int width, int height)
+    static void framebufferSizeCallback(GLFWwindow* w, const int width, const int height)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(FramebufferResizeEvent {width, height});
     }
 
     static void windowCloseCallback(GLFWwindow* w)
     {
-        auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
+        const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
         if (self && self->event_bus)
             self->event_bus->publish(WindowCloseEvent {});
         glfwSetWindowShouldClose(w, true);
@@ -238,7 +237,7 @@ namespace RealmEngine
 
     bool Window::isVSyncEnabled() const { return m_impl && m_impl->vsync; }
 
-    void Window::setCursorMode(CursorMode mode) const
+    void Window::setCursorMode(const CursorMode mode) const
     {
         if (!m_impl || !m_impl->handle)
             return;

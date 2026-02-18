@@ -1,7 +1,6 @@
 #pragma once
 
 #include <entt/entity/entity.hpp>
-#include <functional>
 #include <json.hpp>
 #include <memory>
 #include <string>
@@ -25,7 +24,7 @@ namespace RealmEngine
         SceneSerializer(SceneSerializer&&) noexcept            = default;
         SceneSerializer& operator=(SceneSerializer&&) noexcept = default;
 
-        static std::string serialize(std::shared_ptr<Scene> scene);
+        static std::string serialize(const std::shared_ptr<Scene>& scene);
         static std::shared_ptr<Scene>
         deserialize(const std::string& json, RHIDevice& device, AssetManager* asset_mgr = nullptr);
 
@@ -35,20 +34,20 @@ namespace RealmEngine
                                                    AssetManager*      asset_mgr = nullptr,
                                                    bool               encrypted = false);
 
-        static std::string                serializeNodeToJson(std::shared_ptr<SceneNode> node, Scene& scene);
-        static std::shared_ptr<SceneNode> pasteNodeFromJson(const std::string&         json,
-                                                            Scene&                     scene,
-                                                            std::shared_ptr<SceneNode> parent,
-                                                            RHIDevice&                 device,
-                                                            AssetManager*              asset_mgr);
+        static std::string                serializeNodeToJson(const std::shared_ptr<SceneNode>& node, Scene& scene);
+        static std::shared_ptr<SceneNode> pasteNodeFromJson(const std::string&                json,
+                                                            Scene&                            scene,
+                                                            const std::shared_ptr<SceneNode>& parent,
+                                                            RHIDevice&                        device,
+                                                            AssetManager*                     asset_mgr);
 
     private:
-        static void serializeNode(nlohmann::json& json, std::shared_ptr<SceneNode> node, Scene& scene);
+        static void serializeNode(nlohmann::json& json, const std::shared_ptr<SceneNode>& node, Scene& scene);
         static void serializeEntity(nlohmann::json& json, entt::entity entity, Scene& scene);
 
         static std::shared_ptr<SceneNode>
         deserializeNode(const nlohmann::json& json, Scene& scene, RHIDevice& device, AssetManager* asset_mgr);
-        static std::shared_ptr<SceneNode> deserializeNodeWithUniquify(const nlohmann::json&            json,
+        static std::shared_ptr<SceneNode> deserializeNodeWithUniquify(const nlohmann::json&            node_json,
                                                                       Scene&                           scene,
                                                                       RHIDevice&                       device,
                                                                       AssetManager*                    asset_mgr,

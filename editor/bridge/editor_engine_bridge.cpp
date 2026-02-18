@@ -1,6 +1,6 @@
 #include "editor_engine_bridge.h"
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "engine.h"
 #include "platform/window/window.h"
 #include "renderer/renderer.h"
@@ -25,27 +25,27 @@ namespace RealmEngine
 {
     EditorEngineBridge::EditorEngineBridge(Engine& engine) : m_engine(&engine) {}
 
-    std::shared_ptr<Scene> EditorEngineBridge::createDefaultScene()
+    std::shared_ptr<Scene> EditorEngineBridge::createDefaultScene() const
     {
         return m_engine->getSceneManager().createDefaultScene(m_engine->getRenderer().getDevice());
     }
 
-    std::shared_ptr<Scene> EditorEngineBridge::loadScene(const std::string& path)
+    std::shared_ptr<Scene> EditorEngineBridge::loadScene(const std::string& path) const
     {
         return m_engine->getSceneManager().loadScene(path, m_engine->getRenderer().getDevice());
     }
 
-    bool EditorEngineBridge::saveCurrentScene(const std::string& path)
+    bool EditorEngineBridge::saveCurrentScene(const std::string& path) const
     {
         return m_engine->getSceneManager().saveCurrentScene(path);
     }
 
-    void EditorEngineBridge::setCurrentScene(std::shared_ptr<Scene> scene)
+    void EditorEngineBridge::setCurrentScene(std::shared_ptr<Scene> scene) const
     {
         m_engine->getSceneManager().setCurrentScene(std::move(scene));
     }
 
-    std::shared_ptr<Scene> EditorEngineBridge::getCurrentScene()
+    std::shared_ptr<Scene> EditorEngineBridge::getCurrentScene() const
     {
         return m_engine->getSceneManager().getCurrentScene();
     }
@@ -60,9 +60,9 @@ namespace RealmEngine
         return m_engine->getConfig().getRootFolder() / m_engine->getConfig().getGamePlayConfig().scene_file;
     }
 
-    void EditorEngineBridge::requestWindowClose() { m_engine->getWindow().requestClose(); }
+    void EditorEngineBridge::requestWindowClose() const { m_engine->getWindow().requestClose(); }
 
-    void EditorEngineBridge::initializeCameraForScene(std::shared_ptr<Scene> scene)
+    void EditorEngineBridge::initializeCameraForScene(const std::shared_ptr<Scene>& scene) const
     {
         if (!scene)
             return;
@@ -76,29 +76,29 @@ namespace RealmEngine
 
     std::filesystem::path EditorEngineBridge::getAssetFolder() const { return m_engine->getConfig().getAssetFolder(); }
 
-    std::shared_ptr<RHITexture> EditorEngineBridge::getTextureForPreview(const std::filesystem::path& path)
+    std::shared_ptr<RHITexture> EditorEngineBridge::getTextureForPreview(const std::filesystem::path& path) const
     {
         auto& device = m_engine->getRenderer().getDevice();
         auto& assets = m_engine->getAssets();
         return assets.getOrLoadTextureForPreview(path.generic_string(), device);
     }
 
-    bool EditorEngineBridge::addModelToScene(const std::filesystem::path& model_path)
+    bool EditorEngineBridge::addModelToScene(const std::filesystem::path& model_path) const
     {
-        auto scene = m_engine->getSceneManager().getCurrentScene();
+        const auto scene = m_engine->getSceneManager().getCurrentScene();
         if (!scene)
         {
             RE_LOG_WARN("No scene loaded, cannot add model");
             return false;
         }
 
-        std::string model_path_str = model_path.generic_string();
-        std::string entity_name    = model_path.stem().string();
+        const std::string model_path_str = model_path.generic_string();
+        const std::string entity_name    = model_path.stem().string();
 
         try
         {
-            auto node   = scene->createNodeWithEntity(entity_name);
-            auto entity = scene->findEntity(entity_name);
+            const auto node   = scene->createNodeWithEntity(entity_name);
+            auto       entity = scene->findEntity(entity_name);
 
             auto& transform    = entity.emplace<Transform>();
             transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -121,9 +121,9 @@ namespace RealmEngine
     }
 
     std::shared_ptr<SceneNode> EditorEngineBridge::pasteEntityFromClipboard(const std::string&         json,
-                                                                            std::shared_ptr<SceneNode> parent)
+                                                                            std::shared_ptr<SceneNode> parent) const
     {
-        auto scene = m_engine->getSceneManager().getCurrentScene();
+        const auto scene = m_engine->getSceneManager().getCurrentScene();
         if (!scene || !parent)
             return nullptr;
         auto* device = &m_engine->getRenderer().getDevice();
@@ -134,17 +134,17 @@ namespace RealmEngine
         return node;
     }
 
-    ConfigManager& EditorEngineBridge::getConfig() { return m_engine->getConfig(); }
+    ConfigManager& EditorEngineBridge::getConfig() const { return m_engine->getConfig(); }
 
-    void EditorEngineBridge::saveConfig()
+    void EditorEngineBridge::saveConfig() const
     {
-        std::filesystem::path path = m_engine->getConfig().getRootFolder() / "config.json";
+        const std::filesystem::path path = m_engine->getConfig().getRootFolder() / "config.json";
         ConfigSerializer::saveToFile(m_engine->getConfig(), path.string());
     }
 
-    void EditorEngineBridge::reloadCustomShaders() { m_engine->getRenderer().reloadCustomShaders(); }
+    void EditorEngineBridge::reloadCustomShaders() const { m_engine->getRenderer().reloadCustomShaders(); }
 
-    EventBus& EditorEngineBridge::getEventBus() { return m_engine->getEventBus(); }
+    EventBus& EditorEngineBridge::getEventBus() const { return m_engine->getEventBus(); }
 
     PipelineMode EditorEngineBridge::getPipelineMode() const { return m_engine->getRenderer().getPipelineMode(); }
 
@@ -153,12 +153,12 @@ namespace RealmEngine
         return m_engine->getRenderer().getViewportDisplayMode();
     }
 
-    void EditorEngineBridge::setViewportDisplayMode(ViewportDisplayMode mode)
+    void EditorEngineBridge::setViewportDisplayMode(const ViewportDisplayMode mode) const
     {
         m_engine->getRenderer().setViewportDisplayMode(mode);
     }
 
-    void EditorEngineBridge::setRenderToViewportTexture(bool enable)
+    void EditorEngineBridge::setRenderToViewportTexture(const bool enable) const
     {
         m_engine->getRenderer().setRenderToViewportTexture(enable);
     }

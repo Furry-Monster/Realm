@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 
 namespace RealmEngine
 {

@@ -9,7 +9,7 @@
 
 namespace RealmEngine
 {
-    inline ConsoleLogLevel spdlogLevelToConsole(spdlog::level::level_enum level)
+    inline ConsoleLogLevel spdlogLevelToConsole(const spdlog::level::level_enum level)
     {
         switch (level)
         {

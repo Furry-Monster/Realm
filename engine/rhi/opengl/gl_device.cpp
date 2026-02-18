@@ -4,7 +4,7 @@
 #include <cstring>
 #include <string>
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "rhi/opengl/gl_buffer.h"
 #include "rhi/opengl/gl_framebuffer.h"
 #include "rhi/opengl/gl_shader.h"
@@ -548,7 +548,7 @@ namespace RealmEngine
         return v ? std::string(v) : "Unknown";
     }
 
-    std::string GLDevice::getShadingLanguageVersion() const
+    std::string GLDevice::getShaderLangVer() const
     {
         const char* v = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
         return v ? std::string(v) : "Unknown";

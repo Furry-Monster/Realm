@@ -1,6 +1,6 @@
 #include "renderer/ibl/hdr_texture.h"
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_texture.h"
 #include "rhi/rhi_types.h"

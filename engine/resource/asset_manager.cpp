@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "renderer/render_object.h"
 #include "resource/model_loader.h"
 #include "rhi/rhi_device.h"

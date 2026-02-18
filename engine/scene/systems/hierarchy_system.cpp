@@ -10,8 +10,8 @@ namespace RealmEngine
 
     void HierarchySystem::update(Scene& scene)
     {
-        uint64_t current_gen = scene.getGeneration();
-        auto     it          = s_synced_generations.find(&scene);
+        const uint64_t current_gen = scene.getGeneration();
+        const auto     it          = s_synced_generations.find(&scene);
         if (it != s_synced_generations.end() && it->second == current_gen)
             return;
         s_synced_generations[&scene] = current_gen;
@@ -23,18 +23,19 @@ namespace RealmEngine
         registry.clear<Children>();
 
         // Rebuild from SceneNode tree
-        auto root = scene.getRoot();
+        const auto root = scene.getRoot();
         if (!root)
             return;
 
         syncNode(scene, root, entt::null);
     }
 
-    void HierarchySystem::invalidate(Scene& scene) { s_synced_generations.erase(&scene); }
+    void HierarchySystem::invalidate(const Scene& scene) { s_synced_generations.erase(&scene); }
 
     void HierarchySystem::invalidateAll() { s_synced_generations.clear(); }
 
-    void HierarchySystem::syncNode(Scene& scene, const std::shared_ptr<SceneNode>& node, entt::entity parent_entity)
+    void
+    HierarchySystem::syncNode(Scene& scene, const std::shared_ptr<SceneNode>& node, const entt::entity parent_entity)
     {
         auto& registry = scene.getRegistry();
 

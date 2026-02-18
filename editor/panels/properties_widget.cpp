@@ -20,7 +20,7 @@
 
 namespace RealmEngine
 {
-    PropertiesWidget::PropertiesWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge) :
+    PropertiesWidget::PropertiesWidget(const std::shared_ptr<EditorContext>& context, EditorEngineBridge& bridge) :
         Widget("Properties"), m_context(context), m_bridge(&bridge)
     {}
 
@@ -28,7 +28,7 @@ namespace RealmEngine
     {
         ImGui::Begin(m_name.c_str(), &m_open);
 
-        auto scene = m_bridge->getCurrentScene();
+        const auto scene = m_bridge->getCurrentScene();
         if (!m_context || !m_context->hasSelectedEntity() || !scene)
         {
             ImGui::Text("No entity selected");
@@ -36,7 +36,7 @@ namespace RealmEngine
             return;
         }
 
-        entt::entity entity = m_context->getSelectedEntity();
+        const entt::entity entity = m_context->getSelectedEntity();
         if (!scene->valid(entity))
         {
             ImGui::Text("Invalid entity");
@@ -62,9 +62,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderTransform()
     {
-        auto         scene  = m_bridge->getCurrentScene();
-        entt::entity entity = m_context->getSelectedEntity();
-        auto*        tf     = scene->tryGet<Transform>(entity);
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        auto*              tf     = scene->tryGet<Transform>(entity);
         if (!tf)
             return;
 
@@ -87,9 +87,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderRenderable()
     {
-        auto         scene  = m_bridge->getCurrentScene();
-        entt::entity entity = m_context->getSelectedEntity();
-        auto*        r      = scene->tryGet<Renderable>(entity);
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        const auto*        r      = scene->tryGet<Renderable>(entity);
         if (!r)
             return;
 
@@ -141,20 +141,20 @@ namespace RealmEngine
         }
     }
 
-    void PropertiesWidget::renderTextureSlot(const char*            label,
-                                             const std::string&     use_key,
-                                             const std::string&     tex_key,
-                                             MaterialPropertyBlock& props)
+    void PropertiesWidget::renderTextureSlot(const char*                  label,
+                                             const std::string&           use_key,
+                                             const std::string&           tex_key,
+                                             const MaterialPropertyBlock& props)
     {
         ImGui::Text("%s:", label);
         ImGui::SameLine(140);
-        auto tex     = props.getTexture(tex_key);
-        bool use_tex = props.getBool(use_key);
+        const auto tex     = props.getTexture(tex_key);
+        const bool use_tex = props.getBool(use_key);
         if (tex)
         {
             ImGui::Text("(%dx%d) %s", tex->getWidth(), tex->getHeight(), use_tex ? "on" : "off");
-            const float preview_sz = 48.0f;
-            ImTextureID tid        = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
+            constexpr float   preview_sz = 48.0f;
+            const ImTextureID tid        = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
             ImGui::Image(tid, ImVec2(preview_sz, preview_sz), ImVec2(0, 1), ImVec2(1, 0));
         }
         else
@@ -165,8 +165,8 @@ namespace RealmEngine
 
     void PropertiesWidget::renderMaterialEditor(Material& mat)
     {
-        auto  scene = m_bridge->getCurrentScene();
-        auto& props = mat.properties;
+        const auto scene = m_bridge->getCurrentScene();
+        auto&      props = mat.properties;
 
         // Shading Model
         static const char* s_shading_names[] = {"Standard PBR", "Unlit", "Custom"};
@@ -428,9 +428,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderPointLight()
     {
-        auto         scene  = m_bridge->getCurrentScene();
-        entt::entity entity = m_context->getSelectedEntity();
-        auto*        pl     = scene->tryGet<PointLight>(entity);
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        auto*              pl     = scene->tryGet<PointLight>(entity);
         if (!pl)
             return;
 
@@ -460,9 +460,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderSpotLight()
     {
-        auto         scene  = m_bridge->getCurrentScene();
-        entt::entity entity = m_context->getSelectedEntity();
-        auto*        sl     = scene->tryGet<SpotLight>(entity);
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        auto*              sl     = scene->tryGet<SpotLight>(entity);
         if (!sl)
             return;
 
@@ -496,9 +496,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderDirectionalLight()
     {
-        auto         scene  = m_bridge->getCurrentScene();
-        entt::entity entity = m_context->getSelectedEntity();
-        auto*        dl     = scene->tryGet<DirectionalLight>(entity);
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        auto*              dl     = scene->tryGet<DirectionalLight>(entity);
         if (!dl)
             return;
 
@@ -515,9 +515,9 @@ namespace RealmEngine
 
     void PropertiesWidget::renderAreaLight()
     {
-        auto         scene  = m_bridge->getCurrentScene();
-        entt::entity entity = m_context->getSelectedEntity();
-        auto*        al     = scene->tryGet<AreaLight>(entity);
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        auto*              al     = scene->tryGet<AreaLight>(entity);
         if (!al)
             return;
 

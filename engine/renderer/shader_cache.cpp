@@ -1,6 +1,6 @@
 #include "renderer/shader_cache.h"
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "rhi/rhi_device.h"
 #include "rhi/rhi_shader.h"
 

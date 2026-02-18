@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "platform/window/window.h"
 #include "renderer/fullscreen_quad.h"
 #include "renderer/ibl/diffuse_irradiance_map.h"

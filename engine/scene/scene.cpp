@@ -1,6 +1,6 @@
 #include "scene/scene.h"
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "scene/components/camera_controller.h"
 #include "scene/components/lighting/area.h"
 #include "scene/components/lighting/directional.h"
@@ -66,7 +66,7 @@ namespace RealmEngine
         return *this;
     }
 
-    void Scene::tick(float delta_time)
+    void Scene::tick(const float delta_time)
     {
         // Run ECS systems each frame
         HierarchySystem::update(*this);
@@ -78,7 +78,7 @@ namespace RealmEngine
 
     Entity Scene::createEntity(const std::string& name)
     {
-        auto it = m_name_index.find(name);
+        const auto it = m_name_index.find(name);
         if (it != m_name_index.end())
         {
             RE_LOG_WARN("Entity name already taken: " + name + " -- generating unique name");
@@ -89,7 +89,7 @@ namespace RealmEngine
             return createEntity(unique_name);
         }
 
-        auto handle = m_registry.create();
+        const auto handle = m_registry.create();
         m_registry.emplace<NameTag>(handle, NameTag {name});
         m_name_index[name] = handle;
         incrementGeneration();
@@ -98,14 +98,14 @@ namespace RealmEngine
 
     void Scene::destroyEntity(entt::entity entity)
     {
-        auto* tag = m_registry.try_get<NameTag>(entity);
+        const auto* tag = m_registry.try_get<NameTag>(entity);
         if (tag)
             m_name_index.erase(tag->name);
 
-        auto node = findNodeByEntity(entity);
+        const auto node = findNodeByEntity(entity);
         if (node)
         {
-            auto parent = node->getParent();
+            const auto parent = node->getParent();
             if (parent)
                 parent->removeChild(node);
             node->clearChildren();
@@ -117,13 +117,13 @@ namespace RealmEngine
 
     Entity Scene::findEntity(const std::string& name) const
     {
-        auto it = m_name_index.find(name);
+        const auto it = m_name_index.find(name);
         if (it != m_name_index.end())
             return Entity(it->second, const_cast<entt::registry*>(&m_registry));
         return Entity();
     }
 
-    bool Scene::valid(entt::entity entity) const { return m_registry.valid(entity); }
+    bool Scene::valid(const entt::entity entity) const { return m_registry.valid(entity); }
 
     namespace
     {
@@ -135,7 +135,7 @@ namespace RealmEngine
                 return node;
             for (size_t i = 0; i < node->getChildCount(); ++i)
             {
-                auto found = findNodeByEntityRecursive(node->getChild(i), entity);
+                const auto found = findNodeByEntityRecursive(node->getChild(i), entity);
                 if (found)
                     return found;
             }
@@ -154,8 +154,8 @@ namespace RealmEngine
 
     std::shared_ptr<SceneNode> Scene::createNodeWithEntity(const std::string& name)
     {
-        auto entity = createEntity(name);
-        auto node   = std::make_shared<SceneNode>(name);
+        const auto entity = createEntity(name);
+        auto       node   = std::make_shared<SceneNode>(name);
         node->setEntity(entity.handle());
         return node;
     }

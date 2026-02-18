@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -22,7 +21,7 @@ namespace RealmEngine
         CommandExecutor(CommandExecutor&&)                 = delete;
         CommandExecutor& operator=(CommandExecutor&&)      = delete;
 
-        void execute(std::unique_ptr<ICommand> command);
+        void execute(const std::unique_ptr<ICommand>& command);
         void execute(ICommand& command);
         void execute(ICommand&& command);
         void undo();
@@ -31,7 +30,7 @@ namespace RealmEngine
         bool canRedo() const;
 
         size_t getMaxHistory() const { return m_max_history; }
-        void   setMaxHistory(size_t max_history) { m_max_history = max_history; }
+        void   setMaxHistory(const size_t max_history) { m_max_history = max_history; }
 
     private:
         void executeImpl(ICommand& command);

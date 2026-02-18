@@ -6,11 +6,11 @@
 
 namespace RealmEngine
 {
-    void CameraController::initialize(std::shared_ptr<RenderCamera> camera,
-                                      Input&                        input,
-                                      float                         mouse_sensitivity,
-                                      float                         move_speed,
-                                      float                         sprint_multiplier)
+    void CameraController::initialize(const std::shared_ptr<RenderCamera>& camera,
+                                      Input&                               input,
+                                      const float                          mouse_sensitivity,
+                                      const float                          move_speed,
+                                      const float                          sprint_multiplier)
     {
         m_camera            = camera;
         m_input             = &input;
@@ -19,12 +19,12 @@ namespace RealmEngine
         m_sprint_multiplier = sprint_multiplier;
     }
 
-    void CameraController::update(float delta_time)
+    void CameraController::update(const float delta_time)
     {
         if (!m_camera || !m_input)
             return;
 
-        Command cmd = m_input->getCurrentCommand();
+        const Command cmd = m_input->getCurrentCommand();
 
         // Calculate movement speed
         float move_speed = m_move_speed;
@@ -46,23 +46,23 @@ namespace RealmEngine
         // Apply movement
         if (glm::length(move_dir) > 0.0f)
         {
-            move_dir               = glm::normalize(move_dir);
-            glm::vec3 new_position = m_camera->getPosition() + move_dir * move_speed * delta_time;
+            move_dir                     = glm::normalize(move_dir);
+            const glm::vec3 new_position = m_camera->getPosition() + move_dir * move_speed * delta_time;
             m_camera->setPosition(new_position);
         }
 
         // Mouse rotation control (when FOCUS is active)
         if (cmd & static_cast<Command>(BindableCommand::FOCUS))
         {
-            float yaw_delta   = static_cast<float>(m_input->getCursorDeltaX()) * m_mouse_sensitivity;
-            float pitch_delta = static_cast<float>(m_input->getCursorDeltaY()) * m_mouse_sensitivity;
+            const float yaw_delta   = static_cast<float>(m_input->getCursorDeltaX()) * m_mouse_sensitivity;
+            const float pitch_delta = static_cast<float>(m_input->getCursorDeltaY()) * m_mouse_sensitivity;
 
-            glm::quat current_rotation = m_camera->getRotation();
+            const glm::quat current_rotation = m_camera->getRotation();
 
-            glm::quat yaw_rotation   = glm::angleAxis(glm::radians(-yaw_delta), glm::vec3(0.0f, 1.0f, 0.0f));
-            glm::quat pitch_rotation = glm::angleAxis(glm::radians(-pitch_delta), glm::vec3(1.0f, 0.0f, 0.0f));
+            const glm::quat yaw_rotation   = glm::angleAxis(glm::radians(-yaw_delta), glm::vec3(0.0f, 1.0f, 0.0f));
+            const glm::quat pitch_rotation = glm::angleAxis(glm::radians(-pitch_delta), glm::vec3(1.0f, 0.0f, 0.0f));
 
-            glm::quat new_rotation = yaw_rotation * current_rotation * pitch_rotation;
+            const glm::quat new_rotation = yaw_rotation * current_rotation * pitch_rotation;
             m_camera->setRotation(new_rotation);
         }
     }

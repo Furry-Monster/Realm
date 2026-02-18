@@ -127,7 +127,7 @@ namespace RealmEngine
                 }
             }
             changed |= ImGui::DragFloat("Bloom Brightness Cutoff", &copy.bloom_brightness_cutoff, 0.1f, 0.0f, 10.0f);
-            changed |= ImGui::Checkbox("Tonemapping", &copy.tonemapping_enabled);
+            changed |= ImGui::Checkbox("Tone mapping", &copy.tonemapping_enabled);
             changed |= ImGui::DragFloat("Gamma", &copy.gamma_correction_factor, 0.1f, 1.0f, 3.0f);
             ImGui::TreePop();
         }

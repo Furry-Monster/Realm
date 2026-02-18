@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#include "core/log/log_macros.h"
+#include "core/base/macros.h"
 #include "platform/filesystem/filesystem.h"
 #include "resource/config_serializer.h"
 

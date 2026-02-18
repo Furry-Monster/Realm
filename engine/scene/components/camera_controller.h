@@ -18,17 +18,17 @@ namespace RealmEngine
         CameraController(CameraController&&) noexcept            = default;
         CameraController& operator=(CameraController&&) noexcept = default;
 
-        void initialize(std::shared_ptr<RenderCamera> camera,
-                        Input&                        input,
-                        float                         mouse_sensitivity,
-                        float                         move_speed,
-                        float                         sprint_multiplier);
+        void initialize(const std::shared_ptr<RenderCamera>& camera,
+                        Input&                               input,
+                        float                                mouse_sensitivity,
+                        float                                move_speed,
+                        float                                sprint_multiplier);
 
         void update(float delta_time);
 
-        void setMoveSpeed(float speed) { m_move_speed = speed; }
-        void setSprintMultiplier(float multiplier) { m_sprint_multiplier = multiplier; }
-        void setMouseSensitivity(float sensitivity) { m_mouse_sensitivity = sensitivity; }
+        void setMoveSpeed(const float speed) { m_move_speed = speed; }
+        void setSprintMultiplier(const float multiplier) { m_sprint_multiplier = multiplier; }
+        void setMouseSensitivity(const float sensitivity) { m_mouse_sensitivity = sensitivity; }
 
         float getMoveSpeed() const { return m_move_speed; }
         float getSprintMultiplier() const { return m_sprint_multiplier; }

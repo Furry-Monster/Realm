@@ -14,7 +14,7 @@ namespace RealmEngine
     class EntityBrowserWidget : public Widget
     {
     public:
-        EntityBrowserWidget(std::shared_ptr<EditorContext> context, EditorEngineBridge& bridge);
+        EntityBrowserWidget(const std::shared_ptr<EditorContext>& context, EditorEngineBridge& bridge);
         ~EntityBrowserWidget() override = default;
 
         EntityBrowserWidget(const EntityBrowserWidget&)            = delete;

@@ -10,10 +10,10 @@ namespace RealmEngine
         return s_instance;
     }
 
-    void EditorConsole::pushLog(ConsoleLogLevel level, const std::string& message)
+    void EditorConsole::pushLog(const ConsoleLogLevel level, const std::string& message)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        uint64_t                    now = static_cast<uint64_t>(
+        const uint64_t              now = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
                 .count());
         m_logs.emplace_back(ConsoleLogEntry {level, message, now});
@@ -27,7 +27,7 @@ namespace RealmEngine
         m_logs.clear();
     }
 
-    void EditorConsole::getLogs(std::deque<ConsoleLogEntry>& out, ConsoleLogLevel min_level) const
+    void EditorConsole::getLogs(std::deque<ConsoleLogEntry>& out, const ConsoleLogLevel min_level) const
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         out.clear();

@@ -1,12 +1,13 @@
 #include "panels/asset_browser_widget.h"
 
 #include "bridge/editor_engine_bridge.h"
-#include "core/log/log_macros.h"
 #include "rhi/rhi_texture.h"
 
 #include <imgui.h>
 #include <algorithm>
 #include <cstring>
+
+#include "core/base/macros.h"
 
 namespace RealmEngine
 {
@@ -84,7 +85,7 @@ namespace RealmEngine
         ImGui::TextUnformatted(path_str.c_str());
     }
 
-    void AssetBrowserWidget::renderDirectoryTree(const std::filesystem::path& path, int depth)
+    void AssetBrowserWidget::renderDirectoryTree(const std::filesystem::path& path, const int depth)
     {
         if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
             return;
@@ -94,7 +95,7 @@ namespace RealmEngine
             name = path.string();
 
         ImGuiTreeNodeFlags flags      = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-        bool               is_current = (std::filesystem::equivalent(path, m_current_path));
+        const bool         is_current = (std::filesystem::equivalent(path, m_current_path));
         if (is_current)
             flags |= ImGuiTreeNodeFlags_Selected;
 
@@ -144,7 +145,7 @@ namespace RealmEngine
                         icon = "[T] ";
 
                     std::string        file_label  = std::string(icon) + file_name;
-                    bool               is_selected = (m_selected_path == file);
+                    const bool         is_selected = (m_selected_path == file);
                     ImGuiTreeNodeFlags file_flags  = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen |
                                                     ImGuiTreeNodeFlags_SpanAvailWidth;
                     if (is_selected)
@@ -180,21 +181,21 @@ namespace RealmEngine
     {
         if (m_show_thumbnails)
         {
-            float cell_size = m_thumbnail_size + ImGui::GetStyle().ItemSpacing.y + ImGui::GetTextLineHeight();
-            float panel_w   = ImGui::GetContentRegionAvail().x;
-            int   cols      = std::max(1, static_cast<int>(panel_w / cell_size));
+            const float cell_size = m_thumbnail_size + ImGui::GetStyle().ItemSpacing.y + ImGui::GetTextLineHeight();
+            const float panel_w   = ImGui::GetContentRegionAvail().x;
+            const int   cols      = std::max(1, static_cast<int>(panel_w / cell_size));
 
             int col = 0;
             if (m_current_path.has_parent_path())
             {
                 ImGui::BeginGroup();
-                ImVec2 thumb_size(m_thumbnail_size, m_thumbnail_size);
+                const ImVec2 thumb_size(m_thumbnail_size, m_thumbnail_size);
                 if (ImGui::Button("##thumb_parent", thumb_size))
                 {
                     m_pending_navigate      = true;
                     m_pending_navigate_path = m_current_path.parent_path();
                 }
-                ImVec2 pos = ImGui::GetItemRectMin();
+                const ImVec2 pos = ImGui::GetItemRectMin();
                 ImGui::GetWindowDrawList()->AddText(
                     ImVec2(pos.x + m_thumbnail_size * 0.5f - ImGui::CalcTextSize("../").x * 0.5f,
                            pos.y + m_thumbnail_size * 0.5f - ImGui::GetTextLineHeight() * 0.5f),
@@ -251,21 +252,21 @@ namespace RealmEngine
         renderAssetContextMenu();
     }
 
-    void AssetBrowserWidget::renderFileItem(const std::filesystem::path& entry, bool is_dir)
+    void AssetBrowserWidget::renderFileItem(const std::filesystem::path& entry, const bool is_dir)
     {
-        std::string filename    = entry.filename().string();
-        bool        is_selected = (m_selected_path == entry);
-        ImVec2      thumb_size(m_thumbnail_size, m_thumbnail_size);
+        std::string  filename    = entry.filename().string();
+        const bool   is_selected = (m_selected_path == entry);
+        const ImVec2 thumb_size(m_thumbnail_size, m_thumbnail_size);
 
         if (m_show_thumbnails)
         {
             ImGui::BeginGroup();
-            bool has_texture = !is_dir && (isTextureFile(entry) || isHdrFile(entry));
-            auto tex         = has_texture ? m_bridge->getTextureForPreview(entry) : nullptr;
+            const bool has_texture = !is_dir && (isTextureFile(entry) || isHdrFile(entry));
+            const auto tex         = has_texture ? m_bridge->getTextureForPreview(entry) : nullptr;
 
             if (tex)
             {
-                ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
+                const ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
                 if (ImGui::ImageButton(
                         ("##thumb_" + entry.string()).c_str(), tid, thumb_size, ImVec2(0, 1), ImVec2(1, 0)))
                     m_selected_path = entry;
@@ -280,7 +281,7 @@ namespace RealmEngine
                     openTexturePreview(entry);
                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
                 {
-                    std::string path_str = entry.generic_string();
+                    const std::string path_str = entry.generic_string();
                     ImGui::SetDragDropPayload(
                         DRAG_DROP_PAYLOAD_TYPE, path_str.c_str(), path_str.size() + 1, ImGuiCond_Once);
                     ImGui::Image(tid, ImVec2(32, 32), ImVec2(0, 1), ImVec2(1, 0));
@@ -292,7 +293,7 @@ namespace RealmEngine
                 const char* hint = is_dir ? "[D]" : (isModelFile(entry) ? "[M]" : "[F]");
                 if (ImGui::Button(("##thumb_" + entry.string()).c_str(), thumb_size))
                     m_selected_path = entry;
-                ImVec2 pos = ImGui::GetItemRectMin();
+                const ImVec2 pos = ImGui::GetItemRectMin();
                 ImGui::GetWindowDrawList()->AddText(
                     ImVec2(pos.x + m_thumbnail_size * 0.5f - ImGui::CalcTextSize(hint).x * 0.5f,
                            pos.y + m_thumbnail_size * 0.5f - ImGui::GetTextLineHeight() * 0.5f),
@@ -317,7 +318,7 @@ namespace RealmEngine
                 }
                 if (!is_dir && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
                 {
-                    std::string path_str = entry.generic_string();
+                    const std::string path_str = entry.generic_string();
                     ImGui::SetDragDropPayload(
                         DRAG_DROP_PAYLOAD_TYPE, path_str.c_str(), path_str.size() + 1, ImGuiCond_Once);
                     ImGui::TextUnformatted(filename.c_str());
@@ -325,7 +326,7 @@ namespace RealmEngine
                 }
             }
 
-            float text_w = ImGui::CalcTextSize(filename.c_str()).x;
+            const float text_w = ImGui::CalcTextSize(filename.c_str()).x;
             if (text_w > m_thumbnail_size)
                 filename = filename.substr(0, static_cast<size_t>(m_thumbnail_size / 8)) + "..";
             ImGui::TextWrapped("%s", filename.c_str());
@@ -344,7 +345,7 @@ namespace RealmEngine
             if (is_selected)
                 flags |= ImGuiTreeNodeFlags_Selected;
 
-            std::string label = std::string(icon) + filename;
+            const std::string label = std::string(icon) + filename;
             if (ImGui::TreeNodeEx(label.c_str(), flags))
             {
                 if (ImGui::IsItemClicked())
@@ -369,7 +370,7 @@ namespace RealmEngine
 
                 if (!is_dir && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
                 {
-                    std::string path_str = entry.generic_string();
+                    const std::string path_str = entry.generic_string();
                     ImGui::SetDragDropPayload(
                         DRAG_DROP_PAYLOAD_TYPE, path_str.c_str(), path_str.size() + 1, ImGuiCond_Once);
                     ImGui::TextUnformatted(filename.c_str());
@@ -409,8 +410,8 @@ namespace RealmEngine
                 std::sort(m_directory_entries.begin(),
                           m_directory_entries.end(),
                           [](const std::filesystem::path& a, const std::filesystem::path& b) {
-                              bool a_is_dir = std::filesystem::is_directory(a);
-                              bool b_is_dir = std::filesystem::is_directory(b);
+                              const bool a_is_dir = std::filesystem::is_directory(a);
+                              const bool b_is_dir = std::filesystem::is_directory(b);
                               if (a_is_dir != b_is_dir)
                                   return a_is_dir;
                               return a.filename().string() < b.filename().string();
@@ -441,7 +442,7 @@ namespace RealmEngine
         if (!m_texture_preview_open || m_texture_preview_path.empty())
             return;
 
-        std::string title = "Texture Preview: " + m_texture_preview_path.filename().string();
+        const std::string title = "Texture Preview: " + m_texture_preview_path.filename().string();
         ImGui::SetNextWindowSize(ImVec2(512, 512), ImGuiCond_FirstUseEver);
         if (!ImGui::Begin(title.c_str(), &m_texture_preview_open))
         {
@@ -449,16 +450,16 @@ namespace RealmEngine
             return;
         }
 
-        auto tex = m_bridge->getTextureForPreview(m_texture_preview_path);
+        const auto tex = m_bridge->getTextureForPreview(m_texture_preview_path);
         if (tex)
         {
-            float  w      = static_cast<float>(tex->getWidth());
-            float  h      = static_cast<float>(tex->getHeight());
-            float  max_sz = 480.0f;
-            float  scale  = (w > 0.0f && h > 0.0f) ? std::min(1.0f, std::min(max_sz / w, max_sz / h)) : 1.0f;
-            ImVec2 display_size(w * scale, h * scale);
+            const float     w      = static_cast<float>(tex->getWidth());
+            const float     h      = static_cast<float>(tex->getHeight());
+            constexpr float max_sz = 480.0f;
+            const float     scale  = (w > 0.0f && h > 0.0f) ? std::min(1.0f, std::min(max_sz / w, max_sz / h)) : 1.0f;
+            const ImVec2    display_size(w * scale, h * scale);
 
-            ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
+            const ImTextureID tid = static_cast<ImTextureID>(static_cast<intptr_t>(tex->getNativeHandle()));
             ImGui::Image(tid, display_size, ImVec2(0, 1), ImVec2(1, 0));
 
             ImGui::Separator();
@@ -487,36 +488,36 @@ namespace RealmEngine
     {
         if (m_search_filter.empty())
             return true;
-        std::string name         = entry.filename().string();
-        std::string lower_name   = name;
-        std::string lower_filter = m_search_filter;
+        const std::string name         = entry.filename().string();
+        std::string       lower_name   = name;
+        std::string       lower_filter = m_search_filter;
         std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
         std::transform(lower_filter.begin(), lower_filter.end(), lower_filter.begin(), ::tolower);
         return lower_name.find(lower_filter) != std::string::npos;
     }
 
-    bool AssetBrowserWidget::isModelFile(const std::filesystem::path& path) const
+    bool AssetBrowserWidget::isModelFile(const std::filesystem::path& path)
     {
         std::string ext = path.extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         return ext == ".gltf" || ext == ".glb" || ext == ".fbx" || ext == ".obj";
     }
 
-    bool AssetBrowserWidget::isTextureFile(const std::filesystem::path& path) const
+    bool AssetBrowserWidget::isTextureFile(const std::filesystem::path& path)
     {
         std::string ext = path.extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga" || ext == ".bmp";
     }
 
-    bool AssetBrowserWidget::isHdrFile(const std::filesystem::path& path) const
+    bool AssetBrowserWidget::isHdrFile(const std::filesystem::path& path)
     {
         std::string ext = path.extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         return ext == ".hdr";
     }
 
-    bool AssetBrowserWidget::isPbrTextureFile(const std::filesystem::path& path) const
+    bool AssetBrowserWidget::isPbrTextureFile(const std::filesystem::path& path)
     {
         std::string stem = path.stem().string();
         std::transform(stem.begin(), stem.end(), stem.begin(), ::tolower);
@@ -525,7 +526,7 @@ namespace RealmEngine
                stem.find("basecolor") != std::string::npos;
     }
 
-    bool AssetBrowserWidget::filenameHasNormalHint(const std::filesystem::path& path) const
+    bool AssetBrowserWidget::filenameHasNormalHint(const std::filesystem::path& path)
     {
         std::string stem = path.stem().string();
         std::transform(stem.begin(), stem.end(), stem.begin(), ::tolower);

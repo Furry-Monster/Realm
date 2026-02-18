@@ -10,16 +10,16 @@ namespace RealmEngine
     void               SceneNode::setName(const std::string& name) { m_name = name; }
     const std::string& SceneNode::getName() const { return m_name; }
 
-    void         SceneNode::setEntity(entt::entity entity) { m_entity = entity; }
+    void         SceneNode::setEntity(const entt::entity entity) { m_entity = entity; }
     entt::entity SceneNode::getEntity() const { return m_entity; }
     bool         SceneNode::hasEntity() const { return m_entity != entt::null; }
 
-    void SceneNode::addChild(std::shared_ptr<SceneNode> child)
+    void SceneNode::addChild(const std::shared_ptr<SceneNode>& child)
     {
         if (!child)
             return;
 
-        auto old_parent = child->getParent();
+        const auto old_parent = child->getParent();
         if (old_parent)
             old_parent->removeChild(child);
 
@@ -32,7 +32,7 @@ namespace RealmEngine
         if (!child)
             return;
 
-        auto it = std::find(m_children.begin(), m_children.end(), child);
+        const auto it = std::find(m_children.begin(), m_children.end(), child);
         if (it != m_children.end())
         {
             (*it)->updateParentReference(nullptr);
@@ -42,9 +42,10 @@ namespace RealmEngine
 
     void SceneNode::removeChild(const std::string& name)
     {
-        auto it = std::find_if(m_children.begin(), m_children.end(), [&name](const std::shared_ptr<SceneNode>& node) {
-            return node->getName() == name;
-        });
+        const auto it =
+            std::find_if(m_children.begin(), m_children.end(), [&name](const std::shared_ptr<SceneNode>& node) {
+                return node->getName() == name;
+            });
 
         if (it != m_children.end())
         {
@@ -55,14 +56,15 @@ namespace RealmEngine
 
     std::shared_ptr<SceneNode> SceneNode::getChild(const std::string& name) const
     {
-        auto it = std::find_if(m_children.begin(), m_children.end(), [&name](const std::shared_ptr<SceneNode>& node) {
-            return node->getName() == name;
-        });
+        const auto it =
+            std::find_if(m_children.begin(), m_children.end(), [&name](const std::shared_ptr<SceneNode>& node) {
+                return node->getName() == name;
+            });
 
         return (it != m_children.end()) ? *it : nullptr;
     }
 
-    std::shared_ptr<SceneNode> SceneNode::getChild(size_t index) const
+    std::shared_ptr<SceneNode> SceneNode::getChild(const size_t index) const
     {
         return (index < m_children.size()) ? m_children[index] : nullptr;
     }
@@ -71,7 +73,7 @@ namespace RealmEngine
 
     std::shared_ptr<SceneNode> SceneNode::getParent() const { return m_parent.lock(); }
 
-    void SceneNode::setParent(std::shared_ptr<SceneNode> parent)
+    void SceneNode::setParent(const std::shared_ptr<SceneNode>& parent)
     {
         if (parent)
         {
@@ -79,13 +81,13 @@ namespace RealmEngine
         }
         else
         {
-            auto current_parent = m_parent.lock();
+            const auto current_parent = m_parent.lock();
             if (current_parent)
                 current_parent->removeChild(shared_from_this());
         }
     }
 
-    void SceneNode::forEachChild(std::function<void(const std::shared_ptr<SceneNode>&)> func) const
+    void SceneNode::forEachChild(const std::function<void(const std::shared_ptr<SceneNode>&)>& func) const
     {
         for (const auto& child : m_children)
             func(child);
@@ -93,13 +95,13 @@ namespace RealmEngine
 
     void SceneNode::clearChildren()
     {
-        for (auto& child : m_children)
+        for (const auto& child : m_children)
             child->updateParentReference(nullptr);
 
         m_children.clear();
     }
 
-    void SceneNode::updateParentReference(std::shared_ptr<SceneNode> new_parent)
+    void SceneNode::updateParentReference(const std::shared_ptr<SceneNode>& new_parent)
     {
         if (new_parent)
             m_parent = new_parent;

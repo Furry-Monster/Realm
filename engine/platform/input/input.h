@@ -41,7 +41,7 @@ namespace RealmEngine
         double getCursorDeltaX() const;
         double getCursorDeltaY() const;
         void   getCursorPosition(double& x, double& y) const;
-        void   setCursorHidden(bool hidden);
+        void   setCursorHidden(bool hidden) const;
 
         // key binding
         void bindKey(int glfw_key, BindableCommand command);

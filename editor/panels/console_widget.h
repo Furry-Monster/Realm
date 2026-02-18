@@ -22,10 +22,11 @@ namespace RealmEngine
         void render() override;
 
     private:
-        void        renderToolbar();
-        void        renderLogList();
-        const char* levelToString(ConsoleLogLevel level) const;
-        ImVec4      levelToColor(ConsoleLogLevel level) const;
+        void renderToolbar();
+        void renderLogList();
+
+        static const char* levelToString(ConsoleLogLevel level);
+        static ImVec4      levelToColor(ConsoleLogLevel level);
 
         ConsoleLogLevel             m_min_level {ConsoleLogLevel::trace};
         bool                        m_auto_scroll {true};

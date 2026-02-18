@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <functional>
-#include <memory>
 #include <string>
 #include "widget.h"
 
@@ -34,9 +33,9 @@ namespace RealmEngine
                   const std::string&           filter,
                   const std::filesystem::path& initial_path = "");
         void close();
-        bool isOpen() const { return m_open && m_dialog_open; }
+        bool isOpen() const override { return m_open && m_dialog_open; }
 
-        void setOnFileSelected(OnFileSelectedCallback callback) { m_callback = callback; }
+        void setOnFileSelected(const OnFileSelectedCallback& callback) { m_callback = callback; }
         Mode getMode() const { return m_mode; }
 
     private:
