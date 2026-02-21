@@ -16,8 +16,9 @@ A modern OpenGL game engine with PBR rendering, a visual editor, and an ECS arch
 
 - **PBR Rendering** — Cook-Torrance BRDF, Metallic/Roughness workflow, multi-pass pipeline (Shadow, GTAO, Bloom, SSS, Post-processing)
 - **Image-Based Lighting** — Diffuse irradiance, specular prefiltering, BRDF LUT
-- **Visual Editor** — ImGui-based scene editor with viewport, hierarchy, properties, asset browser, profiler, undo/redo, hotkeys
-- **ECS Architecture** — EnTT-powered with Transform, Renderable, Camera, Lighting, Hierarchy components
+- **Visual Editor** — ImGui-based scene editor with viewport, hierarchy, properties, asset browser, profiler, undo/redo, hotkeys; 
+- **ECS Architecture** — EnTT-powered with Transform, Renderable, Camera, Lighting, Hierarchy, AudioSource, AudioListener components
+- **Audio System** — miniaudio integration; spatial audio; listener management
 - **Scene Management** — Scene graph, JSON serialization, resource caching (glTF / FBX / OBJ / PLY / STL)
 - **RHI Abstraction** — OpenGL backend, architecture ready for Vulkan / D3D12
 
@@ -50,7 +51,7 @@ After build, run `bin/RealmEditor` (or `bin/RealmEditor.exe` on Windows).
 RealmEngine/
 ├── engine/          # Core engine library (RHI, renderer, ECS, platform)
 ├── editor/          # Visual editor (panels, commands, bridge)
-├── runtime/         # Standalone runtime player
+├── sandbox/         # Standalone sandbox player
 ├── shaders/         # GLSL shaders
 ├── assets/          # Models, textures, HDR environment maps
 ├── libs/            # Third-party dependencies (git submodules)
@@ -62,7 +63,7 @@ RealmEngine/
 
 All managed as git submodules in `libs/`:
 
-[GLFW](https://www.glfw.org/) | [GLAD](https://glad.dav1d.de/) | [GLM](https://github.com/g-truc/glm) | [Assimp](https://www.assimp.org/) | [spdlog](https://github.com/gabime/spdlog) | [ImGui](https://github.com/ocornut/imgui) | [stb](https://github.com/nothings/stb) | [EnTT](https://github.com/skypjack/entt) | [nlohmann/json](https://github.com/nlohmann/json)
+[GLFW](https://www.glfw.org/) | [GLAD](https://glad.dav1d.de/) | [GLM](https://github.com/g-truc/glm) | [Assimp](https://www.assimp.org/) | [spdlog](https://github.com/gabime/spdlog) | [ImGui](https://github.com/ocornut/imgui) | [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) | [stb](https://github.com/nothings/stb) | [EnTT](https://github.com/skypjack/entt) | [miniaudio](https://miniaud.io/) | [nlohmann/json](https://github.com/nlohmann/json)
 
 ## Build Options
 
@@ -74,6 +75,7 @@ python scripts/build.py                    # Debug build
 python scripts/build.py -t Release -j 8   # Release, 8 jobs
 python scripts/build.py -c -r             # Clean, build, run
 python scripts/build.py --no-editor       # Skip editor
+python scripts/build.py --no-sandbox      # Skip sandbox
 python scripts/build.py --tests           # Enable tests
 
 # Code quality
