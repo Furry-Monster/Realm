@@ -201,7 +201,7 @@ Examples:
   python build.py                          # Default build (Debug)
   python build.py -t Release -j 8          # Release build with 8 jobs
   python build.py -c -r                    # Clean build and run editor
-  python build.py -r --run-target RealmRuntime  # Build and run runtime
+  python build.py -r --run-target RealmSandbox  # Build and run sandbox
   python build.py --no-editor              # Build without editor
   python build.py --tests --sanitizers     # Build with tests + sanitizers
   python build.py --configure              # Only configure, don't build
@@ -252,9 +252,9 @@ Examples:
     )
 
     parser.add_argument(
-        "--no-runtime",
+        "--no-sandbox",
         action="store_true",
-        help="Disable building the runtime (REALM_BUILD_RUNTIME=OFF)",
+        help="Disable building the sandbox (REALM_BUILD_SANDBOX=OFF)",
     )
 
     parser.add_argument(
@@ -285,7 +285,7 @@ Examples:
         "--run-target",
         type=str,
         default="RealmEditor",
-        choices=["RealmEditor", "RealmRuntime"],
+        choices=["RealmEditor", "RealmSandbox"],
         help="Which executable to run with -r (default: RealmEditor)",
     )
 
@@ -353,8 +353,8 @@ def main():
     cmake_args = []
     if args.no_editor:
         cmake_args.append("-DREALM_BUILD_EDITOR=OFF")
-    if args.no_runtime:
-        cmake_args.append("-DREALM_BUILD_RUNTIME=OFF")
+    if args.no_sandbox:
+        cmake_args.append("-DREALM_BUILD_SANDBOX=OFF")
     if args.tests:
         cmake_args.append("-DREALM_BUILD_TESTS=ON")
     if args.sanitizers:

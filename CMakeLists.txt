@@ -55,8 +55,8 @@ if (REALM_BUILD_EDITOR)
     add_subdirectory(editor)
 endif ()
 
-if (REALM_BUILD_RUNTIME)
-    add_subdirectory(runtime)
+if (REALM_BUILD_SANDBOX)
+    add_subdirectory(sandbox)
 endif ()
 
 if (REALM_BUILD_TESTS)

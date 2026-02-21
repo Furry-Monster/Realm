@@ -154,7 +154,7 @@ def check_project_structure():
     config = get_build_config()
     logger = config.logger
 
-    required_dirs = ["engine", "editor", "runtime", "libs", "assets", "shaders", "scripts"]
+    required_dirs = ["engine", "editor", "sandbox", "libs", "assets", "shaders", "scripts"]
     required_files = ["CMakeLists.txt", "scripts/build.py"]
 
     missing_dirs = []

@@ -108,7 +108,7 @@ Examples:
         "-d",
         "--directory",
         type=str,
-        help="Directory to format (default: engine, editor, runtime)",
+        help="Directory to format (default: engine, editor, sandbox)",
     )
 
     parser.add_argument(
@@ -148,7 +148,7 @@ Examples:
     if args.directory:
         src_dirs = [config.project_root / args.directory]
     else:
-        src_dirs = [config.src_dir, config.editor_dir, config.runtime_dir]
+        src_dirs = [config.src_dir, config.editor_dir, config.sandbox_dir]
 
     files = []
     for src_dir in src_dirs:

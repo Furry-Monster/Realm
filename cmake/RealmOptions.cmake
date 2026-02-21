@@ -2,7 +2,7 @@ include(CMakeDependentOption)
 
 # Build targets
 option(REALM_BUILD_EDITOR "Build the visual editor" ON)
-option(REALM_BUILD_RUNTIME "Build the standalone runtime" ON)
+option(REALM_BUILD_SANDBOX "Build the standalone sandbox" ON)
 option(REALM_BUILD_TESTS "Build unit tests" OFF)
 
 # Features
@@ -25,7 +25,7 @@ message(STATUS "")
 message(STATUS "====== RealmEngine Build Configuration ======")
 message(STATUS "  Build type        : ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Editor            : ${REALM_BUILD_EDITOR}")
-message(STATUS "  Runtime           : ${REALM_BUILD_RUNTIME}")
+message(STATUS "  Sandbox           : ${REALM_BUILD_SANDBOX}")
 message(STATUS "  Tests             : ${REALM_BUILD_TESTS}")
 message(STATUS "  Logging           : ${REALM_ENABLE_LOGGING}")
 message(STATUS "  Profiler          : ${REALM_ENABLE_PROFILER}")

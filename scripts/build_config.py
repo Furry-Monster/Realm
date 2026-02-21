@@ -96,7 +96,7 @@ class BuildConfig:
         self.bin_dir = self.project_root / "bin"
         self.src_dir = self.project_root / "engine"
         self.editor_dir = self.project_root / "editor"
-        self.runtime_dir = self.project_root / "runtime"
+        self.sandbox_dir = self.project_root / "sandbox"
         self.scripts_dir = self.project_root / "scripts"
 
     @staticmethod
