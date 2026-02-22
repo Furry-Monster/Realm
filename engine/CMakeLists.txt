@@ -49,15 +49,6 @@ if(REALM_BUILD_CAMERA)
                 module/camera/components
         )
 endif()
-if(REALM_BUILD_ECS)
-        list(APPEND ENGINE_MODULES_OPTIONAL
-                module/ecs
-                module/ecs/components
-                module/ecs/components/audio
-                module/ecs/components/lighting
-                module/ecs/systems
-        )
-endif()
 if(REALM_BUILD_PHYSICS)
         list(APPEND ENGINE_MODULES_OPTIONAL module/physics)
 endif()

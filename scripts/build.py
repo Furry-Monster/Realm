@@ -204,8 +204,12 @@ Examples:
   python build.py -r --run-target RealmSandbox  # Build and run sandbox
   python build.py --no-editor              # Build without editor
   python build.py --tests --sanitizers     # Build with tests + sanitizers
+  python build.py --physics --animation     # Enable optional modules
+  python build.py --no-render              # Disable render module
   python build.py --configure              # Only configure, don't build
   python build.py --build                  # Only build, skip configure
+  python build.py --clangd                 # Generate compile_commands.json for clangd (configure only, Ninja, dir build_clangd)
+  python build.py --clangd --no-copy       # Same, do not copy compile_commands.json to project root
   python build.py -D CMAKE_CXX_COMPILER=clang++  # Custom CMake variable
         """,
     )
@@ -269,6 +273,16 @@ Examples:
         help="Enable sanitizers (REALM_ENABLE_SANITIZERS=ON)",
     )
 
+    # Engine modules (default ON in CMake: render, audio, camera)
+    parser.add_argument("--no-render", action="store_true", help="Disable render module (REALM_BUILD_RENDER=OFF)")
+    parser.add_argument("--no-audio", action="store_true", help="Disable audio module (REALM_BUILD_AUDIO=OFF)")
+    parser.add_argument("--no-camera", action="store_true", help="Disable camera module (REALM_BUILD_CAMERA=OFF)")
+    # Engine modules (default OFF in CMake)
+    parser.add_argument("--physics", action="store_true", help="Enable physics module (REALM_BUILD_PHYSICS=ON)")
+    parser.add_argument("--animation", action="store_true", help="Enable animation module (REALM_BUILD_ANIMATION=ON)")
+    parser.add_argument("--particles", action="store_true", help="Enable particles module (REALM_BUILD_PARTICLES=ON)")
+    parser.add_argument("--network", action="store_true", help="Enable network module (REALM_BUILD_NETWORK=ON)")
+
     # Actions
     parser.add_argument(
         "-c",
@@ -295,6 +309,17 @@ Examples:
 
     parser.add_argument("--build", action="store_true", help="Only build, skip CMake configuration")
 
+    parser.add_argument(
+        "--clangd",
+        action="store_true",
+        help="Generate compile_commands.json for clangd (configure only; uses build_clangd dir and Ninja by default)",
+    )
+    parser.add_argument(
+        "--no-copy",
+        action="store_true",
+        help="With --clangd: do not copy compile_commands.json to project root",
+    )
+
     # Other options
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
@@ -315,17 +340,92 @@ Examples:
     return args
 
 
+def _run_clangd_mode(args, config, logger) -> int:
+    """Generate compile_commands.json for clangd (configure only)."""
+    tools_ok, missing = config.check_build_tools()
+    if not tools_ok:
+        logger.error(f"Missing required build tools: {', '.join(missing)}")
+        return 1
+
+    build_dir = config.project_root / args.dir
+    generator = args.generator or ("Ninja" if config.find_program("ninja") else config.get_cmake_generator())
+
+    if generator != "Ninja" and ("Visual Studio" in generator or generator == "Xcode"):
+        logger.warning(
+            f"{generator} does not generate compile_commands.json. "
+            "Use Ninja: install it and re-run without -g, or pass -g Ninja."
+        )
+
+    logger.info("Generating compile_commands.json for clangd...")
+    logger.info(f"  Build directory: {build_dir}")
+    logger.info(f"  Generator: {generator}")
+
+    cmake_args = []
+    if args.no_editor:
+        cmake_args.append("-DREALM_BUILD_EDITOR=OFF")
+    if args.no_sandbox:
+        cmake_args.append("-DREALM_BUILD_SANDBOX=OFF")
+    if args.no_render:
+        cmake_args.append("-DREALM_BUILD_RENDER=OFF")
+    if args.no_audio:
+        cmake_args.append("-DREALM_BUILD_AUDIO=OFF")
+    if args.no_camera:
+        cmake_args.append("-DREALM_BUILD_CAMERA=OFF")
+    if args.physics:
+        cmake_args.append("-DREALM_BUILD_PHYSICS=ON")
+    if args.animation:
+        cmake_args.append("-DREALM_BUILD_ANIMATION=ON")
+    if args.particles:
+        cmake_args.append("-DREALM_BUILD_PARTICLES=ON")
+    if args.network:
+        cmake_args.append("-DREALM_BUILD_NETWORK=ON")
+    if args.cmake_defines:
+        for define in args.cmake_defines:
+            cmake_args.append(f"-D{define}")
+
+    builder = Builder(config)
+    if not builder.configure(
+        build_dir,
+        BuildType.DEBUG,
+        generator,
+        extra_args=cmake_args,
+        verbose=args.verbose,
+    ):
+        return 1
+
+    cc_path = build_dir / "compile_commands.json"
+    if not cc_path.exists():
+        logger.error("compile_commands.json was not generated")
+        if "Visual Studio" in generator or generator == "Xcode":
+            logger.info("Use Ninja generator (install Ninja, then re-run with -g Ninja)")
+        return 1
+
+    if not args.no_copy:
+        root_cc = config.project_root / "compile_commands.json"
+        try:
+            shutil.copy2(cc_path, root_cc)
+            logger.success(f"Copied compile_commands.json to {root_cc}")
+        except Exception as e:
+            logger.warning(f"Could not copy to root: {e}")
+
+    logger.success("clangd completion data ready")
+    return 0
+
+
 def main():
     """Main entry point"""
     args = parse_arguments()
 
-    # Get build configuration
     config = get_build_config()
     logger = config.logger
 
-    # Check if CMake is available
     if not config.check_cmake():
         return 1
+
+    if args.clangd:
+        if args.dir == "build":
+            args.dir = "build_clangd"
+        return _run_clangd_mode(args, config, logger)
 
     # Check build tools
     tools_ok, missing = config.check_build_tools()
@@ -359,6 +459,20 @@ def main():
         cmake_args.append("-DREALM_BUILD_TESTS=ON")
     if args.sanitizers:
         cmake_args.append("-DREALM_ENABLE_SANITIZERS=ON")
+    if args.no_render:
+        cmake_args.append("-DREALM_BUILD_RENDER=OFF")
+    if args.no_audio:
+        cmake_args.append("-DREALM_BUILD_AUDIO=OFF")
+    if args.no_camera:
+        cmake_args.append("-DREALM_BUILD_CAMERA=OFF")
+    if args.physics:
+        cmake_args.append("-DREALM_BUILD_PHYSICS=ON")
+    if args.animation:
+        cmake_args.append("-DREALM_BUILD_ANIMATION=ON")
+    if args.particles:
+        cmake_args.append("-DREALM_BUILD_PARTICLES=ON")
+    if args.network:
+        cmake_args.append("-DREALM_BUILD_NETWORK=ON")
     if args.cmake_defines:
         for define in args.cmake_defines:
             cmake_args.append(f"-D{define}")
