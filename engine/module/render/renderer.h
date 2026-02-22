@@ -3,10 +3,10 @@
 #include <filesystem>
 #include <memory>
 
-#include "module/render/render_camera.h"
-#include "module/render/render_pipeline.h"
+#include "functional/render/render_camera.h"
+#include "functional/render/render_pipeline.h"
+#include "functional/render/viewport_display_mode.h"
 #include "module/render/render_scene.h"
-#include "module/render/viewport_display_mode.h"
 #include "functional/resource/config_manager.h"
 
 namespace RealmEngine

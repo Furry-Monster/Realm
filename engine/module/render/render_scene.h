@@ -7,8 +7,8 @@
 #include <optional>
 #include <vector>
 
-#include "module/render/light.h"
-#include "module/render/render_object.h"
+#include "functional/render/light.h"
+#include "functional/render/render_object.h"
 
 namespace RealmEngine
 {

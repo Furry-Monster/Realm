@@ -2,15 +2,15 @@
 
 #include <glm/gtc/matrix_inverse.hpp>
 
-#include "module/render/fullscreen_quad.h"
+#include "functional/render/fullscreen_quad.h"
 #include "module/render/passes/gbuffer_pass.h"
 #include "module/render/passes/hiz_pass.h"
-#include "module/render/render_camera.h"
-#include "module/render/rhi/rhi_device.h"
-#include "module/render/rhi/rhi_framebuffer.h"
-#include "module/render/rhi/rhi_shader.h"
-#include "module/render/rhi/rhi_texture.h"
-#include "module/render/scene_color_source.h"
+#include "functional/render/render_camera.h"
+#include "functional/render/rhi/rhi_device.h"
+#include "functional/render/rhi/rhi_framebuffer.h"
+#include "functional/render/rhi/rhi_shader.h"
+#include "functional/render/rhi/rhi_texture.h"
+#include "functional/render/scene_color_source.h"
 
 namespace RealmEngine
 {

@@ -3,20 +3,20 @@
 #include <algorithm>
 #include <cstddef>
 
-#include "module/render/light.h"
-#include "module/render/light_probe_data.h"
-#include "module/render/material.h"
+#include "functional/render/light.h"
+#include "functional/render/light_probe_data.h"
+#include "functional/render/material.h"
 #include "module/render/passes/csm_shadow_pass.h"
-#include "module/render/render_camera.h"
-#include "module/render/render_mesh.h"
-#include "module/render/render_object.h"
+#include "functional/render/render_camera.h"
+#include "functional/render/render_mesh.h"
+#include "functional/render/render_object.h"
 #include "module/render/render_scene.h"
-#include "module/render/rhi/rhi_buffer.h"
-#include "module/render/rhi/rhi_device.h"
-#include "module/render/rhi/rhi_framebuffer.h"
-#include "module/render/rhi/rhi_shader.h"
-#include "module/render/rhi/rhi_texture.h"
-#include "module/render/rhi/rhi_types.h"
+#include "functional/render/rhi/rhi_buffer.h"
+#include "functional/render/rhi/rhi_device.h"
+#include "functional/render/rhi/rhi_framebuffer.h"
+#include "functional/render/rhi/rhi_shader.h"
+#include "functional/render/rhi/rhi_texture.h"
+#include "functional/render/rhi/rhi_types.h"
 #include "functional/scene/scene.h"
 
 namespace RealmEngine

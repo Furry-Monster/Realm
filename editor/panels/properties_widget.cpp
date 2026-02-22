@@ -11,9 +11,9 @@
 #include "functional/ecs/components/transform.h"
 #include "functional/scene/scene.h"
 
-#include "module/render/render_mesh.h"
-#include "module/render/render_object.h"
-#include "module/render/rhi/rhi_texture.h"
+#include "functional/render/render_mesh.h"
+#include "functional/render/render_object.h"
+#include "functional/render/rhi/rhi_texture.h"
 
 #include <imgui.h>
 #include <glm/glm.hpp>

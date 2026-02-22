@@ -3,7 +3,7 @@
 #include <cassert>
 #include <memory>
 
-#include "module/render/viewport_display_mode.h"
+#include "functional/render/viewport_display_mode.h"
 
 namespace RealmEngine
 {

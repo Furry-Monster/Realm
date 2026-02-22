@@ -3,10 +3,10 @@
 #include <memory>
 #include <string>
 
-#include "module/render/render_pass.h"
-#include "module/render/rhi/rhi_types.h"
-#include "module/render/scene_color_source.h"
-#include "module/render/shader_cache.h"
+#include "functional/render/render_pass.h"
+#include "functional/render/rhi/rhi_types.h"
+#include "functional/render/scene_color_source.h"
+#include "functional/render/shader_cache.h"
 
 namespace RealmEngine
 {

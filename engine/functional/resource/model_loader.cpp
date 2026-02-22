@@ -12,11 +12,11 @@
 #include <glm/glm.hpp>
 
 #include "core/base/macros.h"
-#include "module/render/material.h"
-#include "module/render/render_mesh.h"
-#include "module/render/rhi/rhi_device.h"
-#include "module/render/rhi/rhi_texture.h"
-#include "module/render/rhi/rhi_types.h"
+#include "functional/render/material.h"
+#include "functional/render/render_mesh.h"
+#include "functional/render/rhi/rhi_device.h"
+#include "functional/render/rhi/rhi_texture.h"
+#include "functional/render/rhi/rhi_types.h"
 #include "functional/resource/asset_manager.h"
 
 namespace fs = std::filesystem;

@@ -3,7 +3,7 @@
 #include "module/ecs/components/camera.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
-#include "module/render/render_camera.h"
+#include "functional/render/render_camera.h"
 #include "functional/scene/scene.h"
 
 namespace RealmEngine

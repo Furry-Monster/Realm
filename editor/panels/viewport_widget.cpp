@@ -7,8 +7,8 @@
 #include "functional/ecs/components/hierarchy.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
-#include "module/render/rhi/rhi_texture.h"
-#include "module/render/viewport_display_mode.h"
+#include "functional/render/rhi/rhi_texture.h"
+#include "functional/render/viewport_display_mode.h"
 #include "functional/resource/config_manager.h"
 #include "functional/scene/scene.h"
 

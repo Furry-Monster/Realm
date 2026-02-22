@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-#include "module/render/render_pass.h"
-#include "module/render/rhi/rhi_types.h"
+#include "functional/render/render_pass.h"
+#include "functional/render/rhi/rhi_types.h"
 
 namespace RealmEngine
 {

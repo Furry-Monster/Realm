@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "module/render/render_camera.h"
+#include "functional/render/render_camera.h"
 
 namespace RealmEngine
 {

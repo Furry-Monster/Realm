@@ -1,6 +1,6 @@
 #include "module/ecs/components/renderable.h"
 
-#include "module/render/render_object.h"
+#include "functional/render/render_object.h"
 #include "functional/resource/asset_manager.h"
 #include "functional/resource/model_loader.h"
 

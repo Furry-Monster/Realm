@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "module/render/render_pass.h"
+#include "functional/render/render_pass.h"
 
 namespace RealmEngine
 {

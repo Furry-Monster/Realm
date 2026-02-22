@@ -19,10 +19,11 @@ set(ENGINE_MODULES
         functional/physics
         functional/animation
         functional/network
-        module/render/rhi
-        module/render/rhi/opengl
+        functional/render
+        functional/render/rhi
+        functional/render/rhi/opengl
+        functional/render/ibl
         module/render
-        module/render/ibl
         module/render/passes
         module/ecs
         module/ecs/components
