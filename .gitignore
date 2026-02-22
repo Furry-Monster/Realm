@@ -8,10 +8,13 @@ assets/CianTyan/
 assets/Greseo/
 assets/Aqua/
 
+# ide specific
 .cache/
 .vscode/
 .idea/
 .clion/
+.vs
+
 __pycache__/
 *.pyc
 *.pyo
