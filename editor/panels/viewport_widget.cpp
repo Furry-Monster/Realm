@@ -9,8 +9,8 @@
 #include "module/ecs/components/world_transform.h"
 #include "module/render/rhi/rhi_texture.h"
 #include "module/render/viewport_display_mode.h"
-#include "module/resource/config_manager.h"
-#include "module/scene/scene.h"
+#include "functional/resource/config_manager.h"
+#include "functional/scene/scene.h"
 
 #include <ImGuizmo.h>
 #include <glad/glad.h>

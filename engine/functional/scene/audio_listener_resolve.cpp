@@ -1,11 +1,11 @@
-#include "module/scene/audio_listener_resolve.h"
+#include "functional/scene/audio_listener_resolve.h"
 
 #include <glm/gtc/quaternion.hpp>
 
 #include "module/ecs/components/audio/audio_listener.h"
 #include "module/ecs/components/transform.h"
 #include "module/ecs/components/world_transform.h"
-#include "module/scene/scene.h"
+#include "functional/scene/scene.h"
 
 namespace RealmEngine
 {

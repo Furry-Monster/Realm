@@ -7,7 +7,7 @@
 #include "module/render/render_pipeline.h"
 #include "module/render/render_scene.h"
 #include "module/render/viewport_display_mode.h"
-#include "module/resource/config_manager.h"
+#include "functional/resource/config_manager.h"
 
 namespace RealmEngine
 {

@@ -17,7 +17,7 @@
 #include "module/render/rhi/rhi_shader.h"
 #include "module/render/rhi/rhi_texture.h"
 #include "module/render/rhi/rhi_types.h"
-#include "module/scene/scene.h"
+#include "functional/scene/scene.h"
 
 namespace RealmEngine
 {

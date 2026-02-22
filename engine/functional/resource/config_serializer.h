@@ -3,7 +3,7 @@
 #include <json.hpp>
 #include <string>
 
-#include "module/resource/config_manager.h"
+#include "functional/resource/config_manager.h"
 
 namespace RealmEngine
 {

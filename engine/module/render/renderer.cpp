@@ -29,7 +29,7 @@
 #include "module/render/rhi/rhi_types.h"
 #include "module/render/scene_color_source.h"
 #include "module/render/skybox.h"
-#include "module/resource/config_manager.h"
+#include "functional/resource/config_manager.h"
 #include "platform/window/window.h"
 
 namespace RealmEngine

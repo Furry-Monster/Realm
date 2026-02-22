@@ -4,8 +4,8 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "editor_context.h"
-#include "module/scene/scene.h"
-#include "module/scene/scene_node.h"
+#include "functional/scene/scene.h"
+#include "functional/scene/scene_node.h"
 #include "panels/asset_browser_widget.h"
 
 #include <imgui.h>

@@ -1,4 +1,4 @@
-#include "module/scene/scene.h"
+#include "functional/scene/scene.h"
 
 #include "core/base/macros.h"
 #include "module/ecs/components/lighting/area.h"

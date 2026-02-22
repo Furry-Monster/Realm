@@ -1,4 +1,4 @@
-#include "module/scene/scene_manager.h"
+#include "functional/scene/scene_manager.h"
 
 #include <filesystem>
 #include <glm/glm.hpp>
@@ -13,8 +13,8 @@
 #include "module/ecs/components/lighting/spot.h"
 #include "module/ecs/components/renderable.h"
 #include "module/ecs/components/transform.h"
-#include "module/resource/asset_manager.h"
-#include "module/scene/scene_serializer.h"
+#include "functional/resource/asset_manager.h"
+#include "functional/scene/scene_serializer.h"
 
 namespace RealmEngine
 {

@@ -5,7 +5,7 @@
 #include <string>
 
 #include "hotkey/hotkey_manager.h"
-#include "module/scene/scene_node.h"
+#include "functional/scene/scene_node.h"
 #include "preferences/editor_preferences.h"
 
 namespace RealmEngine

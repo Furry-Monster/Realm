@@ -1,6 +1,6 @@
 set(TARGET_NAME realm)
 
-# Module directories
+# Required: platform, core, functional (always compiled)
 set(ENGINE_MODULES
         core/base
         core/debug
@@ -11,13 +11,16 @@ set(ENGINE_MODULES
         platform/info
         platform/input
         platform/window
+        functional/resource
+        functional/scene
+        functional/physics
+        functional/animation
+        functional/network
         module/render/rhi
         module/render/rhi/opengl
         module/render
         module/render/ibl
         module/render/passes
-        module/resource
-        module/scene
         module/ecs
         module/ecs/components
         module/ecs/components/lighting

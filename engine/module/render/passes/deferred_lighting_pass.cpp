@@ -20,7 +20,7 @@
 #include "module/render/rhi/rhi_framebuffer.h"
 #include "module/render/rhi/rhi_shader.h"
 #include "module/render/rhi/rhi_texture.h"
-#include "module/scene/scene.h"
+#include "functional/scene/scene.h"
 
 namespace RealmEngine
 {

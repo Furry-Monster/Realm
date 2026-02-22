@@ -12,7 +12,7 @@
 #include "module/ecs/components/name_tag.h"
 #include "module/ecs/components/renderable.h"
 #include "module/ecs/components/transform.h"
-#include "module/scene/scene.h"
+#include "functional/scene/scene.h"
 
 #include <imgui.h>
 #include <entt/entity/registry.hpp>

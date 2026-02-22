@@ -1,9 +1,9 @@
-#include "module/resource/config_manager.h"
+#include "functional/resource/config_manager.h"
 
 #include <filesystem>
 
 #include "core/base/macros.h"
-#include "module/resource/config_serializer.h"
+#include "functional/resource/config_serializer.h"
 #include "platform/filesystem/filesystem.h"
 
 namespace RealmEngine

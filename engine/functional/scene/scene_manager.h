@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include "module/scene/scene.h"
+#include "functional/scene/scene.h"
 
 namespace RealmEngine
 {

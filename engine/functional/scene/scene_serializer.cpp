@@ -1,4 +1,4 @@
-#include "module/scene/scene_serializer.h"
+#include "functional/scene/scene_serializer.h"
 
 #include <fstream>
 #include <json.hpp>
@@ -19,9 +19,9 @@
 #include "module/render/material.h"
 #include "module/render/render_mesh.h"
 #include "module/render/render_object.h"
-#include "module/resource/asset_manager.h"
-#include "module/scene/scene.h"
-#include "module/scene/scene_node.h"
+#include "functional/resource/asset_manager.h"
+#include "functional/scene/scene.h"
+#include "functional/scene/scene_node.h"
 
 namespace RealmEngine
 {

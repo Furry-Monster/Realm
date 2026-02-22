@@ -6,7 +6,7 @@
 #include <string>
 
 #include "module/render/viewport_display_mode.h"
-#include "module/resource/config_manager.h"
+#include "functional/resource/config_manager.h"
 
 namespace RealmEngine
 {

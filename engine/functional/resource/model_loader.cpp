@@ -1,4 +1,4 @@
-#include "module/resource/model_loader.h"
+#include "functional/resource/model_loader.h"
 
 #include <assimp/GltfMaterial.h>
 #include <assimp/material.h>
@@ -17,7 +17,7 @@
 #include "module/render/rhi/rhi_device.h"
 #include "module/render/rhi/rhi_texture.h"
 #include "module/render/rhi/rhi_types.h"
-#include "module/resource/asset_manager.h"
+#include "functional/resource/asset_manager.h"
 
 namespace fs = std::filesystem;
 

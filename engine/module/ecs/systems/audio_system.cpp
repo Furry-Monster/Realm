@@ -9,8 +9,8 @@
 #include "module/ecs/components/audio/audio_source.h"
 #include "module/ecs/components/transform.h"
 #include "module/ecs/components/world_transform.h"
-#include "module/resource/config_manager.h"
-#include "module/scene/scene.h"
+#include "functional/resource/config_manager.h"
+#include "functional/scene/scene.h"
 
 namespace RealmEngine
 {

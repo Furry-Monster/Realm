@@ -1,8 +1,8 @@
-#include "module/resource/config_serializer.h"
+#include "functional/resource/config_serializer.h"
 
 #include "core/base/macros.h"
 #include "core/base/utils.h"
-#include "module/resource/config_manager.h"
+#include "functional/resource/config_manager.h"
 
 #include <fstream>
 #include <sstream>

@@ -3,7 +3,7 @@
 #include "module/ecs/components/lighting/light_probe.h"
 #include "module/ecs/components/transform.h"
 #include "module/ecs/components/world_transform.h"
-#include "module/scene/scene.h"
+#include "functional/scene/scene.h"
 
 #include <cstddef>
 
