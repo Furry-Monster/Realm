@@ -88,6 +88,42 @@ def clean_file(path: Path, dry_run: bool = False, verbose: bool = False):
         return 0
 
 
+CONFIG_EXTENSIONS = {".json", ".ini", ".toml", ".yaml", ".yml", ".cfg", ".conf"}
+
+
+def is_config_file(path: Path) -> bool:
+    return path.suffix.lower() in CONFIG_EXTENSIONS
+
+
+def clean_bin_directory(path: Path, dry_run: bool = False, verbose: bool = False):
+    """Clean bin directory while preserving config files"""
+    config = get_build_config()
+    logger = config.logger
+
+    if not path.exists():
+        if verbose:
+            logger.info(f"Directory does not exist: {path.relative_to(config.project_root)}")
+        return 0
+
+    total_size = 0
+    for item in path.rglob("*"):
+        if item.is_file() and not is_config_file(item):
+            total_size += clean_file(item, dry_run, verbose)
+        elif item.is_file() and verbose:
+            logger.info(f"Preserving config: {item.relative_to(path)}")
+
+    all_dirs = [d for d in path.rglob("*") if d.is_dir()]
+    for d in sorted(all_dirs, key=lambda p: len(p.parts), reverse=True):
+        if d.exists() and not any(d.iterdir()) and not dry_run:
+            d.rmdir()
+            if verbose:
+                logger.info(f"Removed empty dir: {d.relative_to(path)}")
+
+    if total_size > 0:
+        logger.success(f"Cleaned {path.relative_to(config.project_root)} ({get_size_str(total_size)})")
+    return total_size
+
+
 def clean_pattern(directory: Path, pattern: str, dry_run: bool = False, verbose: bool = False):
     """Clean files matching pattern"""
     config = get_build_config()
@@ -120,7 +156,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python clean.py                   # Clean build directory
+  python clean.py                   # Clean build and bin (preserve configs)
   python clean.py --all             # Clean all generated files
   python clean.py --cache           # Clean cache files
   python clean.py --dry-run         # Show what would be removed
@@ -158,7 +194,7 @@ Examples:
 
     # Determine what to clean
     clean_build = args.all or args.build or not (args.bin or args.cache)
-    clean_bin = args.all or args.bin
+    clean_bin = args.all or args.bin or not (args.build or args.cache)
     clean_cache = args.all or args.cache
 
     if args.dry_run:
@@ -173,10 +209,10 @@ Examples:
         build_dir = config.project_root / "build"
         total_size += clean_directory(build_dir, args.dry_run, args.verbose)
 
-    # Clean bin directory
+    # Clean bin directory (preserve config files)
     if clean_bin:
         bin_dir = config.project_root / "bin"
-        total_size += clean_directory(bin_dir, args.dry_run, args.verbose)
+        total_size += clean_bin_directory(bin_dir, args.dry_run, args.verbose)
 
     # Clean cache files
     if clean_cache:

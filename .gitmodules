@@ -27,3 +27,9 @@
 [submodule "libs/miniaudio"]
 	path = libs/miniaudio
 	url = https://github.com/mackron/miniaudio.git
+[submodule "libs/JoltPhysics"]
+	path = libs/JoltPhysics
+	url = https://github.com/jrouwe/JoltPhysics.git
+[submodule "libs/enet"]
+	path = libs/enet
+	url = https://github.com/lsalzman/enet.git

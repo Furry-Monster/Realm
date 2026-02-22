@@ -134,7 +134,7 @@ python build.py --configure
 ```
 Generate only clangd completion data (configure, no build):
 ```bash
-python scripts/clangd.py
+python scripts/build.py --clangd
 ```
 To use the VS (MSVC) toolchain: run the above from "x64 Native Tools Command Prompt for VS" or "Developer Command Prompt for VS"; the script uses Ninja and picks up `cl.exe` from the environment, so the generated `compile_commands.json` matches your VS build.
 
