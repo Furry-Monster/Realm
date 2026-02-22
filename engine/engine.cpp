@@ -15,9 +15,7 @@
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
 #include "module/render/components/lighting/light_probe.h"
-#if REALM_BUILD_GAME
-#include "module/game/components/scene_view_camera_controller.h"
-#endif
+#include "module/render/viewport_controller.h"
 #include "module/render/light_probe_baker.h"
 #include "module/render/render_scene_sync.h"
 #include "module/render/renderer.h"
@@ -169,15 +167,13 @@ namespace RealmEngine
         m_scene->setCurrentScene(loaded);
         setViewportMode(ViewportMode::Game);
 
-#if REALM_BUILD_GAME
-        loaded->setSceneViewCameraController(std::make_shared<SceneViewCameraController>());
+        loaded->setViewportController(std::make_shared<ViewportController>());
         const GamePlayConfig& gp = m_config->getGamePlayConfig();
-        loaded->getSceneViewCameraController()->initialize(m_renderer->getCamera(),
-                                                           *m_input,
-                                                           gp.camera_mouse_sensitivity,
-                                                           gp.camera_move_speed,
-                                                           gp.camera_sprint_multiplier);
-#endif
+        loaded->getViewportController()->initialize(m_renderer->getCamera(),
+                                                    *m_input,
+                                                    gp.camera_mouse_sensitivity,
+                                                    gp.camera_move_speed,
+                                                    gp.camera_sprint_multiplier);
 
         const RendererConfig& rc = m_config->getRendererConfig();
         m_renderer->getCamera()->setPosition(
@@ -210,19 +206,15 @@ namespace RealmEngine
         m_input->tick();
         m_window->pollEvents();
         auto* scene = m_scene->getCurrentOrNewScene().get();
-#if REALM_BUILD_GAME
-        if (scene && !scene->getSceneViewCameraController())
-            scene->setSceneViewCameraController(std::make_shared<SceneViewCameraController>());
-#endif
+        if (scene && !scene->getViewportController())
+            scene->setViewportController(std::make_shared<ViewportController>());
         scene->tick(static_cast<float>(m_delta_time));
 
-#if REALM_BUILD_GAME
         if (m_viewport_mode == ViewportMode::Scene && scene)
         {
-            if (auto* ctrl = scene->getSceneViewCameraController().get())
+            if (auto* ctrl = scene->getViewportController().get())
                 ctrl->update(static_cast<float>(m_delta_time));
         }
-#endif
 
         if (m_audio && scene)
         {

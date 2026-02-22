@@ -17,7 +17,7 @@ namespace RealmEngine
     Scene::Scene(Scene&& other) noexcept :
         m_registry(std::move(other.m_registry)), m_name_index(std::move(other.m_name_index)),
         m_root(std::move(other.m_root)),
-        m_scene_view_camera_controller(std::move(other.m_scene_view_camera_controller)),
+        m_viewport_controller(std::move(other.m_viewport_controller)),
         m_generation(other.m_generation)
     {
         reconnectSignals();
@@ -30,7 +30,7 @@ namespace RealmEngine
             m_registry                     = std::move(other.m_registry);
             m_name_index                   = std::move(other.m_name_index);
             m_root                         = std::move(other.m_root);
-            m_scene_view_camera_controller = std::move(other.m_scene_view_camera_controller);
+            m_viewport_controller = std::move(other.m_viewport_controller);
             m_generation                   = other.m_generation;
             reconnectSignals();
         }

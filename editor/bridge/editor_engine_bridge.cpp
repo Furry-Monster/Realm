@@ -4,7 +4,7 @@
 #include "core/math/aabb.h"
 #include "engine.h"
 #include "module/render/components/renderable.h"
-#include "module/game/components/scene_view_camera_controller.h"
+#include "module/render/viewport_controller.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
 #include "module/render/renderer.h"
@@ -72,12 +72,14 @@ namespace RealmEngine
     {
         if (!scene)
             return;
+        if (!scene->getViewportController())
+            scene->setViewportController(std::make_shared<ViewportController>());
         const GamePlayConfig& gp = m_engine->getConfig().getGamePlayConfig();
-        scene->getSceneViewCameraController()->initialize(m_engine->getRenderer().getCamera(),
-                                                          m_engine->getInput(),
-                                                          gp.camera_mouse_sensitivity,
-                                                          gp.camera_move_speed,
-                                                          gp.camera_sprint_multiplier);
+        scene->getViewportController()->initialize(m_engine->getRenderer().getCamera(),
+                                                  m_engine->getInput(),
+                                                  gp.camera_mouse_sensitivity,
+                                                  gp.camera_move_speed,
+                                                  gp.camera_sprint_multiplier);
     }
 
     std::filesystem::path EditorEngineBridge::getAssetFolder() const { return m_engine->getConfig().getAssetFolder(); }

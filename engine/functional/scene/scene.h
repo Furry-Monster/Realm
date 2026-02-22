@@ -10,7 +10,7 @@
 
 namespace RealmEngine
 {
-    class SceneViewCameraController;
+    class ViewportController;
 
     class Scene
     {
@@ -68,14 +68,8 @@ namespace RealmEngine
         std::shared_ptr<SceneNode> createNode(const std::string& name);
         std::shared_ptr<SceneNode> createNodeWithEntity(const std::string& name);
 
-        std::shared_ptr<SceneViewCameraController> getSceneViewCameraController() const
-        {
-            return m_scene_view_camera_controller;
-        }
-        void setSceneViewCameraController(std::shared_ptr<SceneViewCameraController> ctrl)
-        {
-            m_scene_view_camera_controller = std::move(ctrl);
-        }
+        std::shared_ptr<ViewportController> getViewportController() const { return m_viewport_controller; }
+        void setViewportController(std::shared_ptr<ViewportController> ctrl) { m_viewport_controller = std::move(ctrl); }
 
         uint64_t getGeneration() const { return m_generation; }
         void     markDirty() { incrementGeneration(); }
@@ -87,7 +81,7 @@ namespace RealmEngine
         entt::registry                                m_registry;
         std::unordered_map<std::string, entt::entity> m_name_index;
         std::shared_ptr<SceneNode>                    m_root;
-        std::shared_ptr<SceneViewCameraController>    m_scene_view_camera_controller;
+        std::shared_ptr<ViewportController> m_viewport_controller;
         uint64_t                                      m_generation {0};
     };
 

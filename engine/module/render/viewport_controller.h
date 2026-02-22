@@ -8,16 +8,16 @@ namespace RealmEngine
 {
     class Input;
 
-    class SceneViewCameraController
+    class ViewportController
     {
     public:
-        SceneViewCameraController()           = default;
-        ~SceneViewCameraController() noexcept = default;
+        ViewportController()           = default;
+        ~ViewportController() noexcept = default;
 
-        SceneViewCameraController(const SceneViewCameraController&)                = delete;
-        SceneViewCameraController& operator=(const SceneViewCameraController&)     = delete;
-        SceneViewCameraController(SceneViewCameraController&&) noexcept            = default;
-        SceneViewCameraController& operator=(SceneViewCameraController&&) noexcept = default;
+        ViewportController(const ViewportController&)                = delete;
+        ViewportController& operator=(const ViewportController&)     = delete;
+        ViewportController(ViewportController&&) noexcept            = default;
+        ViewportController& operator=(ViewportController&&) noexcept = default;
 
         void initialize(const std::shared_ptr<RenderCamera>& camera,
                         Input&                               input,
