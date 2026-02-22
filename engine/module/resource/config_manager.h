@@ -76,6 +76,11 @@ namespace RealmEngine
         std::string scene_file = "scene.json";
 
         float max_delta_time = 0.1f;
+
+        float jump_force        = 8.0f;
+        float crouch_scale      = 0.5f;
+        float first_person_fov  = 90.0f;
+        int   network_tick_rate = 64;
     };
 
     struct PhysicsConfig

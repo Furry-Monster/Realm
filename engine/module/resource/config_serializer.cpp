@@ -212,6 +212,10 @@ namespace RealmEngine
         json["camera_mouse_sensitivity"] = gameplay.camera_mouse_sensitivity;
         json["scene_file"]               = gameplay.scene_file;
         json["max_delta_time"]           = gameplay.max_delta_time;
+        json["jump_force"]               = gameplay.jump_force;
+        json["crouch_scale"]             = gameplay.crouch_scale;
+        json["first_person_fov"]         = gameplay.first_person_fov;
+        json["network_tick_rate"]        = gameplay.network_tick_rate;
     }
 
     void ConfigSerializer::deserializeGeneralConfig(GeneralConfig& general, const nlohmann::json& json)
@@ -323,6 +327,14 @@ namespace RealmEngine
             gameplay.scene_file = json["scene_file"].get<std::string>();
         if (json.contains("max_delta_time"))
             gameplay.max_delta_time = json["max_delta_time"].get<float>();
+        if (json.contains("jump_force"))
+            gameplay.jump_force = json["jump_force"].get<float>();
+        if (json.contains("crouch_scale"))
+            gameplay.crouch_scale = json["crouch_scale"].get<float>();
+        if (json.contains("first_person_fov"))
+            gameplay.first_person_fov = json["first_person_fov"].get<float>();
+        if (json.contains("network_tick_rate"))
+            gameplay.network_tick_rate = json["network_tick_rate"].get<int>();
     }
 
     void ConfigSerializer::serializePhysicsConfig(const PhysicsConfig& physics, nlohmann::json& json)

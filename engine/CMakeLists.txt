@@ -25,6 +25,22 @@ set(ENGINE_MODULES
         module/ecs/systems
 )
 
+if (REALM_BUILD_PHYSICS)
+    list(APPEND ENGINE_MODULES module/physics)
+endif ()
+if (REALM_BUILD_ANIMATION)
+    list(APPEND ENGINE_MODULES module/animation)
+endif ()
+if (REALM_BUILD_PARTICLES)
+    list(APPEND ENGINE_MODULES module/particles)
+endif ()
+if (REALM_BUILD_NETWORK)
+    list(APPEND ENGINE_MODULES module/network)
+endif ()
+if (REALM_BUILD_GAME)
+    list(APPEND ENGINE_MODULES module/game)
+endif ()
+
 file(GLOB ENGINE_ROOT_FILES CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
