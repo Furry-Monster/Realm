@@ -3,11 +3,8 @@
 #include "core/base/macros.h"
 #include "core/math/aabb.h"
 #include "engine.h"
-#include "module/render/components/renderable.h"
-#include "module/render/viewport_controller.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
-#include "module/render/renderer.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_texture.h"
 #include "functional/render/rhi/rhi_types.h"
@@ -18,6 +15,9 @@
 #include "functional/scene/scene_manager.h"
 #include "functional/scene/scene_node.h"
 #include "functional/scene/scene_serializer.h"
+#include "module/render/components/renderable.h"
+#include "module/render/renderer.h"
+#include "module/render/viewport_controller.h"
 #include "platform/window/window.h"
 
 #include <cstring>
@@ -76,10 +76,10 @@ namespace RealmEngine
             scene->setViewportController(std::make_shared<ViewportController>());
         const GamePlayConfig& gp = m_engine->getConfig().getGamePlayConfig();
         scene->getViewportController()->initialize(m_engine->getRenderer().getCamera(),
-                                                  m_engine->getInput(),
-                                                  gp.camera_mouse_sensitivity,
-                                                  gp.camera_move_speed,
-                                                  gp.camera_sprint_multiplier);
+                                                   m_engine->getInput(),
+                                                   gp.camera_mouse_sensitivity,
+                                                   gp.camera_move_speed,
+                                                   gp.camera_sprint_multiplier);
     }
 
     std::filesystem::path EditorEngineBridge::getAssetFolder() const { return m_engine->getConfig().getAssetFolder(); }

@@ -7,17 +7,13 @@
 
 namespace RealmEngine
 {
-    Scene::Scene()
-    {
-        m_root = std::make_shared<SceneNode>("Root");
-    }
+    Scene::Scene() { m_root = std::make_shared<SceneNode>("Root"); }
 
     void Scene::reconnectSignals() {}
 
     Scene::Scene(Scene&& other) noexcept :
         m_registry(std::move(other.m_registry)), m_name_index(std::move(other.m_name_index)),
-        m_root(std::move(other.m_root)),
-        m_viewport_controller(std::move(other.m_viewport_controller)),
+        m_root(std::move(other.m_root)), m_viewport_controller(std::move(other.m_viewport_controller)),
         m_generation(other.m_generation)
     {
         reconnectSignals();
@@ -27,11 +23,11 @@ namespace RealmEngine
     {
         if (this != &other)
         {
-            m_registry                     = std::move(other.m_registry);
-            m_name_index                   = std::move(other.m_name_index);
-            m_root                         = std::move(other.m_root);
+            m_registry            = std::move(other.m_registry);
+            m_name_index          = std::move(other.m_name_index);
+            m_root                = std::move(other.m_root);
             m_viewport_controller = std::move(other.m_viewport_controller);
-            m_generation                   = other.m_generation;
+            m_generation          = other.m_generation;
             reconnectSignals();
         }
         return *this;

@@ -7,8 +7,6 @@
 #include "functional/render/ibl/diffuse_irradiance_map.h"
 #include "functional/render/ibl/equirectangular_cubemap.h"
 #include "functional/render/ibl/specular_map.h"
-#include "module/render/light_probe_baker.h"
-#include "module/render/render_scene_sync.h"
 #include "functional/render/passes/bloom_pass.h"
 #include "functional/render/passes/clustered_light_cull_pass.h"
 #include "functional/render/passes/csm_shadow_pass.h"
@@ -31,6 +29,8 @@
 #include "functional/render/scene_color_source.h"
 #include "functional/render/skybox.h"
 #include "functional/resource/config_manager.h"
+#include "module/render/light_probe_baker.h"
+#include "module/render/render_scene_sync.h"
 #include "platform/window/window.h"
 
 namespace RealmEngine
@@ -476,10 +476,10 @@ namespace RealmEngine
         }
 
         RenderContext ctx;
-        ctx.device         = m_device.get();
-        ctx.scene          = m_render_scene.get();
-        ctx.ecs_scene      = m_current_ecs_scene;
-        ctx.camera         = m_camera.get();
+        ctx.device               = m_device.get();
+        ctx.scene                = m_render_scene.get();
+        ctx.ecs_scene            = m_current_ecs_scene;
+        ctx.camera               = m_camera.get();
         ctx.viewport_width       = m_window->getWidth();
         ctx.viewport_height      = m_window->getHeight();
         ctx.display_mode         = m_display_mode;

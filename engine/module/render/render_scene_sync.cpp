@@ -21,10 +21,10 @@ namespace RealmEngine
     {
         struct SyncState
         {
-            std::shared_ptr<Scene>    cached_scene;
-            uint64_t                 cached_generation {0};
-            std::vector<entt::entity> render_entities;
-            std::vector<entt::entity> light_entities;
+            std::shared_ptr<Scene>        cached_scene;
+            uint64_t                      cached_generation {0};
+            std::vector<entt::entity>     render_entities;
+            std::vector<entt::entity>     light_entities;
             std::vector<entt::connection> connections;
         };
         static SyncState s_state;
@@ -149,10 +149,9 @@ namespace RealmEngine
                 entt::entity entity = node->getEntity();
                 if (!scene.valid(entity))
                 {
-                    node->forEachChild(
-                        [&scene, &render_scene](const std::shared_ptr<SceneNode>& child) {
-                            syncNode(scene, child, render_scene);
-                        });
+                    node->forEachChild([&scene, &render_scene](const std::shared_ptr<SceneNode>& child) {
+                        syncNode(scene, child, render_scene);
+                    });
                     return;
                 }
 
@@ -259,10 +258,9 @@ namespace RealmEngine
                 }
             }
 
-            node->forEachChild(
-                [&scene, &render_scene](const std::shared_ptr<SceneNode>& child) {
-                    syncNode(scene, child, render_scene);
-                });
+            node->forEachChild([&scene, &render_scene](const std::shared_ptr<SceneNode>& child) {
+                syncNode(scene, child, render_scene);
+            });
         }
 
         void updateTransformsOnly(Scene& scene, RenderScene& render_scene)

@@ -5,6 +5,9 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "core/base/macros.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/resource/asset_manager.h"
+#include "functional/scene/scene_serializer.h"
 #include "module/camera/components/camera.h"
 #include "module/render/components/lighting/area.h"
 #include "module/render/components/lighting/directional.h"
@@ -12,9 +15,6 @@
 #include "module/render/components/lighting/point.h"
 #include "module/render/components/lighting/spot.h"
 #include "module/render/components/renderable.h"
-#include "functional/ecs/components/transform.h"
-#include "functional/resource/asset_manager.h"
-#include "functional/scene/scene_serializer.h"
 
 namespace RealmEngine
 {

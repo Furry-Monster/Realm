@@ -21,8 +21,8 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
-#  include <windows.h>
 #  include <psapi.h>
+#  include <windows.h>
 #elif defined(__APPLE__)
 #  include <mach/mach.h>
 #  include <sys/sysctl.h>

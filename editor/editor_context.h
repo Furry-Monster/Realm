@@ -4,8 +4,8 @@
 #include <memory>
 #include <string>
 
-#include "hotkey/hotkey_manager.h"
 #include "functional/scene/scene_node.h"
+#include "hotkey/hotkey_manager.h"
 #include "preferences/editor_preferences.h"
 
 namespace RealmEngine
