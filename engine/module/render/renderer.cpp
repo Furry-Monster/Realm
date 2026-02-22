@@ -8,6 +8,7 @@
 #include "functional/render/ibl/equirectangular_cubemap.h"
 #include "functional/render/ibl/specular_map.h"
 #include "module/render/light_probe_baker.h"
+#include "module/render/render_scene_sync.h"
 #include "functional/render/passes/bloom_pass.h"
 #include "functional/render/passes/clustered_light_cull_pass.h"
 #include "functional/render/passes/csm_shadow_pass.h"
@@ -576,6 +577,8 @@ namespace RealmEngine
 
     void Renderer::disposal()
     {
+        clearSyncState();
+
         m_pipeline.dispose();
 
         if (m_render_scene)

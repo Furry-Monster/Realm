@@ -84,6 +84,15 @@ namespace RealmEngine
         void updateTransformsOnly(Scene& scene, RenderScene& render_scene);
     } // namespace
 
+    void clearSyncState()
+    {
+        s_state.connections.clear();
+        s_state.cached_scene.reset();
+        s_state.cached_generation = 0;
+        s_state.render_entities.clear();
+        s_state.light_entities.clear();
+    }
+
     void syncFromScene(const std::shared_ptr<Scene>& scene, RenderScene& render_scene)
     {
         if (!scene)
@@ -91,11 +100,7 @@ namespace RealmEngine
             render_scene.getRenderObjects().clear();
             render_scene.getRenderModelMatrices().clear();
             render_scene.getLights().clear();
-            s_state.cached_scene.reset();
-            s_state.cached_generation = 0;
-            s_state.render_entities.clear();
-            s_state.light_entities.clear();
-            s_state.connections.clear();
+            clearSyncState();
             return;
         }
 
