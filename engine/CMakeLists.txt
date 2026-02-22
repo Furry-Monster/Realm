@@ -1,16 +1,16 @@
 set(TARGET_NAME realm)
 
-# Required: platform, core, functional (always compiled)
-set(ENGINE_MODULES
+# Required: platform, core, functional
+set(ENGINE_MODULES_REQUIRED
+        platform/filesystem
+        platform/info
+        platform/input
+        platform/window
         core/base
         core/debug
         core/event
         core/log
         core/math
-        platform/filesystem
-        platform/info
-        platform/input
-        platform/window
         functional/resource
         functional/scene
         functional/ecs
@@ -24,30 +24,57 @@ set(ENGINE_MODULES
         functional/render/rhi/opengl
         functional/render/ibl
         functional/render/passes
-        module/render
-        module/render/components
-        module/render/components/lighting
-        module/audio
-        module/audio/components
-        module/camera
-        module/camera/components
 )
 
+# Optional: module (gated by REALM_BUILD_*)
+set(ENGINE_MODULES_OPTIONAL "")
+
+if (REALM_BUILD_RENDER)
+    list(APPEND ENGINE_MODULES_OPTIONAL
+            module/render
+            module/render/components
+            module/render/components/lighting
+            module/render/passes
+    )
+endif ()
+if (REALM_BUILD_AUDIO)
+    list(APPEND ENGINE_MODULES_OPTIONAL
+            module/audio
+            module/audio/components
+    )
+endif ()
+if (REALM_BUILD_CAMERA)
+    list(APPEND ENGINE_MODULES_OPTIONAL
+            module/camera
+            module/camera/components
+    )
+endif ()
+if (REALM_BUILD_ECS)
+    list(APPEND ENGINE_MODULES_OPTIONAL
+            module/ecs
+            module/ecs/components
+            module/ecs/components/audio
+            module/ecs/components/lighting
+            module/ecs/systems
+    )
+endif ()
 if (REALM_BUILD_GAME)
-    list(APPEND ENGINE_MODULES module/game module/game/components)
+    list(APPEND ENGINE_MODULES_OPTIONAL module/game module/game/components)
 endif ()
 if (REALM_BUILD_PHYSICS)
-    list(APPEND ENGINE_MODULES module/physics)
+    list(APPEND ENGINE_MODULES_OPTIONAL module/physics)
 endif ()
 if (REALM_BUILD_ANIMATION)
-    list(APPEND ENGINE_MODULES module/animation)
+    list(APPEND ENGINE_MODULES_OPTIONAL module/animation)
 endif ()
 if (REALM_BUILD_PARTICLES)
-    list(APPEND ENGINE_MODULES module/particles)
+    list(APPEND ENGINE_MODULES_OPTIONAL module/particles)
 endif ()
 if (REALM_BUILD_NETWORK)
-    list(APPEND ENGINE_MODULES module/network)
+    list(APPEND ENGINE_MODULES_OPTIONAL module/network)
 endif ()
+
+set(ENGINE_MODULES ${ENGINE_MODULES_REQUIRED} ${ENGINE_MODULES_OPTIONAL})
 
 file(GLOB ENGINE_ROOT_FILES CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"

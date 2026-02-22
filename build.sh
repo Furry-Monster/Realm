@@ -8,7 +8,7 @@ if command -v python3 &> /dev/null;then
 elif command -v python &> /dev/null;then
   PYTHON_CMD="python"
 else
-  echo "Error:Neither 'python3' nor 'python' command find in PATH." >&2
+  echo "Error: Neither 'python3' nor 'python' command found in PATH." >&2
   exit 1
 fi
 
