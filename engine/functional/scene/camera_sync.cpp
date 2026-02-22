@@ -1,8 +1,8 @@
 #include "functional/scene/camera_sync.h"
 
 #include "module/ecs/components/camera.h"
-#include "module/ecs/components/transform.h"
-#include "module/ecs/components/world_transform.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/ecs/components/world_transform.h"
 #include "module/render/render_camera.h"
 #include "functional/scene/scene.h"
 

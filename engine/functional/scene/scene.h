@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "module/ecs/entity.h"
+#include "functional/ecs/entity.h"
 #include "functional/scene/scene_node.h"
 
 namespace RealmEngine

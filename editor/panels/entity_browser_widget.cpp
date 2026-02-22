@@ -11,7 +11,7 @@
 #include "module/ecs/components/lighting/spot.h"
 #include "module/ecs/components/name_tag.h"
 #include "module/ecs/components/renderable.h"
-#include "module/ecs/components/transform.h"
+#include "functional/ecs/components/transform.h"
 #include "functional/scene/scene.h"
 
 #include <imgui.h>

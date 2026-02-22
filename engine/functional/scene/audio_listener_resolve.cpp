@@ -3,8 +3,8 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "module/ecs/components/audio/audio_listener.h"
-#include "module/ecs/components/transform.h"
-#include "module/ecs/components/world_transform.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/ecs/components/world_transform.h"
 #include "functional/scene/scene.h"
 
 namespace RealmEngine

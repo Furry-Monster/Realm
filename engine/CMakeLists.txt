@@ -13,6 +13,9 @@ set(ENGINE_MODULES
         platform/window
         functional/resource
         functional/scene
+        functional/ecs
+        functional/ecs/components
+        functional/ecs/systems
         functional/physics
         functional/animation
         functional/network

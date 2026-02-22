@@ -1,8 +1,8 @@
-#include "module/ecs/systems/transform_system.h"
+#include "functional/ecs/systems/transform_system.h"
 
-#include "module/ecs/components/hierarchy.h"
-#include "module/ecs/components/transform.h"
-#include "module/ecs/components/world_transform.h"
+#include "functional/ecs/components/hierarchy.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/ecs/components/world_transform.h"
 #include "functional/scene/scene.h"
 
 namespace RealmEngine

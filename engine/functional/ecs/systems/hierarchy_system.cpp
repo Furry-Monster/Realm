@@ -1,6 +1,6 @@
-#include "module/ecs/systems/hierarchy_system.h"
+#include "functional/ecs/systems/hierarchy_system.h"
 
-#include "module/ecs/components/hierarchy.h"
+#include "functional/ecs/components/hierarchy.h"
 #include "functional/scene/scene.h"
 #include "functional/scene/scene_node.h"
 

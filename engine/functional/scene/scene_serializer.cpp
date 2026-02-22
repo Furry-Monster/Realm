@@ -15,7 +15,7 @@
 #include "module/ecs/components/lighting/point.h"
 #include "module/ecs/components/lighting/spot.h"
 #include "module/ecs/components/renderable.h"
-#include "module/ecs/components/transform.h"
+#include "functional/ecs/components/transform.h"
 #include "module/render/material.h"
 #include "module/render/render_mesh.h"
 #include "module/render/render_object.h"

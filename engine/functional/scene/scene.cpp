@@ -8,8 +8,8 @@
 #include "module/ecs/components/name_tag.h"
 #include "module/ecs/components/renderable.h"
 #include "module/ecs/components/scene_view_camera_controller.h"
-#include "module/ecs/systems/hierarchy_system.h"
-#include "module/ecs/systems/transform_system.h"
+#include "functional/ecs/systems/hierarchy_system.h"
+#include "functional/ecs/systems/transform_system.h"
 
 namespace RealmEngine
 {

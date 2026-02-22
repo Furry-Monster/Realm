@@ -5,8 +5,8 @@
 #include "module/ecs/components/lighting/point.h"
 #include "module/ecs/components/lighting/spot.h"
 #include "module/ecs/components/renderable.h"
-#include "module/ecs/components/transform.h"
-#include "module/ecs/components/world_transform.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/ecs/components/world_transform.h"
 #include "functional/scene/scene.h"
 #include "functional/scene/scene_node.h"
 
