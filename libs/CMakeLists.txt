@@ -101,11 +101,18 @@ if(NOT TARGET entt)
     target_include_directories(entt SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/entt/src")
 endif()
 
-if(NOT TARGET jolt)
+# Jolt Physics
+if(NOT TARGET Jolt)
     set(USE_ASSERTS OFF CACHE BOOL "" FORCE)
     set(ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
     set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
     add_subdirectory(JoltPhysics/Build)
+endif()
+
+# ENet
+if(NOT TARGET enet)
+    add_subdirectory(enet)
+    target_include_directories(enet SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/enet/include")
 endif()
 
 # OpenGL (platform-specific)
@@ -126,5 +133,5 @@ endif()
 # Aggregate target
 add_library(realm_third_party INTERFACE)
 add_library(Realm::ThirdParty ALIAS realm_third_party)
-set(REALM_THIRD_PARTY_LIBS glad glfw glm imgui imguizmo stb assimp spdlog miniaudio nlohmann entt jolt realm_opengl)
+set(REALM_THIRD_PARTY_LIBS glad glfw glm imgui imguizmo stb assimp spdlog miniaudio nlohmann entt Jolt enet realm_opengl)
 target_link_libraries(realm_third_party INTERFACE ${REALM_THIRD_PARTY_LIBS})
