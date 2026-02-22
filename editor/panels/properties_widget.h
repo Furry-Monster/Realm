@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "module/render/material.h"
+#include "functional/render/material.h"
 #include "widget.h"
 
 namespace RealmEngine

@@ -12,19 +12,20 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/logger.h"
-#include "module/ecs/components/lighting/light_probe.h"
-#include "module/ecs/components/scene_view_camera_controller.h"
-#include "module/ecs/components/transform.h"
-#include "module/ecs/components/world_transform.h"
-#include "module/ecs/systems/audio_system.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/ecs/components/world_transform.h"
+#include "functional/resource/asset_manager.h"
+#include "functional/resource/config_manager.h"
+#include "functional/scene/scene.h"
+#include "functional/scene/scene_manager.h"
+#include "module/audio/audio_listener_resolve.h"
+#include "module/audio/audio_system.h"
+#include "module/camera/camera_sync.h"
+#include "module/render/components/lighting/light_probe.h"
 #include "module/render/light_probe_baker.h"
+#include "module/render/render_scene_sync.h"
 #include "module/render/renderer.h"
-#include "module/resource/asset_manager.h"
-#include "module/resource/config_manager.h"
-#include "module/scene/audio_listener_resolve.h"
-#include "module/scene/camera_sync.h"
-#include "module/scene/scene.h"
-#include "module/scene/scene_manager.h"
+#include "module/render/viewport_controller.h"
 #include "platform/info/platform_info.h"
 #include "platform/input/input.h"
 #include "platform/window/window.h"
@@ -166,12 +167,13 @@ namespace RealmEngine
         m_scene->setCurrentScene(loaded);
         setViewportMode(ViewportMode::Game);
 
+        loaded->setViewportController(std::make_shared<ViewportController>());
         const GamePlayConfig& gp = m_config->getGamePlayConfig();
-        loaded->getSceneViewCameraController()->initialize(m_renderer->getCamera(),
-                                                           *m_input,
-                                                           gp.camera_mouse_sensitivity,
-                                                           gp.camera_move_speed,
-                                                           gp.camera_sprint_multiplier);
+        loaded->getViewportController()->initialize(m_renderer->getCamera(),
+                                                    *m_input,
+                                                    gp.camera_mouse_sensitivity,
+                                                    gp.camera_move_speed,
+                                                    gp.camera_sprint_multiplier);
 
         const RendererConfig& rc = m_config->getRendererConfig();
         m_renderer->getCamera()->setPosition(
@@ -204,11 +206,14 @@ namespace RealmEngine
         m_input->tick();
         m_window->pollEvents();
         auto* scene = m_scene->getCurrentOrNewScene().get();
+        if (scene && !scene->getViewportController())
+            scene->setViewportController(std::make_shared<ViewportController>());
         scene->tick(static_cast<float>(m_delta_time));
 
         if (m_viewport_mode == ViewportMode::Scene && scene)
         {
-            scene->getSceneViewCameraController()->update(static_cast<float>(m_delta_time));
+            if (auto* ctrl = scene->getViewportController().get())
+                ctrl->update(static_cast<float>(m_delta_time));
         }
 
         if (m_audio && scene)
@@ -230,7 +235,8 @@ namespace RealmEngine
     void Engine::renderTick()
     {
         const auto scene = m_scene->getCurrentScene();
-        m_renderer->getRenderScene()->syncFromScene(scene);
+        syncFromScene(scene, *m_renderer->getRenderScene());
+        m_renderer->setCurrentEcsScene(scene ? scene.get() : nullptr);
 
         if (m_viewport_mode == ViewportMode::Game && scene)
         {

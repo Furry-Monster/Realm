@@ -4,13 +4,13 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "editor_context.h"
-#include "module/ecs/components/hierarchy.h"
-#include "module/ecs/components/transform.h"
-#include "module/ecs/components/world_transform.h"
-#include "module/render/rhi/rhi_texture.h"
-#include "module/render/viewport_display_mode.h"
-#include "module/resource/config_manager.h"
-#include "module/scene/scene.h"
+#include "functional/ecs/components/hierarchy.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/ecs/components/world_transform.h"
+#include "functional/render/rhi/rhi_texture.h"
+#include "functional/render/viewport_display_mode.h"
+#include "functional/resource/config_manager.h"
+#include "functional/scene/scene.h"
 
 #include <ImGuizmo.h>
 #include <glad/glad.h>

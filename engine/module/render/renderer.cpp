@@ -3,33 +3,34 @@
 #include <memory>
 
 #include "core/base/macros.h"
-#include "module/render/fullscreen_quad.h"
-#include "module/render/ibl/diffuse_irradiance_map.h"
-#include "module/render/ibl/equirectangular_cubemap.h"
-#include "module/render/ibl/specular_map.h"
+#include "functional/render/fullscreen_quad.h"
+#include "functional/render/ibl/diffuse_irradiance_map.h"
+#include "functional/render/ibl/equirectangular_cubemap.h"
+#include "functional/render/ibl/specular_map.h"
+#include "functional/render/passes/bloom_pass.h"
+#include "functional/render/passes/clustered_light_cull_pass.h"
+#include "functional/render/passes/csm_shadow_pass.h"
+#include "functional/render/passes/deferred_lighting_pass.h"
+#include "functional/render/passes/gbuffer_pass.h"
+#include "functional/render/passes/gtao_blur_pass.h"
+#include "functional/render/passes/gtao_pass.h"
+#include "functional/render/passes/hiz_pass.h"
+#include "functional/render/passes/opaque_pass.h"
+#include "functional/render/passes/point_shadow_pass.h"
+#include "functional/render/passes/postprocess_pass.h"
+#include "functional/render/passes/skybox_pass.h"
+#include "functional/render/passes/spot_shadow_pass.h"
+#include "functional/render/passes/ssr_pass.h"
+#include "functional/render/passes/transparent_pass.h"
+#include "functional/render/rhi/rhi_device.h"
+#include "functional/render/rhi/rhi_framebuffer.h"
+#include "functional/render/rhi/rhi_texture.h"
+#include "functional/render/rhi/rhi_types.h"
+#include "functional/render/scene_color_source.h"
+#include "functional/render/skybox.h"
+#include "functional/resource/config_manager.h"
 #include "module/render/light_probe_baker.h"
-#include "module/render/passes/bloom_pass.h"
-#include "module/render/passes/clustered_light_cull_pass.h"
-#include "module/render/passes/csm_shadow_pass.h"
-#include "module/render/passes/deferred_lighting_pass.h"
-#include "module/render/passes/gbuffer_pass.h"
-#include "module/render/passes/gtao_blur_pass.h"
-#include "module/render/passes/gtao_pass.h"
-#include "module/render/passes/hiz_pass.h"
-#include "module/render/passes/opaque_pass.h"
-#include "module/render/passes/point_shadow_pass.h"
-#include "module/render/passes/postprocess_pass.h"
-#include "module/render/passes/skybox_pass.h"
-#include "module/render/passes/spot_shadow_pass.h"
-#include "module/render/passes/ssr_pass.h"
-#include "module/render/passes/transparent_pass.h"
-#include "module/render/rhi/rhi_device.h"
-#include "module/render/rhi/rhi_framebuffer.h"
-#include "module/render/rhi/rhi_texture.h"
-#include "module/render/rhi/rhi_types.h"
-#include "module/render/scene_color_source.h"
-#include "module/render/skybox.h"
-#include "module/resource/config_manager.h"
+#include "module/render/render_scene_sync.h"
 #include "platform/window/window.h"
 
 namespace RealmEngine
@@ -477,6 +478,7 @@ namespace RealmEngine
         RenderContext ctx;
         ctx.device               = m_device.get();
         ctx.scene                = m_render_scene.get();
+        ctx.ecs_scene            = m_current_ecs_scene;
         ctx.camera               = m_camera.get();
         ctx.viewport_width       = m_window->getWidth();
         ctx.viewport_height      = m_window->getHeight();
@@ -575,6 +577,8 @@ namespace RealmEngine
 
     void Renderer::disposal()
     {
+        clearSyncState();
+
         m_pipeline.dispose();
 
         if (m_render_scene)

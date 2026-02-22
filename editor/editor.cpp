@@ -8,7 +8,7 @@
 #include "commands/editor_commands.h"
 #include "editor_context.h"
 #include "engine.h"
-#include "module/scene/scene.h"
+#include "functional/scene/scene.h"
 #include "panels/asset_browser_widget.h"
 #include "panels/console_widget.h"
 #include "panels/entity_browser_widget.h"

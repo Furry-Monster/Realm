@@ -2,18 +2,18 @@
 
 #include "bridge/editor_engine_bridge.h"
 #include "editor_context.h"
-#include "module/ecs/components/camera.h"
-#include "module/ecs/components/lighting/area.h"
-#include "module/ecs/components/lighting/directional.h"
-#include "module/ecs/components/lighting/point.h"
-#include "module/ecs/components/lighting/spot.h"
-#include "module/ecs/components/renderable.h"
-#include "module/ecs/components/transform.h"
-#include "module/scene/scene.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/scene/scene.h"
+#include "module/camera/components/camera.h"
+#include "module/render/components/lighting/area.h"
+#include "module/render/components/lighting/directional.h"
+#include "module/render/components/lighting/point.h"
+#include "module/render/components/lighting/spot.h"
+#include "module/render/components/renderable.h"
 
-#include "module/render/render_mesh.h"
-#include "module/render/render_object.h"
-#include "module/render/rhi/rhi_texture.h"
+#include "functional/render/render_mesh.h"
+#include "functional/render/render_object.h"
+#include "functional/render/rhi/rhi_texture.h"
 
 #include <imgui.h>
 #include <glm/glm.hpp>

@@ -1,29 +1,77 @@
 set(TARGET_NAME realm)
 
-# Module directories
-set(ENGINE_MODULES
+# Required: platform, core, functional
+set(ENGINE_MODULES_REQUIRED
+        platform/filesystem
+        platform/info
+        platform/input
+        platform/window
         core/base
         core/debug
         core/event
         core/log
         core/math
-        platform/filesystem
-        platform/info
-        platform/input
-        platform/window
-        module/render/rhi
-        module/render/rhi/opengl
-        module/render
-        module/render/ibl
-        module/render/passes
-        module/resource
-        module/scene
-        module/ecs
-        module/ecs/components
-        module/ecs/components/lighting
-        module/ecs/components/audio
-        module/ecs/systems
+        functional/resource
+        functional/scene
+        functional/ecs
+        functional/ecs/components
+        functional/ecs/systems
+        functional/physics
+        functional/animation
+        functional/network
+        functional/render
+        functional/render/rhi
+        functional/render/rhi/opengl
+        functional/render/ibl
+        functional/render/passes
 )
+
+# Optional: module (gated by REALM_BUILD_*)
+set(ENGINE_MODULES_OPTIONAL "")
+
+if(REALM_BUILD_RENDER)
+        list(APPEND ENGINE_MODULES_OPTIONAL
+                module/render
+                module/render/components
+                module/render/components/lighting
+                module/render/passes
+        )
+endif()
+if(REALM_BUILD_AUDIO)
+        list(APPEND ENGINE_MODULES_OPTIONAL
+                module/audio
+                module/audio/components
+        )
+endif()
+if(REALM_BUILD_CAMERA)
+        list(APPEND ENGINE_MODULES_OPTIONAL
+                module/camera
+                module/camera/components
+        )
+endif()
+if(REALM_BUILD_ECS)
+        list(APPEND ENGINE_MODULES_OPTIONAL
+                module/ecs
+                module/ecs/components
+                module/ecs/components/audio
+                module/ecs/components/lighting
+                module/ecs/systems
+        )
+endif()
+if(REALM_BUILD_PHYSICS)
+        list(APPEND ENGINE_MODULES_OPTIONAL module/physics)
+endif()
+if(REALM_BUILD_ANIMATION)
+        list(APPEND ENGINE_MODULES_OPTIONAL module/animation)
+endif()
+if(REALM_BUILD_PARTICLES)
+        list(APPEND ENGINE_MODULES_OPTIONAL module/particles)
+endif()
+if(REALM_BUILD_NETWORK)
+        list(APPEND ENGINE_MODULES_OPTIONAL module/network)
+endif()
+
+set(ENGINE_MODULES ${ENGINE_MODULES_REQUIRED} ${ENGINE_MODULES_OPTIONAL})
 
 file(GLOB ENGINE_ROOT_FILES CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"

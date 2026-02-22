@@ -1,7 +1,7 @@
 #include "platform/info/platform_info.h"
 
 #include "core/base/macros.h"
-#include "module/render/rhi/rhi_device.h"
+#include "functional/render/rhi/rhi_device.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -21,8 +21,8 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
-#  include <windows.h>
 #  include <psapi.h>
+#  include <windows.h>
 #elif defined(__APPLE__)
 #  include <mach/mach.h>
 #  include <sys/sysctl.h>

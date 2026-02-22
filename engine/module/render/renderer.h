@@ -3,17 +3,18 @@
 #include <filesystem>
 #include <memory>
 
-#include "module/render/render_camera.h"
-#include "module/render/render_pipeline.h"
-#include "module/render/render_scene.h"
-#include "module/render/viewport_display_mode.h"
-#include "module/resource/config_manager.h"
+#include "functional/render/render_camera.h"
+#include "functional/render/render_pipeline.h"
+#include "functional/render/render_scene.h"
+#include "functional/render/viewport_display_mode.h"
+#include "functional/resource/config_manager.h"
 
 namespace RealmEngine
 {
     class Window;
     class ConfigManager;
     class RHIDevice;
+    class Scene;
     class RHITexture;
 
     class EquirectangularCubemap;
@@ -70,6 +71,8 @@ namespace RealmEngine
 
         void        setRenderToViewportTexture(bool enable);
         RHITexture* getViewportTexture() const;
+
+        void setCurrentEcsScene(Scene* scene) { m_current_ecs_scene = scene; }
 
         LightProbeBaker* getLightProbeBaker() const { return m_probe_baker.get(); }
 
@@ -130,6 +133,7 @@ namespace RealmEngine
         std::unique_ptr<RHITexture>      m_default_white;
 
         Window*                       m_window {nullptr};
+        Scene*                        m_current_ecs_scene {nullptr};
         std::shared_ptr<RenderScene>  m_render_scene;
         std::shared_ptr<RenderCamera> m_camera;
 

@@ -5,13 +5,13 @@
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "module/render/light.h"
-#include "module/render/render_scene.h"
-#include "module/render/rhi/rhi_buffer.h"
-#include "module/render/rhi/rhi_device.h"
-#include "module/render/rhi/rhi_framebuffer.h"
-#include "module/render/rhi/rhi_shader.h"
-#include "module/render/rhi/rhi_texture.h"
+#include "functional/render/light.h"
+#include "functional/render/render_scene.h"
+#include "functional/render/rhi/rhi_buffer.h"
+#include "functional/render/rhi/rhi_device.h"
+#include "functional/render/rhi/rhi_framebuffer.h"
+#include "functional/render/rhi/rhi_shader.h"
+#include "functional/render/rhi/rhi_texture.h"
 
 namespace RealmEngine
 {
