@@ -72,13 +72,16 @@ namespace RealmEngine
         {
             return m_scene_view_camera_controller;
         }
+        void setSceneViewCameraController(std::shared_ptr<SceneViewCameraController> ctrl)
+        {
+            m_scene_view_camera_controller = std::move(ctrl);
+        }
 
         uint64_t getGeneration() const { return m_generation; }
         void     markDirty() { incrementGeneration(); }
 
     private:
         void incrementGeneration() { ++m_generation; }
-        void onRenderStructureChanged(entt::registry&, entt::entity);
         void reconnectSignals();
 
         entt::registry                                m_registry;

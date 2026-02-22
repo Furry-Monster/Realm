@@ -1,4 +1,4 @@
-#include "module/render/passes/gbuffer_pass.h"
+#include "functional/render/passes/gbuffer_pass.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
@@ -7,7 +7,7 @@
 #include "functional/render/render_camera.h"
 #include "functional/render/render_mesh.h"
 #include "functional/render/render_object.h"
-#include "module/render/render_scene.h"
+#include "functional/render/render_scene.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"
 #include "functional/render/rhi/rhi_shader.h"

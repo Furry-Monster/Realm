@@ -1,10 +1,10 @@
-#include "module/render/passes/ssr_pass.h"
+#include "functional/render/passes/ssr_pass.h"
 
 #include <glm/gtc/matrix_inverse.hpp>
 
 #include "functional/render/fullscreen_quad.h"
-#include "module/render/passes/gbuffer_pass.h"
-#include "module/render/passes/hiz_pass.h"
+#include "functional/render/passes/gbuffer_pass.h"
+#include "functional/render/passes/hiz_pass.h"
 #include "functional/render/render_camera.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"

@@ -1,4 +1,4 @@
-#include "module/render/passes/hiz_pass.h"
+#include "functional/render/passes/hiz_pass.h"
 
 #include <algorithm>
 #include <cmath>

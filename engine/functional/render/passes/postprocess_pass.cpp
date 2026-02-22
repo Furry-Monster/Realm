@@ -1,8 +1,8 @@
-#include "module/render/passes/postprocess_pass.h"
+#include "functional/render/passes/postprocess_pass.h"
 
 #include "functional/render/fullscreen_quad.h"
-#include "module/render/passes/bloom_pass.h"
-#include "module/render/passes/gtao_blur_pass.h"
+#include "functional/render/passes/bloom_pass.h"
+#include "functional/render/passes/gtao_blur_pass.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"
 #include "functional/render/rhi/rhi_shader.h"

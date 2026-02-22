@@ -1,4 +1,4 @@
-#include "module/ecs/systems/audio_system.h"
+#include "module/audio/audio_system.h"
 
 #include <miniaudio.h>
 
@@ -6,11 +6,11 @@
 #include <filesystem>
 
 #include "core/base/macros.h"
-#include "module/ecs/components/audio/audio_source.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
 #include "functional/resource/config_manager.h"
 #include "functional/scene/scene.h"
+#include "module/audio/components/audio_source.h"
 
 namespace RealmEngine
 {
@@ -281,5 +281,4 @@ namespace RealmEngine
 
         ma_sound_set_position(it->second, pos.x, pos.y, pos.z);
     }
-
 } // namespace RealmEngine

@@ -1,7 +1,8 @@
-#include "module/ecs/components/scene_view_camera_controller.h"
+#include "module/game/components/scene_view_camera_controller.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+
 #include "platform/input/input.h"
 
 namespace RealmEngine
@@ -62,5 +63,4 @@ namespace RealmEngine
             m_camera->setRotation(new_rotation);
         }
     }
-
 } // namespace RealmEngine

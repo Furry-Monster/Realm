@@ -1,6 +1,6 @@
 #include "functional/render/light_probe_data.h"
 
-#include "module/ecs/components/lighting/light_probe.h"
+#include "module/render/components/lighting/light_probe.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
 #include "functional/scene/scene.h"

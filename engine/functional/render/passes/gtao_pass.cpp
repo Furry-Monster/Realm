@@ -1,4 +1,4 @@
-#include "module/render/passes/gtao_pass.h"
+#include "functional/render/passes/gtao_pass.h"
 
 #include <cmath>
 #include <cstddef>

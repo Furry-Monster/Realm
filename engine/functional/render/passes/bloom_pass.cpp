@@ -1,4 +1,4 @@
-#include "module/render/passes/bloom_pass.h"
+#include "functional/render/passes/bloom_pass.h"
 
 #include <algorithm>
 

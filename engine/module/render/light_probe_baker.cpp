@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "functional/render/light.h"
-#include "module/render/render_scene.h"
+#include "functional/render/render_scene.h"
 #include "functional/render/rhi/rhi_buffer.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"

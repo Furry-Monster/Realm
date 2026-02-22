@@ -1,4 +1,4 @@
-#include "module/render/passes/skybox_pass.h"
+#include "functional/render/passes/skybox_pass.h"
 
 #include "functional/render/render_camera.h"
 #include "functional/render/rhi/rhi_device.h"

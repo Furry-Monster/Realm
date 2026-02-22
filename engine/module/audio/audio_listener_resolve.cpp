@@ -1,11 +1,11 @@
-#include "functional/scene/audio_listener_resolve.h"
+#include "module/audio/audio_listener_resolve.h"
 
 #include <glm/gtc/quaternion.hpp>
 
-#include "module/ecs/components/audio/audio_listener.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
 #include "functional/scene/scene.h"
+#include "module/audio/components/audio_listener.h"
 
 namespace RealmEngine
 {
@@ -48,5 +48,4 @@ namespace RealmEngine
         }
         return pose;
     }
-
 } // namespace RealmEngine

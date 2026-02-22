@@ -1,4 +1,4 @@
-#include "module/render/passes/clustered_light_cull_pass.h"
+#include "functional/render/passes/clustered_light_cull_pass.h"
 
 #include <algorithm>
 #include <cstring>
@@ -8,7 +8,7 @@
 
 #include "functional/render/light.h"
 #include "functional/render/render_camera.h"
-#include "module/render/render_scene.h"
+#include "functional/render/render_scene.h"
 #include "functional/render/rhi/rhi_buffer.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_shader.h"

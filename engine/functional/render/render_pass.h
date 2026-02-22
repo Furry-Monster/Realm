@@ -9,6 +9,7 @@ namespace RealmEngine
     class RHIDevice;
     class RenderScene;
     class RenderCamera;
+    class Scene;
 
     class RHIFramebuffer;
 
@@ -16,6 +17,7 @@ namespace RealmEngine
     {
         RHIDevice*          device {};
         RenderScene*        scene {};
+        Scene*              ecs_scene {nullptr};
         RenderCamera*       camera {};
         int                 viewport_width {0};
         int                 viewport_height {0};

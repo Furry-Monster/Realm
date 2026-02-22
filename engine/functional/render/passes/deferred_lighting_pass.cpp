@@ -1,4 +1,4 @@
-#include "module/render/passes/deferred_lighting_pass.h"
+#include "functional/render/passes/deferred_lighting_pass.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -11,10 +11,10 @@
 #include "functional/render/light.h"
 #include "functional/render/light_probe_data.h"
 #include "functional/render/material.h"
-#include "module/render/passes/csm_shadow_pass.h"
-#include "module/render/passes/gbuffer_pass.h"
+#include "functional/render/passes/csm_shadow_pass.h"
+#include "functional/render/passes/gbuffer_pass.h"
 #include "functional/render/render_camera.h"
-#include "module/render/render_scene.h"
+#include "functional/render/render_scene.h"
 #include "functional/render/rhi/rhi_buffer.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"
@@ -186,7 +186,7 @@ namespace RealmEngine
 
         // Light probes
         bool   probes_active = false;
-        Scene* ecs_scene     = ctx.scene ? ctx.scene->getScene() : nullptr;
+        Scene* ecs_scene     = ctx.ecs_scene;
         if (ecs_scene && m_probe_ssbo)
         {
             LightProbeGPUData probe_data;

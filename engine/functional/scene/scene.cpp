@@ -1,13 +1,7 @@
 #include "functional/scene/scene.h"
 
 #include "core/base/macros.h"
-#include "module/ecs/components/lighting/area.h"
-#include "module/ecs/components/lighting/directional.h"
-#include "module/ecs/components/lighting/point.h"
-#include "module/ecs/components/lighting/spot.h"
-#include "module/ecs/components/name_tag.h"
-#include "module/ecs/components/renderable.h"
-#include "module/ecs/components/scene_view_camera_controller.h"
+#include "functional/ecs/components/name_tag.h"
 #include "functional/ecs/systems/hierarchy_system.h"
 #include "functional/ecs/systems/transform_system.h"
 
@@ -15,34 +9,10 @@ namespace RealmEngine
 {
     Scene::Scene()
     {
-        m_root                         = std::make_shared<SceneNode>("Root");
-        m_scene_view_camera_controller = std::make_shared<SceneViewCameraController>();
-
-        m_registry.on_construct<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_construct<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_construct<SpotLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_construct<AreaLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_construct<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<SpotLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<AreaLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
+        m_root = std::make_shared<SceneNode>("Root");
     }
 
-    void Scene::reconnectSignals()
-    {
-        m_registry.on_construct<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_construct<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_construct<SpotLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_construct<AreaLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_construct<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<Renderable>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<PointLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<SpotLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<AreaLight>().connect<&Scene::onRenderStructureChanged>(this);
-        m_registry.on_destroy<DirectionalLight>().connect<&Scene::onRenderStructureChanged>(this);
-    }
+    void Scene::reconnectSignals() {}
 
     Scene::Scene(Scene&& other) noexcept :
         m_registry(std::move(other.m_registry)), m_name_index(std::move(other.m_name_index)),
@@ -148,8 +118,6 @@ namespace RealmEngine
     {
         return findNodeByEntityRecursive(m_root, entity);
     }
-
-    void Scene::onRenderStructureChanged(entt::registry&, entt::entity) { incrementGeneration(); }
 
     std::shared_ptr<SceneNode> Scene::createNode(const std::string& name) { return std::make_shared<SceneNode>(name); }
 

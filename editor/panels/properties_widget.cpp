@@ -2,12 +2,12 @@
 
 #include "bridge/editor_engine_bridge.h"
 #include "editor_context.h"
-#include "module/ecs/components/camera.h"
-#include "module/ecs/components/lighting/area.h"
-#include "module/ecs/components/lighting/directional.h"
-#include "module/ecs/components/lighting/point.h"
-#include "module/ecs/components/lighting/spot.h"
-#include "module/ecs/components/renderable.h"
+#include "module/camera/components/camera.h"
+#include "module/render/components/lighting/area.h"
+#include "module/render/components/lighting/directional.h"
+#include "module/render/components/lighting/point.h"
+#include "module/render/components/lighting/spot.h"
+#include "module/render/components/renderable.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/scene/scene.h"
 

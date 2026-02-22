@@ -1,4 +1,4 @@
-#include "module/render/passes/transparent_pass.h"
+#include "functional/render/passes/opaque_pass.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -6,31 +6,35 @@
 #include "functional/render/light.h"
 #include "functional/render/light_probe_data.h"
 #include "functional/render/material.h"
-#include "module/render/passes/csm_shadow_pass.h"
+#include "functional/render/passes/csm_shadow_pass.h"
 #include "functional/render/render_camera.h"
 #include "functional/render/render_mesh.h"
 #include "functional/render/render_object.h"
-#include "module/render/render_scene.h"
+#include "functional/render/render_scene.h"
 #include "functional/render/rhi/rhi_buffer.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"
 #include "functional/render/rhi/rhi_shader.h"
 #include "functional/render/rhi/rhi_texture.h"
 #include "functional/render/rhi/rhi_types.h"
-#include "functional/render/scene_color_source.h"
 #include "functional/scene/scene.h"
 
 namespace RealmEngine
 {
-    TransparentPass::TransparentPass(const std::string& shader_path) :
-        RenderPass("transparent"), m_shader_path(shader_path)
+    OpaquePass::OpaquePass(const std::string& shader_path,
+                           const float        clear_r,
+                           const float        clear_g,
+                           const float        clear_b,
+                           const float        clear_a) :
+        RenderPass("opaque"), m_shader_path(shader_path), m_clear_r(clear_r), m_clear_g(clear_g), m_clear_b(clear_b),
+        m_clear_a(clear_a)
     {}
 
-    TransparentPass::~TransparentPass() noexcept = default;
+    OpaquePass::~OpaquePass() noexcept = default;
 
     static constexpr size_t PROBE_SSBO_SIZE = 16 + LightProbeGPUData::MAX_ACTIVE_PROBES * 160;
 
-    void TransparentPass::init(RHIDevice& device)
+    void OpaquePass::init(RHIDevice& device)
     {
         m_pbr_shader = device.createShader(m_shader_path + "/builtin/pbr.vert", m_shader_path + "/builtin/pbr.frag");
         m_pbr_shader->bindShaderStorageBlock("LightBuffer", 1);
@@ -50,14 +54,14 @@ namespace RealmEngine
         m_default_white = device.createTexture(td);
     }
 
-    RHIShader* TransparentPass::resolveShader(const Material& mat, RHIDevice& device)
+    RHIShader* OpaquePass::resolveShader(const Material& mat, RHIDevice& device)
     {
         if (mat.hasCustomShader())
             return m_shader_cache.getOrCreate(mat.vert_path, mat.frag_path, device);
         return m_pbr_shader.get();
     }
 
-    void TransparentPass::setupEngineUniforms(RHIShader& shader, const RenderContext& ctx)
+    void OpaquePass::setupEngineUniforms(RHIShader& shader, const RenderContext& ctx)
     {
         shader.setVec3("cameraPosition", ctx.camera->getPosition());
         shader.setInt("displayMode", static_cast<int>(ctx.display_mode));
@@ -89,9 +93,9 @@ namespace RealmEngine
             const auto& cascades = m_shadow_pass->getCascades();
             shader.setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
             std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
-            for (size_t c = 0; c < CSMShadowPass::CASCADE_COUNT; ++c)
+            for (size_t c = 0; c < static_cast<size_t>(CSMShadowPass::CASCADE_COUNT); ++c)
             {
-                shader.setMat4("cascadeVP[" + std::to_string(c) + "]", cascades[c].light_view_proj);
+                shader.setMat4("cascadeVP[" + std::to_string(static_cast<int>(c)) + "]", cascades[c].light_view_proj);
                 splits[c] = cascades[c].split_depth;
             }
             shader.setFloatArray("cascadeSplits", splits);
@@ -104,19 +108,27 @@ namespace RealmEngine
         }
     }
 
-    void TransparentPass::execute(const RenderContext& ctx)
+    void OpaquePass::execute(const RenderContext& ctx)
     {
-        if (!m_scene_color || !m_scene_color->getFramebuffer())
+        RHIFramebuffer* target_fb = m_framebuffer.get();
+        if (m_deferred_mode && m_scene_color)
+            target_fb = m_scene_color->getFramebuffer();
+        if (!target_fb)
             return;
 
-        auto* fb = m_scene_color->getFramebuffer();
-        fb->bind();
+        target_fb->bind();
         ctx.device->setViewport(0, 0, ctx.viewport_width, ctx.viewport_height);
+        if (!m_deferred_mode)
+        {
+            ctx.device->setClearColor(m_clear_r, m_clear_g, m_clear_b, m_clear_a);
+            ctx.device->clear(ClearFlags::Color | ClearFlags::Depth);
+        }
         ctx.device->setDepthTest(true);
         ctx.device->setDepthFunc(DepthFunc::Less);
+        ctx.device->setBlend(false);
+        ctx.device->setDepthWrite(true);
 
         ctx.camera->update();
-        const glm::vec3 cam_pos    = ctx.camera->getPosition();
         const glm::mat4 projection = ctx.camera->getProjMatrix();
         const glm::mat4 view       = ctx.camera->getViewMatrix();
 
@@ -141,7 +153,7 @@ namespace RealmEngine
 
         // Upload probe data
         bool   probes_active = false;
-        Scene* ecs_scene     = ctx.scene ? ctx.scene->getScene() : nullptr;
+        Scene* ecs_scene     = ctx.ecs_scene;
         if (ecs_scene && m_probe_ssbo)
         {
             LightProbeGPUData probe_data;
@@ -162,13 +174,12 @@ namespace RealmEngine
             m_probe_ssbo->bindBase(5);
         }
 
-        // Collect transparent draw commands sorted by distance (back-to-front)
+        // Collect opaque draw commands grouped by shader
         struct DrawCmd
         {
             RenderMesh* mesh;
             glm::mat4   model;
             RHIShader*  shader;
-            float       distance;
         };
         std::vector<DrawCmd> commands;
 
@@ -181,61 +192,57 @@ namespace RealmEngine
 
             auto&     ro    = *objects[i];
             glm::mat4 model = (i < matrices.size()) ? matrices[i] : glm::mat4(1.0f);
-            glm::vec3 obj_pos(model[3]);
-            float     dist = glm::length(cam_pos - obj_pos);
 
             ro.forEachMesh([&](RenderMesh& mesh) {
-                if (!mesh.m_material.isTransparent())
+                if (mesh.m_material.isTransparent())
+                    return;
+
+                // In deferred mode, skip deferred-eligible meshes (handled by GBufferPass)
+                if (m_deferred_mode && mesh.m_material.isDeferred())
                     return;
 
                 RHIShader* shader = resolveShader(mesh.m_material, *ctx.device);
                 if (!shader)
                     return;
 
-                commands.push_back({&mesh, model, shader, dist});
+                commands.push_back({&mesh, model, shader});
             });
         }
 
-        // Sort back-to-front
-        std::sort(commands.begin(), commands.end(), [](const DrawCmd& a, const DrawCmd& b) {
-            return a.distance > b.distance;
-        });
+        // Sort by shader pointer to minimize state switches
+        std::sort(
+            commands.begin(), commands.end(), [](const DrawCmd& a, const DrawCmd& b) { return a.shader < b.shader; });
 
         // Render
-        ctx.device->setBlend(true);
-        ctx.device->setBlendFunc(
-            BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha, BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha);
-        ctx.device->setDepthWrite(false);
-
         const RHIShader* active_shader = nullptr;
 
-        for (const auto& cmd : commands)
+        for (const auto& [mesh, model, shader] : commands)
         {
-            if (cmd.shader != active_shader)
+            if (shader != active_shader)
             {
-                cmd.shader->use();
-                cmd.shader->bindShaderStorageBlock("LightBuffer", 1);
-                cmd.shader->bindShaderStorageBlock("ProbeBuffer", 5);
-                setupEngineUniforms(*cmd.shader, ctx);
-                cmd.shader->setBool("isTransparentPass", true);
-                cmd.shader->setBool("probesEnabled", probes_active);
-                active_shader = cmd.shader;
+                shader->use();
+                shader->bindShaderStorageBlock("LightBuffer", 1);
+                shader->bindShaderStorageBlock("ProbeBuffer", 5);
+                setupEngineUniforms(*shader, ctx);
+                shader->setBool("isTransparentPass", false);
+                shader->setBool("probesEnabled", probes_active);
+                active_shader = shader;
             }
 
             for (int u = TEXTURE_UNIT_ALBEDO; u <= TEXTURE_UNIT_OPACITY; ++u)
                 ctx.device->bindTexture(u, *m_default_white);
 
-            ctx.device->setCullFace(cmd.mesh->m_material.isDoubleSided() ? CullFace::None : CullFace::Back);
-            cmd.shader->setMVP(cmd.model, view, projection);
-            cmd.mesh->draw(*cmd.shader);
-        }
+            const Material& mat = mesh->m_material;
+            ctx.device->setCullFace(mat.isDoubleSided() ? CullFace::None : CullFace::Back);
 
-        ctx.device->setBlend(false);
-        ctx.device->setDepthWrite(true);
+            shader->setMVP(model, view, projection);
+            mesh->draw(*shader);
+        }
     }
 
-    void TransparentPass::dispose()
+    void OpaquePass::dispose()
     {
+        m_framebuffer.reset();
         m_pbr_shader.reset();
         m_light_ssbo.reset();
         m_probe_ssbo.reset();
@@ -243,7 +250,7 @@ namespace RealmEngine
         m_shader_cache.clear();
     }
 
-    void TransparentPass::setIBLTextures(RHITexture* diffuse, RHITexture* prefiltered, RHITexture* brdf)
+    void OpaquePass::setIBLTextures(RHITexture* diffuse, RHITexture* prefiltered, RHITexture* brdf)
     {
         m_ibl_diffuse     = diffuse;
         m_ibl_prefiltered = prefiltered;

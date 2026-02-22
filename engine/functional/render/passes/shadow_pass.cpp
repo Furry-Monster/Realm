@@ -1,4 +1,4 @@
-#include "module/render/passes/shadow_pass.h"
+#include "functional/render/passes/shadow_pass.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
@@ -6,7 +6,7 @@
 
 #include "functional/render/light.h"
 #include "functional/render/render_camera.h"
-#include "module/render/render_scene.h"
+#include "functional/render/render_scene.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"
 #include "functional/render/rhi/rhi_shader.h"

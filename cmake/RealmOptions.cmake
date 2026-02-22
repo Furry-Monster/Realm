@@ -11,6 +11,9 @@ option(REALM_BUILD_ANIMATION "Build animation module" OFF)
 option(REALM_BUILD_PARTICLES "Build particles module" OFF)
 option(REALM_BUILD_NETWORK "Build network module" OFF)
 option(REALM_BUILD_GAME "Build game module" OFF)
+if (REALM_BUILD_EDITOR AND NOT REALM_BUILD_GAME)
+    set(REALM_BUILD_GAME ON CACHE BOOL "Game module required by Editor" FORCE)
+endif ()
 
 # Features
 option(REALM_ENABLE_LOGGING "Enable spdlog-based logging" ON)

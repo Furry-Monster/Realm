@@ -1,10 +1,12 @@
-#include "functional/scene/camera_sync.h"
+#include "module/camera/camera_sync.h"
 
-#include "module/ecs/components/camera.h"
+#include <glm/gtc/quaternion.hpp>
+
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
 #include "functional/render/render_camera.h"
 #include "functional/scene/scene.h"
+#include "module/camera/components/camera.h"
 
 namespace RealmEngine
 {
@@ -73,5 +75,4 @@ namespace RealmEngine
         }
         render_camera.update();
     }
-
 } // namespace RealmEngine

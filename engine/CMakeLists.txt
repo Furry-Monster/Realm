@@ -23,15 +23,19 @@ set(ENGINE_MODULES
         functional/render/rhi
         functional/render/rhi/opengl
         functional/render/ibl
+        functional/render/passes
         module/render
-        module/render/passes
-        module/ecs
-        module/ecs/components
-        module/ecs/components/lighting
-        module/ecs/components/audio
-        module/ecs/systems
+        module/render/components
+        module/render/components/lighting
+        module/audio
+        module/audio/components
+        module/camera
+        module/camera/components
 )
 
+if (REALM_BUILD_GAME)
+    list(APPEND ENGINE_MODULES module/game module/game/components)
+endif ()
 if (REALM_BUILD_PHYSICS)
     list(APPEND ENGINE_MODULES module/physics)
 endif ()
@@ -43,9 +47,6 @@ if (REALM_BUILD_PARTICLES)
 endif ()
 if (REALM_BUILD_NETWORK)
     list(APPEND ENGINE_MODULES module/network)
-endif ()
-if (REALM_BUILD_GAME)
-    list(APPEND ENGINE_MODULES module/game)
 endif ()
 
 file(GLOB ENGINE_ROOT_FILES CONFIGURE_DEPENDS
@@ -68,6 +69,9 @@ target_include_directories(${TARGET_NAME}
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
         PRIVATE ${CMAKE_BINARY_DIR}/generated
 )
+
+target_compile_definitions(${TARGET_NAME} PRIVATE
+        $<$<BOOL:${REALM_BUILD_GAME}>:REALM_BUILD_GAME>)
 
 target_link_libraries(${TARGET_NAME}
         PUBLIC Realm::ThirdParty
