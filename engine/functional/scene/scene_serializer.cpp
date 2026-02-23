@@ -499,6 +499,8 @@ namespace RealmEngine
             else if (type == "Camera")
             {
                 auto& c = entity.emplace<Camera>();
+                if (!entity.has<AudioListener>())
+                    entity.emplace<AudioListener>();
                 if (comp_json.contains("fov") && comp_json["fov"].is_number())
                     c.fov = comp_json["fov"];
                 if (comp_json.contains("near") && comp_json["near"].is_number())
@@ -736,7 +738,7 @@ namespace RealmEngine
             }
             else if (type == "AudioListener")
             {
-                auto& primary = entity.emplace<AudioListener>().primary;
+                auto& primary = entity.emplaceOrReplace<AudioListener>().primary;
                 if (comp_json.contains("primary") && comp_json["primary"].is_boolean())
                     primary = comp_json["primary"];
             }
