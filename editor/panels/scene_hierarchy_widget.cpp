@@ -4,13 +4,23 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "editor_context.h"
+#include "functional/ecs/components/transform.h"
+#include "functional/ecs/entity.h"
 #include "functional/scene/scene.h"
 #include "functional/scene/scene_node.h"
+#include "module/audio/components/audio_listener.h"
+#include "module/audio/components/audio_source.h"
+#include "module/camera/components/camera.h"
+#include "module/render/components/lighting/area.h"
+#include "module/render/components/lighting/directional.h"
+#include "module/render/components/lighting/point.h"
+#include "module/render/components/lighting/spot.h"
 #include "panels/asset_browser_widget.h"
 
 #include <imgui.h>
 #include <algorithm>
 #include <cstring>
+#include <glm/glm.hpp>
 #include <string>
 
 namespace RealmEngine
@@ -42,6 +52,12 @@ namespace RealmEngine
             const auto root = current_scene->getRoot();
             if (root)
                 renderNode(root, *current_scene);
+
+            if (ImGui::BeginPopupContextWindow("SceneHierarchyCreate", ImGuiPopupFlags_MouseButtonRight))
+            {
+                renderCreateEntityMenu(*current_scene, root);
+                ImGui::EndPopup();
+            }
         }
         ImGui::EndChild();
 
@@ -49,7 +65,7 @@ namespace RealmEngine
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(AssetBrowserWidget::DRAG_DROP_PAYLOAD_TYPE))
             {
-                const auto path_cstr = static_cast<const char*>(payload->Data);
+                const auto* const path_cstr = static_cast<const char*>(payload->Data);
                 if (path_cstr)
                 {
                     const std::filesystem::path path(path_cstr);
@@ -212,8 +228,21 @@ namespace RealmEngine
                 if (ImGui::MenuItem("Create Empty Child"))
                 {
                     const auto new_node = scene.createNodeWithEntity("Entity");
+                    auto       e        = scene.entity(new_node->getEntity());
+                    e.emplace<Transform>();
                     node->addChild(new_node);
                     scene.markDirty();
+                    if (m_context)
+                    {
+                        m_context->setSelectedNode(new_node);
+                        m_context->setSelectedEntity(e.handle());
+                        m_bridge->getEventBus().publish(EntitySelectedEvent {e.handle(), new_node.get()});
+                    }
+                }
+                if (ImGui::BeginMenu("Create"))
+                {
+                    renderCreateEntityMenu(scene, node);
+                    ImGui::EndMenu();
                 }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Delete", "Del") && m_callbacks.on_delete)
@@ -236,6 +265,82 @@ namespace RealmEngine
         }
 
         ImGui::PopID();
+    }
+
+    void SceneHierarchyWidget::renderCreateEntityMenu(Scene& scene, const std::shared_ptr<SceneNode>& parent)
+    {
+        if (!parent)
+            return;
+
+        auto add_as_child = [&](const std::string& base_name, auto&& setup) {
+            const auto new_node = scene.createNodeWithEntity(base_name);
+            auto       e        = scene.entity(new_node->getEntity());
+            e.emplace<Transform>();
+            setup(e);
+            parent->addChild(new_node);
+            scene.markDirty();
+            if (m_context)
+            {
+                m_context->setSelectedNode(new_node);
+                m_context->setSelectedEntity(e.handle());
+                m_bridge->getEventBus().publish(EntitySelectedEvent {e.handle(), new_node.get()});
+            }
+        };
+
+        if (ImGui::MenuItem("Create Empty"))
+        {
+            add_as_child("Entity", [](Entity&) {});
+        }
+        if (ImGui::MenuItem("Camera"))
+        {
+            add_as_child("Camera", [](Entity& e) {
+                e.get<Transform>().position = glm::vec3(0.0f, 0.0f, 5.0f);
+                e.emplace<Camera>();
+                e.emplace<AudioListener>();
+            });
+        }
+        if (ImGui::MenuItem("Point Light"))
+        {
+            add_as_child("PointLight", [](Entity& e) {
+                auto& pl     = e.emplace<PointLight>();
+                pl.color     = glm::vec3(1.0f);
+                pl.intensity = 5.0f;
+                pl.range     = 50.0f;
+            });
+        }
+        if (ImGui::MenuItem("Spot Light"))
+        {
+            add_as_child("SpotLight", [](Entity& e) {
+                auto& sl            = e.emplace<SpotLight>();
+                sl.color            = glm::vec3(1.0f);
+                sl.intensity        = 8.0f;
+                sl.range            = 25.0f;
+                sl.inner_cone_angle = 12.0f;
+                sl.outer_cone_angle = 28.0f;
+            });
+        }
+        if (ImGui::MenuItem("Directional Light"))
+        {
+            add_as_child("DirectionalLight", [](Entity& e) {
+                auto& dl     = e.emplace<DirectionalLight>();
+                dl.color     = glm::vec3(1.0f, 0.98f, 0.88f);
+                dl.intensity = 3.5f;
+            });
+        }
+        if (ImGui::MenuItem("Area Light"))
+        {
+            add_as_child("AreaLight", [](Entity& e) {
+                auto& al     = e.emplace<AreaLight>();
+                al.color     = glm::vec3(0.95f, 1.0f, 1.0f);
+                al.intensity = 3.0f;
+                al.width     = 2.5f;
+                al.height    = 2.5f;
+            });
+        }
+        if (ImGui::MenuItem("Audio Source"))
+        {
+            add_as_child("AudioSource", [](Entity& e) { e.emplace<AudioSource>(); });
+        }
     }
 
 } // namespace RealmEngine

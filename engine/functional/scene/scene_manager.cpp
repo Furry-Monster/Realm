@@ -8,6 +8,7 @@
 #include "functional/ecs/components/transform.h"
 #include "functional/resource/asset_manager.h"
 #include "functional/scene/scene_serializer.h"
+#include "module/audio/components/audio_listener.h"
 #include "module/camera/components/camera.h"
 #include "module/render/components/lighting/area.h"
 #include "module/render/components/lighting/directional.h"
@@ -35,11 +36,11 @@ namespace RealmEngine
         auto scene      = std::make_shared<Scene>();
         auto asset_path = m_asset_folder.generic_string();
 
-        auto loadModelAt = [this, &scene, &device, asset_path](const std::string& name,
-                                                               const std::string& rel_path,
-                                                               const glm::vec3&   pos,
-                                                               const glm::quat&   rot,
-                                                               const glm::vec3&   scale) {
+        auto load_model_at = [this, &scene, &device, asset_path](const std::string& name,
+                                                                 const std::string& rel_path,
+                                                                 const glm::vec3&   pos,
+                                                                 const glm::quat&   rot,
+                                                                 const glm::vec3&   scale) {
             try
             {
                 const auto node   = scene->createNodeWithEntity(name);
@@ -71,16 +72,17 @@ namespace RealmEngine
             t.position   = glm::vec3(0.0f, 0.0f, 5.0f);
             t.rotation   = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
             e.emplace<Camera>();
+            e.emplace<AudioListener>();
             scene->getRoot()->addChild(n);
         }
 
-        loadModelAt("Helmet",
-                    "helmet/DamagedHelmet.gltf",
-                    glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::angleAxis(glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)),
-                    glm::vec3(1.0f));
+        load_model_at("Helmet",
+                      "helmet/DamagedHelmet.gltf",
+                      glm::vec3(0.0f, 0.0f, 0.0f),
+                      glm::angleAxis(glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)),
+                      glm::vec3(1.0f));
 
-        auto setLightDir = [](Transform& t, const glm::vec3& forward) {
+        auto set_light_dir = [](Transform& t, const glm::vec3& forward) {
             constexpr glm::vec3 def_fwd(0.0f, 0.0f, -1.0f);
             const glm::vec3     axis = glm::cross(def_fwd, forward);
             if (glm::length(axis) > 0.001f)
@@ -134,7 +136,7 @@ namespace RealmEngine
             const auto n = scene->createNodeWithEntity("DirectionalLight");
             auto       e = scene->findEntity("DirectionalLight");
             auto&      t = e.emplace<Transform>();
-            setLightDir(t, glm::normalize(glm::vec3(-1.0f, -1.2f, -0.5f)));
+            set_light_dir(t, glm::normalize(glm::vec3(-1.0f, -1.2f, -0.5f)));
 
             auto& dl     = e.emplace<DirectionalLight>();
             dl.color     = glm::vec3(1.0f, 0.98f, 0.88f);
@@ -148,7 +150,7 @@ namespace RealmEngine
             auto       e = scene->findEntity("SpotLight");
             auto&      t = e.emplace<Transform>();
             t.position   = glm::vec3(0.0f, 5.0f, 10.0f);
-            setLightDir(t, glm::normalize(glm::vec3(0.0f, -0.5f, -1.0f)));
+            set_light_dir(t, glm::normalize(glm::vec3(0.0f, -0.5f, -1.0f)));
 
             auto& sl            = e.emplace<SpotLight>();
             sl.color            = glm::vec3(1.0f, 1.0f, 0.95f);
@@ -165,7 +167,7 @@ namespace RealmEngine
             auto       e = scene->findEntity("AreaLight");
             auto&      t = e.emplace<Transform>();
             t.position   = glm::vec3(0.0f, 7.0f, 2.0f);
-            setLightDir(t, glm::vec3(0.0f, -1.0f, 0.0f));
+            set_light_dir(t, glm::vec3(0.0f, -1.0f, 0.0f));
 
             auto& al     = e.emplace<AreaLight>();
             al.color     = glm::vec3(0.95f, 1.0f, 1.0f);

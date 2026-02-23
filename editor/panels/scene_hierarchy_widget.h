@@ -34,6 +34,7 @@ namespace RealmEngine
 
     private:
         void renderNode(const std::shared_ptr<SceneNode>& node, Scene& scene);
+        void renderCreateEntityMenu(Scene& scene, const std::shared_ptr<SceneNode>& parent);
 
         std::shared_ptr<EditorContext> m_context;
         EditorEngineBridge*            m_bridge;

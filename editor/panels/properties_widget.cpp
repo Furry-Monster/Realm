@@ -4,6 +4,8 @@
 #include "editor_context.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/scene/scene.h"
+#include "module/audio/components/audio_listener.h"
+#include "module/audio/components/audio_source.h"
 #include "module/camera/components/camera.h"
 #include "module/render/components/lighting/area.h"
 #include "module/render/components/lighting/directional.h"
@@ -59,6 +61,79 @@ namespace RealmEngine
             renderAreaLight();
         if (scene->has<Camera>(entity))
             renderCamera();
+        if (scene->has<AudioListener>(entity))
+            renderAudioListener();
+        if (scene->has<AudioSource>(entity))
+            renderAudioSource();
+
+        if (ImGui::BeginPopupContextWindow())
+        {
+            if (ImGui::BeginMenu("Add Component"))
+            {
+                auto ensure_transform = [&]() {
+                    if (!scene->has<Transform>(entity))
+                        scene->emplace<Transform>(entity);
+                };
+
+                if (!scene->has<Transform>(entity) && ImGui::MenuItem("Transform"))
+                {
+                    scene->emplace<Transform>(entity);
+                    scene->markDirty();
+                }
+                if (!scene->has<Renderable>(entity) && ImGui::MenuItem("Renderable"))
+                {
+                    ensure_transform();
+                    scene->emplace<Renderable>(entity);
+                    scene->markDirty();
+                }
+                if (!scene->has<Camera>(entity) && ImGui::MenuItem("Camera"))
+                {
+                    ensure_transform();
+                    scene->emplace<Camera>(entity);
+                    if (!scene->has<AudioListener>(entity))
+                        scene->emplace<AudioListener>(entity);
+                    scene->markDirty();
+                }
+                if (!scene->has<PointLight>(entity) && ImGui::MenuItem("Point Light"))
+                {
+                    ensure_transform();
+                    scene->emplace<PointLight>(entity);
+                    scene->markDirty();
+                }
+                if (!scene->has<SpotLight>(entity) && ImGui::MenuItem("Spot Light"))
+                {
+                    ensure_transform();
+                    scene->emplace<SpotLight>(entity);
+                    scene->markDirty();
+                }
+                if (!scene->has<DirectionalLight>(entity) && ImGui::MenuItem("Directional Light"))
+                {
+                    ensure_transform();
+                    scene->emplace<DirectionalLight>(entity);
+                    scene->markDirty();
+                }
+                if (!scene->has<AreaLight>(entity) && ImGui::MenuItem("Area Light"))
+                {
+                    ensure_transform();
+                    scene->emplace<AreaLight>(entity);
+                    scene->markDirty();
+                }
+                if (!scene->has<AudioSource>(entity) && ImGui::MenuItem("Audio Source"))
+                {
+                    ensure_transform();
+                    scene->emplace<AudioSource>(entity);
+                    scene->markDirty();
+                }
+                if (!scene->has<AudioListener>(entity) && ImGui::MenuItem("Audio Listener"))
+                {
+                    ensure_transform();
+                    scene->emplace<AudioListener>(entity);
+                    scene->markDirty();
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndPopup();
+        }
 
         ImGui::End();
     }
@@ -549,6 +624,7 @@ namespace RealmEngine
 
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            ImGui::PushID("Camera");
             if (ImGui::Checkbox("Primary", &cam->primary))
                 scene->markDirty();
 
@@ -580,6 +656,56 @@ namespace RealmEngine
                 scene->markDirty();
             if (ImGui::DragFloat("Far", &cam->far_plane, 1.0f, 1.0f, 10000.0f))
                 scene->markDirty();
+            ImGui::PopID();
+        }
+    }
+
+    void PropertiesWidget::renderAudioListener()
+    {
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        auto*              al     = scene->tryGet<AudioListener>(entity);
+        if (!al)
+            return;
+
+        if (ImGui::CollapsingHeader("Audio Listener", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::PushID("AudioListener");
+            if (ImGui::Checkbox("Primary", &al->primary))
+                scene->markDirty();
+            ImGui::PopID();
+        }
+    }
+
+    void PropertiesWidget::renderAudioSource()
+    {
+        const auto         scene  = m_bridge->getCurrentScene();
+        const entt::entity entity = m_context->getSelectedEntity();
+        auto*              src    = scene->tryGet<AudioSource>(entity);
+        if (!src)
+            return;
+
+        if (ImGui::CollapsingHeader("Audio Source", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            char buf[512];
+            strncpy(buf, src->clip_path.c_str(), sizeof(buf) - 1);
+            buf[sizeof(buf) - 1] = '\0';
+            if (ImGui::InputText("Clip Path", buf, sizeof(buf)))
+            {
+                src->clip_path = buf;
+                scene->markDirty();
+            }
+
+            if (ImGui::DragFloat("Volume", &src->volume, 0.01f, 0.0f, 2.0f))
+                scene->markDirty();
+            if (ImGui::Checkbox("Loop", &src->loop))
+                scene->markDirty();
+            if (ImGui::Checkbox("Spatial", &src->spatial))
+                scene->markDirty();
+            if (ImGui::Checkbox("Play On Start", &src->play_on_start))
+                scene->markDirty();
+
+            ImGui::Text("Playing: %s", src->playing ? "Yes" : "No");
         }
     }
 
