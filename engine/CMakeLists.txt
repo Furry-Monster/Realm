@@ -34,7 +34,6 @@ if(REALM_BUILD_RENDER)
                 module/render
                 module/render/components
                 module/render/components/lighting
-                module/render/passes
         )
 endif()
 if(REALM_BUILD_AUDIO)

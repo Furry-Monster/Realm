@@ -110,6 +110,8 @@ namespace RealmEngine
     void Engine::shutdown()
     {
         RE_LOG_INFO("<<< Now Terminating Engine. >>>");
+        if (!m_initialized)
+            return;
 
         m_initialized = false;
         m_delta_time  = 0.0;
@@ -136,13 +138,11 @@ namespace RealmEngine
         m_config->disposal();
         m_config.reset();
 
-        // Clear global logger before destroying it
-        g_logger = nullptr;
+        g_logger = nullptr; // Clear global logger before destroying it
         m_logger->disposal();
         m_logger.reset();
 
-        // EventBus last
-        m_event_bus.reset();
+        m_event_bus.reset(); // EventBus last
     }
 
     void Engine::loop()
