@@ -3,7 +3,7 @@
 namespace RealmEngine
 {
     class Engine;
-    class SystemScheduler;
+    class Scheduler;
 
-    void registerSystems(SystemScheduler& scheduler, Engine& engine);
+    void registerSystems(Scheduler& scheduler, Engine& engine);
 } // namespace RealmEngine

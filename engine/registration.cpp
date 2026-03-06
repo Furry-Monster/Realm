@@ -5,7 +5,7 @@
 #include "functional/camera/camera_sync.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
-#include "functional/ecs/system_scheduler.h"
+#include "functional/ecs/scheduler.h"
 #include "functional/ecs/systems/hierarchy_system.h"
 #include "functional/ecs/systems/transform_system.h"
 #include "functional/render/components/lighting/light_probe.h"
@@ -25,7 +25,7 @@
 
 namespace RealmEngine
 {
-    void registerSystems(SystemScheduler& scheduler, Engine& engine)
+    void registerSystems(Scheduler& scheduler, Engine& engine)
     {
         scheduler.registerSystem(SystemPhase::Logic, "HierarchySystem", [](SystemContext& ctx) {
             if (ctx.scene)

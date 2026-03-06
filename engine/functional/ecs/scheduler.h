@@ -33,7 +33,7 @@ namespace RealmEngine
         SystemFn    fn;
     };
 
-    class SystemScheduler
+    class Scheduler
     {
     public:
         void registerSystem(SystemPhase phase, std::string name, SystemFn fn);

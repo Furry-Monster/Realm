@@ -11,7 +11,7 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/logger.h"
-#include "functional/ecs/system_scheduler.h"
+#include "functional/ecs/scheduler.h"
 #include "functional/render/renderer.h"
 #include "functional/render/viewport_controller.h"
 #include "functional/resource/asset_manager.h"
@@ -71,7 +71,7 @@ namespace RealmEngine
             m_modules = std::make_unique<ModuleManager>();
             m_modules->initialize(*m_config, *m_event_bus);
 
-            m_scheduler = std::make_unique<SystemScheduler>();
+            m_scheduler = std::make_unique<Scheduler>();
             registerSystems(*m_scheduler, *this);
 
             const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
@@ -88,6 +88,7 @@ namespace RealmEngine
         {
             g_event_bus = nullptr;
             g_logger    = nullptr;
+
             m_scheduler.reset();
             m_modules.reset();
             m_input.reset();
@@ -131,11 +132,11 @@ namespace RealmEngine
         m_config->disposal();
         m_config.reset();
 
-        g_logger    = nullptr;
-        g_event_bus = nullptr;
+        g_logger = nullptr;
         m_logger->disposal();
         m_logger.reset();
 
+        g_event_bus = nullptr;
         m_event_bus.reset();
     }
 
@@ -193,18 +194,6 @@ namespace RealmEngine
 
         logicalTick();
         renderTick();
-    }
-
-    SystemScheduler& Engine::getSystemScheduler()
-    {
-        assert(m_scheduler && "Engine not initialized");
-        return *m_scheduler;
-    }
-
-    const SystemScheduler& Engine::getSystemScheduler() const
-    {
-        assert(m_scheduler && "Engine not initialized");
-        return *m_scheduler;
     }
 
     void Engine::logicalTick()

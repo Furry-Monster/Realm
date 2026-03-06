@@ -18,7 +18,7 @@ namespace RealmEngine
     class Input;
 
     class Scene;
-    class SystemScheduler;
+    class Scheduler;
 
     class Engine
     {
@@ -81,6 +81,7 @@ namespace RealmEngine
             assert(m_input && "Engine not initialized");
             return *m_input;
         }
+
         ModuleManager& getModuleManager()
         {
             assert(m_modules && "Engine not initialized");
@@ -91,9 +92,16 @@ namespace RealmEngine
             assert(m_modules && "Engine not initialized");
             return *m_modules;
         }
-
-        SystemScheduler&       getSystemScheduler();
-        const SystemScheduler& getSystemScheduler() const;
+        Scheduler& getSystemScheduler()
+        {
+            assert(m_scheduler && "Engine not initialized");
+            return *m_scheduler;
+        }
+        const Scheduler& getSystemScheduler() const
+        {
+            assert(m_scheduler && "Engine not initialized");
+            return *m_scheduler;
+        }
 
         ViewportMode getViewportMode() const { return m_viewport_mode; }
         void         setViewportMode(ViewportMode mode) { m_viewport_mode = mode; }
@@ -103,7 +111,6 @@ namespace RealmEngine
         void renderTick();
 
     private:
-        // Subsystems (declaration order = destruction order when using reset())
         std::unique_ptr<EventBus>        m_event_bus;
         std::unique_ptr<Logger>          m_logger;
         std::unique_ptr<ConfigManager>   m_config;
@@ -113,7 +120,7 @@ namespace RealmEngine
         std::unique_ptr<Renderer>        m_renderer;
         std::unique_ptr<Input>           m_input;
         std::unique_ptr<ModuleManager>   m_modules;
-        std::unique_ptr<SystemScheduler> m_scheduler;
+        std::unique_ptr<Scheduler> m_scheduler;
 
         bool         m_initialized {false};
         double       m_delta_time {0.0};
