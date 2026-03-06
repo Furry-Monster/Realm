@@ -1,16 +1,16 @@
-#include "module/render/render_scene_sync.h"
+#include "functional/render/render_scene_sync.h"
 
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
+#include "functional/render/components/lighting/area.h"
+#include "functional/render/components/lighting/directional.h"
+#include "functional/render/components/lighting/point.h"
+#include "functional/render/components/lighting/spot.h"
+#include "functional/render/components/renderable.h"
 #include "functional/render/light.h"
 #include "functional/render/render_scene.h"
 #include "functional/scene/scene.h"
 #include "functional/scene/scene_node.h"
-#include "module/render/components/lighting/area.h"
-#include "module/render/components/lighting/directional.h"
-#include "module/render/components/lighting/point.h"
-#include "module/render/components/lighting/spot.h"
-#include "module/render/components/renderable.h"
 
 #include <entt/entity/registry.hpp>
 #include <glm/glm.hpp>

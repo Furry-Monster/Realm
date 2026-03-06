@@ -273,29 +273,9 @@ Examples:
         help="Enable sanitizers (REALM_ENABLE_SANITIZERS=ON)",
     )
 
-    # Engine modules (default ON in CMake: render, audio, camera)
-    parser.add_argument(
-        "--no-render", action="store_true", help="Disable render module (REALM_BUILD_RENDER=OFF)"
-    )
+    # Engine modules (optional)
     parser.add_argument(
         "--no-audio", action="store_true", help="Disable audio module (REALM_BUILD_AUDIO=OFF)"
-    )
-    parser.add_argument(
-        "--no-camera", action="store_true", help="Disable camera module (REALM_BUILD_CAMERA=OFF)"
-    )
-    # Engine modules (default OFF in CMake)
-    parser.add_argument(
-        "--physics", action="store_true", help="Enable physics module (REALM_BUILD_PHYSICS=ON)"
-    )
-    parser.add_argument(
-        "--animation",
-        action="store_true",
-        help="Enable animation module (REALM_BUILD_ANIMATION=ON)",
-    )
-    parser.add_argument(
-        "--particles",
-        action="store_true",
-        help="Enable particles module (REALM_BUILD_PARTICLES=ON)",
     )
     parser.add_argument(
         "--network", action="store_true", help="Enable network module (REALM_BUILD_NETWORK=ON)"
@@ -385,18 +365,8 @@ def _run_clangd_mode(args, config, logger) -> int:
         cmake_args.append("-DREALM_BUILD_EDITOR=OFF")
     if args.no_sandbox:
         cmake_args.append("-DREALM_BUILD_SANDBOX=OFF")
-    if args.no_render:
-        cmake_args.append("-DREALM_BUILD_RENDER=OFF")
     if args.no_audio:
         cmake_args.append("-DREALM_BUILD_AUDIO=OFF")
-    if args.no_camera:
-        cmake_args.append("-DREALM_BUILD_CAMERA=OFF")
-    if args.physics:
-        cmake_args.append("-DREALM_BUILD_PHYSICS=ON")
-    if args.animation:
-        cmake_args.append("-DREALM_BUILD_ANIMATION=ON")
-    if args.particles:
-        cmake_args.append("-DREALM_BUILD_PARTICLES=ON")
     if args.network:
         cmake_args.append("-DREALM_BUILD_NETWORK=ON")
     if args.cmake_defines:
@@ -479,18 +449,8 @@ def main():
         cmake_args.append("-DREALM_BUILD_TESTS=ON")
     if args.sanitizers:
         cmake_args.append("-DREALM_ENABLE_SANITIZERS=ON")
-    if args.no_render:
-        cmake_args.append("-DREALM_BUILD_RENDER=OFF")
     if args.no_audio:
         cmake_args.append("-DREALM_BUILD_AUDIO=OFF")
-    if args.no_camera:
-        cmake_args.append("-DREALM_BUILD_CAMERA=OFF")
-    if args.physics:
-        cmake_args.append("-DREALM_BUILD_PHYSICS=ON")
-    if args.animation:
-        cmake_args.append("-DREALM_BUILD_ANIMATION=ON")
-    if args.particles:
-        cmake_args.append("-DREALM_BUILD_PARTICLES=ON")
     if args.network:
         cmake_args.append("-DREALM_BUILD_NETWORK=ON")
     if args.cmake_defines:

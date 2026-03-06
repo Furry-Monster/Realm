@@ -1,4 +1,4 @@
-#include "module/render/renderer.h"
+#include "functional/render/renderer.h"
 
 #include <memory>
 
@@ -7,6 +7,7 @@
 #include "functional/render/ibl/diffuse_irradiance_map.h"
 #include "functional/render/ibl/equirectangular_cubemap.h"
 #include "functional/render/ibl/specular_map.h"
+#include "functional/render/light_probe_baker.h"
 #include "functional/render/passes/bloom_pass.h"
 #include "functional/render/passes/clustered_light_cull_pass.h"
 #include "functional/render/passes/csm_shadow_pass.h"
@@ -22,6 +23,7 @@
 #include "functional/render/passes/spot_shadow_pass.h"
 #include "functional/render/passes/ssr_pass.h"
 #include "functional/render/passes/transparent_pass.h"
+#include "functional/render/render_scene_sync.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"
 #include "functional/render/rhi/rhi_texture.h"
@@ -29,8 +31,6 @@
 #include "functional/render/scene_color_source.h"
 #include "functional/render/skybox.h"
 #include "functional/resource/config_manager.h"
-#include "module/render/light_probe_baker.h"
-#include "module/render/render_scene_sync.h"
 #include "platform/window/window.h"
 
 namespace RealmEngine

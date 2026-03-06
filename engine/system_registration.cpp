@@ -4,25 +4,22 @@
 #include "functional/ecs/system_scheduler.h"
 #include "functional/ecs/systems/hierarchy_system.h"
 #include "functional/ecs/systems/transform_system.h"
+#include "functional/render/viewport_controller.h"
 #include "functional/render/viewport_display_mode.h"
 #include "functional/resource/config_manager.h"
 #include "functional/scene/scene.h"
 #include "functional/scene/scene_manager.h"
-#include "module/render/viewport_controller.h"
 #include "platform/window/window.h"
+
+#include "functional/camera/camera_sync.h"
+#include "functional/render/components/lighting/light_probe.h"
+#include "functional/render/light_probe_baker.h"
+#include "functional/render/render_scene_sync.h"
+#include "functional/render/renderer.h"
 
 #if REALM_BUILD_AUDIO
 #  include "module/audio/audio_listener_resolve.h"
 #  include "module/audio/audio_system.h"
-#endif
-#if REALM_BUILD_CAMERA
-#  include "module/camera/camera_sync.h"
-#endif
-#if REALM_BUILD_RENDER
-#  include "module/render/components/lighting/light_probe.h"
-#  include "module/render/light_probe_baker.h"
-#  include "module/render/render_scene_sync.h"
-#  include "module/render/renderer.h"
 #endif
 
 #include "core/debug/debug_console.h"
@@ -76,14 +73,12 @@ namespace RealmEngine
             });
 #endif
 
-#if REALM_BUILD_RENDER
             scheduler.registerSystem(SystemPhase::PreRender, "RenderSceneSync", [&engine](SystemContext& ctx) {
                 auto scene = engine.getSceneManager().getCurrentScene();
                 syncFromScene(scene, *engine.getRenderer().getRenderScene());
                 engine.getRenderer().setCurrentEcsScene(ctx.scene);
             });
 
-#  if REALM_BUILD_CAMERA
             scheduler.registerSystem(SystemPhase::PreRender, "CameraSync", [&engine](SystemContext& ctx) {
                 if (engine.getViewportMode() != ViewportMode::Game || !ctx.scene)
                     return;
@@ -95,7 +90,6 @@ namespace RealmEngine
                     syncEntityCameraToRenderCamera(*ctx.scene, cam_entity, *engine.getRenderer().getCamera(), aspect);
                 }
             });
-#  endif
 
             scheduler.registerSystem(SystemPhase::PreRender, "LightProbeBake", [&engine](SystemContext& ctx) {
                 if (!ctx.scene || !engine.getRenderer().getLightProbeBaker())
@@ -124,14 +118,10 @@ namespace RealmEngine
                     }
                 }
             });
-#endif
 
-#if REALM_BUILD_RENDER
             scheduler.registerSystem(
                 SystemPhase::Render, "Renderer", [&engine](SystemContext&) { engine.getRenderer().render(); });
-#endif
 
-#if REALM_BUILD_RENDER
             scheduler.registerSystem(SystemPhase::PostRender, "FrameStats", [&engine](SystemContext& ctx) {
                 FrameStats stats {};
                 stats.frame_time_ms             = ctx.delta_time * 1000.0;
@@ -149,7 +139,6 @@ namespace RealmEngine
                 stats.memory_rss_kb = s_cached_rss;
                 EditorConsole::instance().setFrameStats(stats);
             });
-#endif
         }
     } // namespace
 
