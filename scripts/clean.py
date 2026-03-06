@@ -120,7 +120,9 @@ def clean_bin_directory(path: Path, dry_run: bool = False, verbose: bool = False
                 logger.info(f"Removed empty dir: {d.relative_to(path)}")
 
     if total_size > 0:
-        logger.success(f"Cleaned {path.relative_to(config.project_root)} ({get_size_str(total_size)})")
+        logger.success(
+            f"Cleaned {path.relative_to(config.project_root)} ({get_size_str(total_size)})"
+        )
     return total_size
 
 

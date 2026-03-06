@@ -134,14 +134,21 @@ class BuildConfig:
 
     def _detect_visual_studio(self) -> Optional[str]:
         """Detect installed Visual Studio version via vswhere"""
-        vswhere = Path(os.environ.get("ProgramFiles(x86)", "")) / "Microsoft Visual Studio" / "Installer" / "vswhere.exe"
+        vswhere = (
+            Path(os.environ.get("ProgramFiles(x86)", ""))
+            / "Microsoft Visual Studio"
+            / "Installer"
+            / "vswhere.exe"
+        )
         if not vswhere.exists():
             return None
 
         try:
             result = subprocess.run(
                 [str(vswhere), "-latest", "-property", "installationVersion"],
-                capture_output=True, text=True, check=False,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             if result.returncode != 0 or not result.stdout.strip():
                 return None
@@ -212,6 +219,7 @@ class BuildConfig:
             return None
         try:
             import ctypes
+
             kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
             cp = kernel32.GetConsoleOutputCP()
             if cp == 0:

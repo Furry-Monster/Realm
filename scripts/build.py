@@ -274,14 +274,32 @@ Examples:
     )
 
     # Engine modules (default ON in CMake: render, audio, camera)
-    parser.add_argument("--no-render", action="store_true", help="Disable render module (REALM_BUILD_RENDER=OFF)")
-    parser.add_argument("--no-audio", action="store_true", help="Disable audio module (REALM_BUILD_AUDIO=OFF)")
-    parser.add_argument("--no-camera", action="store_true", help="Disable camera module (REALM_BUILD_CAMERA=OFF)")
+    parser.add_argument(
+        "--no-render", action="store_true", help="Disable render module (REALM_BUILD_RENDER=OFF)"
+    )
+    parser.add_argument(
+        "--no-audio", action="store_true", help="Disable audio module (REALM_BUILD_AUDIO=OFF)"
+    )
+    parser.add_argument(
+        "--no-camera", action="store_true", help="Disable camera module (REALM_BUILD_CAMERA=OFF)"
+    )
     # Engine modules (default OFF in CMake)
-    parser.add_argument("--physics", action="store_true", help="Enable physics module (REALM_BUILD_PHYSICS=ON)")
-    parser.add_argument("--animation", action="store_true", help="Enable animation module (REALM_BUILD_ANIMATION=ON)")
-    parser.add_argument("--particles", action="store_true", help="Enable particles module (REALM_BUILD_PARTICLES=ON)")
-    parser.add_argument("--network", action="store_true", help="Enable network module (REALM_BUILD_NETWORK=ON)")
+    parser.add_argument(
+        "--physics", action="store_true", help="Enable physics module (REALM_BUILD_PHYSICS=ON)"
+    )
+    parser.add_argument(
+        "--animation",
+        action="store_true",
+        help="Enable animation module (REALM_BUILD_ANIMATION=ON)",
+    )
+    parser.add_argument(
+        "--particles",
+        action="store_true",
+        help="Enable particles module (REALM_BUILD_PARTICLES=ON)",
+    )
+    parser.add_argument(
+        "--network", action="store_true", help="Enable network module (REALM_BUILD_NETWORK=ON)"
+    )
 
     # Actions
     parser.add_argument(
@@ -348,7 +366,9 @@ def _run_clangd_mode(args, config, logger) -> int:
         return 1
 
     build_dir = config.project_root / args.dir
-    generator = args.generator or ("Ninja" if config.find_program("ninja") else config.get_cmake_generator())
+    generator = args.generator or (
+        "Ninja" if config.find_program("ninja") else config.get_cmake_generator()
+    )
 
     if generator != "Ninja" and ("Visual Studio" in generator or generator == "Xcode"):
         logger.warning(
