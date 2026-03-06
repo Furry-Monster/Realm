@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "functional/render/viewport_display_mode.h"
+#include "module_manager.h"
 
 namespace RealmEngine
 {
@@ -15,7 +16,6 @@ namespace RealmEngine
     class Window;
     class Renderer;
     class Input;
-    class AudioSystem;
 
     class Scene;
     class SystemScheduler;
@@ -81,7 +81,16 @@ namespace RealmEngine
             assert(m_input && "Engine not initialized");
             return *m_input;
         }
-        AudioSystem* getAudioSystem() const { return m_audio.get(); }
+        ModuleManager& getModuleManager()
+        {
+            assert(m_modules && "Engine not initialized");
+            return *m_modules;
+        }
+        const ModuleManager& getModuleManager() const
+        {
+            assert(m_modules && "Engine not initialized");
+            return *m_modules;
+        }
 
         SystemScheduler&       getSystemScheduler();
         const SystemScheduler& getSystemScheduler() const;
@@ -103,7 +112,7 @@ namespace RealmEngine
         std::unique_ptr<Window>          m_window;
         std::unique_ptr<Renderer>        m_renderer;
         std::unique_ptr<Input>           m_input;
-        std::unique_ptr<AudioSystem>     m_audio;
+        std::unique_ptr<ModuleManager>   m_modules;
         std::unique_ptr<SystemScheduler> m_scheduler;
 
         bool         m_initialized {false};

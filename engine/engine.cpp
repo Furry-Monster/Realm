@@ -18,11 +18,11 @@
 #include "functional/resource/config_manager.h"
 #include "functional/scene/scene.h"
 #include "functional/scene/scene_manager.h"
-#include "module/audio/audio_system.h"
+#include "module_manager.h"
 #include "platform/info/platform_info.h"
 #include "platform/input/input.h"
 #include "platform/window/window.h"
-#include "system_registration.h"
+#include "registration.h"
 
 namespace RealmEngine
 {
@@ -65,19 +65,14 @@ namespace RealmEngine
             (void)m_event_bus->subscribe<FramebufferResizeEvent>(
                 [this](const FramebufferResizeEvent& e) { m_renderer->onResize(e.width, e.height); });
 
-            (void)m_event_bus->subscribe<SceneChangedEvent>([this](const SceneChangedEvent&) {
-                if (m_audio)
-                    m_audio->clearSceneSounds();
-            });
-
             m_input = std::make_unique<Input>();
             m_input->initialize(*m_window);
 
-            m_audio = std::make_unique<AudioSystem>();
-            m_audio->initialize(m_config->getAudioConfig());
+            m_modules = std::make_unique<ModuleManager>();
+            m_modules->initialize(*m_config, *m_event_bus);
 
             m_scheduler = std::make_unique<SystemScheduler>();
-            registerEngineSystems(*m_scheduler, *this);
+            registerSystems(*m_scheduler, *this);
 
             const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
             m_max_delta_time                      = gameplay_config.max_delta_time;
@@ -94,7 +89,7 @@ namespace RealmEngine
             g_event_bus = nullptr;
             g_logger    = nullptr;
             m_scheduler.reset();
-            m_audio.reset();
+            m_modules.reset();
             m_input.reset();
             m_renderer.reset();
             m_window.reset();
@@ -116,11 +111,9 @@ namespace RealmEngine
         m_initialized = false;
         m_delta_time  = 0.0;
 
-        if (m_audio)
-        {
-            m_audio->shutdown();
-            m_audio.reset();
-        }
+        m_modules->shutdown();
+        m_modules.reset();
+
         m_input->disposal();
         m_input.reset();
 

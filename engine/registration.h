@@ -5,5 +5,5 @@ namespace RealmEngine
     class Engine;
     class SystemScheduler;
 
-    void registerEngineSystems(SystemScheduler& scheduler, Engine& engine);
+    void registerSystems(SystemScheduler& scheduler, Engine& engine);
 } // namespace RealmEngine
