@@ -5,6 +5,7 @@
 #include "functional/resource/config_manager.h"
 
 #include <fstream>
+#include <json.hpp>
 #include <sstream>
 
 namespace RealmEngine
@@ -105,7 +106,8 @@ namespace RealmEngine
         serializeGeneralConfig(config.getGeneralConfig(), json["general"]);
         serializeWindowConfig(config.getWindowConfig(), json["window"]);
         serializeRendererConfig(config.getRendererConfig(), json["renderer"]);
-        serializeGamePlayConfig(config.getGamePlayConfig(), json["gameplay"]);
+        serializeViewportConfig(config.getViewportConfig(), json["viewport"]);
+        serializeEngineConfig(config.getEngineConfig(), json["engine"]);
         serializePhysicsConfig(config.getPhysicsConfig(), json["physics"]);
         serializeAudioConfig(config.getAudioConfig(), json["audio"]);
     }
@@ -133,11 +135,18 @@ namespace RealmEngine
             config.setRendererConfig(renderer);
         }
 
-        if (json.contains("gameplay"))
+        if (json.contains("viewport"))
         {
-            GamePlayConfig gameplay = config.getGamePlayConfig();
-            deserializeGamePlayConfig(gameplay, json["gameplay"]);
-            config.setGamePlayConfig(gameplay);
+            ViewportConfig viewport = config.getViewportConfig();
+            deserializeViewportConfig(viewport, json["viewport"]);
+            config.setViewportConfig(viewport);
+        }
+
+        if (json.contains("engine"))
+        {
+            EngineConfig engine = config.getEngineConfig();
+            deserializeEngineConfig(engine, json["engine"]);
+            config.setEngineConfig(engine);
         }
 
         if (json.contains("physics"))
@@ -205,17 +214,17 @@ namespace RealmEngine
         json["clear_color_a"]           = renderer.clear_color_a;
     }
 
-    void ConfigSerializer::serializeGamePlayConfig(const GamePlayConfig& gameplay, nlohmann::json& json)
+    void ConfigSerializer::serializeViewportConfig(const ViewportConfig& viewport, nlohmann::json& json)
     {
-        json["camera_move_speed"]        = gameplay.camera_move_speed;
-        json["camera_sprint_multiplier"] = gameplay.camera_sprint_multiplier;
-        json["camera_mouse_sensitivity"] = gameplay.camera_mouse_sensitivity;
-        json["scene_file"]               = gameplay.scene_file;
-        json["max_delta_time"]           = gameplay.max_delta_time;
-        json["jump_force"]               = gameplay.jump_force;
-        json["crouch_scale"]             = gameplay.crouch_scale;
-        json["first_person_fov"]         = gameplay.first_person_fov;
-        json["network_tick_rate"]        = gameplay.network_tick_rate;
+        json["camera_move_speed"]        = viewport.camera_move_speed;
+        json["camera_sprint_multiplier"] = viewport.camera_sprint_multiplier;
+        json["camera_mouse_sensitivity"] = viewport.camera_mouse_sensitivity;
+    }
+
+    void ConfigSerializer::serializeEngineConfig(const EngineConfig& engine, nlohmann::json& json)
+    {
+        json["scene_file"]     = engine.scene_file;
+        json["max_delta_time"] = engine.max_delta_time;
     }
 
     void ConfigSerializer::deserializeGeneralConfig(GeneralConfig& general, const nlohmann::json& json)
@@ -315,26 +324,22 @@ namespace RealmEngine
             renderer.clear_color_a = json["clear_color_a"].get<float>();
     }
 
-    void ConfigSerializer::deserializeGamePlayConfig(GamePlayConfig& gameplay, const nlohmann::json& json)
+    void ConfigSerializer::deserializeViewportConfig(ViewportConfig& viewport, const nlohmann::json& json)
     {
         if (json.contains("camera_move_speed"))
-            gameplay.camera_move_speed = json["camera_move_speed"].get<float>();
+            viewport.camera_move_speed = json["camera_move_speed"].get<float>();
         if (json.contains("camera_sprint_multiplier"))
-            gameplay.camera_sprint_multiplier = json["camera_sprint_multiplier"].get<float>();
+            viewport.camera_sprint_multiplier = json["camera_sprint_multiplier"].get<float>();
         if (json.contains("camera_mouse_sensitivity"))
-            gameplay.camera_mouse_sensitivity = json["camera_mouse_sensitivity"].get<float>();
+            viewport.camera_mouse_sensitivity = json["camera_mouse_sensitivity"].get<float>();
+    }
+
+    void ConfigSerializer::deserializeEngineConfig(EngineConfig& engine, const nlohmann::json& json)
+    {
         if (json.contains("scene_file"))
-            gameplay.scene_file = json["scene_file"].get<std::string>();
+            engine.scene_file = json["scene_file"].get<std::string>();
         if (json.contains("max_delta_time"))
-            gameplay.max_delta_time = json["max_delta_time"].get<float>();
-        if (json.contains("jump_force"))
-            gameplay.jump_force = json["jump_force"].get<float>();
-        if (json.contains("crouch_scale"))
-            gameplay.crouch_scale = json["crouch_scale"].get<float>();
-        if (json.contains("first_person_fov"))
-            gameplay.first_person_fov = json["first_person_fov"].get<float>();
-        if (json.contains("network_tick_rate"))
-            gameplay.network_tick_rate = json["network_tick_rate"].get<int>();
+            engine.max_delta_time = json["max_delta_time"].get<float>();
     }
 
     void ConfigSerializer::serializePhysicsConfig(const PhysicsConfig& physics, nlohmann::json& json)

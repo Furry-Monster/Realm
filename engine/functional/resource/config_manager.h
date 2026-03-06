@@ -67,20 +67,18 @@ namespace RealmEngine
         float clear_color_a = 1.0f;
     };
 
-    struct GamePlayConfig
+    struct ViewportConfig
     {
         float camera_move_speed        = 5.0f;
         float camera_sprint_multiplier = 2.0f;
         float camera_mouse_sensitivity = 0.1f;
+    };
 
+    struct EngineConfig
+    {
         std::string scene_file = "scene.json";
 
         float max_delta_time = 0.1f;
-
-        float jump_force        = 8.0f;
-        float crouch_scale      = 0.5f;
-        float first_person_fov  = 90.0f;
-        int   network_tick_rate = 64;
     };
 
     struct PhysicsConfig
@@ -112,19 +110,21 @@ namespace RealmEngine
         ConfigManager& operator=(ConfigManager&&) noexcept = default;
 
         void initialize();
-        void disposal();
+        void disposal() const;
 
         const GeneralConfig&  getGeneralConfig() const;
         const WindowConfig&   getWindowConfig() const;
         const RendererConfig& getRendererConfig() const;
-        const GamePlayConfig& getGamePlayConfig() const;
+        const ViewportConfig& getViewportConfig() const;
+        const EngineConfig&   getEngineConfig() const;
         const PhysicsConfig&  getPhysicsConfig() const;
         const AudioConfig&    getAudioConfig() const;
 
         void setGeneralConfig(const GeneralConfig& config);
         void setWindowConfig(const WindowConfig& config);
         void setRendererConfig(const RendererConfig& config);
-        void setGamePlayConfig(const GamePlayConfig& config);
+        void setViewportConfig(const ViewportConfig& config);
+        void setEngineConfig(const EngineConfig& config);
         void setPhysicsConfig(const PhysicsConfig& config);
         void setAudioConfig(const AudioConfig& config);
 
@@ -137,7 +137,8 @@ namespace RealmEngine
         GeneralConfig  m_general_config;
         WindowConfig   m_window_config;
         RendererConfig m_renderer_config;
-        GamePlayConfig m_gameplay_config;
+        ViewportConfig m_viewport_config;
+        EngineConfig   m_engine_config;
         PhysicsConfig  m_physics_config;
         AudioConfig    m_audio_config;
     };

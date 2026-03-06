@@ -10,7 +10,7 @@
 
 namespace RealmEngine
 {
-    ModuleManager::ModuleManager() = default;
+    ModuleManager::ModuleManager()           = default;
     ModuleManager::~ModuleManager() noexcept = default;
 
     void ModuleManager::initialize(const ConfigManager& config, EventBus& event_bus)

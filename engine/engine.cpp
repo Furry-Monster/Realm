@@ -33,7 +33,6 @@ namespace RealmEngine
     {
         try
         {
-            // EventBus first (other subsystems publish/subscribe)
             m_event_bus = std::make_unique<EventBus>();
             g_event_bus = m_event_bus.get();
 
@@ -74,8 +73,8 @@ namespace RealmEngine
             m_scheduler = std::make_unique<Scheduler>();
             registerSystems(*m_scheduler, *this);
 
-            const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
-            m_max_delta_time                      = gameplay_config.max_delta_time;
+            const EngineConfig& engine_config = m_config->getEngineConfig();
+            m_max_delta_time                  = engine_config.max_delta_time;
 
             m_last_frame_time = m_window->getTime();
 
@@ -142,7 +141,7 @@ namespace RealmEngine
 
     void Engine::loop()
     {
-        const std::filesystem::path scene_file = m_config->getRootFolder() / m_config->getGamePlayConfig().scene_file;
+        const std::filesystem::path scene_file = m_config->getRootFolder() / m_config->getEngineConfig().scene_file;
 
         RHIDevice& device = m_renderer->getDevice();
 
@@ -163,12 +162,12 @@ namespace RealmEngine
         setViewportMode(ViewportMode::Game);
 
         loaded->setViewportController(std::make_shared<ViewportController>());
-        const GamePlayConfig& gp = m_config->getGamePlayConfig();
+        const ViewportConfig& v = m_config->getViewportConfig();
         loaded->getViewportController()->initialize(m_renderer->getCamera(),
                                                     *m_input,
-                                                    gp.camera_mouse_sensitivity,
-                                                    gp.camera_move_speed,
-                                                    gp.camera_sprint_multiplier);
+                                                    v.camera_mouse_sensitivity,
+                                                    v.camera_move_speed,
+                                                    v.camera_sprint_multiplier);
 
         const RendererConfig& rc = m_config->getRendererConfig();
         m_renderer->getCamera()->setPosition(

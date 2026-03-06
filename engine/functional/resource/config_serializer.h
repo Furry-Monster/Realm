@@ -31,14 +31,16 @@ namespace RealmEngine
         static void serializeGeneralConfig(const GeneralConfig& general, nlohmann::json& json);
         static void serializeWindowConfig(const WindowConfig& window, nlohmann::json& json);
         static void serializeRendererConfig(const RendererConfig& renderer, nlohmann::json& json);
-        static void serializeGamePlayConfig(const GamePlayConfig& gameplay, nlohmann::json& json);
+        static void serializeViewportConfig(const ViewportConfig& viewport, nlohmann::json& json);
+        static void serializeEngineConfig(const EngineConfig& engine, nlohmann::json& json);
         static void serializePhysicsConfig(const PhysicsConfig& physics, nlohmann::json& json);
         static void serializeAudioConfig(const AudioConfig& audio, nlohmann::json& json);
 
         static void deserializeGeneralConfig(GeneralConfig& general, const nlohmann::json& json);
         static void deserializeWindowConfig(WindowConfig& window, const nlohmann::json& json);
         static void deserializeRendererConfig(RendererConfig& renderer, const nlohmann::json& json);
-        static void deserializeGamePlayConfig(GamePlayConfig& gameplay, const nlohmann::json& json);
+        static void deserializeViewportConfig(ViewportConfig& viewport, const nlohmann::json& json);
+        static void deserializeEngineConfig(EngineConfig& engine, const nlohmann::json& json);
         static void deserializePhysicsConfig(PhysicsConfig& physics, const nlohmann::json& json);
         static void deserializeAudioConfig(AudioConfig& audio, const nlohmann::json& json);
     };

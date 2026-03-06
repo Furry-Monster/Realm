@@ -63,7 +63,7 @@ namespace RealmEngine
 
     std::filesystem::path EditorEngineBridge::getSceneFileFromConfig() const
     {
-        return m_engine->getConfig().getRootFolder() / m_engine->getConfig().getGamePlayConfig().scene_file;
+        return m_engine->getConfig().getRootFolder() / m_engine->getConfig().getEngineConfig().scene_file;
     }
 
     void EditorEngineBridge::requestWindowClose() const { m_engine->getWindow().requestClose(); }
@@ -74,12 +74,12 @@ namespace RealmEngine
             return;
         if (!scene->getViewportController())
             scene->setViewportController(std::make_shared<ViewportController>());
-        const GamePlayConfig& gp = m_engine->getConfig().getGamePlayConfig();
+        const ViewportConfig& v = m_engine->getConfig().getViewportConfig();
         scene->getViewportController()->initialize(m_engine->getRenderer().getCamera(),
                                                    m_engine->getInput(),
-                                                   gp.camera_mouse_sensitivity,
-                                                   gp.camera_move_speed,
-                                                   gp.camera_sprint_multiplier);
+                                                   v.camera_mouse_sensitivity,
+                                                   v.camera_move_speed,
+                                                   v.camera_sprint_multiplier);
     }
 
     std::filesystem::path EditorEngineBridge::getAssetFolder() const { return m_engine->getConfig().getAssetFolder(); }
