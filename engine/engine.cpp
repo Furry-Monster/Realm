@@ -41,6 +41,7 @@ namespace RealmEngine
         {
             // EventBus first (other subsystems publish/subscribe)
             m_event_bus = std::make_unique<EventBus>();
+            g_event_bus = m_event_bus.get();
 
             m_logger = std::make_unique<Logger>();
             m_logger->initialize();
@@ -61,7 +62,7 @@ namespace RealmEngine
                 });
 
             m_window = std::make_unique<Window>();
-            m_window->initialize(*m_event_bus, m_config->getWindowConfig());
+            m_window->initialize(m_config->getWindowConfig());
 
             m_renderer = std::make_unique<Renderer>();
             m_renderer->initialize(*m_config, *m_window);
@@ -76,7 +77,7 @@ namespace RealmEngine
             });
 
             m_input = std::make_unique<Input>();
-            m_input->initialize(*m_event_bus, *m_window);
+            m_input->initialize(*m_window);
 
             m_audio = std::make_unique<AudioSystem>();
             m_audio->initialize(m_config->getAudioConfig());
@@ -93,7 +94,8 @@ namespace RealmEngine
         }
         catch (...)
         {
-            g_logger = nullptr;
+            g_event_bus = nullptr;
+            g_logger    = nullptr;
             m_audio.reset();
             m_input.reset();
             m_renderer.reset();
@@ -121,7 +123,7 @@ namespace RealmEngine
             m_audio->shutdown();
             m_audio.reset();
         }
-        m_input->disposal(*m_event_bus);
+        m_input->disposal();
         m_input.reset();
 
         m_renderer->disposal();
@@ -138,11 +140,12 @@ namespace RealmEngine
         m_config->disposal();
         m_config.reset();
 
-        g_logger = nullptr; // Clear global logger before destroying it
+        g_logger    = nullptr;
+        g_event_bus = nullptr;
         m_logger->disposal();
         m_logger.reset();
 
-        m_event_bus.reset(); // EventBus last
+        m_event_bus.reset();
     }
 
     void Engine::loop()

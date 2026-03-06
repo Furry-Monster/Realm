@@ -106,4 +106,7 @@ namespace RealmEngine
         HandlerId                                                      m_next_id {0};
         mutable std::mutex                                             m_mutex;
     };
+
+    // NOTE: global non-owning event bus pointer, set by Engine during boot
+    extern EventBus* g_event_bus;
 } // namespace RealmEngine

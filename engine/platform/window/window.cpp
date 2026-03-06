@@ -25,7 +25,6 @@ namespace RealmEngine
         };
 
         std::unique_ptr<GLFWwindow, Deleter> handle;
-        EventBus*                            event_bus {nullptr};
         std::string                          title {"RealmEngine"};
         int                                  width {0};
         int                                  height {0};
@@ -36,62 +35,62 @@ namespace RealmEngine
     static void keyCallback(GLFWwindow* w, const int key, const int scancode, const int action, const int mods)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(KeyEvent {key, scancode, action, mods});
+        if (self && g_event_bus)
+            g_event_bus->publish(KeyEvent {key, scancode, action, mods});
     }
 
     static void charCallback(GLFWwindow* w, const unsigned int codepoint)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(CharEvent {codepoint});
+        if (self && g_event_bus)
+            g_event_bus->publish(CharEvent {codepoint});
     }
 
     static void charModsCallback(GLFWwindow* w, const unsigned int codepoint, const int mods)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(CharModsEvent {codepoint, mods});
+        if (self && g_event_bus)
+            g_event_bus->publish(CharModsEvent {codepoint, mods});
     }
 
     static void mouseButtonCallback(GLFWwindow* w, const int button, const int action, const int mods)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(MouseButtonEvent {button, action, mods});
+        if (self && g_event_bus)
+            g_event_bus->publish(MouseButtonEvent {button, action, mods});
     }
 
     static void cursorPosCallback(GLFWwindow* w, const double xpos, const double ypos)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(CursorPosEvent {xpos, ypos});
+        if (self && g_event_bus)
+            g_event_bus->publish(CursorPosEvent {xpos, ypos});
     }
 
     static void cursorEnterCallback(GLFWwindow* w, const int entered)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(CursorEnterEvent {entered != 0});
+        if (self && g_event_bus)
+            g_event_bus->publish(CursorEnterEvent {entered != 0});
     }
 
     static void scrollCallback(GLFWwindow* w, const double xoffset, const double yoffset)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(ScrollEvent {xoffset, yoffset});
+        if (self && g_event_bus)
+            g_event_bus->publish(ScrollEvent {xoffset, yoffset});
     }
 
     static void dropCallback(GLFWwindow* w, const int count, const char** paths)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
+        if (self && g_event_bus)
         {
             DropEvent event;
             event.paths.reserve(static_cast<size_t>(count));
             for (int i = 0; i < count; ++i)
                 event.paths.emplace_back(paths[i]);
-            self->event_bus->publish(event);
+            g_event_bus->publish(event);
         }
     }
 
@@ -102,23 +101,23 @@ namespace RealmEngine
         {
             self->width  = width;
             self->height = height;
-            if (self->event_bus)
-                self->event_bus->publish(WindowResizeEvent {width, height});
+            if (g_event_bus)
+                g_event_bus->publish(WindowResizeEvent {width, height});
         }
     }
 
     static void framebufferSizeCallback(GLFWwindow* w, const int width, const int height)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(FramebufferResizeEvent {width, height});
+        if (self && g_event_bus)
+            g_event_bus->publish(FramebufferResizeEvent {width, height});
     }
 
     static void windowCloseCallback(GLFWwindow* w)
     {
         const auto* self = static_cast<WindowImpl*>(glfwGetWindowUserPointer(w));
-        if (self && self->event_bus)
-            self->event_bus->publish(WindowCloseEvent {});
+        if (self && g_event_bus)
+            g_event_bus->publish(WindowCloseEvent {});
         glfwSetWindowShouldClose(w, true);
     }
 
@@ -128,16 +127,14 @@ namespace RealmEngine
     {
         if (m_impl)
         {
-            m_impl->event_bus = nullptr;
             m_impl.reset();
             glfwTerminate();
         }
     }
 
-    void Window::initialize(EventBus& event_bus, const WindowConfig& config)
+    void Window::initialize(const WindowConfig& config)
     {
-        m_impl               = std::make_unique<WindowImpl>();
-        m_impl->event_bus    = &event_bus;
+        m_impl = std::make_unique<WindowImpl>();
         m_impl->width        = config.width;
         m_impl->height       = config.height;
         m_impl->title        = config.title;
@@ -199,8 +196,6 @@ namespace RealmEngine
 
     void Window::disposal()
     {
-        if (m_impl)
-            m_impl->event_bus = nullptr;
         m_impl.reset();
         glfwTerminate();
         RE_LOG_INFO("GLFW window destroyed.");

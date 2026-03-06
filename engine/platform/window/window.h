@@ -5,7 +5,6 @@
 
 namespace RealmEngine
 {
-    class EventBus;
     struct WindowConfig;
     struct WindowImpl;
 
@@ -28,7 +27,7 @@ namespace RealmEngine
 
         ~Window() noexcept;
 
-        void initialize(EventBus& event_bus, const WindowConfig& config);
+        void initialize(const WindowConfig& config);
         void disposal();
 
         bool shouldClose() const;
