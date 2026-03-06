@@ -98,19 +98,19 @@ namespace RealmEngine
             applyCommandRelease(it->second);
     }
 
-    void Input::initialize(EventBus& event_bus, Window& window)
+    void Input::initialize(Window& window)
     {
         m_window = &window;
 
         setupDefaultBindings();
 
-        m_subscriptions.push_back(
-            event_bus.subscribe<KeyEvent>([this](const KeyEvent& e) { onKey(e.key, e.scancode, e.action, e.mods); }));
+        m_subscriptions.push_back(g_event_bus->subscribe<KeyEvent>(
+            [this](const KeyEvent& e) { onKey(e.key, e.scancode, e.action, e.mods); }));
 
         m_subscriptions.push_back(
-            event_bus.subscribe<CursorPosEvent>([this](const CursorPosEvent& e) { onCursorPos(e.x, e.y); }));
+            g_event_bus->subscribe<CursorPosEvent>([this](const CursorPosEvent& e) { onCursorPos(e.x, e.y); }));
 
-        m_subscriptions.push_back(event_bus.subscribe<MouseButtonEvent>(
+        m_subscriptions.push_back(g_event_bus->subscribe<MouseButtonEvent>(
             [this](const MouseButtonEvent& e) { onMouseButton(e.button, e.action, e.mods); }));
     }
 
@@ -123,10 +123,10 @@ namespace RealmEngine
             resetCommand();
     }
 
-    void Input::disposal(EventBus& event_bus)
+    void Input::disposal()
     {
         for (const auto id : m_subscriptions)
-            event_bus.unsubscribe(id);
+            g_event_bus->unsubscribe(id);
         m_subscriptions.clear();
 
         m_key_bindings.clear();

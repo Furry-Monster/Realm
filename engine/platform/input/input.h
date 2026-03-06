@@ -28,9 +28,9 @@ namespace RealmEngine
     class Input
     {
     public:
-        void initialize(EventBus& event_bus, Window& window);
+        void initialize(Window& window);
         void tick();
-        void disposal(EventBus& event_bus);
+        void disposal();
 
         // command state
         void    resetCommand();

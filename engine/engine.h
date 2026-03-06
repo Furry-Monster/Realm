@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "functional/render/viewport_display_mode.h"
+#include "module_manager.h"
 
 namespace RealmEngine
 {
@@ -15,7 +16,9 @@ namespace RealmEngine
     class Window;
     class Renderer;
     class Input;
-    class AudioSystem;
+
+    class Scene;
+    class Scheduler;
 
     class Engine
     {
@@ -78,7 +81,27 @@ namespace RealmEngine
             assert(m_input && "Engine not initialized");
             return *m_input;
         }
-        AudioSystem* getAudioSystem() const { return m_audio.get(); }
+
+        ModuleManager& getModuleManager()
+        {
+            assert(m_modules && "Engine not initialized");
+            return *m_modules;
+        }
+        const ModuleManager& getModuleManager() const
+        {
+            assert(m_modules && "Engine not initialized");
+            return *m_modules;
+        }
+        Scheduler& getSystemScheduler()
+        {
+            assert(m_scheduler && "Engine not initialized");
+            return *m_scheduler;
+        }
+        const Scheduler& getSystemScheduler() const
+        {
+            assert(m_scheduler && "Engine not initialized");
+            return *m_scheduler;
+        }
 
         ViewportMode getViewportMode() const { return m_viewport_mode; }
         void         setViewportMode(ViewportMode mode) { m_viewport_mode = mode; }
@@ -88,16 +111,16 @@ namespace RealmEngine
         void renderTick();
 
     private:
-        // Subsystems (declaration order = destruction order when using reset())
-        std::unique_ptr<EventBus>      m_event_bus;
-        std::unique_ptr<Logger>        m_logger;
-        std::unique_ptr<ConfigManager> m_config;
-        std::unique_ptr<AssetManager>  m_assets;
-        std::unique_ptr<SceneManager>  m_scene;
-        std::unique_ptr<Window>        m_window;
-        std::unique_ptr<Renderer>      m_renderer;
-        std::unique_ptr<Input>         m_input;
-        std::unique_ptr<AudioSystem>   m_audio;
+        std::unique_ptr<EventBus>        m_event_bus;
+        std::unique_ptr<Logger>          m_logger;
+        std::unique_ptr<ConfigManager>   m_config;
+        std::unique_ptr<AssetManager>    m_assets;
+        std::unique_ptr<SceneManager>    m_scene;
+        std::unique_ptr<Window>          m_window;
+        std::unique_ptr<Renderer>        m_renderer;
+        std::unique_ptr<Input>           m_input;
+        std::unique_ptr<ModuleManager>   m_modules;
+        std::unique_ptr<Scheduler> m_scheduler;
 
         bool         m_initialized {false};
         double       m_delta_time {0.0};

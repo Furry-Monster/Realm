@@ -5,9 +5,12 @@
 #include "engine.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
+#include "functional/render/components/renderable.h"
+#include "functional/render/renderer.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_texture.h"
 #include "functional/render/rhi/rhi_types.h"
+#include "functional/render/viewport_controller.h"
 #include "functional/resource/asset_manager.h"
 #include "functional/resource/config_manager.h"
 #include "functional/resource/config_serializer.h"
@@ -15,9 +18,6 @@
 #include "functional/scene/scene_manager.h"
 #include "functional/scene/scene_node.h"
 #include "functional/scene/scene_serializer.h"
-#include "module/render/components/renderable.h"
-#include "module/render/renderer.h"
-#include "module/render/viewport_controller.h"
 #include "platform/window/window.h"
 
 #include <cstring>

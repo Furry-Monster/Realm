@@ -1,4 +1,4 @@
-#include "module/render/light_probe_baker.h"
+#include "functional/render/light_probe_baker.h"
 
 #include <glad/glad.h>
 #include <algorithm>

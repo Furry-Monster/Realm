@@ -2,8 +2,8 @@
 
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
+#include "functional/render/components/lighting/light_probe.h"
 #include "functional/scene/scene.h"
-#include "module/render/components/lighting/light_probe.h"
 
 #include <cstddef>
 

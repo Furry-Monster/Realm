@@ -7,7 +7,13 @@
 
 #include "core/base/macros.h"
 #include "core/base/utils.h"
+#include "functional/camera/components/camera.h"
 #include "functional/ecs/components/transform.h"
+#include "functional/render/components/lighting/area.h"
+#include "functional/render/components/lighting/directional.h"
+#include "functional/render/components/lighting/point.h"
+#include "functional/render/components/lighting/spot.h"
+#include "functional/render/components/renderable.h"
 #include "functional/render/material.h"
 #include "functional/render/render_mesh.h"
 #include "functional/render/render_object.h"
@@ -16,12 +22,6 @@
 #include "functional/scene/scene_node.h"
 #include "module/audio/components/audio_listener.h"
 #include "module/audio/components/audio_source.h"
-#include "module/camera/components/camera.h"
-#include "module/render/components/lighting/area.h"
-#include "module/render/components/lighting/directional.h"
-#include "module/render/components/lighting/point.h"
-#include "module/render/components/lighting/spot.h"
-#include "module/render/components/renderable.h"
 
 namespace RealmEngine
 {

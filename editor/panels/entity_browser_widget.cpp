@@ -4,15 +4,15 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "editor_context.h"
+#include "functional/camera/components/camera.h"
 #include "functional/ecs/components/name_tag.h"
 #include "functional/ecs/components/transform.h"
+#include "functional/render/components/lighting/area.h"
+#include "functional/render/components/lighting/directional.h"
+#include "functional/render/components/lighting/point.h"
+#include "functional/render/components/lighting/spot.h"
+#include "functional/render/components/renderable.h"
 #include "functional/scene/scene.h"
-#include "module/camera/components/camera.h"
-#include "module/render/components/lighting/area.h"
-#include "module/render/components/lighting/directional.h"
-#include "module/render/components/lighting/point.h"
-#include "module/render/components/lighting/spot.h"
-#include "module/render/components/renderable.h"
 
 #include <imgui.h>
 #include <entt/entity/registry.hpp>

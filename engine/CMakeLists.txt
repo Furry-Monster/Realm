@@ -1,6 +1,6 @@
 set(TARGET_NAME realm)
 
-# Required: platform, core, functional
+# Required: platform, core, functional (always built)
 set(ENGINE_MODULES_REQUIRED
         platform/filesystem
         platform/info
@@ -16,49 +16,33 @@ set(ENGINE_MODULES_REQUIRED
         functional/ecs
         functional/ecs/components
         functional/ecs/systems
-        functional/physics
-        functional/animation
-        functional/network
         functional/render
         functional/render/rhi
         functional/render/rhi/opengl
         functional/render/ibl
         functional/render/passes
+        functional/render/components
+        functional/render/components/lighting
+        functional/camera
+        functional/camera/components
+        functional/physics
+        functional/animation
+        functional/particles
 )
 
-# Optional: module (gated by REALM_BUILD_*)
+# Optional modules (gated by REALM_BUILD_*)
 set(ENGINE_MODULES_OPTIONAL "")
 
-if(REALM_BUILD_RENDER)
-        list(APPEND ENGINE_MODULES_OPTIONAL
-                module/render
-                module/render/components
-                module/render/components/lighting
-        )
-endif()
 if(REALM_BUILD_AUDIO)
         list(APPEND ENGINE_MODULES_OPTIONAL
                 module/audio
                 module/audio/components
         )
 endif()
-if(REALM_BUILD_CAMERA)
-        list(APPEND ENGINE_MODULES_OPTIONAL
-                module/camera
-                module/camera/components
-        )
-endif()
-if(REALM_BUILD_PHYSICS)
-        list(APPEND ENGINE_MODULES_OPTIONAL module/physics)
-endif()
-if(REALM_BUILD_ANIMATION)
-        list(APPEND ENGINE_MODULES_OPTIONAL module/animation)
-endif()
-if(REALM_BUILD_PARTICLES)
-        list(APPEND ENGINE_MODULES_OPTIONAL module/particles)
-endif()
 if(REALM_BUILD_NETWORK)
-        list(APPEND ENGINE_MODULES_OPTIONAL module/network)
+        list(APPEND ENGINE_MODULES_OPTIONAL
+                module/network
+        )
 endif()
 
 set(ENGINE_MODULES ${ENGINE_MODULES_REQUIRED} ${ENGINE_MODULES_OPTIONAL})
@@ -82,6 +66,12 @@ realm_target_common_setup(${TARGET_NAME} FOLDER "Engine")
 target_include_directories(${TARGET_NAME}
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
         PRIVATE ${CMAKE_BINARY_DIR}/generated
+)
+
+# Compile definitions for optional modules (used in #if REALM_BUILD_* guards)
+target_compile_definitions(${TARGET_NAME} PRIVATE
+        $<$<BOOL:${REALM_BUILD_AUDIO}>:REALM_BUILD_AUDIO=1>
+        $<$<BOOL:${REALM_BUILD_NETWORK}>:REALM_BUILD_NETWORK=1>
 )
 
 target_link_libraries(${TARGET_NAME}
