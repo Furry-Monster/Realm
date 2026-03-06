@@ -8,27 +8,21 @@
 #include <string>
 
 #include "core/base/macros.h"
-#include "core/debug/debug_console.h"
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/logger.h"
-#include "functional/ecs/components/transform.h"
-#include "functional/ecs/components/world_transform.h"
+#include "functional/ecs/system_scheduler.h"
 #include "functional/resource/asset_manager.h"
 #include "functional/resource/config_manager.h"
 #include "functional/scene/scene.h"
 #include "functional/scene/scene_manager.h"
-#include "module/audio/audio_listener_resolve.h"
 #include "module/audio/audio_system.h"
-#include "module/camera/camera_sync.h"
-#include "module/render/components/lighting/light_probe.h"
-#include "module/render/light_probe_baker.h"
-#include "module/render/render_scene_sync.h"
 #include "module/render/renderer.h"
 #include "module/render/viewport_controller.h"
 #include "platform/info/platform_info.h"
 #include "platform/input/input.h"
 #include "platform/window/window.h"
+#include "system_registration.h"
 
 namespace RealmEngine
 {
@@ -82,6 +76,9 @@ namespace RealmEngine
             m_audio = std::make_unique<AudioSystem>();
             m_audio->initialize(m_config->getAudioConfig());
 
+            m_scheduler = std::make_unique<SystemScheduler>();
+            registerEngineSystems(*m_scheduler, *this);
+
             const GamePlayConfig& gameplay_config = m_config->getGamePlayConfig();
             m_max_delta_time                      = gameplay_config.max_delta_time;
 
@@ -96,6 +93,7 @@ namespace RealmEngine
         {
             g_event_bus = nullptr;
             g_logger    = nullptr;
+            m_scheduler.reset();
             m_audio.reset();
             m_input.reset();
             m_renderer.reset();
@@ -204,101 +202,43 @@ namespace RealmEngine
         renderTick();
     }
 
+    SystemScheduler& Engine::getSystemScheduler()
+    {
+        assert(m_scheduler && "Engine not initialized");
+        return *m_scheduler;
+    }
+
+    const SystemScheduler& Engine::getSystemScheduler() const
+    {
+        assert(m_scheduler && "Engine not initialized");
+        return *m_scheduler;
+    }
+
     void Engine::logicalTick()
     {
         m_input->tick();
         m_window->pollEvents();
+
         auto* scene = m_scene->getCurrentOrNewScene().get();
         if (scene && !scene->getViewportController())
             scene->setViewportController(std::make_shared<ViewportController>());
-        scene->tick(static_cast<float>(m_delta_time));
 
-        if (m_viewport_mode == ViewportMode::Scene && scene)
-        {
-            if (auto* ctrl = scene->getViewportController().get())
-                ctrl->update(static_cast<float>(m_delta_time));
-        }
-
-        if (m_audio && scene)
-        {
-            m_audio->tick(scene, static_cast<float>(m_delta_time), m_config->getAssetFolder().string());
-            const entt::entity listener_entity = findPrimaryAudioListenerEntity(*scene);
-            if (listener_entity != entt::null)
-            {
-                const ListenerPose pose = getListenerPoseFromEntity(*scene, listener_entity);
-                m_audio->setListener(pose.position, pose.forward, pose.up);
-            }
-            else if (const auto* cam = m_renderer->getCamera().get())
-            {
-                m_audio->setListener(cam->getPosition(), cam->getLocalForward(), cam->getLocalUp());
-            }
-        }
+        SystemContext ctx {};
+        ctx.scene      = scene;
+        ctx.delta_time = static_cast<float>(m_delta_time);
+        ctx.engine     = this;
+        m_scheduler->tickLogical(ctx);
     }
 
     void Engine::renderTick()
     {
-        const auto scene = m_scene->getCurrentScene();
-        syncFromScene(scene, *m_renderer->getRenderScene());
-        m_renderer->setCurrentEcsScene(scene ? scene.get() : nullptr);
+        auto* scene = m_scene->getCurrentScene().get();
 
-        if (m_viewport_mode == ViewportMode::Game && scene)
-        {
-            const entt::entity cam_entity = findPrimaryCameraEntity(*scene);
-            if (cam_entity != entt::null)
-            {
-                const float aspect =
-                    static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight());
-                syncEntityCameraToRenderCamera(*scene, cam_entity, *m_renderer->getCamera(), aspect);
-            }
-        }
-
-        if (scene && m_renderer->getLightProbeBaker())
-        {
-            auto&      registry = scene->getRegistry();
-            const auto view     = registry.view<LightProbe>();
-
-            for (const auto entity : view)
-            {
-                auto& lp = view.get<LightProbe>(entity);
-                if (!lp.needs_update)
-                    continue;
-
-                glm::vec3 pos {0.0f};
-                if (auto* wt = scene->tryGet<WorldTransform>(entity))
-                    pos = glm::vec3(wt->matrix[3]);
-                else if (const auto* t = scene->tryGet<Transform>(entity))
-                    pos = t->position;
-
-                const auto [sh_coefficients, success] =
-                    m_renderer->getLightProbeBaker()->bake(pos, *m_renderer->getRenderScene());
-                if (success)
-                {
-                    lp.sh_coefficients = sh_coefficients;
-                    lp.needs_update    = false;
-                }
-            }
-        }
-
-        m_renderer->render();
-
-        FrameStats stats {};
-        stats.frame_time_ms  = m_delta_time * 1000.0;
-        stats.fps            = (m_delta_time > 1e-9) ? (1.0 / m_delta_time) : 0.0;
-        stats.draw_calls     = m_renderer->getRenderScene()->getDrawCallCount();
-        stats.triangle_count = m_renderer->getRenderScene()->getTriangleCount();
-
-        // Throttle RSS syscall to ~1Hz
-        static double s_rss_accumulator = 0.0;
-        static size_t s_cached_rss      = 0;
-        s_rss_accumulator += m_delta_time;
-        if (s_rss_accumulator >= 1.0)
-        {
-            s_cached_rss      = PlatformInfo::getProcessRSSKB();
-            s_rss_accumulator = 0.0;
-        }
-        stats.memory_rss_kb = s_cached_rss;
-
-        EditorConsole::instance().setFrameStats(stats);
+        SystemContext ctx {};
+        ctx.scene      = scene;
+        ctx.delta_time = static_cast<float>(m_delta_time);
+        ctx.engine     = this;
+        m_scheduler->tickRender(ctx);
     }
 
 } // namespace RealmEngine

@@ -2,8 +2,6 @@
 
 #include "core/base/macros.h"
 #include "functional/ecs/components/name_tag.h"
-#include "functional/ecs/systems/hierarchy_system.h"
-#include "functional/ecs/systems/transform_system.h"
 
 namespace RealmEngine
 {
@@ -31,13 +29,6 @@ namespace RealmEngine
             reconnectSignals();
         }
         return *this;
-    }
-
-    void Scene::tick([[maybe_unused]] const float delta_time)
-    {
-        // Run ECS systems each frame
-        HierarchySystem::update(*this);
-        TransformSystem::update(*this);
     }
 
     Entity Scene::createEntity(std::string name)

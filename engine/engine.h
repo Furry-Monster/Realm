@@ -17,6 +17,9 @@ namespace RealmEngine
     class Input;
     class AudioSystem;
 
+    class Scene;
+    class SystemScheduler;
+
     class Engine
     {
     public:
@@ -80,6 +83,9 @@ namespace RealmEngine
         }
         AudioSystem* getAudioSystem() const { return m_audio.get(); }
 
+        SystemScheduler&       getSystemScheduler();
+        const SystemScheduler& getSystemScheduler() const;
+
         ViewportMode getViewportMode() const { return m_viewport_mode; }
         void         setViewportMode(ViewportMode mode) { m_viewport_mode = mode; }
 
@@ -89,15 +95,16 @@ namespace RealmEngine
 
     private:
         // Subsystems (declaration order = destruction order when using reset())
-        std::unique_ptr<EventBus>      m_event_bus;
-        std::unique_ptr<Logger>        m_logger;
-        std::unique_ptr<ConfigManager> m_config;
-        std::unique_ptr<AssetManager>  m_assets;
-        std::unique_ptr<SceneManager>  m_scene;
-        std::unique_ptr<Window>        m_window;
-        std::unique_ptr<Renderer>      m_renderer;
-        std::unique_ptr<Input>         m_input;
-        std::unique_ptr<AudioSystem>   m_audio;
+        std::unique_ptr<EventBus>        m_event_bus;
+        std::unique_ptr<Logger>          m_logger;
+        std::unique_ptr<ConfigManager>   m_config;
+        std::unique_ptr<AssetManager>    m_assets;
+        std::unique_ptr<SceneManager>    m_scene;
+        std::unique_ptr<Window>          m_window;
+        std::unique_ptr<Renderer>        m_renderer;
+        std::unique_ptr<Input>           m_input;
+        std::unique_ptr<AudioSystem>     m_audio;
+        std::unique_ptr<SystemScheduler> m_scheduler;
 
         bool         m_initialized {false};
         double       m_delta_time {0.0};

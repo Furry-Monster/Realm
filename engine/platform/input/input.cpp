@@ -104,8 +104,8 @@ namespace RealmEngine
 
         setupDefaultBindings();
 
-        m_subscriptions.push_back(
-            g_event_bus->subscribe<KeyEvent>([this](const KeyEvent& e) { onKey(e.key, e.scancode, e.action, e.mods); }));
+        m_subscriptions.push_back(g_event_bus->subscribe<KeyEvent>(
+            [this](const KeyEvent& e) { onKey(e.key, e.scancode, e.action, e.mods); }));
 
         m_subscriptions.push_back(
             g_event_bus->subscribe<CursorPosEvent>([this](const CursorPosEvent& e) { onCursorPos(e.x, e.y); }));

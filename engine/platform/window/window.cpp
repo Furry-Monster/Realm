@@ -134,7 +134,7 @@ namespace RealmEngine
 
     void Window::initialize(const WindowConfig& config)
     {
-        m_impl = std::make_unique<WindowImpl>();
+        m_impl               = std::make_unique<WindowImpl>();
         m_impl->width        = config.width;
         m_impl->height       = config.height;
         m_impl->title        = config.title;

@@ -23,8 +23,6 @@ namespace RealmEngine
         Scene(Scene&& other) noexcept;
         Scene& operator=(Scene&& other) noexcept;
 
-        void tick(float delta_time);
-
         // Entity management
         Entity               createEntity(std::string name);
         void                 destroyEntity(entt::entity entity);

@@ -84,6 +84,12 @@ target_include_directories(${TARGET_NAME}
         PRIVATE ${CMAKE_BINARY_DIR}/generated
 )
 
+target_compile_definitions(${TARGET_NAME} PRIVATE
+        $<$<BOOL:${REALM_BUILD_RENDER}>:REALM_BUILD_RENDER=1>
+        $<$<BOOL:${REALM_BUILD_AUDIO}>:REALM_BUILD_AUDIO=1>
+        $<$<BOOL:${REALM_BUILD_CAMERA}>:REALM_BUILD_CAMERA=1>
+)
+
 target_link_libraries(${TARGET_NAME}
         PUBLIC Realm::ThirdParty
         PRIVATE $<$<PLATFORM_ID:Windows>:psapi advapi32>
