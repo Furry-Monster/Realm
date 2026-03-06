@@ -106,5 +106,4 @@ namespace RealmEngine
         HandlerId                                                      m_next_id {0};
         mutable std::mutex                                             m_mutex;
     };
-
 } // namespace RealmEngine
