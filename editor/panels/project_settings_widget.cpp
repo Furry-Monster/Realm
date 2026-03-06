@@ -151,26 +151,31 @@ namespace RealmEngine
 
     void ProjectSettingsWidget::renderInputSection()
     {
-        const auto&    cfg  = m_bridge->getConfig().getGamePlayConfig();
-        GamePlayConfig copy = cfg;
+        const auto&    v_cfg  = m_bridge->getConfig().getViewportConfig();
+        const auto&    e_cfg  = m_bridge->getConfig().getEngineConfig();
+        ViewportConfig v_copy = v_cfg;
+        EngineConfig   e_copy = e_cfg;
 
         bool changed = false;
-        changed |= ImGui::DragFloat("Camera Move Speed", &copy.camera_move_speed, 0.1f, 0.1f, 100.0f);
-        changed |= ImGui::DragFloat("Camera Sprint Multiplier", &copy.camera_sprint_multiplier, 0.1f, 1.0f, 10.0f);
-        changed |= ImGui::DragFloat("Camera Mouse Sensitivity", &copy.camera_mouse_sensitivity, 0.01f, 0.01f, 2.0f);
-        changed |= ImGui::DragFloat("Max Delta Time", &copy.max_delta_time, 0.01f, 0.01f, 1.0f);
+        changed |= ImGui::DragFloat("Camera Move Speed", &v_copy.camera_move_speed, 0.1f, 0.1f, 100.0f);
+        changed |= ImGui::DragFloat("Camera Sprint Multiplier", &v_copy.camera_sprint_multiplier, 0.1f, 1.0f, 10.0f);
+        changed |= ImGui::DragFloat("Camera Mouse Sensitivity", &v_copy.camera_mouse_sensitivity, 0.01f, 0.01f, 2.0f);
+        changed |= ImGui::DragFloat("Max Delta Time", &e_copy.max_delta_time, 0.01f, 0.01f, 1.0f);
 
         char scene_buf[256];
-        strncpy(scene_buf, copy.scene_file.c_str(), sizeof(scene_buf) - 1);
+        strncpy(scene_buf, e_copy.scene_file.c_str(), sizeof(scene_buf) - 1);
         scene_buf[sizeof(scene_buf) - 1] = '\0';
         if (ImGui::InputText("Default Scene File", scene_buf, sizeof(scene_buf)))
         {
-            copy.scene_file = scene_buf;
-            changed         = true;
+            e_copy.scene_file = scene_buf;
+            changed           = true;
         }
 
         if (changed)
-            m_bridge->getConfig().setGamePlayConfig(copy);
+        {
+            m_bridge->getConfig().setViewportConfig(v_copy);
+            m_bridge->getConfig().setEngineConfig(e_copy);
+        }
     }
 
     void ProjectSettingsWidget::renderPhysicsSection()

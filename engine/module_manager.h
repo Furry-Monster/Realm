@@ -15,15 +15,14 @@ namespace RealmEngine
         ~ModuleManager() noexcept;
 
         ModuleManager(const ModuleManager&)            = delete;
-        ModuleManager(ModuleManager&&)                = delete;
+        ModuleManager(ModuleManager&&)                 = delete;
         ModuleManager& operator=(const ModuleManager&) = delete;
-        ModuleManager& operator=(ModuleManager&&)   = delete;
+        ModuleManager& operator=(ModuleManager&&)      = delete;
 
         void initialize(const ConfigManager& config, EventBus& event_bus);
         void shutdown();
 
         AudioSystem* getAudioSystem() const;
-
 
     private:
 #if REALM_BUILD_AUDIO

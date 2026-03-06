@@ -40,7 +40,6 @@ namespace RealmEngine
         bool   isInitialized() const { return m_initialized; }
         double getDeltaTime() const { return m_delta_time; }
 
-        // Subsystem accessors (assert that the engine has been initialized)
         EventBus& getEventBus() const
         {
             assert(m_event_bus && "Engine not initialized");
@@ -51,6 +50,7 @@ namespace RealmEngine
             assert(m_logger && "Engine not initialized");
             return *m_logger;
         }
+
         ConfigManager& getConfig() const
         {
             assert(m_config && "Engine not initialized");
@@ -111,16 +111,19 @@ namespace RealmEngine
         void renderTick();
 
     private:
-        std::unique_ptr<EventBus>        m_event_bus;
-        std::unique_ptr<Logger>          m_logger;
-        std::unique_ptr<ConfigManager>   m_config;
-        std::unique_ptr<AssetManager>    m_assets;
-        std::unique_ptr<SceneManager>    m_scene;
-        std::unique_ptr<Window>          m_window;
-        std::unique_ptr<Renderer>        m_renderer;
-        std::unique_ptr<Input>           m_input;
-        std::unique_ptr<ModuleManager>   m_modules;
-        std::unique_ptr<Scheduler> m_scheduler;
+        // below are engine-managed but globally accessible.
+        std::unique_ptr<EventBus> m_event_bus;
+        std::unique_ptr<Logger>   m_logger;
+
+        std::unique_ptr<ConfigManager> m_config;
+        std::unique_ptr<AssetManager>  m_assets;
+        std::unique_ptr<SceneManager>  m_scene;
+        std::unique_ptr<Window>        m_window;
+        std::unique_ptr<Renderer>      m_renderer;
+        std::unique_ptr<Input>         m_input;
+
+        std::unique_ptr<ModuleManager> m_modules;
+        std::unique_ptr<Scheduler>     m_scheduler;
 
         bool         m_initialized {false};
         double       m_delta_time {0.0};

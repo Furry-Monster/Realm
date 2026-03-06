@@ -30,9 +30,10 @@ namespace RealmEngine
         RE_LOG_INFO("Config manager initialized.");
     }
 
-    void ConfigManager::disposal()
+    void ConfigManager::disposal() const
     {
         std::filesystem::path config_file = m_general_config.root_folder / "config.json";
+
         if (ConfigSerializer::saveToFile(*this, config_file.string()))
             RE_LOG_INFO("Config saved to: " + config_file.string());
         else
@@ -59,9 +60,13 @@ namespace RealmEngine
 
     void ConfigManager::setRendererConfig(const RendererConfig& config) { m_renderer_config = config; }
 
-    const GamePlayConfig& ConfigManager::getGamePlayConfig() const { return m_gameplay_config; }
+    const ViewportConfig& ConfigManager::getViewportConfig() const { return m_viewport_config; }
 
-    void ConfigManager::setGamePlayConfig(const GamePlayConfig& config) { m_gameplay_config = config; }
+    void ConfigManager::setViewportConfig(const ViewportConfig& config) { m_viewport_config = config; }
+
+    const EngineConfig& ConfigManager::getEngineConfig() const { return m_engine_config; }
+
+    void ConfigManager::setEngineConfig(const EngineConfig& config) { m_engine_config = config; }
 
     const PhysicsConfig& ConfigManager::getPhysicsConfig() const { return m_physics_config; }
 
