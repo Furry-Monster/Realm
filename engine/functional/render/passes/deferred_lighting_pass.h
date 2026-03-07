@@ -51,10 +51,10 @@ namespace RealmEngine
         std::unique_ptr<RHIBuffer>      m_light_ssbo;
         std::unique_ptr<RHIBuffer>      m_probe_ssbo;
 
-        GBufferPass*             m_gbuffer_pass {nullptr};
-        CSMShadowPass*           m_shadow_pass {nullptr};
-        ClusteredLightCullPass*  m_cluster_cull_pass {nullptr};
-        FullscreenQuad*          m_quad {nullptr};
+        GBufferPass*            m_gbuffer_pass {nullptr};
+        CSMShadowPass*          m_shadow_pass {nullptr};
+        ClusteredLightCullPass* m_cluster_cull_pass {nullptr};
+        FullscreenQuad*         m_quad {nullptr};
 
         RHITexture* m_ibl_diffuse {nullptr};
         RHITexture* m_ibl_prefiltered {nullptr};

@@ -125,8 +125,7 @@ namespace RealmEngine
 
         // Lights: use cluster pass when available and scene has lights.
         // With 0 lights, use fallback path to avoid Intel Mesa GL_INVALID_OPERATION on cluster SSBOs.
-        const bool use_cluster =
-            m_cluster_cull_pass != nullptr && !ctx.scene->getLights().empty();
+        const bool use_cluster = m_cluster_cull_pass != nullptr && !ctx.scene->getLights().empty();
         if (use_cluster)
         {
             m_cluster_cull_pass->getLightBuffer()->bindBase(1);

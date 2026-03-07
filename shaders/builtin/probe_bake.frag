@@ -18,7 +18,7 @@ void main()
     for (int i = 0; i < lightCount; ++i)
     {
         vec3 l, radiance;
-        if (!evaluateLight(i, worldCoordinates, l, radiance))
+        if (!evaluateLight(i, worldCoordinates, n, l, radiance))
             continue;
         float NdotL = max(dot(n, l), 0.0);
         Lo += radiance * NdotL;

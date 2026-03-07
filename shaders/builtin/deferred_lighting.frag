@@ -99,7 +99,7 @@ vec3 shadePBR(vec3  albedo,
         {
             int idx = int(lightIndices[offset + i]);
             vec3 l, radiance;
-            if (!evaluateLight(idx, worldPos, l, radiance))
+            if (!evaluateLight(idx, worldPos, n, l, radiance))
                 continue;
 
             int lightType = int(lights[idx].position.w);
@@ -114,7 +114,7 @@ vec3 shadePBR(vec3  albedo,
         for (int i = 0; i < lightCount; i++)
         {
             vec3 l, radiance;
-            if (!evaluateLight(i, worldPos, l, radiance))
+            if (!evaluateLight(i, worldPos, n, l, radiance))
                 continue;
 
             int lightType = int(lights[i].position.w);
@@ -156,7 +156,7 @@ vec3 shadeSubsurface(vec3  albedo,
         {
             int idx = int(lightIndices[offset + i]);
             vec3 l, radiance;
-            if (!evaluateLight(idx, worldPos, l, radiance))
+            if (!evaluateLight(idx, worldPos, n, l, radiance))
                 continue;
 
             int lightType = int(lights[idx].position.w);
@@ -171,7 +171,7 @@ vec3 shadeSubsurface(vec3  albedo,
         for (int i = 0; i < lightCount; i++)
         {
             vec3 l, radiance;
-            if (!evaluateLight(i, worldPos, l, radiance))
+            if (!evaluateLight(i, worldPos, n, l, radiance))
                 continue;
 
             int lightType = int(lights[i].position.w);
