@@ -55,10 +55,6 @@ namespace RealmEngine
         ViewportMode getViewportMode() const { return m_viewport_mode; }
         void         setViewportMode(ViewportMode mode) { m_viewport_mode = mode; }
 
-    protected:
-        void logicalTick();
-        void renderTick();
-
     private:
         // below are engine-managed but globally accessible.
         std::unique_ptr<EventBus> m_event_bus;

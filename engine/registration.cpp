@@ -1,5 +1,7 @@
 #include "registration.h"
 #include "engine.h"
+#include "functional/resource/config_manager.h"
+#include "platform/input/input.h"
 
 #include "core/debug/debug_console.h"
 #include "core/sched/scheduler.h"
@@ -27,6 +29,25 @@ namespace RealmEngine
 {
     void registerSystems(Scheduler& scheduler, Engine& engine)
     {
+        scheduler.registerSystem(
+            SystemPhase::PreLogic, 0, "InputTick", [&engine](SystemContext&) { engine.getInput().tick(); });
+        scheduler.registerSystem(
+            SystemPhase::PreLogic, 1, "PollEvents", [&engine](SystemContext&) { engine.getWindow().pollEvents(); });
+        scheduler.registerSystem(SystemPhase::PreLogic, 2, "SceneSetup", [&engine](SystemContext& ctx) {
+            if (!ctx.scene)
+                return;
+            if (ctx.scene->getViewportController())
+                return;
+            auto                  ctrl = std::make_shared<ViewportController>();
+            const ViewportConfig& v    = engine.getConfig().getViewportConfig();
+            ctrl->initialize(engine.getRenderer().getCamera(),
+                             engine.getInput(),
+                             v.camera_mouse_sensitivity,
+                             v.camera_move_speed,
+                             v.camera_sprint_multiplier);
+            ctx.scene->setViewportController(std::move(ctrl));
+        });
+
         scheduler.registerSystem(SystemPhase::Logic, "HierarchySystem", [](SystemContext& ctx) {
             if (ctx.scene)
                 HierarchySystem::update(*ctx.scene);
