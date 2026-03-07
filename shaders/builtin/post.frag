@@ -18,7 +18,7 @@ uniform bool      tonemappingEnabled;
 uniform float     gammaCorrectionFactor;
 uniform bool      ssrEnabled;
 
-// 0=lit, 7=ao, 8=depth, 9=ssr (modes 1-6 from geometry pass)
+// 0=lit, 7=ao, 8=depth, 9=ssr, 10=shadow (modes 1-6,10 from deferred)
 uniform int displayMode;
 
 void main()
@@ -39,6 +39,13 @@ void main()
     {
         vec3 ssr = texture(ssrTexture, textureCoordinates).rgb;
         FragColor = vec4(ssr, 1.0);
+        return;
+    }
+    if (displayMode == 10)
+    {
+        vec3 shadow = texture(colorTexture, textureCoordinates).rgb;
+        shadow = pow(shadow, vec3(1.0 / gammaCorrectionFactor));
+        FragColor = vec4(shadow, 1.0);
         return;
     }
 

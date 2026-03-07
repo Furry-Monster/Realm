@@ -43,8 +43,9 @@ ivec3 getClusterIndex(vec2 screenUV, float viewDepth, float nearPlane, float far
 }
 
 // Compute light direction and radiance for a single light.
+// n = fragment normal (required for area light Lambert term).
 // Returns false if the fragment is out of range.
-bool evaluateLight(int idx, vec3 worldPos, out vec3 l, out vec3 radiance)
+bool evaluateLight(int idx, vec3 worldPos, vec3 n, out vec3 l, out vec3 radiance)
 {
     int   lightType   = int(lights[idx].position.w);
     vec3  lightPos    = lights[idx].position.xyz;
@@ -97,14 +98,17 @@ bool evaluateLight(int idx, vec3 worldPos, out vec3 l, out vec3 radiance)
         float atten = 1.0 / (lightConst + lightLinear * dist + lightQuad * dist * dist);
         radiance    = lightColor * intensity * atten * spot;
     }
-    // Area (3)
+    // Area (3): Lambertian rectangle, L_i = (E/pi)*(W*H)*cos(theta_light)/(d^2*NdotL)
     else if (lightType == 3)
     {
-        vec3  d     = lightPos - worldPos;
-        float dist  = length(d);
-        l           = normalize(d);
-        float atten = 1.0 / (dist * dist);
-        radiance    = lightColor * intensity * atten;
+        vec3  d      = lightPos - worldPos;
+        float dist   = length(d);
+        l            = normalize(d);
+        vec3  Nlight = normalize(lightDir);
+        float cosLight = max(dot(Nlight, -l), 0.0);
+        float nDotL  = max(dot(n, l), 0.001);
+        float area   = lights[idx].spot_area.y * lights[idx].spot_area.z;
+        radiance     = (lightColor * intensity / PI) * area * cosLight / (dist * dist * nDotL);
     }
 
     return length(radiance) > 0.0;

@@ -224,7 +224,7 @@ namespace RealmEngine
                         light.constant         = 0.0f;
                         light.linear           = 0.0f;
                         light.quadratic        = 0.0f;
-                        light.range            = 0.0f;
+                        light.range            = std::sqrt(al->width * al->width + al->height * al->height) * 2.0f;
                         light.inner_cone_angle = 0.0f;
                         light.outer_cone_angle = 0.0f;
                         light.width            = al->width;
@@ -315,6 +315,7 @@ namespace RealmEngine
                     light.intensity = al->enabled ? al->intensity : 0.0f;
                     light.width     = al->width;
                     light.height    = al->height;
+                    light.range     = std::sqrt(al->width * al->width + al->height * al->height) * 2.0f;
                 }
                 else if (const auto* dl = scene.tryGet<DirectionalLight>(entity))
                 {

@@ -28,16 +28,16 @@
 
 | 特性 | 说明 |
 |------|------|
-| **阴影** | 方向光级联阴影贴图 (CSM)；点光源与聚光灯阴影贴图已生成（接入中） |
+| **阴影** | 方向光：4 级联 CSM，PCF/PCSS 软阴影；点光：立方体贴图深度（最多 4 盏）；聚光：2D 深度（最多 4 盏）。支持 Shadow 预览模式调试。 |
 | **IBL** | 漫反射辐照度立方体贴图、预滤波高光环境贴图、BRDF 查找表；基于 HDRI 的天空盒 |
 | **GTAO** | 屏幕空间环境光遮蔽，多方向射线步进与双边模糊 |
 | **SSS** | 次表面散射（BSSRDF 风格包裹漫反射），适用于皮肤/布料；Forward 管线通过材质 subsurface 选项启用 |
 | **泛光** | 亮度阈值提取，6 级 Mip 链，可分离高斯模糊 |
 | **SSR** | 屏幕空间反射（仅 Deferred）；Hi-Z 加速射线步进；Fresnel 与粗糙度调制；后处理合成 |
 | **后处理** | AO 混合、泛光叠加、Reinhard 色调映射、Gamma 校正 |
-| **显示模式** | Lit、Albedo、Normals、Metallic、Roughness、Material AO、Emissive、AO、Depth、SSR 预览 |
+| **显示模式** | Lit、Albedo、Normals、Metallic、Roughness、Material AO、Emissive、AO、Depth、SSR、Shadow 预览 |
 
-Deferred 管线额外包含 G-Buffer（4 RT + 深度）、Hi-Z、聚簇光源剔除（Compute，光照接入待完成）与 SSR；Forward 管线采用直接 PBR 全光源遍历。管线模式可在项目设置中配置。
+Deferred 管线额外包含 G-Buffer（4 RT + 深度）、Hi-Z、聚簇光源剔除（Compute）、SSR；Forward 管线采用直接 PBR 全光源遍历。管线模式可在项目设置中配置。
 
 ## 环境要求
 

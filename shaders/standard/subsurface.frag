@@ -54,7 +54,7 @@ void main()
     for (int i = 0; i < lightCount; i++)
     {
         vec3 l, radiance;
-        if (!evaluateLight(i, worldCoordinates, l, radiance))
+        if (!evaluateLight(i, worldCoordinates, s.normal, l, radiance))
             continue;
 
         if (int(lights[i].position.w) == 1 && shadowEnabled)

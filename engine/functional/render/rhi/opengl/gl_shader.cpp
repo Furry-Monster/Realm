@@ -295,6 +295,12 @@ namespace RealmEngine
         glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
     }
 
+    void GLShader::setIVec3(const std::string& name, const glm::ivec3& value)
+    {
+        RE_ASSERT_SHADER_ACTIVE();
+        glUniform3iv(getUniformLocation(name), 1, &value[0]);
+    }
+
     void GLShader::setVec4(const std::string& name, const glm::vec4& value)
     {
         RE_ASSERT_SHADER_ACTIVE();

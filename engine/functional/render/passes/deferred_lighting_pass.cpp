@@ -11,8 +11,11 @@
 #include "functional/render/light.h"
 #include "functional/render/light_probe_data.h"
 #include "functional/render/material.h"
+#include "functional/render/passes/clustered_light_cull_pass.h"
 #include "functional/render/passes/csm_shadow_pass.h"
 #include "functional/render/passes/gbuffer_pass.h"
+#include "functional/render/passes/point_shadow_pass.h"
+#include "functional/render/passes/spot_shadow_pass.h"
 #include "functional/render/render_camera.h"
 #include "functional/render/render_scene.h"
 #include "functional/render/rhi/rhi_buffer.h"
@@ -33,6 +36,8 @@ namespace RealmEngine
     static constexpr int TEX_UNIT_IBL_DIFFUSE       = 6;
     static constexpr int TEX_UNIT_IBL_PREFILTERED   = 7;
     static constexpr int TEX_UNIT_IBL_BRDF          = 8;
+    static constexpr int TEX_UNIT_POINT_SHADOW_BASE = 9;
+    static constexpr int TEX_UNIT_SPOT_SHADOW_BASE  = 13;
 
     DeferredLightingPass::~DeferredLightingPass() noexcept = default;
 
@@ -49,6 +54,8 @@ namespace RealmEngine
         m_shader = device.createShader(m_shader_path + "/builtin/deferred_lighting.vert",
                                        m_shader_path + "/builtin/deferred_lighting.frag");
         m_shader->bindShaderStorageBlock("LightBuffer", 1);
+        m_shader->bindShaderStorageBlock("LightIndices", 3);
+        m_shader->bindShaderStorageBlock("LightGrid", 4);
         m_shader->bindShaderStorageBlock("ProbeBuffer", 5);
         m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
         m_probe_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, PROBE_SSBO_SIZE);
@@ -120,7 +127,22 @@ namespace RealmEngine
         m_shader->setMat4("invView", glm::inverse(view));
         m_shader->setMat4("invProjection", glm::inverse(projection));
 
-        // Lights UBO
+        // Lights: use cluster pass when available and scene has lights.
+        // With 0 lights, use fallback path to avoid Intel Mesa GL_INVALID_OPERATION on cluster SSBOs.
+        const bool use_cluster = m_cluster_cull_pass != nullptr && !ctx.scene->getLights().empty();
+        if (use_cluster)
+        {
+            m_cluster_cull_pass->getLightBuffer()->bindBase(1);
+            m_cluster_cull_pass->getLightIndexBuffer()->bindBase(3);
+            m_cluster_cull_pass->getLightGridBuffer()->bindBase(4);
+            m_shader->setIVec3("clusterDimensions",
+                               glm::ivec3(ClusteredLightCullPass::CLUSTER_X,
+                                          ClusteredLightCullPass::CLUSTER_Y,
+                                          ClusteredLightCullPass::CLUSTER_Z));
+            m_shader->setFloat("nearPlane", ctx.camera->getNearPlane());
+            m_shader->setFloat("farPlane", ctx.camera->getFarPlane());
+        }
+        else
         {
             const size_t count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
             const int    count_i = static_cast<int>(count);
@@ -135,9 +157,13 @@ namespace RealmEngine
                 data[i].spot_area   = glm::vec4(l.outer_cone_angle, l.width, l.height, 0.0f);
             }
             m_light_ssbo->setSubData(&count_i, 0, sizeof(int));
-            m_light_ssbo->setSubData(data, 16, count * sizeof(LightData));
+            if (count > 0)
+                m_light_ssbo->setSubData(data, 16, count * sizeof(LightData));
             m_light_ssbo->bindBase(1);
+            m_light_ssbo->bindBase(3);
+            m_light_ssbo->bindBase(4);
         }
+        m_shader->setBool("useClusteredLights", use_cluster);
 
         // IBL textures
         if (m_ibl_diffuse)
@@ -156,8 +182,11 @@ namespace RealmEngine
             m_shader->setInt("brdfConvolutionMap", TEX_UNIT_IBL_BRDF);
         }
 
-        // Shadow (CSM)
-        if (m_shadow_pass && m_shadow_pass->isShadowEnabled())
+        m_shader->setMat4("viewMatrix", view);
+
+        // Shadow (CSM). Always bind shadow map when available to satisfy driver sampler validation
+        // (Intel Mesa GL_INVALID_OPERATION when sampler2DArray is unbound).
+        if (m_shadow_pass)
         {
             auto* shadow_depth = m_shadow_pass->getFramebuffer()->getDepthAttachment();
             if (shadow_depth)
@@ -165,23 +194,125 @@ namespace RealmEngine
                 ctx.device->bindTexture(TEX_UNIT_SHADOW, *shadow_depth);
                 m_shader->setInt("shadowMapArray", TEX_UNIT_SHADOW);
             }
-            const auto& cascades = m_shadow_pass->getCascades();
-            m_shader->setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
-            std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
-            for (size_t c = 0; c < static_cast<size_t>(CSMShadowPass::CASCADE_COUNT); ++c)
+            if (m_shadow_pass->isShadowEnabled())
             {
-                m_shader->setMat4("cascadeVP[" + std::to_string(static_cast<int>(c)) + "]",
-                                  cascades[c].light_view_proj);
-                splits[c] = cascades[c].split_depth;
+                const auto& cascades = m_shadow_pass->getCascades();
+                m_shader->setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
+                std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
+                for (size_t c = 0; c < static_cast<size_t>(CSMShadowPass::CASCADE_COUNT); ++c)
+                {
+                    m_shader->setMat4("cascadeVP[" + std::to_string(static_cast<int>(c)) + "]",
+                                      cascades[c].light_view_proj);
+                    splits[c] = cascades[c].split_depth;
+                }
+                m_shader->setFloatArray("cascadeSplits", splits);
+                m_shader->setFloat("lightSize", m_shadow_pass->getLightSize());
+                m_shader->setBool("shadowEnabled", true);
             }
-            m_shader->setFloatArray("cascadeSplits", splits);
-            m_shader->setFloat("lightSize", m_shadow_pass->getLightSize());
-            m_shader->setMat4("viewMatrix", view);
-            m_shader->setBool("shadowEnabled", true);
+            else
+            {
+                m_shader->setBool("shadowEnabled", false);
+            }
         }
         else
         {
             m_shader->setBool("shadowEnabled", false);
+        }
+
+        // Point shadows: cubemap depth in color attachment.
+        // Fallback for unused slots: IBL cubemap, or first point shadow texture when available.
+        RHITexture* point_fallback = m_ibl_diffuse ? m_ibl_diffuse : m_ibl_prefiltered;
+        if (m_point_shadow_pass)
+        {
+            const auto& shadows = m_point_shadow_pass->getActiveShadows();
+            m_shader->setInt("pointShadowCount", static_cast<int>(shadows.size()));
+            RHITexture* slot_fallback = point_fallback;
+            if (shadows.size() > 0)
+            {
+                auto* fb0 = m_point_shadow_pass->getFramebuffer(0);
+                if (fb0)
+                {
+                    auto* ct = fb0->getColorAttachment(0);
+                    if (ct)
+                        slot_fallback = ct;
+                }
+            }
+            if (slot_fallback)
+            {
+                for (size_t i = 0; i < 4u; ++i)
+                {
+                    RHITexture* tex = slot_fallback;
+                    if (i < shadows.size())
+                    {
+                        auto* fb = m_point_shadow_pass->getFramebuffer(static_cast<int>(i));
+                        if (fb)
+                        {
+                            auto* ct = fb->getColorAttachment(0);
+                            if (ct)
+                                tex = ct;
+                        }
+                    }
+                    ctx.device->bindTexture(TEX_UNIT_POINT_SHADOW_BASE + static_cast<int>(i), *tex);
+                    m_shader->setInt("pointShadowMap[" + std::to_string(i) + "]",
+                                     TEX_UNIT_POINT_SHADOW_BASE + static_cast<int>(i));
+                    if (i < shadows.size())
+                    {
+                        m_shader->setVec3("pointShadowPos[" + std::to_string(i) + "]", shadows[i].position);
+                        m_shader->setFloat("pointShadowRange[" + std::to_string(i) + "]", shadows[i].range);
+                        m_shader->setInt("pointShadowLightIndex[" + std::to_string(i) + "]", shadows[i].light_index);
+                    }
+                }
+            }
+        }
+        else
+        {
+            m_shader->setInt("pointShadowCount", 0);
+            if (point_fallback)
+            {
+                for (int i = 0; i < 4; ++i)
+                {
+                    ctx.device->bindTexture(TEX_UNIT_POINT_SHADOW_BASE + i, *point_fallback);
+                    m_shader->setInt("pointShadowMap[" + std::to_string(i) + "]", TEX_UNIT_POINT_SHADOW_BASE + i);
+                }
+            }
+        }
+
+        // Spot shadows: 2D depth map. Bind fallback (depth) when no spot shadows.
+        if (m_spot_shadow_pass)
+        {
+            const auto& shadows = m_spot_shadow_pass->getActiveShadows();
+            m_shader->setInt("spotShadowCount", static_cast<int>(shadows.size()));
+            for (size_t i = 0; i < 4u; ++i)
+            {
+                RHITexture* tex = depth_tex;
+                if (i < shadows.size())
+                {
+                    auto* fb = m_spot_shadow_pass->getFramebuffer(static_cast<int>(i));
+                    if (fb)
+                    {
+                        auto* dt = fb->getDepthAttachment();
+                        if (dt)
+                            tex = dt;
+                    }
+                }
+                ctx.device->bindTexture(TEX_UNIT_SPOT_SHADOW_BASE + static_cast<int>(i), *tex);
+                m_shader->setInt("spotShadowMap[" + std::to_string(i) + "]",
+                                 TEX_UNIT_SPOT_SHADOW_BASE + static_cast<int>(i));
+                if (i < shadows.size())
+                {
+                    m_shader->setMat4("spotShadowVP[" + std::to_string(i) + "]", shadows[i].light_view_proj);
+                    m_shader->setInt("spotShadowLightIndex[" + std::to_string(i) + "]", shadows[i].light_index);
+                }
+            }
+        }
+        else
+        {
+            m_shader->setInt("spotShadowCount", 0);
+            for (int i = 0; i < 4; ++i)
+            {
+                ctx.device->bindTexture(TEX_UNIT_SPOT_SHADOW_BASE + i, *depth_tex);
+                m_shader->setInt("spotShadowMap[" + std::to_string(i) + "]", TEX_UNIT_SPOT_SHADOW_BASE + i);
+            }
         }
 
         // Light probes

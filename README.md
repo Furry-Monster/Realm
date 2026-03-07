@@ -28,16 +28,16 @@ The engine supports **Forward** and **Deferred** pipelines. Both use Cook-Torran
 
 | Feature | Description |
 |---------|-------------|
-| **Shadows** | Cascaded shadow maps (CSM) for directional lights; point and spot shadow maps generated (integration in progress) |
+| **Shadows** | Directional: 4-cascade CSM with PCF/PCSS; Point: cubemap depth (up to 4); Spot: 2D depth (up to 4). Shadow preview mode for debugging. |
 | **IBL** | Diffuse irradiance cubemap, prefiltered specular env map, BRDF LUT; HDRI-based skybox |
 | **GTAO** | Screen-space ambient occlusion with multi-direction ray march and bilateral blur |
 | **SSS** | Subsurface scattering (BSSRDF-inspired wrapped diffuse) for skin/fabric; Forward pipeline via material subsurface option |
 | **Bloom** | Brightness threshold extract, 6-level mip chain, separable Gaussian blur |
 | **SSR** | Screen-space reflection (Deferred only); Hi-Z accelerated ray march; Fresnel and roughness modulation; composited in post-process |
 | **Post-process** | AO blend, bloom add, Reinhard tonemapping, gamma correction |
-| **Display modes** | Lit, Albedo, Normals, Metallic, Roughness, Material AO, Emissive, AO, Depth, SSR preview |
+| **Display modes** | Lit, Albedo, Normals, Metallic, Roughness, Material AO, Emissive, AO, Depth, SSR, Shadow preview |
 
-Deferred pipeline adds G-Buffer (4 RTs + depth), Hi-Z, clustered light culling (compute; lighting integration pending), and SSR. Forward pipeline uses direct PBR with full light iteration. Pipeline mode is configurable in Project Settings.
+Deferred pipeline adds G-Buffer (4 RTs + depth), Hi-Z, clustered light culling (compute) 、SSR. Forward pipeline uses direct PBR with full light iteration. Pipeline mode is configurable in Project Settings.
 
 ## Requirements
 

@@ -34,6 +34,7 @@ namespace RealmEngine
         void setFloat(const std::string& name, float value) override;
         void setVec2(const std::string& name, const glm::vec2& value) override;
         void setVec3(const std::string& name, const glm::vec3& value) override;
+        void setIVec3(const std::string& name, const glm::ivec3& value) override;
         void setVec4(const std::string& name, const glm::vec4& value) override;
         void setMat3(const std::string& name, const glm::mat3& value) override;
         void setMat4(const std::string& name, const glm::mat4& value) override;

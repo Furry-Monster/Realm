@@ -31,6 +31,11 @@ uniform sampler2D   brdfConvolutionMap;
 uniform int  displayMode;
 uniform mat4 viewMatrix;
 
+// Clustered lighting
+uniform bool   useClusteredLights;
+uniform float  nearPlane;
+uniform float  farPlane;
+
 vec3 reconstructWorldPosition(vec2 uv, float depth)
 {
     vec4 ndc     = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
@@ -76,22 +81,58 @@ vec3 shadePBR(vec3  albedo,
               float roughness,
               vec3  emissive,
               vec3  r,
-              float ao)
+              float ao,
+              vec2  screenUV,
+              float viewDepth)
 {
     vec3 f0 = mix(vec3(0.04), albedo, metallic);
     vec3 Lo = vec3(0.0);
 
-    for (int i = 0; i < lightCount; i++)
+    if (useClusteredLights)
     {
-        vec3 l, radiance;
-        if (!evaluateLight(i, worldPos, l, radiance))
-            continue;
+        ivec3 c = getClusterIndex(screenUV, viewDepth, nearPlane, farPlane);
+        int   clusterIdx = c.x + c.y * clusterDimensions.x + c.z * clusterDimensions.x * clusterDimensions.y;
+        uvec2 grid       = clusterGrid[clusterIdx];
+        uint  offset     = grid.x;
+        uint  count      = grid.y;
+        for (uint i = 0u; i < count; i++)
+        {
+            int idx = int(lightIndices[offset + i]);
+            vec3 l, radiance;
+            if (!evaluateLight(idx, worldPos, n, l, radiance))
+                continue;
 
-        int lightType = int(lights[i].position.w);
-        if (lightType == 1)
-            radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            int lightType = int(lights[idx].position.w);
+            float shadowBias = max(0.05 * (1.0 - dot(n, l)), 0.005);
+            if (lightType == 1)
+                radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            else if (lightType == 0 && pointShadowCount > 0)
+                radiance *= calculatePointShadow(worldPos, n, lights[idx].position.xyz, idx, shadowBias);
+            else if (lightType == 2 && spotShadowCount > 0)
+                radiance *= calculateSpotShadow(worldPos, n, idx, shadowBias);
 
-        Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, false, 0.0, vec3(1.0));
+            Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, false, 0.0, vec3(1.0));
+        }
+    }
+    else
+    {
+        for (int i = 0; i < lightCount; i++)
+        {
+            vec3 l, radiance;
+            if (!evaluateLight(i, worldPos, n, l, radiance))
+                continue;
+
+            int lightType = int(lights[i].position.w);
+            float shadowBias = max(0.05 * (1.0 - dot(n, l)), 0.005);
+            if (lightType == 1)
+                radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            else if (lightType == 0 && pointShadowCount > 0)
+                radiance *= calculatePointShadow(worldPos, n, lights[i].position.xyz, i, shadowBias);
+            else if (lightType == 2 && spotShadowCount > 0)
+                radiance *= calculateSpotShadow(worldPos, n, i, shadowBias);
+
+            Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, false, 0.0, vec3(1.0));
+        }
     }
 
     vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0, worldPos) * ao;
@@ -107,22 +148,58 @@ vec3 shadeSubsurface(vec3  albedo,
                      float roughness,
                      vec3  emissive,
                      vec3  r,
-                     float ao)
+                     float ao,
+                     vec2  screenUV,
+                     float viewDepth)
 {
     vec3 f0 = mix(vec3(0.04), albedo, metallic);
     vec3 Lo = vec3(0.0);
 
-    for (int i = 0; i < lightCount; i++)
+    if (useClusteredLights)
     {
-        vec3 l, radiance;
-        if (!evaluateLight(i, worldPos, l, radiance))
-            continue;
+        ivec3 c = getClusterIndex(screenUV, viewDepth, nearPlane, farPlane);
+        int   clusterIdx = c.x + c.y * clusterDimensions.x + c.z * clusterDimensions.x * clusterDimensions.y;
+        uvec2 grid       = clusterGrid[clusterIdx];
+        uint  offset     = grid.x;
+        uint  count      = grid.y;
+        for (uint i = 0u; i < count; i++)
+        {
+            int idx = int(lightIndices[offset + i]);
+            vec3 l, radiance;
+            if (!evaluateLight(idx, worldPos, n, l, radiance))
+                continue;
 
-        int lightType = int(lights[i].position.w);
-        if (lightType == 1)
-            radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            int lightType = int(lights[idx].position.w);
+            float shadowBias = max(0.05 * (1.0 - dot(n, l)), 0.005);
+            if (lightType == 1)
+                radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            else if (lightType == 0 && pointShadowCount > 0)
+                radiance *= calculatePointShadow(worldPos, n, lights[idx].position.xyz, idx, shadowBias);
+            else if (lightType == 2 && spotShadowCount > 0)
+                radiance *= calculateSpotShadow(worldPos, n, idx, shadowBias);
 
-        Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, true, 1.0, vec3(1.0));
+            Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, true, 1.0, vec3(1.0));
+        }
+    }
+    else
+    {
+        for (int i = 0; i < lightCount; i++)
+        {
+            vec3 l, radiance;
+            if (!evaluateLight(i, worldPos, n, l, radiance))
+                continue;
+
+            int lightType = int(lights[i].position.w);
+            float shadowBias = max(0.05 * (1.0 - dot(n, l)), 0.005);
+            if (lightType == 1)
+                radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            else if (lightType == 0 && pointShadowCount > 0)
+                radiance *= calculatePointShadow(worldPos, n, lights[i].position.xyz, i, shadowBias);
+            else if (lightType == 2 && spotShadowCount > 0)
+                radiance *= calculateSpotShadow(worldPos, n, i, shadowBias);
+
+            Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, true, 1.0, vec3(1.0));
+        }
     }
 
     vec3 ambient = computeIBL(albedo, n, v, r, metallic, roughness, f0, worldPos) * ao;
@@ -150,6 +227,7 @@ void main()
     vec3 worldPos = reconstructWorldPosition(textureCoordinates, depth);
     vec3 v        = normalize(cameraPosition - worldPos);
     vec3 r        = reflect(-v, n);
+    float viewDepth = -(viewMatrix * vec4(worldPos, 1.0)).z;
 
     // Debug display modes
     if (displayMode == 1)
@@ -182,12 +260,63 @@ void main()
         FragColor = vec4(emissive, 1.0);
         return;
     }
+    if (displayMode == 10)
+    {
+        float shadowFactor = 1.0;
+        if (useClusteredLights)
+        {
+            ivec3 c        = getClusterIndex(textureCoordinates, viewDepth, nearPlane, farPlane);
+            int   clusterIdx = c.x + c.y * clusterDimensions.x + c.z * clusterDimensions.x * clusterDimensions.y;
+            uvec2 grid     = clusterGrid[clusterIdx];
+            uint  offset   = grid.x;
+            uint  count    = grid.y;
+            for (uint i = 0u; i < count; i++)
+            {
+                int idx = int(lightIndices[offset + i]);
+                vec3 l, radiance;
+                if (!evaluateLight(idx, worldPos, n, l, radiance))
+                    continue;
+                int   lightType   = int(lights[idx].position.w);
+                float shadowBias  = max(0.05 * (1.0 - dot(n, l)), 0.005);
+                float s           = 1.0;
+                if (lightType == 1)
+                    s = calculateShadow(worldPos, n, l, viewMatrix);
+                else if (lightType == 0 && pointShadowCount > 0)
+                    s = calculatePointShadow(worldPos, n, lights[idx].position.xyz, idx, shadowBias);
+                else if (lightType == 2 && spotShadowCount > 0)
+                    s = calculateSpotShadow(worldPos, n, idx, shadowBias);
+                shadowFactor *= s;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < lightCount; i++)
+            {
+                vec3 l, radiance;
+                if (!evaluateLight(i, worldPos, n, l, radiance))
+                    continue;
+                int   lightType   = int(lights[i].position.w);
+                float shadowBias  = max(0.05 * (1.0 - dot(n, l)), 0.005);
+                float s           = 1.0;
+                if (lightType == 1)
+                    s = calculateShadow(worldPos, n, l, viewMatrix);
+                else if (lightType == 0 && pointShadowCount > 0)
+                    s = calculatePointShadow(worldPos, n, lights[i].position.xyz, i, shadowBias);
+                else if (lightType == 2 && spotShadowCount > 0)
+                    s = calculateSpotShadow(worldPos, n, i, shadowBias);
+                shadowFactor *= s;
+            }
+        }
+        FragColor = vec4(vec3(shadowFactor), 1.0);
+        return;
+    }
 
     vec3 color;
     if (modelID == 1)
-        color = shadeSubsurface(albedo, n, v, worldPos, metallic, roughness, emissive, r, ao);
+        color = shadeSubsurface(albedo, n, v, worldPos, metallic, roughness, emissive, r, ao, textureCoordinates,
+                                viewDepth);
     else
-        color = shadePBR(albedo, n, v, worldPos, metallic, roughness, emissive, r, ao);
+        color = shadePBR(albedo, n, v, worldPos, metallic, roughness, emissive, r, ao, textureCoordinates, viewDepth);
 
     FragColor = vec4(color, 0.0);
 }

@@ -15,6 +15,9 @@ namespace RealmEngine
     class RHITexture;
     class GBufferPass;
     class CSMShadowPass;
+    class ClusteredLightCullPass;
+    class PointShadowPass;
+    class SpotShadowPass;
     class FullscreenQuad;
 
     // Deferred lighting pass: reads G-Buffer, computes PBR lighting with IBL,
@@ -38,6 +41,9 @@ namespace RealmEngine
         void setFramebuffer(std::unique_ptr<RHIFramebuffer> fb) { m_framebuffer = std::move(fb); }
         void setGBufferPass(GBufferPass* gp) { m_gbuffer_pass = gp; }
         void setShadowPass(CSMShadowPass* sp) { m_shadow_pass = sp; }
+        void setPointShadowPass(PointShadowPass* pp) { m_point_shadow_pass = pp; }
+        void setSpotShadowPass(SpotShadowPass* sp) { m_spot_shadow_pass = sp; }
+        void setClusteredLightCullPass(ClusteredLightCullPass* cp) { m_cluster_cull_pass = cp; }
         void setFullscreenQuad(FullscreenQuad* quad) { m_quad = quad; }
         void setIBLTextures(RHITexture* diffuse_irradiance, RHITexture* prefiltered_env, RHITexture* brdf_lut);
 
@@ -49,9 +55,12 @@ namespace RealmEngine
         std::unique_ptr<RHIBuffer>      m_light_ssbo;
         std::unique_ptr<RHIBuffer>      m_probe_ssbo;
 
-        GBufferPass*    m_gbuffer_pass {nullptr};
-        CSMShadowPass*  m_shadow_pass {nullptr};
-        FullscreenQuad* m_quad {nullptr};
+        GBufferPass*            m_gbuffer_pass {nullptr};
+        CSMShadowPass*          m_shadow_pass {nullptr};
+        PointShadowPass*       m_point_shadow_pass {nullptr};
+        SpotShadowPass*        m_spot_shadow_pass {nullptr};
+        ClusteredLightCullPass* m_cluster_cull_pass {nullptr};
+        FullscreenQuad*         m_quad {nullptr};
 
         RHITexture* m_ibl_diffuse {nullptr};
         RHITexture* m_ibl_prefiltered {nullptr};

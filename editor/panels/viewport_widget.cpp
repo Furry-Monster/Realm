@@ -21,7 +21,7 @@
 namespace RealmEngine
 {
     static const char* displayModeLabels[] =
-        {"Lit", "Albedo", "Normals", "Metallic", "Roughness", "Material AO", "Emissive", "AO", "Depth", "SSR"};
+        {"Lit", "Albedo", "Normals", "Metallic", "Roughness", "Material AO", "Emissive", "AO", "Depth", "SSR", "Shadow"};
 
     static const char* gbufferPreviewLabels[] = {"Final Output",
                                                  "GBuffer: Albedo+AO",
