@@ -21,6 +21,7 @@ namespace RealmEngine
         Emissive,
         AO,
         Depth,
+        SSR,
         Count
     };
 } // namespace RealmEngine
