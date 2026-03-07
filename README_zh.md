@@ -14,13 +14,30 @@
 
 ## 特性
 
-- **PBR 渲染** — Cook-Torrance BRDF，金属度/粗糙度工作流，多 Pass 管线（阴影、GTAO、泛光、次表面散射、后处理）
+- **PBR 渲染** — Cook-Torrance BRDF，金属度/粗糙度工作流，多 Pass 管线（阴影、GTAO、泛光、次表面散射、SSR、后处理）
 - **基于图像的光照** — 漫反射辐照度、高光预过滤、BRDF 查找表
 - **可视化编辑器** — ImGui 场景编辑器，含视口、层级、属性、资产浏览器、性能分析、撤销/重做、快捷键
 - **ECS 架构** — 基于 EnTT，内置 Transform、Renderable、Camera、Lighting、Hierarchy、AudioSource、AudioListener 组件
 - **音频系统** — miniaudio 集成；空间音频；监听器管理
 - **场景管理** — 场景图、JSON 序列化、资源缓存（glTF / FBX / OBJ / PLY / STL）
 - **RHI 抽象层** — 当前 OpenGL 后端，架构预留 Vulkan / D3D12
+
+### 渲染
+
+引擎支持 **Forward** 与 **Deferred** 两种管线，均采用 Cook-Torrance PBR 与金属度/粗糙度工作流。
+
+| 特性 | 说明 |
+|------|------|
+| **阴影** | 方向光级联阴影贴图 (CSM)；点光源与聚光灯阴影贴图已生成（接入中） |
+| **IBL** | 漫反射辐照度立方体贴图、预滤波高光环境贴图、BRDF 查找表；基于 HDRI 的天空盒 |
+| **GTAO** | 屏幕空间环境光遮蔽，多方向射线步进与双边模糊 |
+| **SSS** | 次表面散射（BSSRDF 风格包裹漫反射），适用于皮肤/布料；Forward 管线通过材质 subsurface 选项启用 |
+| **泛光** | 亮度阈值提取，6 级 Mip 链，可分离高斯模糊 |
+| **SSR** | 屏幕空间反射（仅 Deferred）；Hi-Z 加速射线步进；Fresnel 与粗糙度调制；后处理合成 |
+| **后处理** | AO 混合、泛光叠加、Reinhard 色调映射、Gamma 校正 |
+| **显示模式** | Lit、Albedo、Normals、Metallic、Roughness、Material AO、Emissive、AO、Depth、SSR 预览 |
+
+Deferred 管线额外包含 G-Buffer（4 RT + 深度）、Hi-Z、聚簇光源剔除（Compute，光照接入待完成）与 SSR；Forward 管线采用直接 PBR 全光源遍历。管线模式可在项目设置中配置。
 
 ## 环境要求
 
