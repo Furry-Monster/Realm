@@ -22,6 +22,7 @@ namespace RealmEngine
         AO,
         Depth,
         SSR,
+        Shadow,
         Count
     };
 } // namespace RealmEngine

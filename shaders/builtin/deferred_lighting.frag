@@ -260,6 +260,56 @@ void main()
         FragColor = vec4(emissive, 1.0);
         return;
     }
+    if (displayMode == 10)
+    {
+        float shadowFactor = 1.0;
+        if (useClusteredLights)
+        {
+            ivec3 c        = getClusterIndex(textureCoordinates, viewDepth, nearPlane, farPlane);
+            int   clusterIdx = c.x + c.y * clusterDimensions.x + c.z * clusterDimensions.x * clusterDimensions.y;
+            uvec2 grid     = clusterGrid[clusterIdx];
+            uint  offset   = grid.x;
+            uint  count    = grid.y;
+            for (uint i = 0u; i < count; i++)
+            {
+                int idx = int(lightIndices[offset + i]);
+                vec3 l, radiance;
+                if (!evaluateLight(idx, worldPos, n, l, radiance))
+                    continue;
+                int   lightType   = int(lights[idx].position.w);
+                float shadowBias  = max(0.05 * (1.0 - dot(n, l)), 0.005);
+                float s           = 1.0;
+                if (lightType == 1)
+                    s = calculateShadow(worldPos, n, l, viewMatrix);
+                else if (lightType == 0 && pointShadowCount > 0)
+                    s = calculatePointShadow(worldPos, n, lights[idx].position.xyz, idx, shadowBias);
+                else if (lightType == 2 && spotShadowCount > 0)
+                    s = calculateSpotShadow(worldPos, n, idx, shadowBias);
+                shadowFactor *= s;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < lightCount; i++)
+            {
+                vec3 l, radiance;
+                if (!evaluateLight(i, worldPos, n, l, radiance))
+                    continue;
+                int   lightType   = int(lights[i].position.w);
+                float shadowBias  = max(0.05 * (1.0 - dot(n, l)), 0.005);
+                float s           = 1.0;
+                if (lightType == 1)
+                    s = calculateShadow(worldPos, n, l, viewMatrix);
+                else if (lightType == 0 && pointShadowCount > 0)
+                    s = calculatePointShadow(worldPos, n, lights[i].position.xyz, i, shadowBias);
+                else if (lightType == 2 && spotShadowCount > 0)
+                    s = calculateSpotShadow(worldPos, n, i, shadowBias);
+                shadowFactor *= s;
+            }
+        }
+        FragColor = vec4(vec3(shadowFactor), 1.0);
+        return;
+    }
 
     vec3 color;
     if (modelID == 1)
