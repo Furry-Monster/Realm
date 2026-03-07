@@ -70,7 +70,3 @@
 #define RE_LOG_WARN(msg) RE_LOG_IMPL(2, RealmEngine::Logger::LogLevel::warn, msg)
 #define RE_LOG_ERROR(msg) RE_LOG_IMPL(3, RealmEngine::Logger::LogLevel::error, msg)
 #define RE_LOG_FATAL(msg) RE_LOG_IMPL(4, RealmEngine::Logger::LogLevel::fatal, msg)
-
-// ------------------------------------------------------------------------------
-
-// ------------------------------------------------------------------------------

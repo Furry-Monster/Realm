@@ -2,10 +2,10 @@
 #include "engine.h"
 
 #include "core/debug/debug_console.h"
+#include "core/sched/scheduler.h"
 #include "functional/camera/camera_sync.h"
 #include "functional/ecs/components/transform.h"
 #include "functional/ecs/components/world_transform.h"
-#include "functional/ecs/scheduler.h"
 #include "functional/ecs/systems/hierarchy_system.h"
 #include "functional/ecs/systems/transform_system.h"
 #include "functional/render/components/lighting/light_probe.h"
