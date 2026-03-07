@@ -11,6 +11,7 @@
 #include "functional/render/light.h"
 #include "functional/render/light_probe_data.h"
 #include "functional/render/material.h"
+#include "functional/render/passes/clustered_light_cull_pass.h"
 #include "functional/render/passes/csm_shadow_pass.h"
 #include "functional/render/passes/gbuffer_pass.h"
 #include "functional/render/render_camera.h"
@@ -49,6 +50,8 @@ namespace RealmEngine
         m_shader = device.createShader(m_shader_path + "/builtin/deferred_lighting.vert",
                                        m_shader_path + "/builtin/deferred_lighting.frag");
         m_shader->bindShaderStorageBlock("LightBuffer", 1);
+        m_shader->bindShaderStorageBlock("LightIndices", 3);
+        m_shader->bindShaderStorageBlock("LightGrid", 4);
         m_shader->bindShaderStorageBlock("ProbeBuffer", 5);
         m_light_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, BUFFER_SIZE);
         m_probe_ssbo = device.createBuffer(BufferType::ShaderStorage, BufferUsage::Dynamic, nullptr, PROBE_SSBO_SIZE);
@@ -120,7 +123,21 @@ namespace RealmEngine
         m_shader->setMat4("invView", glm::inverse(view));
         m_shader->setMat4("invProjection", glm::inverse(projection));
 
-        // Lights UBO
+        // Lights: use cluster pass buffer when available (avoids duplicate upload)
+        const bool use_cluster = m_cluster_cull_pass != nullptr;
+        if (use_cluster)
+        {
+            m_cluster_cull_pass->getLightBuffer()->bindBase(1);
+            m_cluster_cull_pass->getLightIndexBuffer()->bindBase(3);
+            m_cluster_cull_pass->getLightGridBuffer()->bindBase(4);
+            m_shader->setIVec3("clusterDimensions",
+                               glm::ivec3(ClusteredLightCullPass::CLUSTER_X,
+                                          ClusteredLightCullPass::CLUSTER_Y,
+                                          ClusteredLightCullPass::CLUSTER_Z));
+            m_shader->setFloat("nearPlane", ctx.camera->getNearPlane());
+            m_shader->setFloat("farPlane", ctx.camera->getFarPlane());
+        }
+        else
         {
             const size_t count   = std::min(ctx.scene->getLights().size(), MAX_LIGHTS);
             const int    count_i = static_cast<int>(count);
@@ -138,6 +155,7 @@ namespace RealmEngine
             m_light_ssbo->setSubData(data, 16, count * sizeof(LightData));
             m_light_ssbo->bindBase(1);
         }
+        m_shader->setBool("useClusteredLights", use_cluster);
 
         // IBL textures
         if (m_ibl_diffuse)

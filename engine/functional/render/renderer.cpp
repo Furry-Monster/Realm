@@ -290,6 +290,7 @@ namespace RealmEngine
         // Cross-pass wiring
         m_deferred_lighting_pass->setGBufferPass(m_gbuffer_pass);
         m_deferred_lighting_pass->setShadowPass(m_shadow_pass);
+        m_deferred_lighting_pass->setClusteredLightCullPass(m_cluster_cull_pass);
         m_deferred_lighting_pass->setIBLTextures(m_ibl_diffuse_tex, m_ibl_prefiltered_tex, m_ibl_brdf_tex);
         m_deferred_lighting_pass->setFullscreenQuad(m_fullscreen_quad.get());
 
