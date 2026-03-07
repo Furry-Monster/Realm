@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <functional>
 #include <string>
 #include <vector>
@@ -17,6 +18,7 @@ namespace RealmEngine
 
     enum class SystemPhase : int
     {
+        PreLogic   = -100,
         Logic      = 0,
         PostLogic  = 100,
         PreRender  = 200,
@@ -26,9 +28,10 @@ namespace RealmEngine
 
     using SystemFn = std::function<void(SystemContext&)>;
 
-    struct RegisteredSystem
+    struct SystemEntry
     {
         SystemPhase phase;
+        int         order {0};
         std::string name;
         SystemFn    fn;
     };
@@ -37,12 +40,20 @@ namespace RealmEngine
     {
     public:
         void registerSystem(SystemPhase phase, std::string name, SystemFn fn);
-        void tickLogical(SystemContext& ctx);
-        void tickRender(SystemContext& ctx);
+        void registerSystem(SystemPhase phase, int order, std::string name, SystemFn fn);
+        bool unregisterSystem(const std::string& name);
+        void clear();
+
+        void prepare();
+
+        void tick(SystemContext& ctx);
 
     private:
+        void ensureSorted();
         void runPhase(SystemContext& ctx, SystemPhase phase);
 
-        std::vector<RegisteredSystem> m_systems;
+        std::vector<SystemEntry>                 m_systems;
+        std::array<std::pair<size_t, size_t>, 6> m_phase_ranges {};
+        bool                                     m_dirty {false};
     };
 } // namespace RealmEngine

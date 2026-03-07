@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <memory>
 
 #include "functional/render/viewport_display_mode.h"
@@ -16,7 +15,6 @@ namespace RealmEngine
     class Window;
     class Renderer;
     class Input;
-
     class Scene;
     class Scheduler;
 
@@ -40,75 +38,22 @@ namespace RealmEngine
         bool   isInitialized() const { return m_initialized; }
         double getDeltaTime() const { return m_delta_time; }
 
-        EventBus& getEventBus() const
-        {
-            assert(m_event_bus && "Engine not initialized");
-            return *m_event_bus;
-        }
-        Logger& getLogger() const
-        {
-            assert(m_logger && "Engine not initialized");
-            return *m_logger;
-        }
+        EventBus&      getEventBus() const;
+        Logger&        getLogger() const;
+        ConfigManager& getConfig() const;
+        AssetManager&  getAssets() const;
+        SceneManager&  getSceneManager() const;
+        Window&        getWindow() const;
+        Renderer&      getRenderer() const;
+        Input&         getInput() const;
 
-        ConfigManager& getConfig() const
-        {
-            assert(m_config && "Engine not initialized");
-            return *m_config;
-        }
-        AssetManager& getAssets() const
-        {
-            assert(m_assets && "Engine not initialized");
-            return *m_assets;
-        }
-        SceneManager& getSceneManager() const
-        {
-            assert(m_scene && "Engine not initialized");
-            return *m_scene;
-        }
-        Window& getWindow() const
-        {
-            assert(m_window && "Engine not initialized");
-            return *m_window;
-        }
-        Renderer& getRenderer() const
-        {
-            assert(m_renderer && "Engine not initialized");
-            return *m_renderer;
-        }
-        Input& getInput() const
-        {
-            assert(m_input && "Engine not initialized");
-            return *m_input;
-        }
-
-        ModuleManager& getModuleManager()
-        {
-            assert(m_modules && "Engine not initialized");
-            return *m_modules;
-        }
-        const ModuleManager& getModuleManager() const
-        {
-            assert(m_modules && "Engine not initialized");
-            return *m_modules;
-        }
-        Scheduler& getSystemScheduler()
-        {
-            assert(m_scheduler && "Engine not initialized");
-            return *m_scheduler;
-        }
-        const Scheduler& getSystemScheduler() const
-        {
-            assert(m_scheduler && "Engine not initialized");
-            return *m_scheduler;
-        }
+        ModuleManager&       getModuleManager();
+        const ModuleManager& getModuleManager() const;
+        Scheduler&           getSystemScheduler();
+        const Scheduler&     getSystemScheduler() const;
 
         ViewportMode getViewportMode() const { return m_viewport_mode; }
         void         setViewportMode(ViewportMode mode) { m_viewport_mode = mode; }
-
-    protected:
-        void logicalTick();
-        void renderTick();
 
     private:
         // below are engine-managed but globally accessible.

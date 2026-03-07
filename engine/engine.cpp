@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include <cassert>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -11,7 +12,7 @@
 #include "core/event/event.h"
 #include "core/event/event_bus.h"
 #include "core/log/logger.h"
-#include "functional/ecs/scheduler.h"
+#include "core/sched/scheduler.h"
 #include "functional/render/renderer.h"
 #include "functional/render/viewport_controller.h"
 #include "functional/resource/asset_manager.h"
@@ -28,6 +29,67 @@ namespace RealmEngine
 {
     Engine::Engine()           = default;
     Engine::~Engine() noexcept = default;
+
+    EventBus& Engine::getEventBus() const
+    {
+        assert(m_event_bus && "Engine not initialized");
+        return *m_event_bus;
+    }
+    Logger& Engine::getLogger() const
+    {
+        assert(m_logger && "Engine not initialized");
+        return *m_logger;
+    }
+    ConfigManager& Engine::getConfig() const
+    {
+        assert(m_config && "Engine not initialized");
+        return *m_config;
+    }
+    AssetManager& Engine::getAssets() const
+    {
+        assert(m_assets && "Engine not initialized");
+        return *m_assets;
+    }
+    SceneManager& Engine::getSceneManager() const
+    {
+        assert(m_scene && "Engine not initialized");
+        return *m_scene;
+    }
+    Window& Engine::getWindow() const
+    {
+        assert(m_window && "Engine not initialized");
+        return *m_window;
+    }
+    Renderer& Engine::getRenderer() const
+    {
+        assert(m_renderer && "Engine not initialized");
+        return *m_renderer;
+    }
+    Input& Engine::getInput() const
+    {
+        assert(m_input && "Engine not initialized");
+        return *m_input;
+    }
+    ModuleManager& Engine::getModuleManager()
+    {
+        assert(m_modules && "Engine not initialized");
+        return *m_modules;
+    }
+    const ModuleManager& Engine::getModuleManager() const
+    {
+        assert(m_modules && "Engine not initialized");
+        return *m_modules;
+    }
+    Scheduler& Engine::getSystemScheduler()
+    {
+        assert(m_scheduler && "Engine not initialized");
+        return *m_scheduler;
+    }
+    const Scheduler& Engine::getSystemScheduler() const
+    {
+        assert(m_scheduler && "Engine not initialized");
+        return *m_scheduler;
+    }
 
     void Engine::initialize()
     {
@@ -72,6 +134,7 @@ namespace RealmEngine
 
             m_scheduler = std::make_unique<Scheduler>();
             registerSystems(*m_scheduler, *this);
+            m_scheduler->prepare();
 
             const EngineConfig& engine_config = m_config->getEngineConfig();
             m_max_delta_time                  = engine_config.max_delta_time;
@@ -191,35 +254,11 @@ namespace RealmEngine
         if (m_delta_time > m_max_delta_time)
             m_delta_time = m_max_delta_time;
 
-        logicalTick();
-        renderTick();
-    }
-
-    void Engine::logicalTick()
-    {
-        m_input->tick();
-        m_window->pollEvents();
-
-        auto* scene = m_scene->getCurrentOrNewScene().get();
-        if (scene && !scene->getViewportController())
-            scene->setViewportController(std::make_shared<ViewportController>());
-
         SystemContext ctx {};
-        ctx.scene      = scene;
+        ctx.scene      = m_scene->getCurrentOrNewScene().get();
         ctx.delta_time = static_cast<float>(m_delta_time);
         ctx.engine     = this;
-        m_scheduler->tickLogical(ctx);
-    }
-
-    void Engine::renderTick()
-    {
-        auto* scene = m_scene->getCurrentScene().get();
-
-        SystemContext ctx {};
-        ctx.scene      = scene;
-        ctx.delta_time = static_cast<float>(m_delta_time);
-        ctx.engine     = this;
-        m_scheduler->tickRender(ctx);
+        m_scheduler->tick(ctx);
     }
 
 } // namespace RealmEngine

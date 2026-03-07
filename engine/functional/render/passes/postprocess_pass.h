@@ -12,6 +12,7 @@ namespace RealmEngine
     class SceneColorSource;
     class BloomPass;
     class GTAOBlurPass;
+    class SSRPass;
 
     class PostProcessPass final : public RenderPass
     {
@@ -31,6 +32,7 @@ namespace RealmEngine
         void setSceneColorSource(SceneColorSource* src) { m_scene_color = src; }
         void setBloomPass(BloomPass* bp) { m_bloom_pass = bp; }
         void setGTAOBlurPass(GTAOBlurPass* pass) { m_gtao_blur_pass = pass; }
+        void setSSRPass(SSRPass* pass) { m_ssr_pass = pass; }
         void setFullscreenQuad(FullscreenQuad* quad) { m_quad = quad; }
 
     private:
@@ -44,6 +46,7 @@ namespace RealmEngine
         SceneColorSource*          m_scene_color {nullptr};
         BloomPass*                 m_bloom_pass {nullptr};
         GTAOBlurPass*              m_gtao_blur_pass {nullptr};
+        SSRPass*                   m_ssr_pass {nullptr};
         FullscreenQuad*            m_quad {nullptr};
     };
 

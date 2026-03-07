@@ -3,6 +3,7 @@
 #include "functional/render/fullscreen_quad.h"
 #include "functional/render/passes/bloom_pass.h"
 #include "functional/render/passes/gtao_blur_pass.h"
+#include "functional/render/passes/ssr_pass.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"
 #include "functional/render/rhi/rhi_shader.h"
@@ -61,6 +62,19 @@ namespace RealmEngine
         int        display_mode = static_cast<int>(ctx.display_mode);
         if (display_mode == 7 && !ao_on)
             display_mode = 0;
+        bool ssr_on = false;
+        if (m_ssr_pass && m_ssr_pass->isEnabled())
+        {
+            auto* ssr_tex = m_ssr_pass->getResultTexture();
+            if (ssr_tex)
+            {
+                ctx.device->bindTexture(4, *ssr_tex);
+                m_shader->setInt("ssrTexture", 4);
+                ssr_on = true;
+            }
+        }
+        if (display_mode == 9 && !ssr_on)
+            display_mode = 0;
         m_shader->setInt("displayMode", display_mode);
 
         // Main color texture
@@ -103,6 +117,8 @@ namespace RealmEngine
             ctx.device->bindTexture(3, *depth_tex);
             m_shader->setInt("depthTexture", 3);
         }
+
+        m_shader->setBool("ssrEnabled", ssr_on);
 
         m_quad->draw();
 

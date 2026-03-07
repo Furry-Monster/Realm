@@ -7,6 +7,7 @@ uniform sampler2D colorTexture;
 uniform sampler2D bloomTexture;
 uniform sampler2D aoTexture;
 uniform sampler2D depthTexture;
+uniform sampler2D ssrTexture;
 uniform bool      aoEnabled;
 uniform float     aoPower;
 uniform float     aoIntensity;
@@ -15,8 +16,9 @@ uniform float     bloomIntensity;
 uniform int       bloomMaxMip;
 uniform bool      tonemappingEnabled;
 uniform float     gammaCorrectionFactor;
+uniform bool      ssrEnabled;
 
-// 0=lit, 7=ao, 8=depth (modes 1-6 from geometry pass)
+// 0=lit, 7=ao, 8=depth, 9=ssr (modes 1-6 from geometry pass)
 uniform int displayMode;
 
 void main()
@@ -31,6 +33,12 @@ void main()
     {
         float d   = texture(depthTexture, textureCoordinates).r;
         FragColor = vec4(vec3(d), 1.0);
+        return;
+    }
+    if (displayMode == 9)
+    {
+        vec3 ssr = texture(ssrTexture, textureCoordinates).rgb;
+        FragColor = vec4(ssr, 1.0);
         return;
     }
 
@@ -54,6 +62,12 @@ void main()
         for (int i = 0; i <= bloomMaxMip; i++)
             bloomColor += textureLod(bloomTexture, textureCoordinates, i).rgb;
         color += bloomColor * bloomIntensity;
+    }
+
+    if (ssrEnabled)
+    {
+        vec4 ssr = texture(ssrTexture, textureCoordinates);
+        color += ssr.rgb;
     }
 
     // Reinhard: C' = C / (1 + C)

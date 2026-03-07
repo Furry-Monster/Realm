@@ -11,6 +11,7 @@ set(ENGINE_MODULES_REQUIRED
         core/event
         core/log
         core/math
+        core/sched
         functional/resource
         functional/scene
         functional/ecs
