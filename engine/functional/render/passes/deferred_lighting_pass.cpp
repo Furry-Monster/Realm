@@ -14,6 +14,8 @@
 #include "functional/render/passes/clustered_light_cull_pass.h"
 #include "functional/render/passes/csm_shadow_pass.h"
 #include "functional/render/passes/gbuffer_pass.h"
+#include "functional/render/passes/point_shadow_pass.h"
+#include "functional/render/passes/spot_shadow_pass.h"
 #include "functional/render/render_camera.h"
 #include "functional/render/render_scene.h"
 #include "functional/render/rhi/rhi_buffer.h"
@@ -34,6 +36,8 @@ namespace RealmEngine
     static constexpr int TEX_UNIT_IBL_DIFFUSE       = 6;
     static constexpr int TEX_UNIT_IBL_PREFILTERED   = 7;
     static constexpr int TEX_UNIT_IBL_BRDF          = 8;
+    static constexpr int TEX_UNIT_POINT_SHADOW_BASE = 9;
+    static constexpr int TEX_UNIT_SPOT_SHADOW_BASE  = 13;
 
     DeferredLightingPass::~DeferredLightingPass() noexcept = default;
 
@@ -213,6 +217,102 @@ namespace RealmEngine
         else
         {
             m_shader->setBool("shadowEnabled", false);
+        }
+
+        // Point shadows: cubemap depth in color attachment.
+        // Fallback for unused slots: IBL cubemap, or first point shadow texture when available.
+        RHITexture* point_fallback = m_ibl_diffuse ? m_ibl_diffuse : m_ibl_prefiltered;
+        if (m_point_shadow_pass)
+        {
+            const auto& shadows = m_point_shadow_pass->getActiveShadows();
+            m_shader->setInt("pointShadowCount", static_cast<int>(shadows.size()));
+            RHITexture* slot_fallback = point_fallback;
+            if (shadows.size() > 0)
+            {
+                auto* fb0 = m_point_shadow_pass->getFramebuffer(0);
+                if (fb0)
+                {
+                    auto* ct = fb0->getColorAttachment(0);
+                    if (ct)
+                        slot_fallback = ct;
+                }
+            }
+            if (slot_fallback)
+            {
+                for (size_t i = 0; i < 4u; ++i)
+                {
+                    RHITexture* tex = slot_fallback;
+                    if (i < shadows.size())
+                    {
+                        auto* fb = m_point_shadow_pass->getFramebuffer(static_cast<int>(i));
+                        if (fb)
+                        {
+                            auto* ct = fb->getColorAttachment(0);
+                            if (ct)
+                                tex = ct;
+                        }
+                    }
+                    ctx.device->bindTexture(TEX_UNIT_POINT_SHADOW_BASE + static_cast<int>(i), *tex);
+                    m_shader->setInt("pointShadowMap[" + std::to_string(i) + "]",
+                                     TEX_UNIT_POINT_SHADOW_BASE + static_cast<int>(i));
+                    if (i < shadows.size())
+                    {
+                        m_shader->setVec3("pointShadowPos[" + std::to_string(i) + "]", shadows[i].position);
+                        m_shader->setFloat("pointShadowRange[" + std::to_string(i) + "]", shadows[i].range);
+                        m_shader->setInt("pointShadowLightIndex[" + std::to_string(i) + "]", shadows[i].light_index);
+                    }
+                }
+            }
+        }
+        else
+        {
+            m_shader->setInt("pointShadowCount", 0);
+            if (point_fallback)
+            {
+                for (int i = 0; i < 4; ++i)
+                {
+                    ctx.device->bindTexture(TEX_UNIT_POINT_SHADOW_BASE + i, *point_fallback);
+                    m_shader->setInt("pointShadowMap[" + std::to_string(i) + "]", TEX_UNIT_POINT_SHADOW_BASE + i);
+                }
+            }
+        }
+
+        // Spot shadows: 2D depth map. Bind fallback (depth) when no spot shadows.
+        if (m_spot_shadow_pass)
+        {
+            const auto& shadows = m_spot_shadow_pass->getActiveShadows();
+            m_shader->setInt("spotShadowCount", static_cast<int>(shadows.size()));
+            for (size_t i = 0; i < 4u; ++i)
+            {
+                RHITexture* tex = depth_tex;
+                if (i < shadows.size())
+                {
+                    auto* fb = m_spot_shadow_pass->getFramebuffer(static_cast<int>(i));
+                    if (fb)
+                    {
+                        auto* dt = fb->getDepthAttachment();
+                        if (dt)
+                            tex = dt;
+                    }
+                }
+                ctx.device->bindTexture(TEX_UNIT_SPOT_SHADOW_BASE + static_cast<int>(i), *tex);
+                m_shader->setInt("spotShadowMap[" + std::to_string(i) + "]",
+                                 TEX_UNIT_SPOT_SHADOW_BASE + static_cast<int>(i));
+                if (i < shadows.size())
+                {
+                    m_shader->setMat4("spotShadowVP[" + std::to_string(i) + "]", shadows[i].light_view_proj);
+                    m_shader->setInt("spotShadowLightIndex[" + std::to_string(i) + "]", shadows[i].light_index);
+                }
+            }
+        }
+        else
+        {
+            m_shader->setInt("spotShadowCount", 0);
+            for (int i = 0; i < 4; ++i)
+            {
+                ctx.device->bindTexture(TEX_UNIT_SPOT_SHADOW_BASE + i, *depth_tex);
+                m_shader->setInt("spotShadowMap[" + std::to_string(i) + "]", TEX_UNIT_SPOT_SHADOW_BASE + i);
+            }
         }
 
         // Light probes

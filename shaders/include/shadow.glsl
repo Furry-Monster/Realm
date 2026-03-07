@@ -142,3 +142,55 @@ float calculateShadow(vec3 worldPos, vec3 n, vec3 l, mat4 viewMatrix)
 
     return shadow;
 }
+
+// Point light shadow: cubemap stores linear depth in R channel, normalized to [0,1]
+uniform int   pointShadowCount;
+uniform vec3  pointShadowPos[4];
+uniform float pointShadowRange[4];
+uniform int   pointShadowLightIndex[4];
+uniform samplerCube pointShadowMap[4];
+
+float calculatePointShadow(vec3 worldPos, vec3 n, vec3 lightPos, int lightIndex, float bias)
+{
+    if (pointShadowCount <= 0)
+        return 1.0;
+    for (int i = 0; i < pointShadowCount; i++)
+    {
+        if (pointShadowLightIndex[i] != lightIndex)
+            continue;
+        vec3 fragToLight = worldPos - pointShadowPos[i];
+        float dist       = length(fragToLight);
+        float depth      = dist / pointShadowRange[i];
+        if (depth > 1.0)
+            return 1.0;
+        vec3 dir     = fragToLight / dist;
+        float stored = texture(pointShadowMap[i], dir).r;
+        return (depth - bias <= stored) ? 1.0 : 0.0;
+    }
+    return 1.0;
+}
+
+// Spot light shadow: 2D depth map with light view-proj
+uniform int   spotShadowCount;
+uniform mat4  spotShadowVP[4];
+uniform int   spotShadowLightIndex[4];
+uniform sampler2D spotShadowMap[4];
+
+float calculateSpotShadow(vec3 worldPos, vec3 n, int lightIndex, float bias)
+{
+    if (spotShadowCount <= 0)
+        return 1.0;
+    for (int i = 0; i < spotShadowCount; i++)
+    {
+        if (spotShadowLightIndex[i] != lightIndex)
+            continue;
+        vec4 lsPos = spotShadowVP[i] * vec4(worldPos, 1.0);
+        vec3 proj  = lsPos.xyz / lsPos.w;
+        proj       = proj * 0.5 + 0.5;
+        if (proj.x < 0.0 || proj.x > 1.0 || proj.y < 0.0 || proj.y > 1.0 || proj.z > 1.0)
+            return 1.0;
+        float d = texture(spotShadowMap[i], proj.xy).r;
+        return (proj.z - bias <= d) ? 1.0 : 0.0;
+    }
+    return 1.0;
+}

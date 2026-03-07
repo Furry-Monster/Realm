@@ -103,8 +103,13 @@ vec3 shadePBR(vec3  albedo,
                 continue;
 
             int lightType = int(lights[idx].position.w);
+            float shadowBias = max(0.05 * (1.0 - dot(n, l)), 0.005);
             if (lightType == 1)
                 radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            else if (lightType == 0 && pointShadowCount > 0)
+                radiance *= calculatePointShadow(worldPos, n, lights[idx].position.xyz, idx, shadowBias);
+            else if (lightType == 2 && spotShadowCount > 0)
+                radiance *= calculateSpotShadow(worldPos, n, idx, shadowBias);
 
             Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, false, 0.0, vec3(1.0));
         }
@@ -118,8 +123,13 @@ vec3 shadePBR(vec3  albedo,
                 continue;
 
             int lightType = int(lights[i].position.w);
+            float shadowBias = max(0.05 * (1.0 - dot(n, l)), 0.005);
             if (lightType == 1)
                 radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            else if (lightType == 0 && pointShadowCount > 0)
+                radiance *= calculatePointShadow(worldPos, n, lights[i].position.xyz, i, shadowBias);
+            else if (lightType == 2 && spotShadowCount > 0)
+                radiance *= calculateSpotShadow(worldPos, n, i, shadowBias);
 
             Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, false, 0.0, vec3(1.0));
         }
@@ -160,8 +170,13 @@ vec3 shadeSubsurface(vec3  albedo,
                 continue;
 
             int lightType = int(lights[idx].position.w);
+            float shadowBias = max(0.05 * (1.0 - dot(n, l)), 0.005);
             if (lightType == 1)
                 radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            else if (lightType == 0 && pointShadowCount > 0)
+                radiance *= calculatePointShadow(worldPos, n, lights[idx].position.xyz, idx, shadowBias);
+            else if (lightType == 2 && spotShadowCount > 0)
+                radiance *= calculateSpotShadow(worldPos, n, idx, shadowBias);
 
             Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, true, 1.0, vec3(1.0));
         }
@@ -175,8 +190,13 @@ vec3 shadeSubsurface(vec3  albedo,
                 continue;
 
             int lightType = int(lights[i].position.w);
+            float shadowBias = max(0.05 * (1.0 - dot(n, l)), 0.005);
             if (lightType == 1)
                 radiance *= calculateShadow(worldPos, n, l, viewMatrix);
+            else if (lightType == 0 && pointShadowCount > 0)
+                radiance *= calculatePointShadow(worldPos, n, lights[i].position.xyz, i, shadowBias);
+            else if (lightType == 2 && spotShadowCount > 0)
+                radiance *= calculateSpotShadow(worldPos, n, i, shadowBias);
 
             Lo += cookTorranceBRDF(l, radiance, n, v, albedo, metallic, roughness, f0, true, 1.0, vec3(1.0));
         }
