@@ -37,7 +37,7 @@
 | **后处理** | AO 混合、泛光叠加、Reinhard 色调映射、Gamma 校正 |
 | **显示模式** | Lit、Albedo、Normals、Metallic、Roughness、Material AO、Emissive、AO、Depth、SSR 预览 |
 
-Deferred 管线额外包含 G-Buffer（4 RT + 深度）、Hi-Z、聚簇光源剔除（Compute，光照接入待完成）与 SSR；Forward 管线采用直接 PBR 全光源遍历。管线模式可在项目设置中配置。
+Deferred 管线额外包含 G-Buffer（4 RT + 深度）、Hi-Z、聚簇光源剔除（Compute）、SSR；Forward 管线采用直接 PBR 全光源遍历。管线模式可在项目设置中配置。
 
 ## 环境要求
 

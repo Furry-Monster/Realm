@@ -37,7 +37,7 @@ The engine supports **Forward** and **Deferred** pipelines. Both use Cook-Torran
 | **Post-process** | AO blend, bloom add, Reinhard tonemapping, gamma correction |
 | **Display modes** | Lit, Albedo, Normals, Metallic, Roughness, Material AO, Emissive, AO, Depth, SSR preview |
 
-Deferred pipeline adds G-Buffer (4 RTs + depth), Hi-Z, clustered light culling (compute; lighting integration pending), and SSR. Forward pipeline uses direct PBR with full light iteration. Pipeline mode is configurable in Project Settings.
+Deferred pipeline adds G-Buffer (4 RTs + depth), Hi-Z, clustered light culling (compute) 、SSR. Forward pipeline uses direct PBR with full light iteration. Pipeline mode is configurable in Project Settings.
 
 ## Requirements
 
