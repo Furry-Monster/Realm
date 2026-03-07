@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <functional>
 #include <string>
 #include <vector>
@@ -26,9 +27,10 @@ namespace RealmEngine
 
     using SystemFn = std::function<void(SystemContext&)>;
 
-    struct RegisteredSystem
+    struct SystemEntry
     {
         SystemPhase phase;
+        int         order {0};
         std::string name;
         SystemFn    fn;
     };
@@ -37,12 +39,21 @@ namespace RealmEngine
     {
     public:
         void registerSystem(SystemPhase phase, std::string name, SystemFn fn);
+        void registerSystem(SystemPhase phase, int order, std::string name, SystemFn fn);
+        bool unregisterSystem(const std::string& name);
+        void clear();
+
+        void prepare();
+
         void tickLogical(SystemContext& ctx);
         void tickRender(SystemContext& ctx);
 
     private:
+        void ensureSorted();
         void runPhase(SystemContext& ctx, SystemPhase phase);
 
-        std::vector<RegisteredSystem> m_systems;
+        std::vector<SystemEntry>                 m_systems;
+        std::array<std::pair<size_t, size_t>, 5> m_phase_ranges {};
+        bool                                     m_dirty {false};
     };
 } // namespace RealmEngine

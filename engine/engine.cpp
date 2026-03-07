@@ -72,6 +72,7 @@ namespace RealmEngine
 
             m_scheduler = std::make_unique<Scheduler>();
             registerSystems(*m_scheduler, *this);
+            m_scheduler->prepare();
 
             const EngineConfig& engine_config = m_config->getEngineConfig();
             m_max_delta_time                  = engine_config.max_delta_time;
