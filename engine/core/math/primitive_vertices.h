@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace RealmEngine
 {
     // Shared vertex data for common primitives. No RHI dependency.

@@ -44,18 +44,20 @@ namespace RealmEngine
         {
             switch (p)
             {
-                case SystemPhase::Logic:
+                case SystemPhase::PreLogic:
                     return 0;
-                case SystemPhase::PostLogic:
+                case SystemPhase::Logic:
                     return 1;
-                case SystemPhase::PreRender:
+                case SystemPhase::PostLogic:
                     return 2;
-                case SystemPhase::Render:
+                case SystemPhase::PreRender:
                     return 3;
-                case SystemPhase::PostRender:
+                case SystemPhase::Render:
                     return 4;
-                default:
+                case SystemPhase::PostRender:
                     return 5;
+                default:
+                    return 6;
             }
         }
     } // namespace
@@ -101,14 +103,11 @@ namespace RealmEngine
             m_systems[start + i].fn(ctx);
     }
 
-    void Scheduler::tickLogical(SystemContext& ctx)
+    void Scheduler::tick(SystemContext& ctx)
     {
+        runPhase(ctx, SystemPhase::PreLogic);
         runPhase(ctx, SystemPhase::Logic);
         runPhase(ctx, SystemPhase::PostLogic);
-    }
-
-    void Scheduler::tickRender(SystemContext& ctx)
-    {
         runPhase(ctx, SystemPhase::PreRender);
         runPhase(ctx, SystemPhase::Render);
         runPhase(ctx, SystemPhase::PostRender);

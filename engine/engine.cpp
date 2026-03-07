@@ -254,35 +254,11 @@ namespace RealmEngine
         if (m_delta_time > m_max_delta_time)
             m_delta_time = m_max_delta_time;
 
-        logicalTick();
-        renderTick();
-    }
-
-    void Engine::logicalTick()
-    {
-        m_input->tick();
-        m_window->pollEvents();
-
-        auto* scene = m_scene->getCurrentOrNewScene().get();
-        if (scene && !scene->getViewportController())
-            scene->setViewportController(std::make_shared<ViewportController>());
-
         SystemContext ctx {};
-        ctx.scene      = scene;
+        ctx.scene      = m_scene->getCurrentOrNewScene().get();
         ctx.delta_time = static_cast<float>(m_delta_time);
         ctx.engine     = this;
-        m_scheduler->tickLogical(ctx);
-    }
-
-    void Engine::renderTick()
-    {
-        auto* scene = m_scene->getCurrentScene().get();
-
-        SystemContext ctx {};
-        ctx.scene      = scene;
-        ctx.delta_time = static_cast<float>(m_delta_time);
-        ctx.engine     = this;
-        m_scheduler->tickRender(ctx);
+        m_scheduler->tick(ctx);
     }
 
 } // namespace RealmEngine

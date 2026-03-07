@@ -18,6 +18,7 @@ namespace RealmEngine
 
     enum class SystemPhase : int
     {
+        PreLogic   = -100,
         Logic      = 0,
         PostLogic  = 100,
         PreRender  = 200,
@@ -45,15 +46,14 @@ namespace RealmEngine
 
         void prepare();
 
-        void tickLogical(SystemContext& ctx);
-        void tickRender(SystemContext& ctx);
+        void tick(SystemContext& ctx);
 
     private:
         void ensureSorted();
         void runPhase(SystemContext& ctx, SystemPhase phase);
 
         std::vector<SystemEntry>                 m_systems;
-        std::array<std::pair<size_t, size_t>, 5> m_phase_ranges {};
+        std::array<std::pair<size_t, size_t>, 6> m_phase_ranges {};
         bool                                     m_dirty {false};
     };
 } // namespace RealmEngine
