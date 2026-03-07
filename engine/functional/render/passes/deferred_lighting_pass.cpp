@@ -123,8 +123,10 @@ namespace RealmEngine
         m_shader->setMat4("invView", glm::inverse(view));
         m_shader->setMat4("invProjection", glm::inverse(projection));
 
-        // Lights: use cluster pass buffer when available (avoids duplicate upload)
-        const bool use_cluster = m_cluster_cull_pass != nullptr;
+        // Lights: use cluster pass when available and scene has lights.
+        // With 0 lights, use fallback path to avoid Intel Mesa GL_INVALID_OPERATION on cluster SSBOs.
+        const bool use_cluster =
+            m_cluster_cull_pass != nullptr && !ctx.scene->getLights().empty();
         if (use_cluster)
         {
             m_cluster_cull_pass->getLightBuffer()->bindBase(1);
@@ -152,8 +154,11 @@ namespace RealmEngine
                 data[i].spot_area   = glm::vec4(l.outer_cone_angle, l.width, l.height, 0.0f);
             }
             m_light_ssbo->setSubData(&count_i, 0, sizeof(int));
-            m_light_ssbo->setSubData(data, 16, count * sizeof(LightData));
+            if (count > 0)
+                m_light_ssbo->setSubData(data, 16, count * sizeof(LightData));
             m_light_ssbo->bindBase(1);
+            m_light_ssbo->bindBase(3);
+            m_light_ssbo->bindBase(4);
         }
         m_shader->setBool("useClusteredLights", use_cluster);
 
@@ -174,8 +179,11 @@ namespace RealmEngine
             m_shader->setInt("brdfConvolutionMap", TEX_UNIT_IBL_BRDF);
         }
 
-        // Shadow (CSM)
-        if (m_shadow_pass && m_shadow_pass->isShadowEnabled())
+        m_shader->setMat4("viewMatrix", view);
+
+        // Shadow (CSM). Always bind shadow map when available to satisfy driver sampler validation
+        // (Intel Mesa GL_INVALID_OPERATION when sampler2DArray is unbound).
+        if (m_shadow_pass)
         {
             auto* shadow_depth = m_shadow_pass->getFramebuffer()->getDepthAttachment();
             if (shadow_depth)
@@ -183,19 +191,25 @@ namespace RealmEngine
                 ctx.device->bindTexture(TEX_UNIT_SHADOW, *shadow_depth);
                 m_shader->setInt("shadowMapArray", TEX_UNIT_SHADOW);
             }
-            const auto& cascades = m_shadow_pass->getCascades();
-            m_shader->setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
-            std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
-            for (size_t c = 0; c < static_cast<size_t>(CSMShadowPass::CASCADE_COUNT); ++c)
+            if (m_shadow_pass->isShadowEnabled())
             {
-                m_shader->setMat4("cascadeVP[" + std::to_string(static_cast<int>(c)) + "]",
-                                  cascades[c].light_view_proj);
-                splits[c] = cascades[c].split_depth;
+                const auto& cascades = m_shadow_pass->getCascades();
+                m_shader->setInt("cascadeCount", CSMShadowPass::CASCADE_COUNT);
+                std::vector<float> splits(CSMShadowPass::CASCADE_COUNT);
+                for (size_t c = 0; c < static_cast<size_t>(CSMShadowPass::CASCADE_COUNT); ++c)
+                {
+                    m_shader->setMat4("cascadeVP[" + std::to_string(static_cast<int>(c)) + "]",
+                                      cascades[c].light_view_proj);
+                    splits[c] = cascades[c].split_depth;
+                }
+                m_shader->setFloatArray("cascadeSplits", splits);
+                m_shader->setFloat("lightSize", m_shadow_pass->getLightSize());
+                m_shader->setBool("shadowEnabled", true);
             }
-            m_shader->setFloatArray("cascadeSplits", splits);
-            m_shader->setFloat("lightSize", m_shadow_pass->getLightSize());
-            m_shader->setMat4("viewMatrix", view);
-            m_shader->setBool("shadowEnabled", true);
+            else
+            {
+                m_shader->setBool("shadowEnabled", false);
+            }
         }
         else
         {
