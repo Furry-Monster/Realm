@@ -3,6 +3,7 @@
 #include "functional/render/fullscreen_quad.h"
 #include "functional/render/passes/bloom_pass.h"
 #include "functional/render/passes/gtao_blur_pass.h"
+#include "functional/render/passes/ssr_pass.h"
 #include "functional/render/rhi/rhi_device.h"
 #include "functional/render/rhi/rhi_framebuffer.h"
 #include "functional/render/rhi/rhi_shader.h"
@@ -103,6 +104,19 @@ namespace RealmEngine
             ctx.device->bindTexture(3, *depth_tex);
             m_shader->setInt("depthTexture", 3);
         }
+
+        bool ssr_on = false;
+        if (m_ssr_pass && m_ssr_pass->isEnabled())
+        {
+            auto* ssr_tex = m_ssr_pass->getResultTexture();
+            if (ssr_tex)
+            {
+                ctx.device->bindTexture(4, *ssr_tex);
+                m_shader->setInt("ssrTexture", 4);
+                ssr_on = true;
+            }
+        }
+        m_shader->setBool("ssrEnabled", ssr_on);
 
         m_quad->draw();
 

@@ -325,6 +325,7 @@ namespace RealmEngine
         m_postprocess_pass->setSceneColorSource(m_deferred_lighting_pass);
         m_postprocess_pass->setBloomPass(m_bloom_pass);
         m_postprocess_pass->setGTAOBlurPass(m_gtao_blur_pass);
+        m_postprocess_pass->setSSRPass(m_ssr_pass);
         m_postprocess_pass->setFullscreenQuad(m_fullscreen_quad.get());
     }
 
